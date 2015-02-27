@@ -5,6 +5,9 @@
  */
 package jassimp;
 
+import jassimp.importing.Importer;
+import java.net.URL;
+
 /**
  *
  * @author gbarbieri
@@ -15,7 +18,10 @@ public class JAssimp {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        
+        URL url = JAssimp.class.getResource("/jassimp/content/md2/phoenix_ugv.md2");
+        
+        Importer.readFile(url.getPath(), 0);
     }
     
 }
