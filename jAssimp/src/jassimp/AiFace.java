@@ -5,17 +5,12 @@
  */
 package jassimp;
 
-import jassimp.material.AiMaterial;
-
 /**
  *
  * @author gbarbieri
  */
-public class AiScene {
-    
-    public int mNumMaterials;
-    public AiNode mRootNode;
-    public AiMaterial[] mMaterial;
-    public int mNumMeshes;
-    public AiMesh[] mMeshes;
+public class AiFace {
+ 
+    public int[] mIndices;
+    public int mNumIndices;
 }

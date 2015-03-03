@@ -6,6 +6,7 @@
 package jassimp;
 
 import jassimp.importing.Importer;
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -16,8 +17,9 @@ public class JAssimp {
 
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         
         URL url = JAssimp.class.getResource("/jassimp/content/md2/phoenix_ugv.md2");
         

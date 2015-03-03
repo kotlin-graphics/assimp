@@ -8,6 +8,7 @@ package jassimp.importing;
 import jassimp.AiScene;
 import jassimp.importing.importers.md2.Md2Importer;
 import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -15,7 +16,7 @@ import java.io.File;
  */
 public class Importer {
     
-    public static AiScene readFile(String fileName, int flags) {
+    public static AiScene readFile(String fileName, int flags) throws IOException{
 
         AiScene aiScene;        
         File file = new File(fileName);

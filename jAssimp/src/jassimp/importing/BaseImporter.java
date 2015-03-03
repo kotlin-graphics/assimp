@@ -7,6 +7,7 @@ package jassimp.importing;
 
 import jassimp.AiScene;
 import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -14,15 +15,15 @@ import java.io.File;
  */
 public class BaseImporter {
 
-    public AiScene readFile(File file){
-     
+    public AiScene readFile(File file) throws IOException {
+
         AiScene aiScene = internalRead(file);
-        
+
         return null;
     }
-    
-    protected AiScene internalRead(File file) {
-        
+
+    protected AiScene internalRead(File file) throws IOException {
+
         return null;
     }
 }
