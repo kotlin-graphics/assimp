@@ -132,7 +132,7 @@ public class Md2Importer extends BaseImporter {
 
             if (m_pcHeader.numTexCoords > 0) {
                 // allocate storage for texture coordinates, too
-                pcMesh.mTextureCoords = new Vec3[pcMesh.mNumVertices];
+                pcMesh.mTextureCoords = new Vec3[1][pcMesh.mNumVertices];
                 pcMesh.mNumUVComponents = new int[2];
 
                 // check whether the skin width or height are zero (this would
@@ -179,18 +179,18 @@ public class Md2Importer extends BaseImporter {
                     // read x,y, and z component of the vertex
                     Vec3 vec = new Vec3();
 
-                    vec.x = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 0) * scale.x;
-                    vec.y = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 1) * scale.x;
-                    vec.z = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 2) * scale.x;
+                    vec.x = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 0) & 0xff) * scale.x;
+                    vec.y = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 1) & 0xff) * scale.y;
+                    vec.z = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size + 2) & 0xff) * scale.z;
 
                     vec = vec.plus(translate);
 
                     pcMesh.mVertices[iCurrent] = vec;
 
-                    // read the normal vector from the precalculated normal table
-                    int iNormalIndex = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size
+                    // read the normal vector from the precalculated normal table                    
+                    byte b = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.size
                             + Md2FileData.Vertex.offsetLightNormalIndex);
-                    System.out.println("iNormalIndex "+iNormalIndex);
+                    int iNormalIndex = b & 0xff;
                     Vec3 vNormal = lookupNormalIndex(iNormalIndex);
                     pcMesh.mNormals[iCurrent] = vNormal;
 
@@ -202,8 +202,30 @@ public class Md2Importer extends BaseImporter {
                     tmp = vec.y;
                     vec.y = vec.z;
                     vec.z = tmp;
+
+                    if (m_pcHeader.numTexCoords > 0) {
+                        // validate texture coordinates
+                        iIndex = readShort(mBuffer, pcTriangle + i * Md2FileData.Triangle.size
+                                + Md2FileData.Triangle.offsetTextureIndices + c * Md2FileData.Triangle.indicesSize);
+
+                        if (iIndex >= m_pcHeader.numTexCoords) {
+                            System.out.println("MD2: UV index is outside the allowed range");
+                            iIndex = m_pcHeader.numTexCoords - 1;
+                        }
+                        Vec3 pcOut = new Vec3();
+                        // the texture coordinates are absolute values but we
+                        // need relative values between 0 and 1
+                        pcOut.x = readShort(mBuffer, pcTexCoords + iIndex * Md2FileData.TexCoord.size);
+                        pcOut.x /= fDivisorU;
+                        pcOut.y = readShort(mBuffer, pcTexCoords + iIndex * Md2FileData.TexCoord.size + Md2FileData.TexCoord.offsetT);
+                        pcOut.y = 1 - pcOut.y / fDivisorV;
+
+                        pcMesh.mTextureCoords[0][iCurrent] = pcOut;
+                    }
+                    pScene.mMeshes[0].mFaces[i].mIndices[c] = iCurrent;
                 }
             }
+            return pScene;
         }
         return null;
     }

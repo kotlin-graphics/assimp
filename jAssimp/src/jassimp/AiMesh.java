@@ -19,6 +19,6 @@ public class AiMesh {
     public int mNumVertices;
     public Vec3[] mVertices;
     public Vec3[] mNormals;
-    public Vec3[] mTextureCoords;
+    public Vec3[][] mTextureCoords;
     public int[] mNumUVComponents;
 }

@@ -63,6 +63,7 @@ public class Md2FileData {
          * uint16_t textureIndices[3];
          */
         public static final int indicesSize = 2;
+        public static final int offsetTextureIndices = indicesSize * 3;
         public static final int size = indicesSize * 3 * 2;
 
         int[] vertexIndices = new int[3];
@@ -111,7 +112,8 @@ public class Md2FileData {
          *
          * uint16_t t;
          */
-        public static final int size = 2 + 2;
+        public static final int offsetT = 2;
+        public static final int size = offsetT + 2;
 
         public int s;
         public int t;
