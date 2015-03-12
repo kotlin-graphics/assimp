@@ -17,13 +17,11 @@ public class BaseImporter {
 
     public AiScene readFile(File file) throws IOException {
 
-        AiScene aiScene = internalRead(file);
-
-        return null;
+        return internalRead(file);
     }
 
     protected AiScene internalRead(File file) throws IOException {
-
+        
         return null;
     }
 }

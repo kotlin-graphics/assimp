@@ -17,8 +17,7 @@ import java.io.IOException;
 public class Importer {
     
     public static AiScene readFile(String fileName, int flags) throws IOException{
-
-        AiScene aiScene;        
+     
         File file = new File(fileName);
 
         if (file.exists()) {
@@ -38,7 +37,7 @@ public class Importer {
                 }
                 if (importer != null) {
                     
-                    aiScene = importer.readFile(file);
+                    return importer.readFile(file);
                 }
             }
         }
