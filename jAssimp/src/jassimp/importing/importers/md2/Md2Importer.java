@@ -5,13 +5,13 @@
  */
 package jassimp.importing.importers.md2;
 
-import jassimp.AiFace;
+import jassimp.components.AiFace;
 import jassimp.material.AiMaterial;
-import jassimp.AiMesh;
-import jassimp.AiNode;
-import jassimp.AiPrimitiveType;
-import jassimp.AiScene;
-import jassimp.AiShadingMode;
+import jassimp.components.AiMesh;
+import jassimp.components.AiNode;
+import jassimp.components.AiPrimitiveType;
+import jassimp.components.AiScene;
+import jassimp.components.AiShadingMode;
 import jassimp.importing.BaseImporter;
 import jassimp.material.AiMaterialKey;
 import java.io.File;

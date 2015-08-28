@@ -5,7 +5,7 @@
  */
 package jassimp.importing;
 
-import jassimp.AiScene;
+import jassimp.components.AiScene;
 import java.io.File;
 import java.io.IOException;
 

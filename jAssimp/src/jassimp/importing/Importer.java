@@ -5,7 +5,7 @@
  */
 package jassimp.importing;
 
-import jassimp.AiScene;
+import jassimp.components.AiScene;
 import jassimp.importing.importers.md2.Md2Importer;
 import java.io.File;
 import java.io.IOException;
@@ -15,9 +15,18 @@ import java.io.IOException;
  * @author gbarbieri
  */
 public class Importer {
-    
-    public static AiScene readFile(String fileName, int flags) throws IOException{
-     
+
+    /**
+    Reads the given file and returns its contents if successful.
+    @param fileName
+    @param flags
+    @return
+    @throws IOException 
+    */
+    public static AiScene readFile(String fileName, int flags) throws IOException {
+
+        AiScene mScene = null;
+
         File file = new File(fileName);
 
         if (file.exists()) {
@@ -36,10 +45,15 @@ public class Importer {
                         break;
                 }
                 if (importer != null) {
-                    
-                    return importer.readFile(file);
+
+                    mScene = importer.readFile(file);
                 }
             }
+        }
+        // If successful, apply all active post processing steps to the imported data
+        if (mScene != null) {
+
+            
         }
         return null;
     }
