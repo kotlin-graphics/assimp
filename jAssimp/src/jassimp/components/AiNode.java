@@ -41,9 +41,21 @@ public class AiNode {
      * surrounded by @verbatim <> @endverbatim e.g.
      *  @verbatim<DummyRootNode> @endverbatim.
      */
-    public String mName ;
+    public String mName;
     
+    /** Parent node. NULL if this node is the root node. */
+    public AiNode mParent;
+
+    /** The number of child nodes of this node. */
+    public int mNumChildren;
+    
+    /** The child nodes of this node. NULL if mNumChildren is 0. */
+    public AiNode[] mChildren;
+    
+    /** The number of meshes of this node. */
     public int mNumMeshes;
+    
+    /** The meshes of this node. Each entry is an index into the mesh */
     public int[] mMeshes;
     public AiMaterial aiMaterial;
 }
