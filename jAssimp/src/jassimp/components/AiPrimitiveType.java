@@ -9,7 +9,7 @@ package jassimp.components;
  *
  * @author gbarbieri
  */
-public class AiPrimitiveType {
+public enum AiPrimitiveType {
 
     /**
      * A point primitive.
@@ -17,23 +17,20 @@ public class AiPrimitiveType {
      * This is just a single vertex in the virtual world, #aiFace contains just
      * one index for such a primitive.
      */
-    public static int POINT = 0x1;
-
+    aiPrimitiveType_POINT(0x1),
     /**
      * A line primitive.
      *
      * This is a line defined through a start and an end position. #aiFace
      * contains exactly two indices for such a primitive.
      */
-    public static int LINE = 0x2;
-
+    aiPrimitiveType_LINE(0x2),
     /**
      * A triangular primitive.
      *
      * A triangle consists of three indices.
      */
-    public static int TRIANGLE = 0x4;
-
+    aiPrimitiveType_TRIANGLE(0x4),
     /**
      * A higher-level polygon with more than 3 edges.
      *
@@ -42,11 +39,11 @@ public class AiPrimitiveType {
      * convenience, it splits all polygons in triangles (which are much easier
      * to handle).
      */
-    public static int POLYGON = 0x8;
+    aiPrimitiveType_POLYGON(0x8);
 
-    /**
-     * This value is not used. It is just here to force the compiler to map this
-     * enum to a 32 Bit integer.
-     */
-    public static int Force32Bit = Integer.MAX_VALUE;
+    public int value;
+
+    private AiPrimitiveType(int value) {
+        this.value = value;
+    }
 }

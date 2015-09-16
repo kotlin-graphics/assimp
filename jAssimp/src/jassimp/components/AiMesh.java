@@ -6,6 +6,7 @@
 package jassimp.components;
 
 import jglm.Vec3;
+import jglm.Vec4;
 
 /**
  *
@@ -44,7 +45,7 @@ public class AiMesh {
      * "SortByPrimitiveType"-Step can be used to make sure the output meshes
      * consist of one primitive type each.
      */
-    public int mPrimitiveType;
+    public int mPrimitiveTypes;
     /**
      * The number of vertices in this mesh. This is also the size of all of the
      * per-vertex data arrays. The maximum value for this member is
@@ -82,12 +83,43 @@ public class AiMesh {
      * directly from the model file.
      */
     public Vec3[] mNormals;
+
+    /**
+     * Vertex tangents. The tangent of a vertex points in the direction of the
+     * positive X texture axis. The array contains normalized vectors, NULL if
+     * not present. The array is mNumVertices in size. A mesh consisting of
+     * points and lines only may not have normal vectors. Meshes with mixed
+     * primitive types (i.e. lines and triangles) may have normals, but the
+     * normals for vertices that are only referenced by point or line primitives
+     * are undefined and set to qNaN. See the #mNormals member for a detailled
+     * discussion of qNaNs.
+     *
+     * @note If the mesh contains tangents, it automatically also contains
+     * bitangents.
+     */
+    public Vec3[] mTangents;
+    /**
+     * Vertex bitangents. The bitangent of a vertex points in the direction of
+     * the positive Y texture axis. The array contains normalized vectors, NULL
+     * if not present. The array is mNumVertices in size.
+     *
+     * @note If the mesh contains tangents, it automatically also contains
+     * bitangents.
+     */
+    public Vec3[] mBitangents;
+
+    /**
+     * Vertex color sets. A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS
+     * vertex colors per vertex. NULL if not present. Each array is mNumVertices
+     * in size if present.
+     */
+    public Vec4[] mColors = new Vec4[AI_MAX_NUMBER_OF_COLOR_SETS];
     /**
      * Vertex texture coords, also known as UV channels. A mesh may contain 0 to
      * AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array
      * is mNumVertices in size.
      */
-    public Vec3[][] mTextureCoords;
+    public Vec3[] mTextureCoords = new Vec3[AI_MAX_NUMBER_OF_TEXTURECOORDS];
     /**
      * Specifies the number of components for a given UV channel. Up to three
      * channels are supported (UVW, for accessing volume or cube maps). If the
@@ -105,6 +137,16 @@ public class AiMesh {
      * NOT set each face references an unique set of vertices.
      */
     public AiFace[] mFaces;
+    /**
+     * The number of bones this mesh contains. Can be 0, in which case the
+     * mBones array is NULL.
+     */
+    public int mNumBones;
+    /** The bones of this mesh.
+    * A bone consists of a name by which it can be found in the
+    * frame hierarchy and a set of vertex weights.
+    */
+    public AiBone[] mBones;
     /**
      * The material used by this mesh. A mesh does use only a single material.
      * If an imported model uses multiple materials, the import splits up the
@@ -133,15 +175,15 @@ public class AiMesh {
      */
     public AiMesh() {
 
-        mPrimitiveType = 0;
+        mPrimitiveTypes = 0;
         mNumVertices = 0;
         mNumFaces = 0;
         mVertices = null;
         mNormals = null;
+        mTangents = null;
+        mBitangents = null;
         mFaces = null;
         mMaterialIndex = 0;
-
-        mTextureCoords = new Vec3[AI_MAX_NUMBER_OF_TEXTURECOORDS][];
     }
 
     /**
@@ -160,12 +202,27 @@ public class AiMesh {
         return mNormals != null;
     }
 
+    public boolean hasVertexColors(int pIndex) {
+
+        if (pIndex >= AI_MAX_NUMBER_OF_COLOR_SETS) {
+            return false;
+        } else {
+            return mColors[pIndex] != null && mNumVertices > 0;
+        }
+    }
+
     /**
-     * @param pIndex
-     * @return Check whether the anim mesh overrides a particular set of texture
-     * coordinates on his host mesh.
+     * Check whether the mesh contains a texture coordinate set.
+     *
+     * @param pIndex pIndex Index of the texture coordinates set
+     * @return
      */
     public boolean hasTextureCoords(int pIndex) {
-        return pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS ? false : mTextureCoords[pIndex] != null;
+
+        if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+            return false;
+        } else {
+            return mTextureCoords[pIndex] != null && mNumVertices > 0;
+        }
     }
 }

@@ -10,9 +10,11 @@ import jassimp.material.AiMaterial;
 import jassimp.components.AiMesh;
 import jassimp.components.AiNode;
 import jassimp.components.AiPrimitiveType;
+import static jassimp.components.AiPrimitiveType.aiPrimitiveType_TRIANGLE;
 import jassimp.components.AiScene;
 import jassimp.components.AiShadingMode;
 import jassimp.importing.BaseImporter;
+import static jassimp.importing.importers.md2.Md2FileData.AI_MD2_MAGIC_NUMBER_LE;
 import jassimp.material.AiMaterialKey;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +33,7 @@ public class Md2Importer extends BaseImporter {
     private long fileSize;
 
     @Override
-    protected AiScene internalRead(File file) throws IOException {
+    public AiScene internalRead(File file) throws IOException {
 
         fileSize = file.length();
         /**
@@ -62,7 +64,7 @@ public class Md2Importer extends BaseImporter {
             pScene.mMeshes = new AiMesh[]{new AiMesh()};
 
             AiMesh pcMesh = pScene.mMeshes[0];
-            pcMesh.mPrimitiveType = AiPrimitiveType.TRIANGLE;
+            pcMesh.mPrimitiveTypes = aiPrimitiveType_TRIANGLE.value;
 
             // navigate to the begin of the frame data
             int pcFrame = m_pcHeader.offsetFrames;
@@ -132,7 +134,7 @@ public class Md2Importer extends BaseImporter {
 
             if (m_pcHeader.numTexCoords > 0) {
                 // allocate storage for texture coordinates, too
-                pcMesh.mTextureCoords = new Vec3[1][pcMesh.mNumVertices];
+                pcMesh.mTextureCoords = new Vec3[pcMesh.mNumVertices];
                 pcMesh.mNumUVComponents = new int[2];
 
                 // check whether the skin width or height are zero (this would
@@ -220,7 +222,7 @@ public class Md2Importer extends BaseImporter {
                         pcOut.y = readShort(mBuffer, pcTexCoords + iIndex * Md2FileData.TexCoord.size + Md2FileData.TexCoord.offsetT);
                         pcOut.y = 1 - pcOut.y / fDivisorV;
 
-                        pcMesh.mTextureCoords[0][iCurrent] = pcOut;
+                        pcMesh.mTextureCoords[iCurrent] = pcOut;
                     }
                     pScene.mMeshes[0].mFaces[i].mIndices[c] = iCurrent;
                 }
@@ -309,28 +311,25 @@ public class Md2Importer extends BaseImporter {
         return true;
     }
 
-    private int readInteger(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 4).getInt();
-    }
+    /**
+     * Returns whether the class can handle the format of the given file.
+     * @param pFile
+     * @return
+     * @throws IOException 
+     */
+    @Override
+    public boolean canRead(File pFile) throws IOException {
 
-    private float readFloat(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 4).getFloat();
-    }
+        String extension = getExtension(pFile);
 
-    private short readShort(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 2).getShort();
-    }
-
-    private byte readByte(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 1).get();
-    }
-
-    private ByteBuffer readByteBuffer(byte[] bs, int offset, int length) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bs, offset, length);
-        return byteBuffer.order(ByteOrder.nativeOrder());
-    }
-
-    private String readString(byte[] bs, int offset, int length) throws IOException {
-        return new String(bs, offset, length, Charset.forName("UTF-8"));
+        if (extension.equals("md2")) {
+            return true;
+        }
+        // if check for extension is not enough, check for the magic tokens
+        if (extension.isEmpty()) {
+            int token = AI_MD2_MAGIC_NUMBER_LE;
+            return checkMagicToken(pFile, token);
+        }
+        return false;
     }
 }

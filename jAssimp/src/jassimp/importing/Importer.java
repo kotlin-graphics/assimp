@@ -5,10 +5,14 @@
  */
 package jassimp.importing;
 
+import jassimp.processes.ValidateDSProcess;
 import jassimp.components.AiScene;
+import static jassimp.importing.AiPostProcessSteps.aiProcess_ValidateDataStructure;
 import jassimp.importing.importers.md2.Md2Importer;
+import jassimp.processes.BaseProcess;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  *
@@ -16,45 +20,79 @@ import java.io.IOException;
  */
 public class Importer {
 
+    private static Importer instance = new Importer();
+    private static ImporterPimpl pimpl;
     /**
-    Reads the given file and returns its contents if successful.
-    @param fileName
-    @param flags
-    @return
-    @throws IOException 
-    */
-    public static AiScene readFile(String fileName, int flags) throws IOException {
+     * Post processing steps we can apply at the imported data.
+     */
+    private ArrayList<BaseProcess> mPostProcessingSteps;
 
-        AiScene mScene = null;
+    private Importer() {
+        // allocate the pimpl first
+        pimpl = new ImporterPimpl();
+    }
 
-        File file = new File(fileName);
+    /**
+     * Reads the given file and returns its contents if successful.
+     *
+     * @param _pFile
+     * @param pFlags
+     * @return
+     * @throws IOException
+     */
+    public static AiScene readFile(String _pFile, int pFlags) throws IOException {
 
-        if (file.exists()) {
+        File pFile = new File(_pFile);
 
-            int i = fileName.lastIndexOf('.');
-            if (i > 0) {
+//        if (file.exists()) {
+//
+//            int i = _pFile.lastIndexOf('.');
+//            if (i > 0) {
+//
+//                String extension = _pFile.substring(i + 1);
+//
+//                BaseImporter importer = null;
+//
+//                switch (extension.toLowerCase()) {
+//
+//                    case Extension.MD2:
+//                        importer = new Md2Importer();
+//                        break;
+//                }
+//                if (importer != null) {
+//
+//                    mScene = importer.readFile(file);
+//                }
+//            }
+//        }
+        if (!pFile.exists()) {
 
-                String extension = fileName.substring(i + 1);
+            pimpl.mErrorString = "Unable to open file " + _pFile;
+            return null;
+        }
 
-                BaseImporter importer = null;
+        BaseImporter imp = null;
 
-                switch (extension.toLowerCase()) {
-
-                    case Extension.MD2:
-                        importer = new Md2Importer();
-                        break;
-                }
-                if (importer != null) {
-
-                    mScene = importer.readFile(file);
-                }
+        for (BaseImporter mImporter : pimpl.mImporter) {
+            if (mImporter.canRead(pFile)) {
+                imp = mImporter;
+                break;
             }
         }
+
         // If successful, apply all active post processing steps to the imported data
         if (mScene != null) {
 
-            
+            // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
+            if ((pFlags & aiProcess_ValidateDataStructure.value) != 0) {
+                ValidateDSProcess ds = new ValidateDSProcess();
+                ds.executeOnScene(pimpl);
+            }
         }
         return null;
+    }
+
+    public ImporterPimpl pImpl() {
+        return pimpl;
     }
 }
