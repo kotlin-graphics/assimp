@@ -5,7 +5,7 @@
  */
 package jassimp.components;
 
-import jassimp.material.AiMaterial;
+import jassimp.components.material.AiMaterial;
 
 /**
  *
@@ -64,5 +64,15 @@ public class AiScene {
      * not set there will always be at least ONE material.
      */
     public AiMaterial[] mMaterial;
-
+    /**
+     * The number of animations in the scene.
+     */
+    public int mNumAnimations;
+    /**
+     * The array of animations.
+     *
+     * All animations imported from the given file are listed here. The array is
+     * mNumAnimations in size.
+     */
+    public AiAnimation[] mAnimations;
 }

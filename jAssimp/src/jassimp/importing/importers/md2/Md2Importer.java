@@ -6,7 +6,7 @@
 package jassimp.importing.importers.md2;
 
 import jassimp.components.AiFace;
-import jassimp.material.AiMaterial;
+import jassimp.components.material.AiMaterial;
 import jassimp.components.AiMesh;
 import jassimp.components.AiNode;
 import jassimp.components.AiPrimitiveType;
@@ -15,7 +15,7 @@ import jassimp.components.AiScene;
 import jassimp.components.AiShadingMode;
 import jassimp.importing.BaseImporter;
 import static jassimp.importing.importers.md2.Md2FileData.AI_MD2_MAGIC_NUMBER_LE;
-import jassimp.material.AiMaterialKey;
+import jassimp.components.material.AiMaterialKey;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;

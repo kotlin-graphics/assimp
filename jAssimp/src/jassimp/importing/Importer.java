@@ -7,9 +7,12 @@ package jassimp.importing;
 
 import jassimp.processes.ValidateDSProcess;
 import jassimp.components.AiScene;
-import static jassimp.importing.AiPostProcessSteps.aiProcess_ValidateDataStructure;
+import static jassimp.importing.AiPostProcessSteps.*;
+import static jassimp.importing.ImporterRegistry.getImporterInstanceList;
 import jassimp.importing.importers.md2.Md2Importer;
 import jassimp.processes.BaseProcess;
+import static jassimp.processes.PostStepRegistry.getPostProcessingStepInstanceList;
+import jassimp.processes.ScenePreprocessor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,14 +25,14 @@ public class Importer {
 
     private static Importer instance = new Importer();
     private static ImporterPimpl pimpl;
-    /**
-     * Post processing steps we can apply at the imported data.
-     */
-    private ArrayList<BaseProcess> mPostProcessingSteps;
+    public static boolean NO_VALIDATEDS_PROCESS = false;
 
     private Importer() {
         // allocate the pimpl first
         pimpl = new ImporterPimpl();
+
+        getImporterInstanceList(pimpl.mImporter);
+        getPostProcessingStepInstanceList(pimpl.mPostProcessingSteps);
     }
 
     /**
@@ -44,29 +47,8 @@ public class Importer {
 
         File pFile = new File(_pFile);
 
-//        if (file.exists()) {
-//
-//            int i = _pFile.lastIndexOf('.');
-//            if (i > 0) {
-//
-//                String extension = _pFile.substring(i + 1);
-//
-//                BaseImporter importer = null;
-//
-//                switch (extension.toLowerCase()) {
-//
-//                    case Extension.MD2:
-//                        importer = new Md2Importer();
-//                        break;
-//                }
-//                if (importer != null) {
-//
-//                    mScene = importer.readFile(file);
-//                }
-//            }
-//        }
         if (!pFile.exists()) {
-
+            // Finish to implement mErrorString
             pimpl.mErrorString = "Unable to open file " + _pFile;
             return null;
         }
@@ -80,16 +62,77 @@ public class Importer {
             }
         }
 
-        // If successful, apply all active post processing steps to the imported data
-        if (mScene != null) {
+        if (imp == null) {
+            return null;
+        }
 
-            // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
+        pimpl.mScene = imp.readFile(pFile);
+
+        // If successful, apply all active post processing steps to the imported data
+        if (pimpl.mScene != null) {
+
+            if (!NO_VALIDATEDS_PROCESS) {
+                // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
+                if ((pFlags & aiProcess_ValidateDataStructure.value) != 0) {
+
+                    ValidateDSProcess ds = new ValidateDSProcess();
+                    ds.executeOnScene(instance);
+                }
+            }
+
+            ScenePreprocessor pre = new ScenePreprocessor(pimpl.mScene);
+            pre.processScene();
+
+            // Ensure that the validation process won't be called twice
+            applyPostProcessing(pFlags & ~aiProcess_ValidateDataStructure.value);
+        }
+        return pimpl.mScene;
+    }
+
+    public static AiScene applyPostProcessing(int pFlags) {
+
+        // If no flags are given, return the current scene with no further action
+        if (pFlags == 0) {
+            return pimpl.mScene;
+        }
+
+        instance._validateFlags(pFlags);
+
+        if (!NO_VALIDATEDS_PROCESS) {
+            // The ValidateDS process plays an exceptional role. It isn't contained in the global
+            // list of post-processing steps, so we need to call it manually.
             if ((pFlags & aiProcess_ValidateDataStructure.value) != 0) {
+
                 ValidateDSProcess ds = new ValidateDSProcess();
-                ds.executeOnScene(pimpl);
+                ds.executeOnScene(instance);
             }
         }
-        return null;
+
+        for (BaseProcess process : pimpl.mPostProcessingSteps) {
+
+            if (process.isActive(pFlags)) {
+
+                process.executeOnScene(instance);
+            }
+        }
+        return pimpl.mScene;
+    }
+
+    /**
+     * Validate post process step flags.
+     *
+     * @param pFlags
+     * @return
+     */
+    private boolean _validateFlags(int pFlags) {
+
+        if ((pFlags & aiProcess_GenSmoothNormals.value) != 0 && (pFlags & aiProcess_GenNormals.value) != 0) {
+            throw new Error("#aiProcess_GenSmoothNormals and #aiProcess_GenNormals are incompatible");
+        }
+        if ((pFlags & aiProcess_OptimizeGraph.value) != 0 && (pFlags & aiProcess_PreTransformVertices.value) != 0) {
+            throw new Error("#aiProcess_OptimizeGraph and #aiProcess_PreTransformVertices are incompatible");
+        }
+        return true;
     }
 
     public ImporterPimpl pImpl() {

@@ -5,7 +5,7 @@
  */
 package jassimp.components;
 
-import jassimp.material.AiMaterial;
+import jassimp.components.material.AiMaterial;
 
 /**
  A node in the imported hierarchy.

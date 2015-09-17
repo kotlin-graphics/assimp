@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jassimp.material;
+package jassimp.components.material;
 
 import java.util.ArrayList;
 import jglm.Vec3;

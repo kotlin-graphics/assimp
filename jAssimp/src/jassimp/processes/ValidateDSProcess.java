@@ -15,11 +15,10 @@ import static jassimp.components.AiMesh.AI_MAX_NUMBER_OF_COLOR_SETS;
 import static jassimp.components.AiMesh.AI_MAX_NUMBER_OF_TEXTURECOORDS;
 import static jassimp.components.AiMesh.AI_MAX_VERTICES;
 import jassimp.components.AiNode;
-import jassimp.components.AiPrimitiveType;
 import static jassimp.components.AiPrimitiveType.*;
 import jassimp.components.AiScene;
 import static jassimp.components.AiScene.AI_SCENE_FLAGS_NON_VERBOSE_FORMAT;
-import java.lang.reflect.Array;
+import static jassimp.importing.AiPostProcessSteps.aiProcess_ValidateDataStructure;
 import java.util.HashSet;
 
 /**
@@ -30,6 +29,40 @@ public class ValidateDSProcess extends BaseProcess {
 
     private static AiScene mScene;
 
+    // ------------------------------------------------------------------------------------------------
+    // Returns whether the processing step is present in the given flag field.
+    @Override
+    public boolean isActive(int pFlags) {
+
+        return (pFlags & aiProcess_ValidateDataStructure.value) != 0;
+    }
+
+    private <T> void doValidation(T[] pArray, int size, String firstName, String secondName) {
+
+        // validate all entries
+        if (size > 0) {
+
+            if (pArray == null) {
+
+                throw new Error("aiScene." + firstName + " is NULL (aiScene." + secondName + " is " + size + ")");
+            }
+            for (int i = 0; i < size; i++) {
+
+                if (pArray[i] == null) {
+
+                    throw new Error("aiScene." + firstName + "[" + i + "] is NULL (aiScene." + secondName + " is " + size + ")");
+                }
+//                switch(pArray[i] instanceof) {
+//                    case  AiMesh.class:
+//                }
+                if (pArray[i] instanceof AiMesh) {
+                    validate((AiMesh) pArray[i]);
+                }
+            }
+        }
+    }
+
+    @Override
     public void execute(AiScene pScene) {
 
         mScene = pScene;
@@ -77,31 +110,6 @@ public class ValidateDSProcess extends BaseProcess {
 
             for (int i = 0; i < pNode.mNumChildren; i++) {
                 validate(pNode.mChildren[i]);
-            }
-        }
-    }
-
-    private <T> void doValidation(T[] pArray, int size, String firstName, String secondName) {
-
-        // validate all entries
-        if (size > 0) {
-
-            if (pArray == null) {
-
-                throw new Error("aiScene." + firstName + " is NULL (aiScene." + secondName + " is " + size + ")");
-            }
-            for (int i = 0; i < size; i++) {
-
-                if (pArray[i] == null) {
-
-                    throw new Error("aiScene." + firstName + "[" + i + "] is NULL (aiScene." + secondName + " is " + size + ")");
-                }
-//                switch(pArray[i] instanceof) {
-//                    case  AiMesh.class:
-//                }
-                if (pArray[i] instanceof AiMesh) {
-                    validate((AiMesh) pArray[i]);
-                }
             }
         }
     }

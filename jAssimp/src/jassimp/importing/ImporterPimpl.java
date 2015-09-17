@@ -7,6 +7,7 @@ package jassimp.importing;
 
 import jassimp.components.AiScene;
 import jassimp.importing.importers.md2.Md2Importer;
+import jassimp.processes.BaseProcess;
 import java.util.ArrayList;
 
 /**
@@ -21,6 +22,10 @@ public class ImporterPimpl {
      */
     public ArrayList<BaseImporter> mImporter;
     /**
+     * Post processing steps we can apply at the imported data.
+     */
+    public ArrayList<BaseProcess> mPostProcessingSteps;
+    /**
      * The imported data, if ReadFile() was successful, NULL otherwise.
      */
     public AiScene mScene;
@@ -32,7 +37,5 @@ public class ImporterPimpl {
     public ImporterPimpl() {
 
         mImporter = new ArrayList<>();
-        
-        mImporter.add(new Md2Importer());
     }
 }
