@@ -16,7 +16,10 @@ This port is being written trying to stick as much as possible close to the C ve
 - Validation (almost, need to finish animation)
 - BaseProcess (writing triangulation mesh)
 
+Missing/incomplete:
+- ScenePreprocessor
 
 
+# Contributions:
 
 If you can help, you are very welcome :)
