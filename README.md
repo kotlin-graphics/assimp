@@ -6,11 +6,11 @@ This port is being written trying to stick as much as possible close to the C ve
 - reduce any future maintenance to keep it up with the C version
 - reduce any possible difference for peoples used to dev/work with Assimp
 
-#Supported formats at the moment:#
+#Supported formats at the moment:
 
 - MD2
 
-Core right now:
+# Core right now:
 
 - most of the Ai Identity
 - Validation (almost, need to finish animation)
