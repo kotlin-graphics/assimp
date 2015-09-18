@@ -100,8 +100,8 @@ public class TriangulateMesh extends BaseProcess {
         
         AiFace[] out = new AiFace[numOut];
         AiFace[] curOut = out;
-        ArrayList<Vec3> temp_verts3d (max_out+2); /* temporary storage for vertices */
-        std::vector<aiVector2D> temp_verts(max_out+2);
+//        ArrayList<Vec3> temp_verts3d (max_out+2); /* temporary storage for vertices */
+//        std::vector<aiVector2D> temp_verts(max_out+2);
         
         return false;
     }
