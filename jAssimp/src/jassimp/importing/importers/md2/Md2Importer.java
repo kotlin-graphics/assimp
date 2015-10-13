@@ -5,6 +5,7 @@
  */
 package jassimp.importing.importers.md2;
 
+import jassimp.md2.Md2FileData;
 import jassimp.components.AiFace;
 import jassimp.components.material.AiMaterial;
 import jassimp.components.AiMesh;
@@ -14,12 +15,14 @@ import static jassimp.components.AiPrimitiveType.aiPrimitiveType_TRIANGLE;
 import jassimp.components.AiScene;
 import jassimp.components.AiShadingMode;
 import jassimp.importing.BaseImporter;
-import static jassimp.importing.importers.md2.Md2FileData.AI_MD2_MAGIC_NUMBER_LE;
+import static jassimp.md2.Md2FileData.AI_MD2_MAGIC_NUMBER_LE;
 import jassimp.components.material.AiMaterialKey;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import jglm.Vec3;
@@ -30,30 +33,52 @@ import jglm.Vec3;
  */
 public class Md2Importer extends BaseImporter {
 
+    /**
+     * Configuration option: frame to be loaded
+     */
+    private int configFrameID;
+
+    /**
+     * Header of the MD2 file
+     */
+    private Md2FileData.Header m_pcHeader;
+
+    /**
+     * Buffer to hold the loaded file
+     */
+    private ByteBuffer mBuffer;
+
+    /**
+     * Size of the file, in bytes
+     */
     private long fileSize;
 
     @Override
-    public AiScene internalRead(File file) throws IOException {
+    public AiScene internalRead(File pFile, AiScene pScene) throws IOException {
 
-        fileSize = file.length();
+        // Check whether we can read from the file
+        if (!pFile.canRead()) {
+            throw new Error("Failed to open MD2 file " + pFile);
+        }
+
+        fileSize = pFile.length();
         /**
          * check whether the md2 file is large enough to contain at least the
          * file header.
          */
         if (fileSize < Md2FileData.Header.size) {
-
-            System.out.println("MD2 File is too small");
-
-            return null;
+            throw new Error("MD2 File is too small");
         }
 
-        byte[] mBuffer = Files.readAllBytes(file.toPath());
+        FileInputStream fileInputStream = new FileInputStream(pFile);
+        FileChannel fileChannel = fileInputStream.getChannel();
 
-        Md2FileData.Header m_pcHeader = readHeader(mBuffer);
+        mBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) pFile.length());
+
+        m_pcHeader = new Md2FileData.Header(mBuffer);
 
         if (validateHeader(m_pcHeader)) {
 
-            AiScene pScene = new AiScene();
             // there won't be more than one mesh inside the file
             pScene.mNumMaterials = 1;
             pScene.mRootNode = new AiNode();
@@ -121,7 +146,7 @@ public class Md2Importer extends BaseImporter {
                 pcHelper.addProperty(AiMaterial.AI_DEFAULT_MATERIAL_NAME, AiMaterialKey.NAME);
 
                 // Try to guess the name of the texture file from the model file name
-                String md2Name = file.getName();
+                String md2Name = pFile.getName();
                 String texture = md2Name.substring(0, md2Name.length() - 3).concat("pcx");
 
                 pcHelper.addProperty(texture, AiMaterialKey.TEXTURE_DIFFUSE);
@@ -243,79 +268,59 @@ public class Md2Importer extends BaseImporter {
         return Md2FileData.g_avNormals[iNormalIndex];
     }
 
-    private Md2FileData.Header readHeader(byte[] mBuffer) throws IOException {
+    private void validateHeader(Md2FileData.Header md2Header) {
 
-        Md2FileData.Header md2Header = new Md2FileData.Header();
-
-        md2Header.magic = readInteger(mBuffer, 0 * 4);
-        md2Header.version = readInteger(mBuffer, 1 * 4);
-        md2Header.skin.x = readInteger(mBuffer, 2 * 4);
-        md2Header.skin.y = readInteger(mBuffer, 3 * 4);
-        md2Header.frameSize = readInteger(mBuffer, 4 * 4);
-        md2Header.numSkins = readInteger(mBuffer, 5 * 4);
-        md2Header.numVertices = readInteger(mBuffer, 6 * 4);
-        md2Header.numTexCoords = readInteger(mBuffer, 7 * 4);
-        md2Header.numTriangles = readInteger(mBuffer, 8 * 4);
-        md2Header.numGlCommands = readInteger(mBuffer, 9 * 4);
-        md2Header.numFrames = readInteger(mBuffer, 10 * 4);
-        md2Header.offsetSkins = readInteger(mBuffer, 11 * 4);
-        md2Header.offsetTexCoords = readInteger(mBuffer, 12 * 4);
-        md2Header.offsetTriangles = readInteger(mBuffer, 13 * 4);
-        md2Header.offsetFrames = readInteger(mBuffer, 14 * 4);
-        md2Header.offsetGlCommands = readInteger(mBuffer, 15 * 4);
-        md2Header.offsetEnd = readInteger(mBuffer, 16 * 4);
-
-        return md2Header;
-    }
-
-    private boolean validateHeader(Md2FileData.Header md2Header) {
         // check magic number
         if (md2Header.magic != Md2FileData.AI_MD2_MAGIC_NUMBER_BE
                 && md2Header.magic != Md2FileData.AI_MD2_MAGIC_NUMBER_LE) {
 
-            System.out.println("Invalid MD2 magic word: should be IDP2 (" + Md2FileData.AI_MD2_MAGIC_NUMBER_BE
-                    + ") or 2PDI (" + Md2FileData.AI_MD2_MAGIC_NUMBER_LE + "), the magic word found is " + md2Header.magic);
-            return false;
+            throw new Error("Invalid MD2 magic word: should be IDP2 (" + Md2FileData.AI_MD2_MAGIC_NUMBER_BE
+                    + ") or 2PDI (" + Md2FileData.AI_MD2_MAGIC_NUMBER_LE + "), the magic word found is "
+                    + md2Header.magic);
         }
+
         // check file format version
         if (md2Header.version != 8) {
-            System.out.println("WARNING, Unsupported md2 file version. Continuing happily...");
+            System.err.println("WARNING, Unsupported md2 file version. Continuing happily...");
         }
+
         // check some values whether they are valid
         if (md2Header.numFrames == 0) {
-            System.out.println("Invalid md2 file: NUM_FRAMES is 0");
-            return false;
+            throw new Error("Invalid md2 file: NUM_FRAMES is 0");
         }
+
         if (md2Header.offsetEnd > fileSize) {
-            System.out.println("Invalid md2 file: File is too small");
-            return false;
+            throw new Error("Invalid md2 file: File is too small");
         }
+
         if (md2Header.offsetSkins + md2Header.numSkins * Md2FileData.Skin.size >= fileSize
                 || md2Header.offsetTexCoords + md2Header.numTexCoords * Md2FileData.TexCoord.size >= fileSize
                 || md2Header.offsetTriangles + md2Header.numTriangles * Md2FileData.Triangle.size >= fileSize
                 || md2Header.offsetFrames + md2Header.numFrames * Md2FileData.Frame.size >= fileSize
                 || md2Header.offsetEnd > fileSize) {
 
-            System.out.println("Invalid MD2 header: some offsets are outside the file");
-            return false;
+            throw new Error("Invalid MD2 header: some offsets are outside the file");
         }
+
         if (md2Header.numSkins > Md2FileData.AI_MD2_MAX_SKINS) {
-            System.out.println("The model contains more skins than Quake 2 supports");
+            System.err.println("The model contains more skins than Quake 2 supports");
         }
         if (md2Header.numFrames > Md2FileData.AI_MD2_MAX_FRAMES) {
-            System.out.println("The model contains more frames than Quake 2 supports");
+            System.err.println("The model contains more frames than Quake 2 supports");
         }
         if (md2Header.numVertices > Md2FileData.AI_MD2_MAX_VERTS) {
-            System.out.println("The model contains more vertices than Quake 2 supports");
+            System.err.println("The model contains more vertices than Quake 2 supports");
         }
+
         return true;
     }
 
     /**
      * Returns whether the class can handle the format of the given file.
+     *
      * @param pFile
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public boolean canRead(File pFile) throws IOException {

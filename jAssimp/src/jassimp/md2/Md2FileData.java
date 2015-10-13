@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jassimp.importing.importers.md2;
+package jassimp.md2;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import jglm.Vec2i;
 import jglm.Vec3;
 
@@ -49,9 +51,25 @@ public class Md2FileData {
         public int offsetGlCommands;
         public int offsetEnd;
 
-        public Header() {
+        public Header(ByteBuffer mBuffer) {
 
-            skin = new Vec2i();
+            magic = mBuffer.getInt();
+            version = mBuffer.getInt();
+            skin.x = mBuffer.getInt();
+            skin.y = mBuffer.getInt();
+            frameSize = mBuffer.getInt();
+            numSkins = mBuffer.getInt();
+            numVertices = mBuffer.getInt();
+            numTexCoords = mBuffer.getInt();
+            numTriangles = mBuffer.getInt();
+            numGlCommands = mBuffer.getInt();
+            numFrames = mBuffer.getInt();
+            offsetSkins = mBuffer.getInt();
+            offsetTexCoords = mBuffer.getInt();
+            offsetTriangles = mBuffer.getInt();
+            offsetFrames = mBuffer.getInt();
+            offsetGlCommands = mBuffer.getInt();
+            offsetEnd = mBuffer.getInt();
         }
     }
 

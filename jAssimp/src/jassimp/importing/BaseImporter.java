@@ -6,6 +6,7 @@
 package jassimp.importing;
 
 import jassimp.components.AiScene;
+import static jassimp.util.ByteArrayUtil.readInteger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -19,12 +20,22 @@ import java.nio.file.Files;
  */
 public abstract class BaseImporter {
 
-    public AiScene readFile(File file) throws IOException {
+    public AiScene readFile(File pFile) throws IOException {
 
-        return internalRead(file);
+        // Gather configuration properties for this run
+        setupProperties();
+
+        // create a scene object to hold the data
+        AiScene sc = new AiScene();
+
+        return internalRead(pFile, sc);
     }
 
-    public abstract AiScene internalRead(File file) throws IOException;
+    protected void setupProperties() {
+
+    }
+
+    public abstract AiScene internalRead(File pFile, AiScene sc) throws IOException;
 
     public abstract boolean canRead(File pFile) throws IOException;
 
@@ -45,37 +56,13 @@ public abstract class BaseImporter {
     }
 
     protected boolean checkMagicToken(File pFile, int _magic) throws IOException {
-        
-        if(_magic == 0) {
+
+        if (_magic == 0) {
             throw new Error("_magic is zero");
         }
         byte[] pStream = Files.readAllBytes(pFile.toPath());
-        
+
         return _magic == readInteger(pStream, 0);
     }
-    
-    protected int readInteger(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 4).getInt();
-    }
 
-    protected float readFloat(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 4).getFloat();
-    }
-
-    protected short readShort(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 2).getShort();
-    }
-
-    protected byte readByte(byte[] bs, int offset) throws IOException {
-        return readByteBuffer(bs, offset, 1).get();
-    }
-
-    protected ByteBuffer readByteBuffer(byte[] bs, int offset, int length) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bs, offset, length);
-        return byteBuffer.order(ByteOrder.nativeOrder());
-    }
-
-    protected String readString(byte[] bs, int offset, int length) throws IOException {
-        return new String(bs, offset, length, Charset.forName("UTF-8"));
-    }
 }

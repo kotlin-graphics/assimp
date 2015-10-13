@@ -13,7 +13,7 @@ import java.net.URL;
  *
  * @author gbarbieri
  */
-public class JAssimp {
+public class Test {
 
     /**
      * @param args the command line arguments
@@ -21,7 +21,7 @@ public class JAssimp {
      */
     public static void main(String[] args) throws IOException {
         
-        URL url = JAssimp.class.getResource("/jassimp/content/md2/phoenix_ugv.md2");
+        URL url = Test.class.getResource("/jassimp/content/md2/phoenix_ugv.md2");
         
         Importer.readFile(url.getPath(), 0);
     }
