@@ -5,17 +5,18 @@
  */
 package jassimp.importing;
 
+import jassimp.Config;
+import static jassimp.Config.NO_VALIDATEDS_PROCESS;
+import jassimp.GenericProperty;
 import jassimp.processes.ValidateDSProcess;
 import jassimp.components.AiScene;
 import static jassimp.importing.AiPostProcessSteps.*;
 import static jassimp.importing.ImporterRegistry.getImporterInstanceList;
-import jassimp.importing.importers.md2.Md2Importer;
 import jassimp.processes.BaseProcess;
 import static jassimp.processes.PostStepRegistry.getPostProcessingStepInstanceList;
 import jassimp.processes.ScenePreprocessor;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  *
@@ -23,11 +24,14 @@ import java.util.ArrayList;
  */
 public class Importer {
 
-    private static Importer instance = new Importer();
-    private static ImporterPimpl pimpl;
-    public static boolean NO_VALIDATEDS_PROCESS = false;
+//    private static Importer instance = new Importer();
+    /**
+     * Just because we don't want you to know how we're hacking around.
+     */
+    private ImporterPimpl pimpl;
 
-    private Importer() {
+    public Importer() {
+
         // allocate the pimpl first
         pimpl = new ImporterPimpl();
 
@@ -43,40 +47,51 @@ public class Importer {
      * @return
      * @throws IOException
      */
-    public static AiScene readFile(String _pFile, int pFlags) throws IOException {
+    public AiScene readFile(String _pFile, int pFlags) throws IOException {
 
         File pFile = new File(_pFile);
 
+        // First check if the file is accessable at all
         if (!pFile.exists()) {
-            // Finish to implement mErrorString
-            pimpl.mErrorString = "Unable to open file " + _pFile;
-            return null;
+            throw new Error("Unable to open file " + _pFile);
         }
 
+        // Find an worker class which can handle the file
         BaseImporter imp = null;
 
         for (BaseImporter mImporter : pimpl.mImporter) {
-            if (mImporter.canRead(pFile)) {
+            if (mImporter.canRead(pFile, false)) {
                 imp = mImporter;
                 break;
             }
         }
 
         if (imp == null) {
-            return null;
+            // not so bad yet ... try format auto detection.
+            System.out.println("File extension not known, trying signature-based detection");
+            for (BaseImporter mImporter : pimpl.mImporter) {
+                if (mImporter.canRead(pFile, true)) {
+                    imp = mImporter;
+                    break;
+                }
+            }
+            // Put a proper error message if no suitable importer was found
+            if (imp == null) {
+                throw new Error("No suitable reader found for the file format of file " + pFile);
+            }
         }
 
-        pimpl.mScene = imp.readFile(pFile);
+        pimpl.mScene = imp.readFile(this, pFile);
 
         // If successful, apply all active post processing steps to the imported data
         if (pimpl.mScene != null) {
 
-            if (!NO_VALIDATEDS_PROCESS) {
+            if (!Config.NO_VALIDATEDS_PROCESS) {
                 // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
                 if ((pFlags & aiProcess_ValidateDataStructure.value) != 0) {
 
                     ValidateDSProcess ds = new ValidateDSProcess();
-                    ds.executeOnScene(instance);
+                    ds.executeOnScene(this);
                 }
             }
 
@@ -89,14 +104,14 @@ public class Importer {
         return pimpl.mScene;
     }
 
-    public static AiScene applyPostProcessing(int pFlags) {
+    public AiScene applyPostProcessing(int pFlags) {
 
         // If no flags are given, return the current scene with no further action
         if (pFlags == 0) {
             return pimpl.mScene;
         }
 
-        instance._validateFlags(pFlags);
+        _validateFlags(pFlags);
 
         if (!NO_VALIDATEDS_PROCESS) {
             // The ValidateDS process plays an exceptional role. It isn't contained in the global
@@ -104,7 +119,7 @@ public class Importer {
             if ((pFlags & aiProcess_ValidateDataStructure.value) != 0) {
 
                 ValidateDSProcess ds = new ValidateDSProcess();
-                ds.executeOnScene(instance);
+                ds.executeOnScene(this);
             }
         }
 
@@ -112,7 +127,7 @@ public class Importer {
 
             if (process.isActive(pFlags)) {
 
-                process.executeOnScene(instance);
+                process.executeOnScene(this);
             }
         }
         return pimpl.mScene;
@@ -134,8 +149,8 @@ public class Importer {
         }
         return true;
     }
-
-    public ImporterPimpl pImpl() {
-        return pimpl;
+    
+    public int getPropertyInteger(String szName, int iErrorReturn) {
+        return GenericProperty.get(szName, iErrorReturn);
     }
 }

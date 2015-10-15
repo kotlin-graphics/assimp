@@ -6,13 +6,11 @@
 package jassimp.importing;
 
 import jassimp.components.AiScene;
-import static jassimp.util.ByteArrayUtil.readInteger;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.nio.channels.FileChannel;
 
 /**
  *
@@ -20,24 +18,25 @@ import java.nio.file.Files;
  */
 public abstract class BaseImporter {
 
-    public AiScene readFile(File pFile) throws IOException {
+    public AiScene readFile(Importer pImp, File pFile) throws IOException {
 
         // Gather configuration properties for this run
-        setupProperties();
+        setupProperties(pImp);
 
         // create a scene object to hold the data
         AiScene sc = new AiScene();
 
+        // dispatch importing
         return internalRead(pFile, sc);
     }
 
-    protected void setupProperties() {
+    protected void setupProperties(Importer pImp) {
 
     }
 
     public abstract AiScene internalRead(File pFile, AiScene sc) throws IOException;
 
-    public abstract boolean canRead(File pFile) throws IOException;
+    public abstract boolean canRead(File pFile, boolean checkSig) throws IOException;
 
     protected String getExtension(File pFile) {
 
@@ -60,9 +59,17 @@ public abstract class BaseImporter {
         if (_magic == 0) {
             throw new Error("_magic is zero");
         }
-        byte[] pStream = Files.readAllBytes(pFile.toPath());
 
-        return _magic == readInteger(pStream, 0);
+        FileChannel fileChannel;
+        boolean result;
+        try (FileInputStream fileInputStream = new FileInputStream(pFile)) {
+            fileChannel = fileInputStream.getChannel();
+            ByteBuffer byteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) pFile.length());
+            result = _magic == byteBuffer.getInt();
+        }
+        fileChannel.close();
+        
+        return result;
     }
 
 }

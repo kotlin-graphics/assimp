@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jassimp;
+package jassimp.test;
 
 import jassimp.importing.Importer;
 import java.io.IOException;
@@ -21,9 +21,9 @@ public class Test {
      */
     public static void main(String[] args) throws IOException {
         
-        URL url = Test.class.getResource("/jassimp/content/md2/phoenix_ugv.md2");
+        URL url = Test.class.getResource("/jassimp/test/model/md2/faerie.md2");
         
-        Importer.readFile(url.getPath(), 0);
+        new Importer().readFile(url.getPath(), 0);
     }
     
 }

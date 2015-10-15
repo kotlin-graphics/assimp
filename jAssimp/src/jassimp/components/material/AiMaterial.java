@@ -15,8 +15,26 @@ import jglm.Vec3;
 public class AiMaterial {
 
     public static String AI_DEFAULT_MATERIAL_NAME = "DefaultMaterial";
+    public static String AI_MATKEY_SHADING_MODEL = "$mat.shadingm";
+    /**
+     * List of all material properties loaded..
+     */
     public ArrayList<AiMaterialProperty> mProperties;
 
+    /**
+     * Number of properties in the data base
+     */
+    public int mNumProperties;
+
+    /**
+     * Storage allocated
+     */
+    public int mNumAllocated;
+
+    /**
+     * Construction. Actually the one and only way to get an aiMaterial
+     * instance.
+     */
     public AiMaterial() {
         mProperties = new ArrayList<>();
     }
@@ -45,11 +63,11 @@ public class AiMaterial {
 
                 textureFilename = materialProperty.string;
             }
-        }        
+        }
         return textureFilename;
     }
 
-    public void addProperty(int integer, int pNumValues, AiMaterialKey mKey) {
+    public void addProperty(int integer, int pNumValues, String mKey) {
         mProperties.add(new AiMaterialProperty(integer, pNumValues, mKey));
     }
 
