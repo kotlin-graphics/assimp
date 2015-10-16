@@ -5,6 +5,7 @@
  */
 package jassimp.importing;
 
+import jassimp.Config;
 import jassimp.importing.importers.md2.Md2Importer;
 import java.util.ArrayList;
 
@@ -19,6 +20,8 @@ public class ImporterRegistry {
         // Add an instance of each worker class here
         // (register_new_importers_here)
         // ----------------------------------------------------------------------------
-        out.add(new Md2Importer());
+        if (!Config.NO_MD2_IMPORTER) {
+            out.add(new Md2Importer());
+        }
     }
 }

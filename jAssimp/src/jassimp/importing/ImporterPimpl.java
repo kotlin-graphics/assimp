@@ -6,7 +6,6 @@
 package jassimp.importing;
 
 import jassimp.components.AiScene;
-import jassimp.importing.importers.md2.Md2Importer;
 import jassimp.processes.BaseProcess;
 import java.util.ArrayList;
 

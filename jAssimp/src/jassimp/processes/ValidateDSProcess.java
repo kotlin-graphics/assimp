@@ -29,6 +29,10 @@ public class ValidateDSProcess extends BaseProcess {
 
     private static AiScene mScene;
 
+    public ValidateDSProcess() {
+        mScene = new AiScene();
+    }
+
     // ------------------------------------------------------------------------------------------------
     // Returns whether the processing step is present in the given flag field.
     @Override

@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jassimp.importing.importers.md2;
+package jassimp.md2;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import jglm.Vec2i;
 import jglm.Vec3;
 
@@ -34,7 +36,7 @@ public class Md2FileData {
 
         public int magic;
         public int version;
-        public Vec2i skin;
+        public Vec2i skin = new Vec2i();
         public int frameSize;
         public int numSkins;
         public int numVertices;
@@ -49,9 +51,25 @@ public class Md2FileData {
         public int offsetGlCommands;
         public int offsetEnd;
 
-        public Header() {
+        public Header(ByteBuffer mBuffer) {
 
-            skin = new Vec2i();
+            magic = mBuffer.getInt();
+            version = mBuffer.getInt();
+            skin.x = mBuffer.getInt();
+            skin.y = mBuffer.getInt();
+            frameSize = mBuffer.getInt();
+            numSkins = mBuffer.getInt();
+            numVertices = mBuffer.getInt();
+            numTexCoords = mBuffer.getInt();
+            numTriangles = mBuffer.getInt();
+            numGlCommands = mBuffer.getInt();
+            numFrames = mBuffer.getInt();
+            offsetSkins = mBuffer.getInt();
+            offsetTexCoords = mBuffer.getInt();
+            offsetTriangles = mBuffer.getInt();
+            offsetFrames = mBuffer.getInt();
+            offsetGlCommands = mBuffer.getInt();
+            offsetEnd = mBuffer.getInt();
         }
     }
 
@@ -62,9 +80,9 @@ public class Md2FileData {
          *
          * uint16_t textureIndices[3];
          */
-        public static final int indicesSize = 2;
+        public static final int indicesSize = Short.BYTES;
         public static final int offsetTextureIndices = indicesSize * 3;
-        public static final int size = indicesSize * 3 * 2;
+        public static final int sizeOf = indicesSize * 3 * 2;
 
         int[] vertexIndices = new int[3];
         int[] textureIndices = new int[3];
@@ -77,8 +95,8 @@ public class Md2FileData {
          *
          * uint8_t lightNormalIndex;
          */
-        public static final int offsetLightNormalIndex = 1 * 3;
-        public static final int size = offsetLightNormalIndex + 1;
+        public static final int offsetLightNormalIndex = Byte.BYTES * 3;
+        public static final int sizeOf = offsetLightNormalIndex + Byte.BYTES;
 
         public int[] vertex = new int[3];
         public int lightNormalIndex;
@@ -95,9 +113,9 @@ public class Md2FileData {
          *
          * Vertex vertices[1];
          */
-        public static final int offsetVertices = 4 * 3 + 4 * 3 + 1 * 16;
-        public static final int offsetTranslate = 4 * 3;
-        public static final int size = offsetVertices + Vertex.size;
+        public static final int offsetVertices = 3 * Float.BYTES + 3 * Float.BYTES + 16 * Byte.BYTES;
+        public static final int offsetTranslate = 3 * Float.BYTES;
+        public static final int sizeOf = offsetVertices + Vertex.sizeOf;
 
         public float[] scale = new float[3];
         public float[] translate = new float[3];
@@ -112,8 +130,8 @@ public class Md2FileData {
          *
          * uint16_t t;
          */
-        public static final int offsetT = 2;
-        public static final int size = offsetT + 2;
+        public static final int offsetT = Short.BYTES;
+        public static final int sizeOf = offsetT + Short.BYTES;
 
         public int s;
         public int t;
@@ -126,7 +144,7 @@ public class Md2FileData {
          *
          * #define AI_MD2_MAXQPATH	64
          */
-        public static final int size = 1 * 64;
+        public static final int sizeOf = 64 * Byte.BYTES;
 
         public String name;
     }

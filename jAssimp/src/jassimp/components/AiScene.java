@@ -75,4 +75,69 @@ public class AiScene {
      * mNumAnimations in size.
      */
     public AiAnimation[] mAnimations;
+
+    /**
+     * The number of textures embedded into the file.
+     */
+    public int mNumTextures;
+
+    /**
+     * The array of embedded textures.
+     *
+     * Not many file formats embed their textures into the file. An example is
+     * Quake's MDL format (which is also used by some GameStudio versions).
+     */
+    public AiTexture[] mTextures;
+
+    /**
+     * The number of light sources in the scene. Light sources are fully
+     * optional, in most cases this attribute will be 0
+     */
+    public int mNumLights;
+
+    /**
+     * The array of light sources.
+     *
+     * All light sources imported from the given file are listed here. The array
+     * is mNumLights in size.
+     */
+    public AiLight[] mLights;
+
+    /**
+     * The number of cameras in the scene. Cameras are fully optional, in most
+     * cases this attribute will be 0
+     */
+    public int mNumCameras;
+
+    /**
+     * The array of cameras.
+     *
+     * All cameras imported from the given file are listed here. The array is
+     * mNumCameras in size. The first camera in the array (if existing) is the
+     * default camera view into the scene.
+     */
+    public AiCamera[] mCameras;
+
+    /**
+     * Internal data, do not touch
+     */
+    private ScenePrivateData mPrivate;
+
+    public AiScene() {
+        mFlags = 0;
+        mRootNode = null;
+        mNumMeshes = 0;
+        mMeshes = null;
+        mNumMaterials = 0;
+        mMaterial = null;
+        mNumAnimations = 0;
+        mAnimations = null;
+        mNumTextures = 0;
+        mTextures = null;
+        mNumLights = 0;
+        mLights = null;
+        mNumCameras = 0;
+        mCameras = null;
+        mPrivate = new ScenePrivateData();
+    }
 }
