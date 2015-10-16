@@ -153,4 +153,8 @@ public class Importer {
     public int getPropertyInteger(String szName, int iErrorReturn) {
         return GenericProperty.get(szName, iErrorReturn);
     }
+    
+    public ImporterPimpl pImpl() {
+        return pimpl;
+    }
 }
