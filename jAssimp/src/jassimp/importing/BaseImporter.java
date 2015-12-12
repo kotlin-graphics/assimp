@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 
 /**
  *
@@ -72,4 +73,12 @@ public abstract class BaseImporter {
         return result;
     }
 
+    protected String readString(ByteBuffer byteBuffer, int offset, int length) throws IOException {
+        byteBuffer.position(offset);
+        byteBuffer.limit(offset+length);
+        ByteBuffer data = byteBuffer.slice();
+        byteBuffer.position(0);
+        byteBuffer.limit(byteBuffer.capacity());
+        return new String(data.array(), offset, length, Charset.forName("UTF-8"));
+    }
 }

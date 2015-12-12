@@ -3,9 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jassimp.components;
+package jassimp.components.material;
 
 /**
+ * Defines all shading models supported by the library
+ *
+ * The list of shading modes has been taken from Blender. See Blender
+ * documentation for more information. The API does not distinguish between
+ * "specular" and "diffuse" shaders (thus the specular term for diffuse shading
+ * models like Oren-Nayar remains undefined). <br>
+ * Again, this value is just a hint. Assimp tries to select the shader whose
+ * most common implementation matches the original rendering results of the 3D
+ * modeller which wrote a particular model as closely as possible.
  *
  * @author gbarbieri
  */

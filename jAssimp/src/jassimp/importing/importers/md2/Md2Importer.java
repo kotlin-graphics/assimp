@@ -5,28 +5,25 @@
  */
 package jassimp.importing.importers.md2;
 
-import jassimp.Config;
 import jassimp.md2.Md2FileData;
 import jassimp.components.AiFace;
 import jassimp.components.material.AiMaterial;
 import jassimp.components.AiMesh;
 import jassimp.components.AiNode;
-import jassimp.components.AiPrimitiveType;
 import static jassimp.components.AiPrimitiveType.aiPrimitiveType_TRIANGLE;
 import jassimp.components.AiScene;
-import jassimp.components.AiShadingMode;
+//import jassimp.components.AiShadingMode;
 import jassimp.importing.BaseImporter;
 import static jassimp.md2.Md2FileData.AI_MD2_MAGIC_NUMBER_LE;
 import jassimp.components.material.AiMaterialKey;
+import jassimp.components.material.AiShadingMode;
+import jassimp.components.material.AiTextureType;
 import jassimp.importing.Importer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import jglm.Vec3;
 
 /**
@@ -110,7 +107,7 @@ public class Md2Importer extends BaseImporter {
 
         // navigate to the begin of the frame data
         int pcFrame = m_pcHeader.offsetFrames;
-        
+
         pcFrame += configFrameID;
 
         // navigate to the begin of the triangle data
@@ -135,21 +132,21 @@ public class Md2Importer extends BaseImporter {
         // but a texture can't be there without a valid UV channel
         AiMaterial pcHelper = pScene.mMaterial[0];
         int iMode = AiShadingMode.Gouraud.value;
-        pcHelper.addProperty(iMode, 1, AiMaterialKey.SHADING_MODEL);
+        pcHelper.addProperty(iMode, AiMaterialKey.SHADING_MODEL);
 
         if (m_pcHeader.numTexCoords > 0 && m_pcHeader.numSkins > 0) {
 
             Vec3 clr = new Vec3(1f, 1f, 1f);
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_DIFFUSE);
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_SPECULAR);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_DIFFUSE);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_SPECULAR);
 
             clr.x = clr.y = clr.z = .05f;
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_AMBIENT);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_AMBIENT);
 
             String skinsName = readString(mBuffer, m_pcHeader.offsetSkins, 64);
 
             if (!skinsName.isEmpty()) {
-                pcHelper.addProperty(skinsName, AiMaterialKey.TEXTURE_DIFFUSE);
+                pcHelper.addProperty(skinsName, AiMaterialKey.TEXTURE, AiTextureType.DIFFUSE.value, 0);
             } else {
                 System.out.println("Texture file name has zero length. It will be skipped.");
             }
@@ -157,19 +154,19 @@ public class Md2Importer extends BaseImporter {
             // apply a default material
             Vec3 clr = new Vec3(.6f, .6f, .6f);
 
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_DIFFUSE);
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_SPECULAR);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_DIFFUSE);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_SPECULAR);
 
             clr.x = clr.y = clr.z = .05f;
-            pcHelper.addProperty(clr, 1, AiMaterialKey.COLOR_AMBIENT);
+            pcHelper.addProperty(clr, AiMaterialKey.COLOR_AMBIENT);
 
             pcHelper.addProperty(AiMaterial.AI_DEFAULT_MATERIAL_NAME, AiMaterialKey.NAME);
 
             // Try to guess the name of the texture file from the model file name
             String md2Name = pFile.getName();
-            String texture = md2Name.substring(0, md2Name.length() - 3).concat("pcx");
+            String texture = md2Name.substring(0, md2Name.length() - 3).concat("bmp");
 
-            pcHelper.addProperty(texture, AiMaterialKey.TEXTURE_DIFFUSE);
+            pcHelper.addProperty(texture, AiMaterialKey.TEXTURE, AiTextureType.DIFFUSE.value, 0);
         }
         // now read all triangles of the first frame, apply scaling and translation
         int iCurrent = 0;
@@ -196,14 +193,14 @@ public class Md2Importer extends BaseImporter {
             }
         }
         Vec3 scale = new Vec3();
-        scale.x = readFloat(mBuffer, pcFrame + 0 * 4);
-        scale.y = readFloat(mBuffer, pcFrame + 1 * 4);
-        scale.z = readFloat(mBuffer, pcFrame + 2 * 4);
+        scale.x = mBuffer.getFloat(pcFrame + 0 * 4);
+        scale.y = mBuffer.getFloat(pcFrame + 1 * 4);
+        scale.z = mBuffer.getFloat(pcFrame + 2 * 4);
 
         Vec3 translate = new Vec3();
-        translate.x = readFloat(mBuffer, pcFrame + Md2FileData.Frame.offsetTranslate + 0 * 4);
-        translate.y = readFloat(mBuffer, pcFrame + Md2FileData.Frame.offsetTranslate + 1 * 4);
-        translate.z = readFloat(mBuffer, pcFrame + Md2FileData.Frame.offsetTranslate + 2 * 4);
+        translate.x = mBuffer.getFloat(pcFrame + Md2FileData.Frame.offsetTranslate + 0 * 4);
+        translate.y = mBuffer.getFloat(pcFrame + Md2FileData.Frame.offsetTranslate + 1 * 4);
+        translate.z = mBuffer.getFloat(pcFrame + Md2FileData.Frame.offsetTranslate + 2 * 4);
 
         for (int i = 0; i < m_pcHeader.numTriangles; i++) {
             // Allocate the face
@@ -217,7 +214,7 @@ public class Md2Importer extends BaseImporter {
             for (int c = 0; c < 3; ++c, ++iCurrent) {
 
                 // validate vertex indices
-                int iIndex = readShort(mBuffer, pcTriangle + i * Md2FileData.Triangle.sizeOf + c * Md2FileData.Triangle.indicesSize);
+                int iIndex = mBuffer.getShort(pcTriangle + i * Md2FileData.Triangle.sizeOf + c * Md2FileData.Triangle.indicesSize);
 
                 if (iIndex >= m_pcHeader.numVertices) {
                     System.out.println("MD2: Vertex index is outside the allowed range");
@@ -226,16 +223,16 @@ public class Md2Importer extends BaseImporter {
                 // read x,y, and z component of the vertex
                 Vec3 vec = new Vec3();
 
-                vec.x = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 0) & 0xff) * scale.x;
-                vec.y = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 1) & 0xff) * scale.y;
-                vec.z = (readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 2) & 0xff) * scale.z;
+                vec.x = (mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 0) & 0xff) * scale.x;
+                vec.y = (mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 1) & 0xff) * scale.y;
+                vec.z = (mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 2) & 0xff) * scale.z;
 
                 vec = vec.plus(translate);
 
                 pcMesh.mVertices[iCurrent] = vec;
 
                 // read the normal vector from the precalculated normal table                    
-                byte b = readByte(mBuffer, pcVerts + iIndex * Md2FileData.Vertex.sizeOf
+                byte b = mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf
                         + Md2FileData.Vertex.offsetLightNormalIndex);
                 int iNormalIndex = b & 0xff;
                 Vec3 vNormal = lookupNormalIndex(iNormalIndex);
@@ -252,8 +249,9 @@ public class Md2Importer extends BaseImporter {
 
                 if (m_pcHeader.numTexCoords > 0) {
                     // validate texture coordinates
-                    iIndex = readShort(mBuffer, pcTriangle + i * Md2FileData.Triangle.sizeOf
-                            + Md2FileData.Triangle.offsetTextureIndices + c * Md2FileData.Triangle.indicesSize);
+                    iIndex = mBuffer.getShort(pcTriangle + i * Md2FileData.Triangle.sizeOf
+                            + Md2FileData.Triangle.offsetTextureIndices
+                            + c * Md2FileData.Triangle.indicesSize);
 
                     if (iIndex >= m_pcHeader.numTexCoords) {
                         System.out.println("MD2: UV index is outside the allowed range");
@@ -262,9 +260,9 @@ public class Md2Importer extends BaseImporter {
                     Vec3 pcOut = new Vec3();
                     // the texture coordinates are absolute values but we
                     // need relative values between 0 and 1
-                    pcOut.x = readShort(mBuffer, pcTexCoords + iIndex * Md2FileData.TexCoord.sizeOf);
+                    pcOut.x = mBuffer.getShort(pcTexCoords + iIndex * Md2FileData.TexCoord.sizeOf);
                     pcOut.x /= fDivisorU;
-                    pcOut.y = readShort(mBuffer, pcTexCoords + iIndex * Md2FileData.TexCoord.sizeOf + Md2FileData.TexCoord.offsetT);
+                    pcOut.y = mBuffer.getShort(pcTexCoords + iIndex * Md2FileData.TexCoord.sizeOf + Md2FileData.TexCoord.offsetT);
                     pcOut.y = 1 - pcOut.y / fDivisorV;
 
                     pcMesh.mTextureCoords[iCurrent] = pcOut;
