@@ -5,41 +5,80 @@
  */
 package jassimp.components.material;
 
-import jglm.Vec3;
-
 /**
  *
  * @author gbarbieri
  */
 public class AiMaterialProperty {
 
-    public Vec3 color;
-    public int pInput;
-    public String string;
-    public int pNumValues;
+//    public static AiMaterialProperty newName (String property) {
+//        return new AiMaterialProperty.String(AiMaterialKey.Name, property);
+//    }
     public AiMaterialKey mKey;
 
-    public AiMaterialProperty() {
-
+    private AiMaterialProperty(AiMaterialKey materialKey) {
+        this.mKey = materialKey;
     }
 
-    public AiMaterialProperty(int integer, int pNumValues, AiMaterialKey mKey) {
+    static class String extends AiMaterialProperty {
 
-        this.pInput = integer;
-        this.pNumValues = pNumValues;
-        this.mKey = mKey;
+        public java.lang.String property;
+
+        public String(AiMaterialKey materialKey, java.lang.String property) {
+
+            super(materialKey);
+
+            this.property = property;
+        }
     }
 
-    public AiMaterialProperty(Vec3 color, int pNumValues, AiMaterialKey mKey) {
+    static class StringTN extends String {
 
-        this.color = color;
-        this.pNumValues = pNumValues;
-        this.mKey = mKey;
+        public int t;
+        public int n;
+
+        public StringTN(AiMaterialKey materialKey, java.lang.String property, int t, int n) {
+
+            super(materialKey, property);
+
+            this.t = t;
+            this.n = n;
+        }
     }
 
-    public AiMaterialProperty(String string, AiMaterialKey mKey) {
+    static class Int extends AiMaterialProperty {
 
-        this.string = string;
-        this.mKey = mKey;
+        public int property;
+
+        public Int(int property, AiMaterialKey materialKey) {
+
+            super(materialKey);
+
+            this.property = property;
+        }
+    }
+
+    static class Texture extends AiMaterialProperty {
+
+        public int property;
+
+        public Texture(int property, AiMaterialKey materialKey) {
+
+            super(materialKey);
+
+            this.property = property;
+        }
+    }
+
+    static class Vec3 extends AiMaterialProperty {
+
+        public jglm.Vec3 property;
+
+        public Vec3(jglm.Vec3 property, AiMaterialKey materialKey) {
+
+            super(materialKey);
+
+            this.property = property;
+        }
     }
 }

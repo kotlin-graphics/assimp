@@ -11,13 +11,27 @@ package jassimp.components.material;
  */
 public enum AiMaterialKey {
 
-    SHADING_MODEL,
+    NAME,
     COLOR_DIFFUSE,
-    COLOR_AMBIENT,
     COLOR_SPECULAR,
+    COLOR_AMBIENT,
     COLOR_EMISSIVE,
     COLOR_TRANSPARENT,
-    COLOR_REFLECTIVE,
-    TEXTURE_DIFFUSE,
-    NAME
+    WIREFRAME,
+    TWOSIDED,
+    SHADING_MODEL,
+    BLEND_FUNC,
+    OPACITY,
+    SHININESS,
+    SHININESS_STRENGTH,
+    REFRACTI,
+    TEXTURE,
+    TEXBLEND,
+    TEXOP,
+    MAPPING,
+    UVWSRC,
+    MAPPINGMODE_U,
+    MAPPINGMODE_V,
+    TEXMAP_AXIS,
+    TEXFLAGS
 }

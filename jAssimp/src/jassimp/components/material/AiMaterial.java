@@ -5,6 +5,7 @@
  */
 package jassimp.components.material;
 
+import jassimp.components.AiReturn;
 import java.util.ArrayList;
 import jglm.Vec3;
 
@@ -53,29 +54,52 @@ public class AiMaterial {
         return textureCount;
     }
 
-    public String getTextureFilename(AiMaterialKey materialKey) {
+//    public String getTextureFilename(AiMaterialKey materialKey) {
+//
+//        String textureFilename = "";
+//
+//        for (AiMaterialProperty materialProperty : mProperties) {
+//
+//            if (materialProperty.mKey == materialKey) {
+//
+//                textureFilename = materialProperty.string;
+//            }
+//        }
+//        return textureFilename;
+//    }
+    public AiReturn addProperty(int integer, AiMaterialKey mKey) {
+        switch (mKey) {
+            case NAME:
+                mProperties.add(new AiMaterialProperty.Int(integer, mKey));
+                return AiReturn.SUCCESS;
 
-        String textureFilename = "";
-
-        for (AiMaterialProperty materialProperty : mProperties) {
-
-            if (materialProperty.mKey == materialKey) {
-
-                textureFilename = materialProperty.string;
-            }
         }
-        return textureFilename;
+        return AiReturn.FAILURE;
     }
 
-    public void addProperty(int integer, int pNumValues, String mKey) {
-        mProperties.add(new AiMaterialProperty(integer, pNumValues, mKey));
+    public AiReturn addProperty(Vec3 vec, AiMaterialKey mKey) {
+        switch (mKey) {
+            case COLOR_DIFFUSE:
+            case COLOR_SPECULAR:
+            case COLOR_AMBIENT:
+            case COLOR_EMISSIVE:
+            case COLOR_TRANSPARENT:
+                mProperties.add(new AiMaterialProperty.Vec3(vec, mKey));
+                return AiReturn.SUCCESS;
+        }
+        return AiReturn.FAILURE;
     }
 
-    public void addProperty(Vec3 color, int pNumValues, AiMaterialKey mKey) {
-        mProperties.add(new AiMaterialProperty(color, pNumValues, mKey));
+    public AiReturn addProperty(String string, AiMaterialKey mKey, int t, int i) {
+        switch (mKey) {
+            case TEXTURE:
+                mProperties.add(new AiMaterialProperty.StringTN(mKey, string, t, i));
+                return AiReturn.SUCCESS;
+        }
+        return AiReturn.FAILURE;
     }
 
     public void addProperty(String string, AiMaterialKey mKey) {
-        mProperties.add(new AiMaterialProperty(string, mKey));
+
     }
 }
