@@ -70,6 +70,7 @@ public class AiMaterial {
     public AiReturn addProperty(int integer, AiMaterialKey mKey) {
         switch (mKey) {
             case NAME:
+            case SHADING_MODEL:
                 mProperties.add(new AiMaterialProperty.Int(integer, mKey));
                 return AiReturn.SUCCESS;
 
