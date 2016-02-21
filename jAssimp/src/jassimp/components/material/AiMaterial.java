@@ -5,9 +5,9 @@
  */
 package jassimp.components.material;
 
+import glm.vec._3.Vec3;
 import jassimp.components.AiReturn;
 import java.util.ArrayList;
-import jglm.Vec3;
 
 /**
  *

@@ -5,6 +5,7 @@
  */
 package jassimp.importing.importers.md2;
 
+import glm.vec._3.Vec3;
 import jassimp.md2.Md2FileData;
 import jassimp.components.AiFace;
 import jassimp.components.material.AiMaterial;
@@ -23,8 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import jglm.Vec3;
 
 /**
  *
@@ -87,7 +88,7 @@ public class Md2Importer extends BaseImporter {
         FileInputStream fileInputStream = new FileInputStream(pFile);
         FileChannel fileChannel = fileInputStream.getChannel();
 
-        mBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) pFile.length());
+        mBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) pFile.length()).order(ByteOrder.nativeOrder());
 
         m_pcHeader = new Md2FileData.Header(mBuffer);
 
@@ -227,7 +228,7 @@ public class Md2Importer extends BaseImporter {
                 vec.y = (mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 1) & 0xff) * scale.y;
                 vec.z = (mBuffer.get(pcVerts + iIndex * Md2FileData.Vertex.sizeOf + 2) & 0xff) * scale.z;
 
-                vec = vec.plus(translate);
+                vec.add(translate);
 
                 pcMesh.mVertices[iCurrent] = vec;
 
@@ -239,8 +240,7 @@ public class Md2Importer extends BaseImporter {
                 pcMesh.mNormals[iCurrent] = vNormal;
 
                 // flip z and y to become right-handed
-                float tmp;
-                tmp = vNormal.y;
+                float tmp = vNormal.y;
                 vNormal.y = vNormal.z;
                 vNormal.z = tmp;
                 tmp = vec.y;

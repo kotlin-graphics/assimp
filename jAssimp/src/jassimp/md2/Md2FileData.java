@@ -5,10 +5,9 @@
  */
 package jassimp.md2;
 
-import java.io.IOException;
+import glm.vec._2.i.Vec2i;
+import glm.vec._3.Vec3;
 import java.nio.ByteBuffer;
-import jglm.Vec2i;
-import jglm.Vec3;
 
 /**
  *

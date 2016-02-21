@@ -5,6 +5,7 @@
  */
 package jassimp.processes;
 
+import glm.vec._3.Vec3;
 import jassimp.components.AiAnimation;
 import jassimp.components.AiFace;
 import jassimp.components.AiMesh;
@@ -13,7 +14,6 @@ import jassimp.components.AiNodeAnim;
 import static jassimp.components.AiPrimitiveType.*;
 import jassimp.components.AiScene;
 import jassimp.components.AiVectorKey;
-import jglm.Vec3;
 
 /**
  *

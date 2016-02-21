@@ -11,9 +11,6 @@ package jassimp.components.material;
  */
 public class AiMaterialProperty {
 
-//    public static AiMaterialProperty newName (String property) {
-//        return new AiMaterialProperty.String(AiMaterialKey.Name, property);
-//    }
     public AiMaterialKey mKey;
 
     private AiMaterialProperty(AiMaterialKey materialKey) {
@@ -72,9 +69,9 @@ public class AiMaterialProperty {
 
     static class Vec3 extends AiMaterialProperty {
 
-        public jglm.Vec3 property;
+        public glm.vec._3.Vec3 property;
 
-        public Vec3(jglm.Vec3 property, AiMaterialKey materialKey) {
+        public Vec3(glm.vec._3.Vec3 property, AiMaterialKey materialKey) {
 
             super(materialKey);
 
