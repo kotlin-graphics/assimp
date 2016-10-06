@@ -6,11 +6,10 @@
     <groupId>io.github.java-graphics</groupId>
     <artifactId>assimp</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>Assimp-Java</name>
     <description>Java porting of Open Asset Import Library</description>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <url>https://github.com/java-graphics/assimp</url>
 
     <organization>
@@ -73,6 +72,11 @@
 
         <!--  dependencies -->
 
+        <dependency>
+            <groupId>io.github.java-graphics</groupId>
+            <artifactId>glm</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
