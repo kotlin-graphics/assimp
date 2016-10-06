@@ -21,9 +21,10 @@ public class Test {
      */
     public static void main(String[] args) throws IOException {
         
-        URL url = Test.class.getResource("/jassimp/test/model/md2/faerie.md2");
+        URL url = Test.class.getResource("/md2/faerie.md2");
         
         new Importer().readFile(url.getPath(), 0);
     }
     
 }
+t -m ""
