@@ -27,4 +27,3 @@ public class Test {
     }
     
 }
-t -m ""
