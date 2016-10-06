@@ -47,6 +47,10 @@
             <name>The MIT License</name>
             <url>https://github.com/java-graphics/assimp/blob/master/LICENSE.txt</url>
         </license>
+        <license>
+            <name>Fat Licence for 3rd Parties</name>
+            <url>https://github.com/java-graphics/glm/blob/master/LICENSE-3RD-PARTY.txt</url>
+        </license>
     </licenses>
 
     <properties>
