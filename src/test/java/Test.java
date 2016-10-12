@@ -7,7 +7,7 @@
 import java.io.IOException;
 import java.net.URL;
 
-import jassimp.importing.Importer;
+import assimp.importing.Importer;
 
 /**
  *
