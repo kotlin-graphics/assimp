@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.java-graphics</groupId>
     <artifactId>assimp</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Assimp-Java</name>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>io.github.java-graphics</groupId>
             <artifactId>glm</artifactId>
-            <version>1.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 
