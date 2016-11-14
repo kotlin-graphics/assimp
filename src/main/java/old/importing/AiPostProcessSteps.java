@@ -65,7 +65,7 @@ public enum AiPostProcessSteps {
      * solution:
      * <ul>
      * <li>Specify both #aiProcess_Triangulate and #aiProcess_SortByPType </li>
-     * <li>Ignore all point and line meshes when you process assimp's
+     * <li>Ignore all point and line meshes when you process old's
      * output</li>
      * </ul>
      */
