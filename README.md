@@ -9,7 +9,8 @@ This port is being written trying to stick as much as possible close to the C ve
 
 #Supported formats at the moment:
 
-- MD2
+- STL - wip (50%)
+- MD2 - to update (80%)
 
 # Core right now:
 
