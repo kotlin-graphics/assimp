@@ -1,6 +1,3 @@
-package java.assimp
-
-import java.assimp.AiScene
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -65,14 +62,14 @@ class Importer(
         val MaxLenHint = 200
     }
 
-    fun readFile(_pFile: String, pFlags: Int): AiScene? {
+    fun readFile(_pFile: String, pFlags: Int = 0): AiScene? {
 
         // Check whether this Importer instance has already loaded
         // a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
 
         // First check if the file is accessible at all
-        if( !Files.exists(Paths.get(_pFile))) {
+        if (!Files.exists(Paths.get(_pFile))) {
             throw FileNotFoundException("Unable to open file " + _pFile)
             return null
         }
@@ -80,7 +77,7 @@ class Importer(
         // Find an worker class which can handle the file
         val imp: BaseImporter? = pimpl.mImporter.firstOrNull { it.canRead(_pFile, false) }
 
-        if(imp == null) {
+        if (imp == null) {
             // TODO
             return null
         }

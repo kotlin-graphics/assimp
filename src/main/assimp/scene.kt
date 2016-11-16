@@ -1,5 +1,3 @@
-package java.assimp
-
 import main.mat.Mat4
 
 /**

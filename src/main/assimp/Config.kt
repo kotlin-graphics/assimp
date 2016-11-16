@@ -1,5 +1,3 @@
-package java.assimp
-
 /**
  * Created by elect on 13/11/2016.
  */
@@ -65,8 +63,8 @@ fun getImporterInstanceList(): MutableList<BaseImporter> {
     if (!ASSIMP_BUILD_NO_MD2_IMPORTER) {
 //        res.add(Md2Importer())
     }
-    if(!ASSIMP_BUILD_NO_STL_IMPORTER) {
-
+    if (!ASSIMP_BUILD_NO_STL_IMPORTER) {
+        res.add(STLImporter())
     }
     return res
 }

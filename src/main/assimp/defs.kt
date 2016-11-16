@@ -1,5 +1,3 @@
-package java.assimp
-
 import main.mat.Mat4
 import main.vec._3.Vec3d
 import main.vec._4.Vec4d
