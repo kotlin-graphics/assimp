@@ -12,11 +12,15 @@ This port is being written trying to stick as much as possible close to the C ve
 - STL - wip (50%)
 - MD2 - to update (80%)
 
+[Format priority list](https://github.com/java-graphics/assimp/wiki/Priority-list-of-file-formats)
+
+If you want to express your preference, [Format wish list](https://github.com/java-graphics/assimp/wiki/wish-list)
+
 # Core right now:
 
 - most of the Ai Identity
 - Validation (almost, need to finish animation)
-- BaseProcess (writing triangulation mesh)
+- BaseProcess (triangulation mesh in progress)
 
 Missing/incomplete:
 - ScenePreprocessor
@@ -24,4 +28,4 @@ Missing/incomplete:
 
 # Contributions:
 
-If you can help, you are very welcome :)
+Do not hesitate to offer any help: developing, testing, website creation, wiki writing, etc
