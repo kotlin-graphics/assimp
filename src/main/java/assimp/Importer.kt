@@ -86,6 +86,8 @@ class Importer(
         }
 
         pimpl.mScene = imp.readFile(this, _pFile)
+
+        return null
     }
 }
 

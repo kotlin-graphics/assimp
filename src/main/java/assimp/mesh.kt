@@ -1,8 +1,8 @@
 package java.assimp
 
-import glm.mat._4.Mat4
-import glm.vec._3.d.Vec3d
-import glm.vec._4.d.Vec4d
+import main.mat.Mat4
+import main.vec._3.Vec3d
+import main.vec._4.Vec4d
 
 /**
  * Created by elect on 13/11/2016.
@@ -94,7 +94,7 @@ data class AiBone(
         var mWeights: Array<AiVertexWeight>? = null,
 
         //! Matrix that transforms from mesh space to bone space in bind pose
-        var mOffsetMatrix: Mat4 = Mat4()
+        var mOffsetMatrix: AiMatrix4x4 = AiMatrix4x4()
 ) {
     //! Copy constructor
 //    aiBone(const aiBone& other) TODO check if in data
@@ -152,22 +152,22 @@ data class AiAnimMesh(
          *  meshes may neither add or nor remove vertex components (if
          *  a replacement array is NULL and the corresponding source
          *  array is not, the source data is taken instead)*/
-        var mVertices: Array<Vec3d>? = null,
+        var mVertices: Array<AiVector3D>? = null,
 
         /** Replacement for aiMesh::mNormals.  */
-        var mNormals: Array<Vec3d>? = null,
+        var mNormals: Array<AiVector3D>? = null,
 
         /** Replacement for aiMesh::mTangents. */
-        var mTangents: Array<Vec3d>? = null,
+        var mTangents: Array<AiVector3D>? = null,
 
         /** Replacement for aiMesh::mBitangents. */
-        var mBitangents: Array<Vec3d>? = null,
+        var mBitangents: Array<AiVector3D>? = null,
 
         /** Replacement for aiMesh::mColors */
-        var mColors: Array<Vec4d?> = arrayOfNulls<Vec4d>(AI_MAX_NUMBER_OF_COLOR_SETS),
+        var mColors: Array<AiColor4D?> = arrayOfNulls<AiColor4D>(AI_MAX_NUMBER_OF_COLOR_SETS),
 
         /** Replacement for aiMesh::mTextureCoords */
-        var mTextureCoords: Array<Vec3d?> = kotlin.arrayOfNulls<Vec3d>(AI_MAX_NUMBER_OF_TEXTURECOORDS),
+        var mTextureCoords: Array<AiVector3D?> = arrayOfNulls<AiVector3D>(AI_MAX_NUMBER_OF_TEXTURECOORDS),
 
         /** The number of vertices in the aiAnimMesh, and thus the length of all
          * the member arrays.
@@ -246,7 +246,7 @@ data class AiMesh(
          * This array is always present in a mesh. The array is
          * mNumVertices in size.
          */
-        var mVertices: Array<Vec3d>? = null,
+        var mVertices: Array<AiVector3D?>? = null,
 
         /** Vertex normals.
          * The array contains normalized vectors, NULL if not present.
@@ -268,7 +268,7 @@ data class AiMesh(
          * However, this needn't apply for normals that have been taken
          *   directly from the model file.
          */
-        var mNormals: Array<Vec3d>? = null,
+        var mNormals: Array<AiVector3D?>? = null,
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive
@@ -282,7 +282,7 @@ data class AiMesh(
          * @note If the mesh contains tangents, it automatically also
          * contains bitangents.
          */
-        var mTangents: Array<Vec3d>? = null,
+        var mTangents: Array<AiVector3D>? = null,
 
         /** Vertex bitangents.
          * The bitangent of a vertex points in the direction of the positive
@@ -291,20 +291,20 @@ data class AiMesh(
          * @note If the mesh contains tangents, it automatically also contains
          * bitangents.
          */
-        var mBitangents: Array<Vec3d>? = null,
+        var mBitangents: Array<AiVector3D>? = null,
 
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex
          * colors per vertex. NULL if not present. Each array is
          * mNumVertices in size if present.
          */
-        var mColors: Array<Vec4d?> = arrayOfNulls<Vec4d>(AI_MAX_NUMBER_OF_COLOR_SETS),
+        var mColors: Array<AiColor4D?> = arrayOfNulls<Vec4d>(AI_MAX_NUMBER_OF_COLOR_SETS),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per
          * vertex. NULL if not present. The array is mNumVertices in size.
          */
-        var mTextureCoords: Array<Vec3d?> = arrayOfNulls<Vec3d>(AI_MAX_NUMBER_OF_TEXTURECOORDS),
+        var mTextureCoords: Array<AiVector3D?> = arrayOfNulls<Vec3d>(AI_MAX_NUMBER_OF_TEXTURECOORDS),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume

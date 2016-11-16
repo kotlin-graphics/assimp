@@ -1,6 +1,6 @@
 package java.assimp
 
-import glm.mat._4.Mat4
+import main.mat.Mat4
 
 /**
  * Created by elect on 13/11/2016.
@@ -163,7 +163,7 @@ data class AiScene(
          * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always
          * be at least ONE material.
          */
-        //        var mMeshes: List<AiMesh>, TODO
+        var mMeshes: MutableList<AiMesh>? = null,
 
         /** The number of materials in the scene. */
         var mNumMaterials: Int = 0,
@@ -224,32 +224,32 @@ data class AiScene(
          */
         //        C_STRUCT aiCamera** mCameras; TODO
 ) {
-        //! Check whether the scene contains meshes
-        //! Unless no special scene flags are set this will always be true.
+    //! Check whether the scene contains meshes
+    //! Unless no special scene flags are set this will always be true.
 //        fun hasMeshes() = mMeshes != NULL && mNumMeshes > 0; TODO
 
-        //! Check whether the scene contains materials
-        //! Unless no special scene flags are set this will always be true.
+    //! Check whether the scene contains materials
+    //! Unless no special scene flags are set this will always be true.
 //        inline bool HasMaterials() const { TODO
 //                return mMaterials != NULL && mNumMaterials > 0;
 //        }
 
-        //! Check whether the scene contains lights
+    //! Check whether the scene contains lights
 //        inline bool HasLights() const { TODO
 //                return mLights != NULL && mNumLights > 0;
 //        }
 
-        //! Check whether the scene contains textures
+    //! Check whether the scene contains textures
 //        inline bool HasTextures() const { TODO
 //                return mTextures != NULL && mNumTextures > 0;
 //        }
 
-        //! Check whether the scene contains cameras
+    //! Check whether the scene contains cameras
 //        inline bool HasCameras() const { TODO
 //                return mCameras != NULL && mNumCameras > 0;
 //        }
 
-        //! Check whether the scene contains animations
+    //! Check whether the scene contains animations
 //        inline bool HasAnimations() const { TODO
 //                return mAnimations != NULL && mNumAnimations > 0;
 //        }
