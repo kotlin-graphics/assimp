@@ -1,6 +1,7 @@
 import cmp
-import main.assimp.MAXLEN
+import main.assimp.*
 import main.d
+import main.f
 import main.glm
 import main.i
 import main.vec._4.Vec4d
@@ -23,16 +24,10 @@ class STLImporter : BaseImporter() {
     companion object {
 
         val desc = AiImporterDesc(
-                "Stereolithography (STL) Importer",
-                "",
-                "",
-                "",
-                AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportBinaryFlavour,
-                0,
-                0,
-                0,
-                0,
-                "stl")
+                mName = "Stereolithography (STL) Importer",
+                mFlags = AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportBinaryFlavour,
+                mFileExtensions = "stl"
+        )
 
 
         // A valid binary STL buffer should consist of the following elements, in order:
@@ -51,8 +46,8 @@ class STLImporter : BaseImporter() {
         }
 
         // An ascii STL buffer will begin with "solid NAME", where NAME is optional.
-        // Note: The "solid NAME" check is necessary, but not sufficient, to determine
-        // if the buffer is ASCII; a binary header could also begin with "solid NAME".
+        // Note: The "solid NAME" check is necessary, but not sufficient, to determine if the buffer is ASCII;
+        // a binary header could also begin with "solid NAME".
         fun isAsciiSTL(buffer: ByteBuffer, fileSize: Int): Boolean {
 
             if (isBinarySTL(buffer, fileSize)) return false
@@ -61,8 +56,8 @@ class STLImporter : BaseImporter() {
 
             if (buffer.position() + 5 >= fileSize) return false
 
+            // A lot of importers are write solid even if the file is binary. So we have to check for ASCII-characters.
             return buffer.cmp("solid").let {
-                // A lot of importers are write solid even if the file is binary. So we have to check for ASCII-characters.
                 if (fileSize >= 500)
                     for (i in 0..500)
                         if (buffer.get() > 127)
@@ -139,11 +134,26 @@ class STLImporter : BaseImporter() {
         // add all created meshes to the single node
         pScene.mRootNode!!.mNumMeshes = pScene.mNumMeshes
         pScene.mRootNode!!.mMeshes = IntArray(pScene.mNumMeshes)
-        for(i in 0..pScene.mNumMeshes)
+        for (i in 0..pScene.mNumMeshes)
             pScene.mRootNode!!.mMeshes!![i] = i
 
-        // create a single default material, using a light gray diffuse color for consistency with
-        // other geometric types (e.g., PLY).
+        // create a single default material, using a light gray diffuse color for consistency with other geometric types
+        // (e.g., PLY).
+        val pcMat = AiMaterial()
+        pcMat.name = AI_DEFAULT_MATERIAL_NAME
+
+        val clrDiffuse = AiColor4D(0.6, 0.6, 0.6, 1)
+
+        if (bMatClr) clrDiffuse.to(clrColorDefault)
+
+        pcMat.color = AiMaterialColor(
+                diffuse = AiColor3D(clrDiffuse),
+                specular = AiColor3D(clrDiffuse),
+                ambient = AiColor3D(0.05, 0.05, 0.05)
+        )
+
+        pScene.mNumMaterials = 1
+        pScene.mMaterials = mutableListOf(pcMat)
     }
 
     // ------------------------------------------------------------------------------------------------
@@ -171,10 +181,10 @@ class STLImporter : BaseImporter() {
                 // read the default vertex color for facets
                 bIsMaterialise = true
                 val invByte = 1f / 255f
-                clrColorDefault.r = (mBuffer.getFloat(sz2++) * invByte).d
-                clrColorDefault.g = (mBuffer.getFloat(sz2++) * invByte).d
-                clrColorDefault.b = (mBuffer.getFloat(sz2++) * invByte).d
-                clrColorDefault.a = (mBuffer.getFloat(sz2++) * invByte).d
+                clrColorDefault.r = (mBuffer.getFloat(sz2++) * invByte).f
+                clrColorDefault.g = (mBuffer.getFloat(sz2++) * invByte).f
+                clrColorDefault.b = (mBuffer.getFloat(sz2++) * invByte).f
+                clrColorDefault.a = (mBuffer.getFloat(sz2++) * invByte).f
                 break
             }
         }
@@ -199,8 +209,8 @@ class STLImporter : BaseImporter() {
 
         for (i in 0..pMesh.mNumFaces) {
 
-            // NOTE: Blender sometimes writes empty normals ... this is not
-            // our fault ... the RemoveInvalidData helper step should fix that
+            // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
+            // step should fix that
 //            pMesh.mNormals!![vn] = AiVector3D(mBuffer, sz)
         }
 
@@ -258,9 +268,9 @@ class STLImporter : BaseImporter() {
                 else {
                     try {
                         i++
-                        vn.x = words[++i].toDouble()
-                        vn.y = words[++i].toDouble()
-                        vn.z = words[++i].toDouble()
+                        vn.x = words[++i].toFloat()
+                        vn.y = words[++i].toFloat()
+                        vn.z = words[++i].toFloat()
                         normalBuffer.add(vn.copy())
                         normalBuffer.add(vn.copy())
                     } catch (exc: NumberFormatException) {
@@ -275,9 +285,9 @@ class STLImporter : BaseImporter() {
                 } else {
                     try {
                         val vn = AiVector3D()
-                        vn.x = words[++i].toDouble()
-                        vn.y = words[++i].toDouble()
-                        vn.z = words[++i].toDouble()
+                        vn.x = words[++i].toFloat()
+                        vn.y = words[++i].toFloat()
+                        vn.z = words[++i].toFloat()
                         positionBuffer.add(vn)
                         faceVertexCounter++
                     } catch (exc: NumberFormatException) {

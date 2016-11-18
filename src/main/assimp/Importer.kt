@@ -25,28 +25,22 @@ class ImporterPimpl(
         val mErrorString: String = "")
 
 // ----------------------------------------------------------------------------------
-/** CPP-API: The Importer class forms an C++ interface to the functionality of the
- *   Open Asset Import Library.
+/** CPP-API: The Importer class forms an C++ interface to the functionality of the Open Asset Import Library.
  *
  * Create an object of this class and call ReadFile() to import a file.
  * If the import succeeds, the function returns a pointer to the imported data.
- * The data remains property of the object, it is intended to be accessed
- * read-only. The imported data will be destroyed along with the Importer
- * object. If the import fails, ReadFile() returns a NULL pointer. In this
- * case you can retrieve a human-readable error description be calling
- * GetErrorString(). You can call ReadFile() multiple times with a single Importer
- * instance. Actually, constructing Importer objects involves quite many
- * allocations and may take some time, so it's better to reuse them as often as
- * possible.
+ * The data remains property of the object, it is intended to be accessed read-only. The imported data will be destroyed
+ * along with the Importer object. If the import fails, ReadFile() returns a NULL pointer. In this case you can retrieve
+ * a human-readable error description be calling GetErrorString(). You can call ReadFile() multiple times with a single
+ * Importer instance. Actually, constructing Importer objects involves quite many allocations and may take some time, so
+ * it's better to reuse them as often as possible.
  *
- * If you need the Importer to do custom file handling to access the files,
- * implement IOSystem and IOStream and supply an instance of your custom
- * IOSystem implementation by calling SetIOHandler() before calling ReadFile().
- * If you do not assign a custion IO handler, a default handler using the
- * standard C++ IO logic will be used.
+ * If you need the Importer to do custom file handling to access the files, implement IOSystem and IOStream and supply
+ * an instance of your custom IOSystem implementation by calling SetIOHandler() before calling ReadFile().
+ * If you do not assign a custion IO handler, a default handler using the standard C++ IO logic will be used.
  *
- * @note One Importer instance is not thread-safe. If you use multiple
- * threads for loading, each thread should maintain its own Importer instance.
+ * @note One Importer instance is not thread-safe. If you use multiple threads for loading, each thread should maintain
+ * its own Importer instance.
  */
 class Importer(
         // Just because we don't want you to know how we're hacking around.
@@ -64,8 +58,7 @@ class Importer(
 
     fun readFile(_pFile: String, pFlags: Int = 0): AiScene? {
 
-        // Check whether this Importer instance has already loaded
-        // a scene. In this case we need to delete the old one
+        // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
 
         // First check if the file is accessible at all
