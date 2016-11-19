@@ -1,11 +1,7 @@
-import cmp
-import main.assimp.*
-import main.d
-import main.f
-import main.glm
-import main.i
+package main.stl
+
+import main.*
 import main.vec._4.Vec4d
-import skipSpaces
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
@@ -124,18 +120,17 @@ class STLImporter : BaseImporter() {
 
         var bMatClr = false
 
-        if (isBinarySTL(mBuffer, fileSize)) {
-//            bMatClr = LoadBinaryFile()
-        } else if (isAsciiSTL(mBuffer, fileSize))
+        if (isBinarySTL(mBuffer, fileSize))
+            bMatClr = loadBinaryFile()
+        else if (isAsciiSTL(mBuffer, fileSize))
             loadASCIIFile()
-        else
-            throw Error("Failed to determine STL storage representation for $pFile.")
+        else throw Error("Failed to determine STL storage representation for $pFile.")
 
         // add all created meshes to the single node
-        pScene.mRootNode!!.mNumMeshes = pScene.mNumMeshes
-        pScene.mRootNode!!.mMeshes = IntArray(pScene.mNumMeshes)
-        for (i in 0..pScene.mNumMeshes)
-            pScene.mRootNode!!.mMeshes!![i] = i
+        pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
+        pScene.mRootNode.mMeshes = IntArray(pScene.mNumMeshes)
+        for (i in 0..pScene.mNumMeshes - 1)
+            pScene.mRootNode.mMeshes!![i] = i
 
         // create a single default material, using a light gray diffuse color for consistency with other geometric types
         // (e.g., PLY).
@@ -163,7 +158,7 @@ class STLImporter : BaseImporter() {
         // allocate one mesh
         pScene.mNumMeshes = 1
         pScene.mMeshes = mutableListOf(AiMesh())
-        val pMesh = pScene!!.mMeshes!![0]
+        val pMesh = pScene.mMeshes[0]
         pMesh.mMaterialIndex = 0
 
         // skip the first 80 bytes
@@ -191,7 +186,7 @@ class STLImporter : BaseImporter() {
         var sz = 80
 
         // now read the number of facets
-        pScene.mRootNode!!.mName = "<STL_BINARY>"
+        pScene.mRootNode.mName = "<STL_BINARY>"
 
         pMesh.mNumFaces = mBuffer.getInt(sz)
         sz += 4
@@ -207,7 +202,7 @@ class STLImporter : BaseImporter() {
         var vp = 0
         var vn = 0
 
-        for (i in 0..pMesh.mNumFaces) {
+        for (i in 0..pMesh.mNumFaces - 1) {
 
             // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
             // step should fix that
@@ -241,8 +236,8 @@ class STLImporter : BaseImporter() {
         // setup the name of the node
         if (!buffer[0].isNewLine()) {
             if (words[0].length >= MAXLEN) throw Error("STL: Node name too long")
-            pScene.mRootNode!!.mName = words[0]
-        } else pScene.mRootNode!!.mName = "<STL_ASCII>"
+            pScene.mRootNode.mName = words[0]
+        } else pScene.mRootNode.mName = "<STL_ASCII>"
 
         var faceVertexCounter = 0
         var i = 0
@@ -258,7 +253,7 @@ class STLImporter : BaseImporter() {
 
             if (word == "facet") {
 
-                if (faceVertexCounter != 3) System.err.print("STL: A new facet begins but the old is not yet complete")
+                if (faceVertexCounter >= 3) System.err.print("STL: A new facet begins but the old is not yet complete")
 
                 faceVertexCounter = 0
                 val vn = AiVector3D()
@@ -320,24 +315,24 @@ class STLImporter : BaseImporter() {
         pMesh.mNormals = normalBuffer.toList()
         normalBuffer.clear()
 
-        pScene.mRootNode!!.mName = words[0]
+        pScene.mRootNode.mName = words[0]
 
         // now copy faces
         addFacesToMesh(pMesh)
 
         // now add the loaded meshes
         pScene.mNumMeshes = meshes.size
-        pScene.mMeshes = ArrayList<AiMesh>(pScene.mNumMeshes)
-        for (i in 0..meshes.size) pScene.mMeshes!![i] = meshes[i]
+        pScene.mMeshes = meshes.toMutableList()
     }
 
     fun addFacesToMesh(pMesh: AiMesh) {
         var p = 0
-        pMesh.mFaces = ArrayList<AiFace>(pMesh.mNumFaces)
-        for (face in pMesh.mFaces!!) {
-            face.mNumIndices = 3
-            face.mIndices = IntArray(face.mNumIndices)
-            for (o in 0..2) face.mIndices!![o] = p++
-        }
+        val numIndices = 3
+        pMesh.mFaces = (0..pMesh.mNumFaces - 1).map { AiFace(numIndices, IntArray(numIndices, { i -> p++ })) }
     }
+}
+
+fun main(args: Array<String>) {
+    val a = ArrayList<Int>(10)
+    println(a.size)
 }

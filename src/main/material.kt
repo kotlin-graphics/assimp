@@ -1,8 +1,4 @@
-package main.assimp
-
-import AiVector2D
-import AiVector3D
-import AiColor3D
+package main
 
 /**
  * Created by elect on 17/11/2016.

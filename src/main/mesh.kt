@@ -1,3 +1,5 @@
+package main
+
 import main.mat.Mat4
 import main.vec._3.Vec3d
 import main.vec._4.Vec4d
@@ -57,7 +59,7 @@ data class AiFace(
         var mNumIndices: Int = 0,
 
         //! Pointer to the indices array. Size of the array is given in numIndices.
-        var mIndices: IntArray? = null)
+        var mIndices: IntArray = IntArray(0))
 
 // ---------------------------------------------------------------------------
 /** @brief A single influence of a bone on a vertex.
@@ -130,6 +132,8 @@ enum class AiPrimitiveType(val i: Int) {
         fun of(i: Int) = values().first { it.i == i }
     }
 }
+
+infix fun Int.or(other: AiPrimitiveType) = this or other.i
 
 fun AI_PRIMITIVE_TYPE_FOR_N_INDICES(n: Int) = if (n > 3) AiPrimitiveType.POLYGON else AiPrimitiveType.of(1 shl (n - 1))
 
@@ -249,30 +253,30 @@ data class AiMesh(
          * The bitangent of a vertex points in the direction of the positive Y texture axis. The array contains
          * normalized vectors, NULL if not present. The array is mNumVertices in size.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mBitangents: List<AiVector3D>? = null,
+        var mBitangents: MutableList<AiVector3D>? = null,
 
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
          * array is mNumVertices in size if present.         */
-        var mColors: List<AiColor4D>? = null,
+        var mColors: Array<AiColor4D?> = arrayOfNulls(AI_MAX_NUMBER_OF_COLOR_SETS),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
          * mNumVertices in size.         */
-        var mTextureCoords: List<AiVector3D>? = null,
+        var mTextureCoords: Array<AiVector3D?> = arrayOfNulls(AI_MAX_NUMBER_OF_TEXTURECOORDS),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given
          * channel n, the component p.z of mTextureCoords[n][p] is set to 0.0f.
          * If the value is 1 for a given channel, p.y is set to 0.0f, too.
          * @note 4D coords are not supported         */
-        var mNumUVComponents: Int = 0, //[AI_MAX_NUMBER_OF_TEXTURECOORDS];
+        var mNumUVComponents: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS),
 
         /** The faces the mesh is constructed from.
          * Each face refers to a number of vertices by their indices.
          * This array is always present in a mesh, its size is given in mNumFaces.
          * If the #AI_SCENE_FLAGS_NON_VERBOSE_FORMAT is NOT set each face references an unique set of vertices.         */
-        var mFaces: List<AiFace>? = null,
+        var mFaces: List<AiFace> = ArrayList(),
 
         /** The number of bones this mesh contains.
          * Can be 0, in which case the mBones array is NULL.

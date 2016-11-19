@@ -1,3 +1,7 @@
+package main
+
+import main.stl.STLImporter
+
 /**
  * Created by elect on 13/11/2016.
  */

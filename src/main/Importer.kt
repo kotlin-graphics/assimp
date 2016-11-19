@@ -1,3 +1,5 @@
+package main
+
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -11,18 +13,25 @@ import java.nio.file.Paths
 // ---------------------------------------------------------------------------
 /** @brief Internal PIMPL implementation for Assimp::Importer   */
 
-class ImporterPimpl(
-        /** Format-specific importer worker objects - one for each format we can read.*/
-        val mImporter: List<BaseImporter>,
+class ImporterPimpl {
 
-        /** Post processing steps we can apply at the imported data. */
-        val mPostProcessingSteps: List<BaseProcess>,
+    /** Format-specific importer worker objects - one for each format we can read.*/
+    val mImporter: List<BaseImporter>
 
-        /** The imported data, if ReadFile() was successful, NULL otherwise. */
-        var mScene: AiScene? = null,
+    /** Post processing steps we can apply at the imported data. */
+    val mPostProcessingSteps: List<BaseProcess>
 
-        /** The error description, if there was one. */
-        val mErrorString: String = "")
+    /** The imported data, if ReadFile() was successful, NULL otherwise. */
+    lateinit var mScene: AiScene
+
+    /** The error description, if there was one. */
+    val mErrorString: String = ""
+
+    constructor(mImporter: List<BaseImporter>, mPostProcessingSteps: List<BaseProcess>) {
+        this.mImporter=mImporter
+        this.mPostProcessingSteps=mPostProcessingSteps
+    }
+}
 
 // ----------------------------------------------------------------------------------
 /** CPP-API: The Importer class forms an C++ interface to the functionality of the Open Asset Import Library.
@@ -62,10 +71,7 @@ class Importer(
         //TODO if (pimpl.mScene != null) FreeScene()
 
         // First check if the file is accessible at all
-        if (!Files.exists(Paths.get(_pFile))) {
-            throw FileNotFoundException("Unable to open file " + _pFile)
-            return null
-        }
+        if (!Files.exists(Paths.get(_pFile))) throw FileNotFoundException("Unable to open file " + _pFile)
 
         // Find an worker class which can handle the file
         val imp: BaseImporter? = pimpl.mImporter.firstOrNull { it.canRead(_pFile, false) }
@@ -77,7 +83,13 @@ class Importer(
 
         pimpl.mScene = imp.readFile(this, _pFile)
 
-        return null
+        // If successful, apply all active post processing steps to the imported data
+        if (pimpl.mScene != null) {
+
+            ScenePreprocessor(pimpl.mScene!!).processScene()
+        }
+
+        return pimpl.mScene
     }
 }
 

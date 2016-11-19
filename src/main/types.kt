@@ -1,4 +1,4 @@
-package main.assimp
+package main
 
 /**
  * Created by elect on 16/11/2016.

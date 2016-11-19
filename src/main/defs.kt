@@ -1,3 +1,5 @@
+package main
+
 import main.mat.Mat4
 import main.vec._2.Vec2
 import main.vec._2.Vec2d

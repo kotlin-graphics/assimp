@@ -1,4 +1,5 @@
-import main.assimp.AiMaterial
+package main
+
 import main.mat.Mat4
 
 /**
@@ -55,7 +56,13 @@ data class AiNode(
         var mNumMeshes: Int = 0,
 
         /** The meshes of this node. Each entry is an index into the mesh list of the #aiScene.     */
-        var mMeshes: IntArray? = null
+        var mMeshes: IntArray? = null,
+
+        /** Metadata associated with this node or NULL if there is no metadata.
+         *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
+         *  @endlink page for more information on every source file format. Importers that don't document any metadata
+         *  don't write any.         */
+        var mMetaData: MutableList<AiMetadata>? = null
 ) {
 
 //    fun finNode(name: String): AiNode? {
@@ -65,6 +72,8 @@ data class AiNode(
 //        } ?: null
 //    }
 }
+
+class AiMetadata
 
 // -------------------------------------------------------------------------------
 /**
@@ -117,74 +126,74 @@ const val AI_SCENE_FLAGS_ALLOW_SHARED = 0x20
  *  Objects of this class are generally maintained and owned by Assimp, not by the caller. You shouldn't want to
  *  instance it, nor should you ever try to delete a given scene on your own. */
 // -------------------------------------------------------------------------------
-data class AiScene(
+class AiScene {
 
-        /** Any combination of the AI_SCENE_FLAGS_XXX flags. By default this value is 0, no flags are set. Most
-         * applications will want to reject all scenes with the AI_SCENE_FLAGS_INCOMPLETE bit set.         */
-        var mFlags: Int = 0,
+    /** Any combination of the AI_SCENE_FLAGS_XXX flags. By default this value is 0, no flags are set. Most
+     * applications will want to reject all scenes with the AI_SCENE_FLAGS_INCOMPLETE bit set.         */
+    var mFlags: Int = 0
 
-        /** The root node of the hierarchy.
-         *
-         * There will always be at least the root node if the import was successful (and no special flags have been set).
-         * Presence of further nodes depends on the format and content of the imported file.         */
-        var mRootNode: AiNode? = null,
+    /** The root node of the hierarchy.
+     *
+     * There will always be at least the root node if the import was successful (and no special flags have been set).
+     * Presence of further nodes depends on the format and content of the imported file.         */
+    lateinit var mRootNode: AiNode
 
-        /** The number of meshes in the scene. */
-        var mNumMeshes: Int = 0,
+    /** The number of meshes in the scene. */
+    var mNumMeshes = 0
 
-        /** The array of meshes.
-         *
-         * Use the indices given in the aiNode structure to access this array. The array is mNumMeshes in size. If the
-         * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-        var mMeshes: MutableList<AiMesh>? = null,
+    /** The array of meshes.
+     *
+     * Use the indices given in the aiNode structure to access this array. The array is mNumMeshes in size. If the
+     * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
+    lateinit var mMeshes: MutableList<AiMesh>
 
-        /** The number of materials in the scene. */
-        var mNumMaterials: Int = 0,
+    /** The number of materials in the scene. */
+    var mNumMaterials = 0
 
-        /** The array of materials.
-         *
-         * Use the index given in each aiMesh structure to access this array. The array is mNumMaterials in size. If the
-         * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-        var mMaterials: MutableList<AiMaterial>? = null,
+    /** The array of materials.
+     *
+     * Use the index given in each aiMesh structure to access this array. The array is mNumMaterials in size. If the
+     * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
+    lateinit var mMaterials: MutableList<AiMaterial>
 
-        /** The number of animations in the scene. */
-        var mNumAnimations: Int = 0,
+    /** The number of animations in the scene. */
+    var mNumAnimations = 0
 
-        /** The array of animations.
-         *
-         * All animations imported from the given file are listed here.
-         * The array is mNumAnimations in size.         */
-        //        C_STRUCT aiAnimation** mAnimations; TODO
+    /** The array of animations.
+     *
+     * All animations imported from the given file are listed here.
+     * The array is mNumAnimations in size.         */
+    //        C_STRUCT aiAnimation** mAnimations; TODO
 
-        /** The number of textures embedded into the file */
-        var mNumTextures: Int = 0,
+    /** The number of textures embedded into the file */
+    var mNumTextures = 0
 
-        /** The array of embedded textures.
-         *
-         * Not many file formats embed their textures into the file.
-         * An example is Quake's MDL format (which is also used by some GameStudio versions)
-         */
-        //        C_STRUCT aiTexture** mTextures; TODO
+    /** The array of embedded textures.
+     *
+     * Not many file formats embed their textures into the file.
+     * An example is Quake's MDL format (which is also used by some GameStudio versions)
+     */
+    //        C_STRUCT aiTexture** mTextures; TODO
 
-        /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
-         * will be 0         */
-        var mNumLights: Int = 0,
+    /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
+     * will be 0         */
+    var mNumLights = 0
 
-        /** The array of light sources.
-         *
-         * All light sources imported from the given file are listed here. The array is mNumLights in size.         */
-        //        C_STRUCT aiLight** mLights; TODO
+    /** The array of light sources.
+     *
+     * All light sources imported from the given file are listed here. The array is mNumLights in size.         */
+    //        C_STRUCT aiLight** mLights; TODO
 
-        /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
-        var mNumCameras: Int = 0
+    /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
+    var mNumCameras = 0
 
-        /** The array of cameras.
-         *
-         * All cameras imported from the given file are listed here.
-         * The array is mNumCameras in size. The first camera in the array (if existing) is the default camera view into
-         * the scene.         */
-        //        C_STRUCT aiCamera** mCameras; TODO
-) {
+    /** The array of cameras.
+     *
+     * All cameras imported from the given file are listed here.
+     * The array is mNumCameras in size. The first camera in the array (if existing) is the default camera view into
+     * the scene.         */
+    //        C_STRUCT aiCamera** mCameras; TODO
+
     //! Check whether the scene contains meshes
     //! Unless no special scene flags are set this will always be true.
 //        fun hasMeshes() = mMeshes != NULL && mNumMeshes > 0; TODO
