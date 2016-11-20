@@ -221,7 +221,7 @@ data class AiMesh(
 
         /** Vertex positions.
          * This array is always present in a mesh. The array is mNumVertices in size.         */
-        var mVertices: List<AiVector3D>? = null,
+        var mVertices: MutableList<AiVector3D>? = null,
 
         /** Vertex normals.
          * The array contains normalized vectors, NULL if not present.
@@ -238,7 +238,7 @@ data class AiMesh(
          * artithmetics). Use stuff like @c fpclassify instead.
          * @note Normal vectors computed by Assimp are always unit-length.
          * However, this needn't apply for normals that have been taken directly from the model file.         */
-        var mNormals: List<AiVector3D>? = null,
+        var mNormals: MutableList<AiVector3D>? = null,
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive X texture axis. The array contains normalized

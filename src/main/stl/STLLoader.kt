@@ -1,15 +1,14 @@
 package main.stl
 
 import main.*
-import main.vec._4.Vec4d
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
-import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.FileSystemException
-import java.nio.file.Files
 import java.util.*
+import main.ushr
+import java.nio.ByteOrder
 
 /**
  * Created by elect on 13/11/2016.
@@ -107,7 +106,7 @@ class STLImporter : BaseImporter() {
 
         // allocate storage and copy the contents of the file to a memory buffer
         val fileChannel = RandomAccessFile(file, "r").channel
-        val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size())
+        val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
 
         this.pScene = pScene
         this.mBuffer = mBuffer2
@@ -199,17 +198,53 @@ class STLImporter : BaseImporter() {
 
         pMesh.mVertices = ArrayList<AiVector3D>()
         pMesh.mNormals = ArrayList<AiVector3D>()
-        var vp = 0
-        var vn = 0
 
         for (i in 0..pMesh.mNumFaces - 1) {
 
             // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
             // step should fix that
-//            pMesh.mNormals!![vn] = AiVector3D(mBuffer, sz)
-        }
+            val vn = AiVector3D(mBuffer, sz)
+            for (i in 0..2) {
+                pMesh.mNormals!!.add(vn.copy())
+                pMesh.mVertices!!.add(AiVector3D(mBuffer, sz))
+                sz += AiVector3D.SIZE
+            }
 
-        return true
+            val color = mBuffer.getShort(sz)
+            sz += java.lang.Short.BYTES
+
+            if ((color and (1 shl 15)) != 0.s) {
+
+                // seems we need to take the color
+                if (pMesh.mColors[0] == null) {
+
+                    pMesh.mColors = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) })
+
+                    println("STL: Mesh has vertex colors")
+                }
+                val clr = pMesh.mColors[i]!!
+                clr.a = 1f
+                val invVal = 1f / 31
+                if (bIsMaterialise) {    // this is reversed
+
+                    clr.r = (color and 0x31) * invVal
+                    clr.g = ((color and (0x31 shl 5)) ushr 5) * invVal
+                    clr.b = ((color and (0x31 shl 10)) ushr 10) * invVal
+                } else {
+                    clr.b = (color and 0x31) * invVal
+                    clr.g = ((color and (0x31 shl 5)) ushr 5) * invVal
+                    clr.r = ((color and (0x31 shl 10)) ushr 10) * invVal
+                }
+                // assign the color to all vertices of the face
+                pMesh.mColors[i + 1].to(clr)
+                pMesh.mColors[i + 2].to(clr)
+            }
+        }
+        // now copy faces
+        addFacesToMesh(pMesh);
+
+        // use the color as diffuse material color
+        return bIsMaterialise && pMesh.mColors[0] == null
     }
 
     // ------------------------------------------------------------------------------------------------
@@ -231,7 +266,7 @@ class STLImporter : BaseImporter() {
         buffer = buffer.removePrefix("solid")    // skip the "solid"
         buffer = buffer.trim()
 
-        var words = buffer.split("\\s+".toRegex()).toMutableList()
+        val words = buffer.split("\\s+".toRegex()).toMutableList()
 
         // setup the name of the node
         if (!buffer[0].isNewLine()) {
@@ -239,7 +274,7 @@ class STLImporter : BaseImporter() {
             pScene.mRootNode.mName = words[0]
         } else pScene.mRootNode.mName = "<STL_ASCII>"
 
-        var faceVertexCounter = 0
+        var faceVertexCounter = 3
         var i = 0
 
         while (true) {
@@ -247,19 +282,19 @@ class STLImporter : BaseImporter() {
             val word = words[i]
 
             if (i == word.length - 1 && word != "endsolid") {
-                System.err.print("STL: unexpected EOF. \'endsolid\' keyword was expected")
+                System.err.println("STL: unexpected EOF. \'endsolid\' keyword was expected")
                 break
             }
 
             if (word == "facet") {
 
-                if (faceVertexCounter >= 3) System.err.print("STL: A new facet begins but the old is not yet complete")
+                if (faceVertexCounter != 3) System.err.println("STL: A new facet begins but the old is not yet complete")
 
                 faceVertexCounter = 0
                 val vn = AiVector3D()
                 normalBuffer.add(vn)
 
-                if (words[i + 1] != "normal") System.err.print("STL: a facet normal vector was expected but not found")
+                if (words[i + 1] != "normal") System.err.println("STL: a facet normal vector was expected but not found")
                 else {
                     try {
                         i++
@@ -275,7 +310,7 @@ class STLImporter : BaseImporter() {
             } else if (word == "vertex") {
 
                 if (faceVertexCounter >= 3) {
-                    System.err.print("STL: a facet with more than 3 vertices has been found")
+                    System.err.println("STL: a facet with more than 3 vertices has been found")
                     i++
                 } else {
                     try {
@@ -310,9 +345,9 @@ class STLImporter : BaseImporter() {
         }
         pMesh.mNumFaces = positionBuffer.size / 3
         pMesh.mNumVertices = positionBuffer.size
-        pMesh.mVertices = positionBuffer.toList()
+        pMesh.mVertices = positionBuffer.toMutableList()
         positionBuffer.clear()
-        pMesh.mNormals = normalBuffer.toList()
+        pMesh.mNormals = normalBuffer.toMutableList()
         normalBuffer.clear()
 
         pScene.mRootNode.mName = words[0]
@@ -330,9 +365,4 @@ class STLImporter : BaseImporter() {
         val numIndices = 3
         pMesh.mFaces = (0..pMesh.mNumFaces - 1).map { AiFace(numIndices, IntArray(numIndices, { i -> p++ })) }
     }
-}
-
-fun main(args: Array<String>) {
-    val a = ArrayList<Int>(10)
-    println(a.size)
 }
