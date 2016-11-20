@@ -14,11 +14,11 @@ This port is being written trying to stick as much as possible close to the C ve
 | STL ascii     | done, .stl ext  | 90  |
 | STL binary    | to test, stl ext| 80  |
 | MD2           | to fix          | 50  |
-| Wavefront     | to implement    | 0 |
-| Ply           | to implement    | 0 |
-| Collada       | to implement    | 0 |
-| MD5           | to implement    | 0 |
-| FBX           | to implement    | 0 |
+| Wavefront     | to implement    | 0  |
+| Ply           | to implement    | 0  |
+| Collada       | to implement    | 0  |
+| MD5           | to implement    | 0  |
+| FBX           | to implement    | 0  |
 
 
 [Format priority list](https://github.com/java-graphics/assimp/wiki/Priority-list-of-file-formats)
