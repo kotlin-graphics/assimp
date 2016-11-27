@@ -23,8 +23,9 @@ val scene = Importer().readFile("test/resources/models/OBJ/box.obj")
 
 | Format        | status          | %   |
 | ------------- |:---------------:|-----|
-| STL ascii     | done,`.stl`ext  | 90  |
-| STL binary    | to test,`.stl`ext| 80  |
+| STL ascii     | done (only `.stl`ext)  | 90  |
+| STL binary    | done (only `.stl`ext)| 90  |
+| Obj Wavefront    | done (only `.obj`ext without external material)| 80  |
 | Wavefront     | to implement    | 0  |
 | Ply           | to implement    | 0  |
 | Collada       | to implement    | 0  |
