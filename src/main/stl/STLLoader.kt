@@ -54,7 +54,7 @@ class STLImporter : BaseImporter() {
             // A lot of importers are write solid even if the file is binary. So we have to check for ASCII-characters.
             return buffer.cmp("solid").let {
                 if (fileSize >= 500)
-                    for (i in 0..500)
+                    for (i in 0 until 500)
                         if (buffer.get() > 127)
                             return false
                 return true
@@ -74,6 +74,8 @@ class STLImporter : BaseImporter() {
     /** Default vertex color */
     protected var clrColorDefault = AiColor4D()
 
+    // ------------------------------------------------------------------------------------------------
+    // Returns whether the class can handle the format of the given file.
     override fun canRead(pFile: String, checkSig: Boolean): Boolean {
 
         val extension = pFile.substring(pFile.lastIndexOf('.') + 1)
@@ -128,7 +130,7 @@ class STLImporter : BaseImporter() {
         // add all created meshes to the single node
         pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
         pScene.mRootNode.mMeshes = IntArray(pScene.mNumMeshes)
-        for (i in 0..pScene.mNumMeshes - 1)
+        for (i in 0 until pScene.mNumMeshes)
             pScene.mRootNode.mMeshes!![i] = i
 
         // create a single default material, using a light gray diffuse color for consistency with other geometric types
@@ -204,9 +206,10 @@ class STLImporter : BaseImporter() {
             // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
             // step should fix that
             val vn = AiVector3D(mBuffer, sz)
-            for (i in 0..2) {
+            sz += AiVector3D.SIZE
+            for (i in 0 until 3) {
                 pMesh.mNormals!!.add(vn.copy())
-                pMesh.mVertices!!.add(AiVector3D(mBuffer, sz))
+                pMesh.mVertices.add(AiVector3D(mBuffer, sz))
                 sz += AiVector3D.SIZE
             }
 
@@ -218,11 +221,11 @@ class STLImporter : BaseImporter() {
                 // seems we need to take the color
                 if (pMesh.mColors[0] == null) {
 
-                    pMesh.mColors = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) })
+                    pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) })
 
                     println("STL: Mesh has vertex colors")
                 }
-                val clr = pMesh.mColors[i]!!
+                val clr = pMesh.mColors[0]!![i * 3]
                 clr.a = 1f
                 val invVal = 1f / 31
                 if (bIsMaterialise) {    // this is reversed
@@ -363,6 +366,6 @@ class STLImporter : BaseImporter() {
     fun addFacesToMesh(pMesh: AiMesh) {
         var p = 0
         val numIndices = 3
-        pMesh.mFaces = (0..pMesh.mNumFaces - 1).map { AiFace(numIndices, IntArray(numIndices, { i -> p++ })) }
+        pMesh.mFaces = (0 until pMesh.mNumFaces).map { AiFace(numIndices, IntArray(numIndices, { p++ }).toMutableList()) }
     }
 }

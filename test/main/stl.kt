@@ -13,6 +13,7 @@ class stl : StringSpec() {
     init {
 
         "testTriangle.stl" {
+
             val scene = Importer().readFile("test/resources/models/STL/triangle.stl")!!
 
             scene.mFlags shouldBe 0
@@ -39,18 +40,14 @@ class stl : StringSpec() {
 
                     mNumVertices shouldBe 3
 
-                    val v = mVertices
-                    if (v != null) {
-                        v[0] shouldBe Vec3(1, 1, 0)
-                        v[1] shouldBe Vec3(-1, 1, 0)
-                        v[2] shouldBe Vec3(0, -1, 0)
-                    }
-                    val n = mNormals
-                    if (n != null) {
-                        n[0] shouldBe Vec3(0, 0, 1)
-                        n[1] shouldBe Vec3(0, 0, 1)
-                        n[2] shouldBe Vec3(0, 0, 1)
-                    }
+                    mVertices[0] shouldBe Vec3(1, 1, 0)
+                    mVertices[1] shouldBe Vec3(-1, 1, 0)
+                    mVertices[2] shouldBe Vec3(0, -1, 0)
+
+                    mNormals[0] shouldBe Vec3(0, 0, 1)
+                    mNormals[1] shouldBe Vec3(0, 0, 1)
+                    mNormals[2] shouldBe Vec3(0, 0, 1)
+
                     mTangents shouldBe null
                     mBitangents shouldBe null
 
@@ -90,6 +87,7 @@ class stl : StringSpec() {
         }
 
         "sphereWithHole.stl" {
+
             val scene = Importer().readFile("test/resources/models/STL/sphereWithHole.stl")!!
 
             scene.mFlags shouldBe 0
@@ -116,32 +114,27 @@ class stl : StringSpec() {
 
                     mNumVertices shouldBe 855
 
-                    val v = mVertices
-                    if (v != null) {
-                        v[0] shouldBe Vec3(1.50000000, 1.50000000, 0.000000000)
-                        v[100] shouldBe Vec3(0.439339995, 1.50000000, 0.439339995)
-                        v[200] shouldBe Vec3(0.144960001, 1.97835, 1.06982)
-                        v[300] shouldBe Vec3(0.379390001, 0.602360010, 1.06585002)
-                        v[400] shouldBe Vec3(1.50000000, 0.000000000, 1.50000000)
-                        v[500] shouldBe Vec3(0.144960001, 1.97835, 1.93018)
-                        v[600] shouldBe Vec3(1.08111000, 2.70614004, 2.28725004)
-                        v[700] shouldBe Vec3(1.50000000, 0.439339995, 2.56065989)
-                        v[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
-                        v[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
-                    }
-                    val n = mNormals
-                    if (n != null) {
-                        n[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
-                        n[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
-                        n[200] shouldBe Vec3(-0.870000005, 0.200000003, -0.449999988)
-                        n[300] shouldBe Vec3(-0.660000026, -0.730000019, -0.180000007)
-                        n[400] shouldBe Vec3(-0.129999995, -0.980000019, -0.129999995)
-                        n[500] shouldBe Vec3(-0.920000017, 0.379999995, 0.119999997)
-                        n[600] shouldBe Vec3(-0.159999996, 0.899999976, 0.419999987)
-                        n[700] shouldBe Vec3(-0.180000007, -0.730000019, 0.660000026)
-                        n[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
-                        n[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
-                    }
+                    mVertices[0] shouldBe Vec3(1.50000000, 1.50000000, 0.000000000)
+                    mVertices[100] shouldBe Vec3(0.439339995, 1.50000000, 0.439339995)
+                    mVertices[200] shouldBe Vec3(0.144960001, 1.97835, 1.06982)
+                    mVertices[300] shouldBe Vec3(0.379390001, 0.602360010, 1.06585002)
+                    mVertices[400] shouldBe Vec3(1.50000000, 0.000000000, 1.50000000)
+                    mVertices[500] shouldBe Vec3(0.144960001, 1.97835, 1.93018)
+                    mVertices[600] shouldBe Vec3(1.08111000, 2.70614004, 2.28725004)
+                    mVertices[700] shouldBe Vec3(1.50000000, 0.439339995, 2.56065989)
+                    mVertices[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
+                    mVertices[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
+
+                    mNormals[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
+                    mNormals[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
+                    mNormals[200] shouldBe Vec3(-0.870000005, 0.200000003, -0.449999988)
+                    mNormals[300] shouldBe Vec3(-0.660000026, -0.730000019, -0.180000007)
+                    mNormals[400] shouldBe Vec3(-0.129999995, -0.980000019, -0.129999995)
+                    mNormals[500] shouldBe Vec3(-0.920000017, 0.379999995, 0.119999997)
+                    mNormals[600] shouldBe Vec3(-0.159999996, 0.899999976, 0.419999987)
+                    mNormals[700] shouldBe Vec3(-0.180000007, -0.730000019, 0.660000026)
+                    mNormals[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
+                    mNormals[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
 
                     mTangents shouldBe null
                     mBitangents shouldBe null
@@ -182,6 +175,7 @@ class stl : StringSpec() {
         }
 
         "Spider_binary.stl" {
+
             val scene = Importer().readFile("test/resources/models/STL/Spider_binary.stl")!!
 
             scene.mFlags shouldBe 0
@@ -206,33 +200,33 @@ class stl : StringSpec() {
 
                     mPrimitiveTypes shouldBe 4
 
-                    mNumVertices shouldBe 855
+                    mNumVertices shouldBe 4104
 
                     val v = mVertices
                     if (v != null) {
-                        v[0] shouldBe Vec3(1.50000000, 1.50000000, 0.000000000)
-                        v[100] shouldBe Vec3(0.439339995, 1.50000000, 0.439339995)
-                        v[200] shouldBe Vec3(0.144960001, 1.97835, 1.06982)
-                        v[300] shouldBe Vec3(0.379390001, 0.602360010, 1.06585002)
-                        v[400] shouldBe Vec3(1.50000000, 0.000000000, 1.50000000)
-                        v[500] shouldBe Vec3(0.144960001, 1.97835, 1.93018)
-                        v[600] shouldBe Vec3(1.08111000, 2.70614004, 2.28725004)
-                        v[700] shouldBe Vec3(1.50000000, 0.439339995, 2.56065989)
-                        v[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
-                        v[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
+                        v[0] shouldBe Vec3(0.907127976, 0.646165013, 0.795193374)
+                        v[500] shouldBe Vec3(-2.70630598, -3.77559018, -1.13675642)
+                        v[1000] shouldBe Vec3(-2.83839631, 2.59127927, -1.22905695)
+                        v[1500] shouldBe Vec3(-0.870797396, 2.30535197, 0.676904559)
+                        v[2000] shouldBe Vec3(0.164021820, -1.73031521, 1.32070541)
+                        v[2500] shouldBe Vec3(0.796747267, -1.43064785, 1.25715435)
+                        v[3000] shouldBe Vec3(-1.71063125, 0.356572717, 0.689150035)
+                        v[3500] shouldBe Vec3(-1.77611852, -0.319954246, 0.903541803)
+                        v[4000] shouldBe Vec3(-1.74193895, -0.297622085, 0.848268032)
+                        v[4103] shouldBe Vec3(-1.86195970, -0.243324131, 0.762536407)
                     }
                     val n = mNormals
                     if (n != null) {
-                        n[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
-                        n[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
-                        n[200] shouldBe Vec3(-0.870000005, 0.200000003, -0.449999988)
-                        n[300] shouldBe Vec3(-0.660000026, -0.730000019, -0.180000007)
-                        n[400] shouldBe Vec3(-0.129999995, -0.980000019, -0.129999995)
-                        n[500] shouldBe Vec3(-0.920000017, 0.379999995, 0.119999997)
-                        n[600] shouldBe Vec3(-0.159999996, 0.899999976, 0.419999987)
-                        n[700] shouldBe Vec3(-0.180000007, -0.730000019, 0.660000026)
-                        n[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
-                        n[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
+                        n[0] shouldBe Vec3(0.468281955, -0.863497794, -0.187306240)
+                        n[500] shouldBe Vec3(0.622135758, 0.587329984, -0.517678082)
+                        n[1000] shouldBe Vec3(-0.836838484, -0.476067126, 0.270298779)
+                        n[1500] shouldBe Vec3(0.413947791, 0.814008772, 0.407476395)
+                        n[2000] shouldBe Vec3(0.521721005, 0.567762673, -0.636751771)
+                        n[2500] shouldBe Vec3(-0.567528188, -0.492581815, -0.659753680)
+                        n[3000] shouldBe Vec3(0.676752925, -0.386138558, -0.626819372)
+                        n[3500] shouldBe Vec3(0.380660713, 0.715228200, -0.586128056)
+                        n[4000] shouldBe Vec3(0.147421882, 0.461364329, -0.874877036)
+                        n[4103] shouldBe Vec3(0.780922532, 0.308308363, 0.543236554)
                     }
 
                     mTangents shouldBe null
@@ -247,7 +241,7 @@ class stl : StringSpec() {
                     mNumUVComponents.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
                     mNumUVComponents.all { it == 0 } shouldBe true
 
-                    mFaces.size shouldBe 285
+                    mFaces.size shouldBe 1368
                     mFaces.all { it.mNumIndices == 3 } shouldBe true
                     var p = 0
                     mFaces[0].mIndices.all { it == p++ } shouldBe true

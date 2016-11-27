@@ -1,6 +1,7 @@
 package main
 
 import main.mat.Mat4
+import java.util.*
 
 /**
  * Created by elect on 13/11/2016.
@@ -50,7 +51,7 @@ data class AiNode(
         var mNumChildren: Int = 0,
 
         /** The child nodes of this node. NULL if mNumChildren is 0. */
-        var mChildren: MutableList<AiNode> = mutableListOf(),
+        var mChildren: MutableList<AiNode> = ArrayList(),
 
         /** The number of meshes of this node. */
         var mNumMeshes: Int = 0,

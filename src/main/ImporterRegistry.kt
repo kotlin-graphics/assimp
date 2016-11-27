@@ -1,5 +1,6 @@
 package main
 
+import main.obj.ObjFileImporter
 import main.stl.STLImporter
 
 /**
@@ -69,6 +70,9 @@ fun getImporterInstanceList(): MutableList<BaseImporter> {
     }
     if (!ASSIMP_BUILD_NO_STL_IMPORTER) {
         res.add(STLImporter())
+    }
+    if (!ASSIMP_BUILD_NO_OBJ_IMPORTER) {
+        res.add(ObjFileImporter())
     }
     return res
 }

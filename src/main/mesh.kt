@@ -59,7 +59,7 @@ data class AiFace(
         var mNumIndices: Int = 0,
 
         //! Pointer to the indices array. Size of the array is given in numIndices.
-        var mIndices: IntArray = IntArray(0))
+        var mIndices: MutableList<Int> = mutableListOf())
 
 // ---------------------------------------------------------------------------
 /** @brief A single influence of a bone on a vertex.
@@ -87,7 +87,7 @@ data class AiBone(
         var mNumWeights: Int = 0,
 
         //! The vertices affected by this bone
-        var mWeights: Array<AiVertexWeight>? = null,
+        var mWeights: List<AiVertexWeight> = listOf(),
 
         //! Matrix that transforms from mesh space to bone space in bind pose
         var mOffsetMatrix: AiMatrix4x4 = AiMatrix4x4()
@@ -143,22 +143,22 @@ data class AiAnimMesh(
          *  meshes may neither add or nor remove vertex components (if
          *  a replacement array is NULL and the corresponding source
          *  array is not, the source data is taken instead)*/
-        var mVertices: MutableList<AiVector3D>? = null,
+        var mVertices: MutableList<AiVector3D> = mutableListOf(),
 
         /** Replacement for aiMesh::mNormals.  */
-        var mNormals: MutableList<AiVector3D>? = null,
+        var mNormals: MutableList<AiVector3D> = mutableListOf(),
 
         /** Replacement for aiMesh::mTangents. */
-        var mTangents: MutableList<AiVector3D>? = null,
+        var mTangents: MutableList<AiVector3D> = mutableListOf(),
 
         /** Replacement for aiMesh::mBitangents. */
-        var mBitangents: MutableList<AiVector3D>? = null,
+        var mBitangents: MutableList<AiVector3D> = mutableListOf(),
 
         /** Replacement for aiMesh::mColors */
-        var mColors: MutableList<AiColor4D> = ArrayList<AiColor4D>(),
+        var mColors: MutableList<AiColor4D?> = mutableListOf(),
 
         /** Replacement for aiMesh::mTextureCoords */
-        var mTextureCoords: MutableList<AiVector3D> = ArrayList<AiVector3D>(),
+        var mTextureCoords: MutableList<AiVector3D?> = mutableListOf(),
 
         /** The number of vertices in the aiAnimMesh, and thus the length of all the member arrays.
          *
@@ -168,14 +168,14 @@ data class AiAnimMesh(
         var mNumVertices: Int = 0
 ) {
     /** Check whether the anim mesh overrides the vertex positions of its host mesh*/
-    fun hasPositions() = mVertices != null
+    fun hasPositions() = mVertices.isNotEmpty()
 
     /** Check whether the anim mesh overrides the vertex normals of its host mesh*/
-    fun hasNormals() = mNormals != null
+    fun hasNormals() = mNormals.isNotEmpty()
 
     /** Check whether the anim mesh overrides the vertex tangents and bitangents of its host mesh. As for aiMesh,
      * tangents and bitangents always go together. */
-    fun hasTangentsAndBitangents() = mTangents != null
+    fun hasTangentsAndBitangents() = mTangents.isNotEmpty()
 
     /** Check whether the anim mesh overrides a particular set of vertex colors on his host mesh.
      *  @param pIndex 0<index<AI_MAX_NUMBER_OF_COLOR_SETS */
@@ -221,7 +221,7 @@ data class AiMesh(
 
         /** Vertex positions.
          * This array is always present in a mesh. The array is mNumVertices in size.         */
-        var mVertices: MutableList<AiVector3D>? = null,
+        var mVertices: MutableList<AiVector3D> = mutableListOf(),
 
         /** Vertex normals.
          * The array contains normalized vectors, NULL if not present.
@@ -238,7 +238,7 @@ data class AiMesh(
          * artithmetics). Use stuff like @c fpclassify instead.
          * @note Normal vectors computed by Assimp are always unit-length.
          * However, this needn't apply for normals that have been taken directly from the model file.         */
-        var mNormals: MutableList<AiVector3D>? = null,
+        var mNormals: MutableList<AiVector3D> = mutableListOf(),
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive X texture axis. The array contains normalized
@@ -258,12 +258,12 @@ data class AiMesh(
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
          * array is mNumVertices in size if present.         */
-        var mColors: Array<AiColor4D?> = arrayOfNulls(AI_MAX_NUMBER_OF_COLOR_SETS),
+        var mColors: Array<Array<AiColor4D>?> = Array(AI_MAX_NUMBER_OF_COLOR_SETS, { null }),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
          * mNumVertices in size.         */
-        var mTextureCoords: Array<AiVector3D?> = arrayOfNulls(AI_MAX_NUMBER_OF_TEXTURECOORDS),
+        var mTextureCoords: Array<Array<AiVector3D>?> = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS, { null }),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given
@@ -308,4 +308,54 @@ data class AiMesh(
          *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions,
          *  normals). */
         var mAnimMeshes: List<AiMesh>? = null
-)
+) {
+    //! Check whether the mesh contains positions. Provided no special
+    //! scene flags are set, this will always be true
+    fun hasPositions() = mNumVertices > 0
+
+    //! Check whether the mesh contains faces. If no special scene flags
+    //! are set this should always return true
+    fun hasFaces() = mNumFaces > 0
+
+    //! Check whether the mesh contains normal vectors
+    fun hasNormals() = mNormals != null && mNumVertices > 0
+
+    //! Check whether the mesh contains tangent and bitangent vectors
+    //! It is not possible that it contains tangents and no bitangents
+    //! (or the other way round). The existence of one of them
+    //! implies that the second is there, too.
+    fun hasTangentsAndBitangents() = mTangents != null && mBitangents != null && mNumVertices > 0
+
+    //! Check whether the mesh contains a vertex color set
+    //! \param pIndex Index of the vertex color set
+    fun hasVertexColors(pIndex: Int) =
+            if (pIndex >= AI_MAX_NUMBER_OF_COLOR_SETS)
+                false
+            else
+                mColors[pIndex] != null && mNumVertices > 0
+
+    //! Check whether the mesh contains a texture coordinate set
+    //! \param pIndex Index of the texture coordinates set
+    fun hasTextureCoords(pIndex: Int) =
+            if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS)
+                false
+            else
+                mTextureCoords[pIndex] != null && mNumVertices > 0
+
+    //! Get the number of UV channels the mesh contains
+    fun getNumUVChannels(): Int {
+        var n = 0
+        while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mTextureCoords[n] != null) ++n
+        return n
+    }
+
+    //! Get the number of vertex color channels the mesh contains
+    fun getNumColorChannels(): Int {
+        var n = 0
+        while (n < AI_MAX_NUMBER_OF_COLOR_SETS && mColors[n] != null) ++n
+        return n
+    }
+
+    //! Check whether the mesh contains bones
+    fun hasBones() = mBones != null && mNumBones > 0
+}
