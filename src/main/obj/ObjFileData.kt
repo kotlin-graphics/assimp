@@ -16,7 +16,7 @@ import main.mat.Mat4
 // ------------------------------------------------------------------------------------------------
 data class Face(
 
-        //! Primitive type
+        //! Primitive Type
         var m_PrimitiveType: AiPrimitiveType = AiPrimitiveType.POLYGON,
         //! Vertex indices
         var m_vertices: MutableList<Int> = mutableListOf(),
@@ -55,19 +55,8 @@ data class Material(
         //! Name of material description
         var materialName: String,
 
-        //! Texture names
-        var texture: String = "",
-        var textureSpecular: String = "",
-        var textureAmbient: String = "",
-        var textureEmissive: String = "",
-        var textureBump: String = "",
-        var textureNormal: String = "",
-        var textureReflection: Array<String> = arrayOf(),
-        var textureSpecularity: String = "",
-        var textureOpacity: String = "",
-        var textureDisp: String = "",
-
-        var clamp: BooleanArray = BooleanArray(Material.textureType.values().size, { false }),
+        //! Textures
+        var textures: MutableList<Texture> = mutableListOf(),
 
         //! Ambient color
         var ambient: AiColor3D = AiColor3D(),
@@ -86,23 +75,29 @@ data class Material(
         //! Index of refraction
         var ior: Float = 1.0f
 ) {
-    enum class textureType {
-        diffuse,
-        specular,
-        ambient,
-        emissive,
-        bump,
-        normal,
-        reflectionSphere,
-        reflectionCubeTop,
-        reflectionCubeBottom,
-        reflectionCubeFront,
-        reflectionCubeBack,
-        reflectionCubeLeft,
-        reflectionCubeRight,
-        specularity,
-        opacity,
-        disp
+    class Texture(
+            val name: String,
+            val type: Type,
+            val clamp: Boolean = false
+    ) {
+        enum class Type {
+            diffuse,
+            specular,
+            ambient,
+            emissive,
+            bump,
+            normal,
+            reflectionSphere,
+            reflectionCubeTop,
+            reflectionCubeBottom,
+            reflectionCubeFront,
+            reflectionCubeBack,
+            reflectionCubeLeft,
+            reflectionCubeRight,
+            specularity,
+            opacity,
+            disp
+        }
     }
 }
 

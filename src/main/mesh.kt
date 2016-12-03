@@ -53,13 +53,14 @@ const val AI_MAX_NUMBER_OF_TEXTURECOORDS = 0x8
  * Together with the #aiProcess_Triangulate flag you can then be sure that #aiFace::mNumIndices is always 3.
  * @note Take a look at the @link data Data Structures page @endlink for more information on the layout and winding
  * order of a face.  */
-data class AiFace(
-        //! Number of indices defining this face.
-        //! The maximum value for this member is #AI_MAX_FACE_INDICES.
-        var mNumIndices: Int = 0,
-
-        //! Pointer to the indices array. Size of the array is given in numIndices.
-        var mIndices: MutableList<Int> = mutableListOf())
+//data class AiFace(
+//        //! Number of indices defining this face.
+//        //! The maximum value for this member is #AI_MAX_FACE_INDICES.
+//        var mNumIndices: Int = 0,
+//
+//        //! Pointer to the indices array. Size of the array is given in numIndices.
+//        var mIndices: MutableList<Int> = mutableListOf())
+typealias AiFace = MutableList<Int>
 
 // ---------------------------------------------------------------------------
 /** @brief A single influence of a bone on a vertex.
@@ -206,7 +207,7 @@ data class AiMesh(
 
         /** Bitwise combination of the members of the #aiPrimitiveType enum.
          * This specifies which types of primitives are present in the mesh.
-         * The "SortByPrimitiveType"-Step can be used to make sure the output meshes consist of one primitive type each.         */
+         * The "SortByPrimitiveType"-Step can be used to make sure the output meshes consist of one primitive Type each.         */
         var mPrimitiveTypes: Int = 0,
 
         /** The number of vertices in this mesh.
@@ -258,7 +259,7 @@ data class AiMesh(
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
          * array is mNumVertices in size if present.         */
-        var mColors: Array<Array<AiColor4D>?> = Array(AI_MAX_NUMBER_OF_COLOR_SETS, { null }),
+        var mColors: Array<MutableList<AiColor4D>?> = Array(AI_MAX_NUMBER_OF_COLOR_SETS, { null }),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is

@@ -4,6 +4,8 @@ import main.AI_DEFAULT_MATERIAL_NAME
 import main.AiPrimitiveType
 import main.AiVector3D
 import main.f
+import java.io.File
+import main.plus
 
 /**
  * Created by elect on 21/11/2016.
@@ -16,11 +18,13 @@ class ObjFileParser {
 
     //! Pointer to model instance
     val m_pModel = Model()
+    private lateinit var file: File
 
-    constructor(streamBuffer: List<String>, modelName: String) {
+    constructor(file: File) {
 
+        this.file = file
         // Create the model instance to store all the data
-        m_pModel.m_ModelName = modelName
+        m_pModel.m_ModelName = file.name
 
         // create default material and store it
         m_pModel.m_pDefaultMaterial = Material(DEFAULT_MATERIAL)
@@ -28,7 +32,7 @@ class ObjFileParser {
         m_pModel.m_MaterialMap.put(DEFAULT_MATERIAL, m_pModel.m_pDefaultMaterial!!)
 
         // Start parsing the file
-        parseFile(streamBuffer)
+        parseFile(file.readLines())
     }
 
     // -------------------------------------------------------------------
@@ -75,7 +79,7 @@ class ObjFileParser {
                 'm' -> {
                     when (words[0]) {
                         "mg" -> getGroupNumberAndResolution()
-                        "mtllib" -> getMaterialLib(line)
+                        "mtllib" -> getMaterialLib(words)
                     }
                 }
             // Parse group name
@@ -159,7 +163,6 @@ class ObjFileParser {
             if (!m_hasNormals && hasNormal)
                 m_hasNormals = true
         }
-
     }
 
     // -------------------------------------------------------------------
@@ -243,8 +246,29 @@ class ObjFileParser {
 
     // -------------------------------------------------------------------
     //  Get material library from file.
-    fun getMaterialLib(line: String) {
+    fun getMaterialLib(words: List<String>) {
 
+        if (words.size < 2) throw Error("File name of the material is absent.")
+
+        val filename = words[1]
+
+        val pFile = file.parentFile + filename
+
+        if (!pFile.exists()) {
+            System.err.println("OBJ: Unable to locate material file $filename")
+            val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
+            println("OBJ: Opening fallback material file $strMatFallbackName")
+            if(!File(strMatFallbackName).exists()) {
+                System.err.println("OBJ: Unable to locate fallback material file $strMatFallbackName")
+                return
+            }
+        }
+
+        // Import material library data from file.
+        // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
+        val buffer = pFile.readLines().filter (String::isNotBlank)
+
+        ObjFileMtlImporter(buffer, m_pModel)
     }
 
     // -------------------------------------------------------------------
@@ -279,12 +303,12 @@ class ObjFileParser {
 
         val objectName = line.split("\\s+".toRegex())[1]
 
-        if(objectName.isNotEmpty()) {
+        if (objectName.isNotEmpty()) {
 
             // Search for actual object
             m_pModel.m_pCurrent = m_pModel.m_Objects.find { it.m_strObjName == objectName }
 
-            if(m_pModel.m_pCurrent == null)
+            if (m_pModel.m_pCurrent == null)
                 createObject(objectName)
         }
     }

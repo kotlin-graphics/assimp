@@ -7,7 +7,7 @@ package main
 // Name for default materials (2nd is used if meshes have UV coords)
 const val AI_DEFAULT_MATERIAL_NAME = "DefaultMaterial"
 // ---------------------------------------------------------------------------
-/** @brief Defines how the Nth texture of a specific type is combined with the result of all previous layers.
+/** @brief Defines how the Nth texture of a specific Type is combined with the result of all previous layers.
  *
  *  Example (left: key, right: value): <br>
  *  @code

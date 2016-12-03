@@ -60,7 +60,7 @@ class ScenePreprocessor(
         // If the information which primitive types are there in the mesh is currently not available, compute it.
         if (mPrimitiveTypes == 0) {
             mFaces.forEach {
-                when (it.mNumIndices) {
+                when (it.size) {
                     3 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.TRIANGLE
                     2 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.LINE
                     1 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.POINT

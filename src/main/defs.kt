@@ -7,6 +7,7 @@ import main.vec._3.Vec3
 import main.vec._3.Vec3d
 import main.vec._4.Vec4
 import main.vec._4.Vec4d
+import java.io.File
 import kotlin.reflect.KClass
 
 /**
@@ -30,3 +31,6 @@ typealias AiVector2D = Vec2
  * It's NOT a total limit, just a limit for individual allocations
  */
 fun AI_MAX_ALLOC(size: Int) = (256 * 1024 * 1024) / size
+
+// TODO file operators overloading, https://youtrack.jetbrains.com/issue/KT-15009
+inline operator fun File.plus(another: String) = File(this, another)

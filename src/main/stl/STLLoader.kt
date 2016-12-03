@@ -221,7 +221,7 @@ class STLImporter : BaseImporter() {
                 // seems we need to take the color
                 if (pMesh.mColors[0] == null) {
 
-                    pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) })
+                    pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) }).toMutableList()
 
                     println("STL: Mesh has vertex colors")
                 }
@@ -365,7 +365,6 @@ class STLImporter : BaseImporter() {
 
     fun addFacesToMesh(pMesh: AiMesh) {
         var p = 0
-        val numIndices = 3
-        pMesh.mFaces = (0 until pMesh.mNumFaces).map { AiFace(numIndices, IntArray(numIndices, { p++ }).toMutableList()) }
+        pMesh.mFaces = (0 until pMesh.mNumFaces).map { mutableListOf(p++, p++, p++) }
     }
 }

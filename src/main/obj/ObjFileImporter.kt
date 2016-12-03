@@ -1,14 +1,10 @@
 package main.obj
 
-import com.sun.org.apache.xpath.internal.operations.Mod
 import main.*
-import main.AiVector3D
 import java.io.File
-import java.io.RandomAccessFile
-import java.nio.ByteOrder
-import java.nio.channels.FileChannel
 import java.nio.file.FileSystemException
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 21/11/2016.
@@ -51,14 +47,8 @@ class ObjFileImporter : BaseImporter() {
 
         if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
-        // Allocate buffer and read file into it
-        val streamedBuffer = file.readLines()
-
-        // Get the model name
-        val modelName = file.name
-
         // parse the file into a temporary representation
-        val parser = ObjFileParser(streamedBuffer, modelName)
+        val parser = ObjFileParser(file)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, pScene)
@@ -188,26 +178,22 @@ class ObjFileImporter : BaseImporter() {
 
             // Copy all data from all stored meshes
             pObjMesh.m_Faces.forEach {
-                val face = AiFace()
+                val face = ArrayList<Int>()
                 when (it.m_PrimitiveType) {
                     AiPrimitiveType.LINE -> for (i in 0 until it.m_vertices.size - 1) {
-                        face.mNumIndices = 2
-                        uiIdxCount += face.mNumIndices
-                        face.mIndices = IntArray(2).toMutableList()
-                        continue
+                        val mNumIndices = 2
+                        uiIdxCount += mNumIndices
+                        repeat(mNumIndices, { face.add(0) })
                     }
                     AiPrimitiveType.POINT -> for (i in 0 until it.m_vertices.size) {
-                        face.mNumIndices = 1
-                        uiIdxCount += face.mNumIndices
-                        face.mIndices = IntArray(1).toMutableList()
-                        continue
+                        val mNumIndices = 1
+                        uiIdxCount += mNumIndices
+                        repeat(mNumIndices, { face.add(0) })
                     }
                     else -> {
                         val uiNumIndices = it.m_vertices.size
-                        face.mNumIndices = uiNumIndices
                         uiIdxCount += uiNumIndices
-                        if (face.mNumIndices > 0)
-                            face.mIndices = IntArray(uiNumIndices).toMutableList()
+                        repeat(uiNumIndices, { face.add(0) })
                     }
                 }
                 faces.add(face)
@@ -239,15 +225,15 @@ class ObjFileImporter : BaseImporter() {
         else if (pMesh.mNumVertices > AI_MAX_ALLOC(main.AiVector3D.SIZE))
             throw Error("OBJ: Too many vertices, would run out of memory")
 
-        pMesh.mVertices = Array<AiVector3D>(pMesh.mNumVertices, { AiVector3D() }).toMutableList()
+        pMesh.mVertices = Array(pMesh.mNumVertices, { AiVector3D() }).toMutableList()
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
-            pMesh.mNormals = ArrayList(pMesh.mNumVertices)
+            pMesh.mNormals = Array(pMesh.mNumVertices, { AiVector3D() }).toMutableList()
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
-            pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D() })
+            pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0) {
@@ -270,7 +256,7 @@ class ObjFileImporter : BaseImporter() {
                 pMesh.mVertices[newIndex] = pModel.m_Vertices[vertex]
 
                 // Copy all normals
-                if (pModel.m_Normals.isNotEmpty() && vertexIndex in it.m_normals) {
+                if (pModel.m_Normals.isNotEmpty() && vertexIndex in it.m_normals.indices) {
                     val normal = it.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
                         throw Error("OBJ: vertex normal index out of range")
@@ -298,7 +284,7 @@ class ObjFileImporter : BaseImporter() {
 
                 val last = (vertexIndex == it.m_vertices.size - 1)
                 if (it.m_PrimitiveType != AiPrimitiveType.LINE || !last) {
-                    pDestFace.mIndices[outVertexIndex] = newIndex
+                    pDestFace[outVertexIndex] = newIndex
                     outVertexIndex++
                 }
 
@@ -384,10 +370,11 @@ class ObjFileImporter : BaseImporter() {
             mat.refracti = pCurrentMaterial.ior
 
             // Adding textures
-            if (pCurrentMaterial.texture.isNotEmpty()) {
+            pCurrentMaterial.textures.firstOrNull { it.type == Material.Texture.Type.diffuse }?.let {
 
-                mat.textures!!.add(AiMaterialTexture(path = pCurrentMaterial.texture))
+                mat.textures!!.add(AiMaterialTexture(type = AiTextureType.diffuse))
             }
+
             // TODO
 
             // Store material property info in material array in scene
