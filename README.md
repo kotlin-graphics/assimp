@@ -5,7 +5,7 @@ Java porting of [Assimp](https://github.com/assimp/assimp)
 This port is being written trying to stick as much as possible close to the C version in order to:
 
 - minimize maintenance to keep it in sync with the original
-- minimize differences for peoples used to dev/work with Assimp
+- minimize differences for people used to dev/work with Assimp
 
 ### Code ###
 A small example how to load files:
