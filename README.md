@@ -7,12 +7,25 @@ This port is being written trying to stick as much as possible close to the C ve
 - reduce any future maintenance to keep it up with the C version
 - reduce any possible difference for peoples used to dev/work with Assimp
 
+### Code ###
+A small example how to load files:
+- for java users:
+```java
+AiScene scene = new Importer().readFile("test/resources/models/OBJ/box.obj");
+```
+- for kotlin users:
+```kotlin
+val scene = Importer().readFile("test/resources/models/OBJ/box.obj")
+```
+
+
 #Supported import formats at the moment:
 
 | Format        | status          | %   |
 | ------------- |:---------------:|-----|
-| STL ascii     | done,`.stl`ext  | 90  |
-| STL binary    | to test,`.stl`ext| 80  |
+| STL ascii     | done (only `.stl`ext)  | 90  |
+| STL binary    | done (only `.stl`ext)| 90  |
+| Obj Wavefront    | done (only `.obj`ext without external material)| 80  |
 | Wavefront     | to implement    | 0  |
 | Ply           | to implement    | 0  |
 | Collada       | to implement    | 0  |
