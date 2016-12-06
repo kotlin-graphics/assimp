@@ -22,8 +22,8 @@ val scene = Importer().readFile("test/resources/models/OBJ/box.obj")
 
 [Format priority list](https://github.com/java-graphics/assimp/wiki/Priority-list-of-file-formats)
 
-If you want to express your preference -> [Format wish list](https://github.com/java-graphics/assimp/wiki/wish-list)
+The development is essentially feature-driver, if you want to express your preference -> [Format wish list](https://github.com/java-graphics/assimp/wiki/wish-list)
 
 ### Contributions:
 
-Do not hesitate to offer any help: developing (java or kotlin, it doesn't matter), testing, website creation, wiki writing, etc
+Do not hesitate to offer any help: pushes (java or kotlin, it doesn't matter), testing, website, wiki, etc
