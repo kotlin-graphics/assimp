@@ -1,6 +1,6 @@
 # assimp
 
-Java porting of [Assimp](https://github.com/assimp/assimp)
+Java (~kotlin) porting of [Assimp](https://github.com/assimp/assimp)
 
 This port is being written trying to stick as much as possible close to the C version in order to:
 
@@ -26,4 +26,4 @@ If you want to express your preference -> [Format wish list](https://github.com/
 
 ### Contributions:
 
-Do not hesitate to offer any help: developing (java or kotlin is the same), testing, website creation, wiki writing, etc
+Do not hesitate to offer any help: developing (java or kotlin, it doesn't matter), testing, website creation, wiki writing, etc
