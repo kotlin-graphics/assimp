@@ -44,18 +44,19 @@ class ScenePreprocessor(
     fun AiMesh.process() {
 
         // If aiMesh::mNumUVComponents is *not* set assign the default value of 2
-        for (i in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS - 1) {
-            if (mTextureCoords[i] == null)
-                mNumUVComponents[i] = 0
-            else {
-                if (mNumUVComponents[i] == 0)
-                    mNumUVComponents[i] = 2
-
-                // Ensure unsued components are zeroed. This will make 1D texture channels work as if they were 2D
-                // channels .. just in case an application doesn't handle this case
-                // TODO
-            }
-        }
+        // TODO change -> for in mTextureCoords
+//        for (i in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+//            if (mTextureCoords[i].isEmpty())
+//                mNumUVComponents[i] = 0
+//            else {
+//                if (mNumUVComponents[i] == 0)
+//                    mNumUVComponents[i] = 2
+//
+//                // Ensure unsued components are zeroed. This will make 1D texture channels work as if they were 2D
+//                // channels .. just in case an application doesn't handle this case
+//                // TODO
+//            }
+//        }
 
         // If the information which primitive types are there in the mesh is currently not available, compute it.
         if (mPrimitiveTypes == 0) {
@@ -70,7 +71,7 @@ class ScenePreprocessor(
         }
 
         // If tangents and normals are given but no bitangents compute them
-        if (mTangents != null && mNormals != null && mBitangents == null) {
+        if (mTangents.isNotEmpty() && mNormals.isNotEmpty() && mBitangents.isEmpty()) {
 
             mBitangents = ArrayList(mNumVertices)
 //            for (i in 0..mNumVertices - 1)

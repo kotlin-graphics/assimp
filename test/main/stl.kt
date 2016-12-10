@@ -48,17 +48,12 @@ class stl : StringSpec() {
                     mNormals[1] shouldBe Vec3(0, 0, 1)
                     mNormals[2] shouldBe Vec3(0, 0, 1)
 
-                    mTangents shouldBe null
-                    mBitangents shouldBe null
+                    mTangents.isEmpty() shouldBe true
+                    mBitangents.isEmpty() shouldBe true
 
-                    mColors.size shouldBe AI_MAX_NUMBER_OF_COLOR_SETS
-                    mColors.all { it == null } shouldBe true
+                    mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mTextureCoords.all { it == null } shouldBe true
-
-                    mNumUVComponents.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mNumUVComponents.all { it == 0 } shouldBe true
+                    mTextureCoords.all { it.isEmpty() } shouldBe true
 
                     mFaces.size shouldBe 1
                     mFaces[0].size shouldBe 3
@@ -136,17 +131,12 @@ class stl : StringSpec() {
                     mNormals[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
                     mNormals[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
 
-                    mTangents shouldBe null
-                    mBitangents shouldBe null
+                    mTangents.isEmpty() shouldBe true
+                    mBitangents.isEmpty() shouldBe true
 
-                    mColors.size shouldBe AI_MAX_NUMBER_OF_COLOR_SETS
-                    mColors.all { it == null } shouldBe true
+                    mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mTextureCoords.all { it == null } shouldBe true
-
-                    mNumUVComponents.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mNumUVComponents.all { it == 0 } shouldBe true
+                    mTextureCoords.all { it.isEmpty() } shouldBe true
 
                     mFaces.size shouldBe 285
                     mFaces.all { it.size == 3 } shouldBe true
@@ -224,17 +214,12 @@ class stl : StringSpec() {
                     mNormals[4000] shouldBe Vec3(0.147421882, 0.461364329, -0.874877036)
                     mNormals[4103] shouldBe Vec3(0.780922532, 0.308308363, 0.543236554)
 
-                    mTangents shouldBe null
-                    mBitangents shouldBe null
+                    mTangents.isEmpty() shouldBe true
+                    mBitangents.isEmpty() shouldBe true
 
-                    mColors.size shouldBe AI_MAX_NUMBER_OF_COLOR_SETS
-                    mColors.all { it == null } shouldBe true
+                    mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mTextureCoords.all { it == null } shouldBe true
-
-                    mNumUVComponents.size shouldBe AI_MAX_NUMBER_OF_TEXTURECOORDS
-                    mNumUVComponents.all { it == 0 } shouldBe true
+                    mTextureCoords.all { it.isEmpty() } shouldBe true
 
                     mFaces.size shouldBe 1368
                     mFaces.all { it.size == 3 } shouldBe true

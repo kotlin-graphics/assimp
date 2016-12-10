@@ -160,7 +160,7 @@ data class Model(
         //! Active group
         var m_strActiveGroup: String = "",
         //! Vector with generated texture coordinates
-        var m_TextureCoord: MutableList<AiVector3D> = mutableListOf(),
+        var m_TextureCoord: MutableList<MutableList<Float>> = mutableListOf(),
         //! Current mesh instance
         var m_pCurrentMesh: Mesh? = null,
         //! Vector with stored meshes

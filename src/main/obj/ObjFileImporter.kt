@@ -236,44 +236,46 @@ class ObjFileImporter : BaseImporter() {
             pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
-        if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0) {
-            pMesh.mNumUVComponents[0] = 2
-            pMesh.mTextureCoords[0] = Array(pMesh.mNumVertices, { AiVector3D() })
-        }
+        if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
+            pMesh.mTextureCoords.add(Array(pMesh.mNumVertices, { mutableListOf(0f, 0f) }).toMutableList())
 
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
         var outIndex = 0
-        pObjMesh.m_Faces.forEach {
+        pObjMesh.m_Faces.forEach { pSourceFace ->
 
             // Copy all index arrays
             var outVertexIndex = 0
-            for (vertexIndex in 0 until it.m_vertices.size) {
-                val vertex = it.m_vertices[vertexIndex]
-                if (vertex >= pModel.m_Vertices.size)
-                    throw Error("OBJ: vertex index out of range")
+            for (vertexIndex in 0 until pSourceFace.m_vertices.size) {
 
-                pMesh.mVertices[newIndex] = pModel.m_Vertices[vertex]
+                val vertex = pSourceFace.m_vertices[vertexIndex]
+
+                if (vertex >= pModel.m_Vertices.size) throw Error("OBJ: vertex index out of range")
+
+                pMesh.mVertices[newIndex].to(pModel.m_Vertices[vertex]) // TODO infix
 
                 // Copy all normals
-                if (pModel.m_Normals.isNotEmpty() && vertexIndex in it.m_normals.indices) {
-                    val normal = it.m_normals[vertexIndex]
+                if (pModel.m_Normals.isNotEmpty() && vertexIndex in pSourceFace.m_normals.indices) {
+                    val normal = pSourceFace.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
                         throw Error("OBJ: vertex normal index out of range")
-                    pMesh.mNormals[newIndex] = pModel.m_Normals[normal]
+                    pMesh.mNormals[newIndex].to(pModel.m_Normals[normal]) // TODO infix
                 }
 
                 // Copy all vertex colors
-                if (pModel.m_TextureCoord.isNotEmpty() && vertexIndex in it.m_texturCoords) {
+                if (pModel.m_VertexColors.isNotEmpty())
+                    pMesh.mColors[0][newIndex].to(pModel.m_VertexColors[vertex]) // TODO infix
 
-                    val tex = it.m_texturCoords[vertexIndex]
+                // Copy all texture coordinates
+                if (pModel.m_TextureCoord.isNotEmpty() && vertexIndex < pSourceFace.m_texturCoords.size) {
+
+                    val tex = pSourceFace.m_texturCoords[vertexIndex]
                     assert(tex < pModel.m_TextureCoord.size)
 
-                    if (tex >= pModel.m_TextureCoord.size)
-                        throw Error("OBJ: texture coordinate index out of range")
+                    if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ: texture coordinate index out of range")
 
                     val coord3d = pModel.m_TextureCoord[tex]
-                    pMesh.mTextureCoords[0]!![newIndex] = main.AiVector3D(coord3d)
+                    pMesh.mTextureCoords[0][newIndex] = mutableListOf(coord3d[0], coord3d[1])
                 }
 
                 if (pMesh.mNumVertices <= newIndex)
@@ -282,13 +284,13 @@ class ObjFileImporter : BaseImporter() {
                 // Get destination face
                 val pDestFace = pMesh.mFaces[outIndex]
 
-                val last = (vertexIndex == it.m_vertices.size - 1)
-                if (it.m_PrimitiveType != AiPrimitiveType.LINE || !last) {
+                val last = (vertexIndex == pSourceFace.m_vertices.size - 1)
+                if (pSourceFace.m_PrimitiveType != AiPrimitiveType.LINE || !last) {
                     pDestFace[outVertexIndex] = newIndex
                     outVertexIndex++
                 }
 
-                when (it.m_PrimitiveType) {
+                when (pSourceFace.m_PrimitiveType) {
 
                     AiPrimitiveType.POINT -> {
                         outIndex++
@@ -302,15 +304,15 @@ class ObjFileImporter : BaseImporter() {
                         if (vertex != 0) {
                             if (!last) {
                                 pMesh.mVertices[newIndex + 1] = pMesh.mVertices[newIndex]
-                                if (it.m_normals.isNotEmpty() && pModel.m_Normals.isNotEmpty())
+                                if (pSourceFace.m_normals.isNotEmpty() && pModel.m_Normals.isNotEmpty())
                                     pMesh.mNormals[newIndex + 1] = pMesh.mNormals[newIndex]
 
                                 if (pModel.m_TextureCoord.isNotEmpty())
                                     for (i in 0 until pMesh.getNumUVChannels())
-                                        pMesh.mTextureCoords[i]!![newIndex + 1] = pMesh.mTextureCoords[i]!![newIndex]
+                                        pMesh.mTextureCoords[i][newIndex + 1] = pMesh.mTextureCoords[i][newIndex]
                                 ++newIndex
                             }
-                            // TODO pDestFace[-1].mIndices[1] = newIndex;
+                            pMesh.mFaces[pMesh.mFaces.indexOf(pDestFace) - 1][1] = newIndex
                         }
                     }
                     else -> if (last) outIndex++
@@ -358,7 +360,7 @@ class ObjFileImporter : BaseImporter() {
             pCurrentMaterial.shineness *= 4.f
 
             // Adding material colors
-            mat.color = AiMaterialColor()
+            mat.color = AiMaterial.Color()
             mat.color?.ambient = pCurrentMaterial.ambient
             mat.color?.diffuse = pCurrentMaterial.diffuse
             mat.color?.specular = pCurrentMaterial.specular
@@ -370,9 +372,13 @@ class ObjFileImporter : BaseImporter() {
             mat.refracti = pCurrentMaterial.ior
 
             // Adding textures
-            pCurrentMaterial.textures.firstOrNull { it.type == Material.Texture.Type.diffuse }?.let {
-
-                mat.textures!!.add(AiMaterialTexture(type = AiTextureType.diffuse))
+            pCurrentMaterial.textures.forEach {
+                mat.textures.add(
+                        if (it.clamp)
+                            AiMaterial.Texture(type = map[it.type], file = it.name,
+                                    mapModeU = AiTexture.MapMode.clamp, mapModeV = AiTexture.MapMode.clamp)
+                        else
+                            AiMaterial.Texture(type = AiTexture.Type.diffuse, file = it.name))
             }
 
             // TODO
@@ -385,6 +391,24 @@ class ObjFileImporter : BaseImporter() {
         // Test number of created materials.
         assert(pScene.mNumMaterials == numMaterials)
     }
+
+    val map = mapOf(
+            Material.Texture.Type.diffuse to AiTexture.Type.diffuse,
+            Material.Texture.Type.ambient to AiTexture.Type.ambient,
+            Material.Texture.Type.emissive to AiTexture.Type.emissive,
+            Material.Texture.Type.specular to AiTexture.Type.specular,
+            Material.Texture.Type.bump to AiTexture.Type.height,
+            Material.Texture.Type.normal to AiTexture.Type.normals,
+            Material.Texture.Type.reflectionCubeBack to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionCubeBottom to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionCubeFront to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionCubeLeft to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionCubeRight to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionCubeTop to AiTexture.Type.reflection,
+            Material.Texture.Type.reflectionSphere to AiTexture.Type.reflection,
+            Material.Texture.Type.disp to AiTexture.Type.displacement,
+            Material.Texture.Type.opacity to AiTexture.Type.opacity,
+            Material.Texture.Type.specularity to AiTexture.Type.shininess)
 }
 
 

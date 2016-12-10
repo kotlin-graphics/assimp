@@ -1,5 +1,6 @@
 package main
 
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.Any
 import main.mat.Mat4
 import main.vec._3.Vec3d
 import main.vec._4.Vec4d
@@ -248,30 +249,30 @@ data class AiMesh(
          * but the normals for vertices that are only referenced by point or line primitives are undefined and set to
          * qNaN.  See the #mNormals member for a detailed discussion of qNaNs.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mTangents: List<AiVector3D>? = null,
+        var mTangents: List<AiVector3D> = listOf(),
 
         /** Vertex bitangents.
          * The bitangent of a vertex points in the direction of the positive Y texture axis. The array contains
          * normalized vectors, NULL if not present. The array is mNumVertices in size.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mBitangents: MutableList<AiVector3D>? = null,
+        var mBitangents: MutableList<AiVector3D> = mutableListOf(),
 
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
          * array is mNumVertices in size if present.         */
-        var mColors: Array<MutableList<AiColor4D>?> = Array(AI_MAX_NUMBER_OF_COLOR_SETS, { null }),
+        var mColors: MutableList<MutableList<AiColor4D>> = mutableListOf(),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
          * mNumVertices in size.         */
-        var mTextureCoords: Array<Array<AiVector3D>?> = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS, { null }),
+        var mTextureCoords: MutableList<MutableList<MutableList<Float>>> = mutableListOf(),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given
          * channel n, the component p.z of mTextureCoords[n][p] is set to 0.0f.
          * If the value is 1 for a given channel, p.y is set to 0.0f, too.
          * @note 4D coords are not supported         */
-        var mNumUVComponents: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS),
+        //var mNumUVComponents: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS),
 
         /** The faces the mesh is constructed from.
          * Each face refers to a number of vertices by their indices.
@@ -319,13 +320,13 @@ data class AiMesh(
     fun hasFaces() = mNumFaces > 0
 
     //! Check whether the mesh contains normal vectors
-    fun hasNormals() = mNormals != null && mNumVertices > 0
+    fun hasNormals() = mNormals.isNotEmpty() && mNumVertices > 0
 
     //! Check whether the mesh contains tangent and bitangent vectors
     //! It is not possible that it contains tangents and no bitangents
     //! (or the other way round). The existence of one of them
     //! implies that the second is there, too.
-    fun hasTangentsAndBitangents() = mTangents != null && mBitangents != null && mNumVertices > 0
+    fun hasTangentsAndBitangents() = mTangents.isNotEmpty() && mBitangents.isNotEmpty() && mNumVertices > 0
 
     //! Check whether the mesh contains a vertex color set
     //! \param pIndex Index of the vertex color set
@@ -341,12 +342,12 @@ data class AiMesh(
             if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS)
                 false
             else
-                mTextureCoords[pIndex] != null && mNumVertices > 0
+                mTextureCoords[pIndex].isNotEmpty() && mNumVertices > 0
 
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {
         var n = 0
-        while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mTextureCoords[n] != null) ++n
+        while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mTextureCoords[n].isNotEmpty()) ++n
         return n
     }
 

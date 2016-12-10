@@ -142,7 +142,7 @@ class STLImporter : BaseImporter() {
 
         if (bMatClr) clrDiffuse.to(clrColorDefault)
 
-        pcMat.color = AiMaterialColor(
+        pcMat.color = AiMaterial.Color(
                 diffuse = AiColor3D(clrDiffuse),
                 specular = AiColor3D(clrDiffuse),
                 ambient = AiColor3D(0.05, 0.05, 0.05)
@@ -208,7 +208,7 @@ class STLImporter : BaseImporter() {
             val vn = AiVector3D(mBuffer, sz)
             sz += AiVector3D.SIZE
             for (i in 0 until 3) {
-                pMesh.mNormals!!.add(vn.copy())
+                pMesh.mNormals.add(vn.copy())
                 pMesh.mVertices.add(AiVector3D(mBuffer, sz))
                 sz += AiVector3D.SIZE
             }

@@ -65,7 +65,7 @@ class ObjFileParser {
                         }
                     }
                 // read in texture coordinate ( 2D or 3D )
-                    't' -> m_pModel.m_TextureCoord.add(AiVector3D((1 until words.size).map { words[it].f }))
+                    't' -> m_pModel.m_TextureCoord.add(mutableListOf(words[1].f, words[2].f, if (words.size == 3) 0f else words[3].f))
                 // Read in normal vector definition
                     'n' -> m_pModel.m_Normals.add(AiVector3D((1..3).map { words[it].f }))
                 }
@@ -258,7 +258,7 @@ class ObjFileParser {
             System.err.println("OBJ: Unable to locate material file $filename")
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
-            if(!File(strMatFallbackName).exists()) {
+            if (!File(strMatFallbackName).exists()) {
                 System.err.println("OBJ: Unable to locate fallback material file $strMatFallbackName")
                 return
             }
@@ -266,7 +266,7 @@ class ObjFileParser {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = pFile.readLines().filter (String::isNotBlank)
+        val buffer = pFile.readLines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }
