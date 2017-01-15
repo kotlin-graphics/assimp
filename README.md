@@ -1,26 +1,29 @@
 # assimp
 
-Java porting of [Assimp](https://github.com/assimp/assimp)
+Java (~kotlin) porting of [Assimp](https://github.com/assimp/assimp)
 
 This port is being written trying to stick as much as possible close to the C version in order to:
 
-- reduce any future maintenance to keep it up with the C version
-- reduce any possible difference for peoples used to dev/work with Assimp
+- minimize maintenance to keep it in sync with the original
+- minimize differences for people used to dev/work with Assimp
 
-#Supported formats at the moment:
+### Code ###
+A small example how to load files:
+- for java users:
+```java
+AiScene scene = new Importer().readFile("test/resources/models/OBJ/box.obj");
+```
+- for kotlin users:
+```kotlin
+val scene = Importer().readFile("test/resources/models/OBJ/box.obj")
+```
 
-- MD2
+###[Port Status](https://github.com/java-graphics/assimp/wiki/Status)
 
-# Core right now:
+[Format priority list](https://github.com/java-graphics/assimp/wiki/Priority-list-of-file-formats)
 
-- most of the Ai Identity
-- Validation (almost, need to finish animation)
-- BaseProcess (writing triangulation mesh)
+The development is essentially feature-driver, if you want to express your preference -> [Format wish list](https://github.com/java-graphics/assimp/wiki/wish-list)
 
-Missing/incomplete:
-- ScenePreprocessor
+### Contributions:
 
-
-# Contributions:
-
-If you can help, you are very welcome :)
+Do not hesitate to offer any help: pushes (java or kotlin, it doesn't matter), testing, website, wiki, etc
