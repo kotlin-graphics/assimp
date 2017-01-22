@@ -702,7 +702,7 @@ class PlyLoader : BaseImporter() {
                     vOut.x = elementInstance.alProperties[aiPosition[0]].avList[0].f
 
                 if (aiPosition[1] != 0xFFFFFFFF.i)
-                    vOut.y = elementInstance.alProperties[aiPosition[1]].avList[1].f
+                    vOut.y = elementInstance.alProperties[aiPosition[1]].avList[0].f
 
                 // and add them to our nice list
                 pvOut.add(vOut)
