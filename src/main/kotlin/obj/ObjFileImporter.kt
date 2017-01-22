@@ -237,7 +237,7 @@ class ObjFileImporter : BaseImporter() {
         else if (pMesh.mNumVertices > AI_MAX_ALLOC(AiVector3D.SIZE))
             throw Error("OBJ: Too many vertices, would run out of memory")
 
-        pMesh.mVertices = Array(pMesh.mNumVertices, { AiVector3D() }).toMutableList()
+        pMesh.mVertices = MutableList(pMesh.mNumVertices, { AiVector3D() })
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
@@ -249,7 +249,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
-            pMesh.mTextureCoords.add(Array(pMesh.mNumVertices, { mutableListOf(0f, 0f) }).toMutableList())
+            pMesh.mTextureCoords.add(MutableList(pMesh.mNumVertices, { floatArrayOf(0f, 0f) }))
 
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
@@ -287,7 +287,7 @@ class ObjFileImporter : BaseImporter() {
                     if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ: texture coordinate index out of range")
 
                     val coord3d = pModel.m_TextureCoord[tex]
-                    pMesh.mTextureCoords[0][newIndex] = mutableListOf(coord3d[0], coord3d[1])
+                    pMesh.mTextureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
                 }
 
                 if (pMesh.mNumVertices <= newIndex)

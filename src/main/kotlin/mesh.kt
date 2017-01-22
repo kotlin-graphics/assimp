@@ -2,6 +2,7 @@ import mat.Mat4
 import vec._3.Vec3d
 import vec._4.Vec4d
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 13/11/2016.
@@ -220,7 +221,7 @@ data class AiMesh(
 
         /** Vertex positions.
          * This array is always present in a mesh. The array is mNumVertices in size.         */
-        var mVertices: MutableList<AiVector3D> = mutableListOf(),
+        var mVertices: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex normals.
          * The array contains normalized vectors, NULL if not present.
@@ -237,7 +238,7 @@ data class AiMesh(
          * artithmetics). Use stuff like @c fpclassify instead.
          * @note Normal vectors computed by Assimp are always unit-length.
          * However, this needn't apply for normals that have been taken directly from the model file.         */
-        var mNormals: MutableList<AiVector3D> = mutableListOf(),
+        var mNormals: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive X texture axis. The array contains normalized
@@ -261,8 +262,10 @@ data class AiMesh(
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
-         * mNumVertices in size.         */
-        var mTextureCoords: MutableList<MutableList<MutableList<Float>>> = mutableListOf(),
+         * mNumVertices in size. mNumUVComponents is not used.
+         * This is the order:
+         * [texture coordinate id][vertex][texture coordinate components]*/
+        var mTextureCoords: MutableList<MutableList<FloatArray>> = mutableListOf(),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given
@@ -275,7 +278,7 @@ data class AiMesh(
          * Each face refers to a number of vertices by their indices.
          * This array is always present in a mesh, its size is given in mNumFaces.
          * If the #AI_SCENE_FLAGS_NON_VERBOSE_FORMAT is NOT set each face references an unique set of vertices.         */
-        var mFaces: List<AiFace> = ArrayList(),
+        var mFaces: MutableList<AiFace> = ArrayList(),
 
         /** The number of bones this mesh contains.
          * Can be 0, in which case the mBones array is NULL.

@@ -372,7 +372,7 @@ class STLImporter : BaseImporter() {
         }
         pMesh.mNumFaces = positionBuffer.size / 3
         pMesh.mNumVertices = positionBuffer.size
-        pMesh.mVertices = positionBuffer.toMutableList()
+        pMesh.mVertices.addAll(positionBuffer)
         positionBuffer.clear()
         pMesh.mNormals = normalBuffer.toMutableList()
         normalBuffer.clear()
@@ -387,8 +387,7 @@ class STLImporter : BaseImporter() {
         pScene.mMeshes = meshes.toMutableList()
     }
 
-    fun addFacesToMesh(pMesh: AiMesh) {
-        var p = 0
-        pMesh.mFaces = (0 until pMesh.mNumFaces).map { mutableListOf(p++, p++, p++) }
+    fun addFacesToMesh(pMesh: AiMesh) = repeat(pMesh.mNumFaces) {
+        pMesh.mFaces.add(mutableListOf(it * 3, it * 3 + 1, it * 3 + 2))
     }
 }

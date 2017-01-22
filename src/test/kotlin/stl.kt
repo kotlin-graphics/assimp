@@ -11,9 +11,11 @@ class stl : StringSpec() {
 
     init {
 
-        "triangle.stl" {
+        val triangle = "triangle.stl"
 
-            val scene = Importer().readFile((stl + "triangle.stl").URI)!!
+        triangle {
+
+            val scene = Importer().readFile((stl + triangle).URI)!!
 
             scene.mFlags shouldBe 0
 
@@ -35,7 +37,7 @@ class stl : StringSpec() {
 
                 with(mMeshes[0]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
                     mNumVertices shouldBe 3
 
@@ -80,9 +82,11 @@ class stl : StringSpec() {
             }
         }
 
-        "sphereWithHole.stl" {
+        val sphereWithHole = "sphereWithHole.stl"
 
-            val scene = Importer().readFile((stl + "sphereWithHole.stl").URI)!!
+        sphereWithHole {
+
+            val scene = Importer().readFile((stl + sphereWithHole).URI)!!
 
             scene.mFlags shouldBe 0
 
@@ -104,7 +108,7 @@ class stl : StringSpec() {
 
                 with(mMeshes[0]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
                     mNumVertices shouldBe 855
 
@@ -163,9 +167,11 @@ class stl : StringSpec() {
             }
         }
 
-        "Spider_binary.stl" {
+        val spiderBinary = "Spider_binary.stl"
 
-            val scene = Importer().readFile((stl + "Spider_binary.stl").URI)!!
+        spiderBinary {
+
+            val scene = Importer().readFile((stl + spiderBinary).URI)!!
 
             scene.mFlags shouldBe 0
 
@@ -187,7 +193,7 @@ class stl : StringSpec() {
 
                 with(mMeshes[0]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
                     mNumVertices shouldBe 4104
 

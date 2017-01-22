@@ -1,6 +1,7 @@
 import io.kotlintest.specs.StringSpec
 import mat.Mat4
 import vec._3.Vec3
+import java.util.*
 import kotlin.reflect.KClass
 
 /**
@@ -13,9 +14,11 @@ class obj : StringSpec() {
 
     init {
 
-        "spider.obj" {
+        val spider = "spider.obj"
 
-            with(Importer().readFile((obj + "spider.obj").URI)!!) {
+        spider {
+
+            with(Importer().readFile((obj + spider).URI)!!) {
 
                 with(mRootNode) {
 
@@ -37,7 +40,7 @@ class obj : StringSpec() {
 
                 with(mMeshes[0]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 240
                     mNumFaces shouldBe 80
 
@@ -47,8 +50,9 @@ class obj : StringSpec() {
                     mNormals[0] shouldBe Vec3(-0.537588000, -0.0717979968, 0.840146005)
                     mNormals[mNumVertices - 1] shouldBe Vec3(-0.728103995, -0.400941998, -0.555975974)
 
-                    mTextureCoords[0][0] shouldBe mutableListOf(0.186192f, 0.222718f)
-                    mTextureCoords[0][mNumVertices - 1] shouldBe mutableListOf(0.103881f, 0.697021f)
+                    // TODO check for kotlintest 2.0 array check
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.186192f, 0.222718f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.103881f, 0.697021f)) shouldBe true
 
                     mTextureCoords[0][0].size shouldBe 2
 
@@ -61,7 +65,7 @@ class obj : StringSpec() {
                 }
                 with(mMeshes[1]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 180
                     mNumFaces shouldBe 60
 
@@ -71,8 +75,8 @@ class obj : StringSpec() {
                     mNormals[0] shouldBe Vec3(x = -0.236278996f, y = 0.0291850008f, z = 0.971247017f)
                     mNormals[mNumVertices - 1] shouldBe Vec3(x = -0.862017989f, y = 0.0830229968f, z = -0.500032008f)
 
-                    mTextureCoords[0][0] shouldBe mutableListOf(-0.0658710003f, -0.410016000f)
-                    mTextureCoords[0][mNumVertices - 1] shouldBe mutableListOf(-0.318565995f, 1.05051804f)
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(-0.0658710003f, -0.410016000f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(-0.318565995f, 1.05051804f)) shouldBe true
 
                     mTextureCoords[0][0].size shouldBe 2
 
@@ -85,7 +89,7 @@ class obj : StringSpec() {
                 }
                 with(mMeshes[18]) {
 
-                    mPrimitiveTypes shouldBe 4
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 114
                     mNumFaces shouldBe 38
 
@@ -95,8 +99,8 @@ class obj : StringSpec() {
                     mNormals[0] shouldBe Vec3(x = 0.0751359984f, y = 0.741809011f, z = -0.666388988f)
                     mNormals[mNumVertices - 1] shouldBe Vec3(x = -0.776385009f, y = -0.629855990f, z = 0.0225169994f)
 
-                    mTextureCoords[0][0] shouldBe mutableListOf(0.899282992f, 0.970311999f)
-                    mTextureCoords[0][mNumVertices - 1] shouldBe mutableListOf(0.372330993f, 0.198948994f)
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.899282992f, 0.970311999f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.372330993f, 0.198948994f)) shouldBe true
 
                     mTextureCoords[0][0].size shouldBe 2
 
@@ -206,9 +210,11 @@ class obj : StringSpec() {
             }
         }
 
-        "box.obj" {
+        val box = "box.obj"
 
-            with(Importer().readFile((obj + "box.obj").URI)!!) {
+        box {
+
+            with(Importer().readFile((obj + box).URI)!!) {
 
                 with(mRootNode) {
 
@@ -228,7 +234,7 @@ class obj : StringSpec() {
                 }
                 mNumMeshes shouldBe 1
                 with(mMeshes[0]) {
-                    mPrimitiveTypes shouldBe 8
+                    mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 24
                     mNumFaces shouldBe 6
 
@@ -261,9 +267,11 @@ class obj : StringSpec() {
             }
         }
 
-        "concave_polygon.obj" {
+        val concavePolygon = "concave_polygon.obj"
 
-            with(Importer().readFile((obj + "concave_polygon.obj").URI)!!) {
+        concavePolygon {
+
+            with(Importer().readFile((obj + concavePolygon).URI)!!) {
 
                 with(mRootNode) {
 

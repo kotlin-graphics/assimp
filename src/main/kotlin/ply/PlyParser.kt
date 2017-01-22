@@ -388,7 +388,7 @@ class PropertyInstance(
 
         // -------------------------------------------------------------------
         //! List of all values parsed. Contains only one value for non-list properties
-        val avList: MutableList<Number> = ArrayList()
+        val avList: ArrayList<Number> = ArrayList()
 ) {
 
 
@@ -405,9 +405,8 @@ class PropertyInstance(
 
                 // parse all list elements
                 val words = buffer.restOfLine().trim().split("\\s+".toRegex())
-                // TODO bind parseUnsigned to Int, etc
-                val iNum = java.lang.Integer.parseUnsignedInt(words[0])
-                repeat(iNum) {
+                val iNum = words[0].ui
+                repeat(iNum.v) {
                     parseValue(words[it + 1], prop.eType, p_pcOut.last().avList)
                 }
             } else
@@ -432,7 +431,7 @@ class PropertyInstance(
                     parseValueBinary(buffer, prop.eType, p_pcOut.last().avList)
                 }
             } else
-                // parse the property
+            // parse the property
                 parseValueBinary(buffer, prop.eType, p_pcOut.last().avList)
 
             buffer.skipSpacesAndLineEnd()
@@ -460,7 +459,6 @@ class PropertyInstance(
         fun parseValueBinary(buffer: ByteBuffer, eType: EDataType, out: MutableList<Number>): Boolean {
 
             val v: Number = when (eType) {
-            // TODO bind parseUnsigned to Int, etc
                 EDataType.UInt, EDataType.Int -> buffer.int.ui
                 EDataType.UShort, EDataType.Short -> buffer.short.ui
                 EDataType.UChar, EDataType.Char -> buffer.get().ui
@@ -483,8 +481,6 @@ class PropertyInstance(
             EDataType.Double -> 0.0
             else -> 0
         }
-
-
     }
 }
 
@@ -493,7 +489,7 @@ class PropertyInstance(
  */
 class ElementInstance(
         //! List of all parsed properties
-        val alProperties: MutableList<PropertyInstance> = ArrayList()
+        val alProperties: ArrayList<PropertyInstance> = ArrayList()
 ) {
 
     companion object {
@@ -598,6 +594,8 @@ class DOM(
         //! to be terminated with zero
         fun parseInstance(buffer: ByteBuffer, p_pcOut: DOM): Boolean {
 
+            println("PLY::DOM::ParseInstance() begin")
+
             if (!p_pcOut.parseHeader(buffer, false)) {
 
                 println("PLY::DOM::ParseInstance() failure")
@@ -630,14 +628,15 @@ class DOM(
 
             if (!p_pcOut.parseHeader(buffer, false)) {
 
-                println("PLY::DOM::ParseInstance() failure")
+                println("PLY::DOM::ParseInstanceBinary() failure")
                 return false
             }
             if (!p_pcOut.parseElementInstanceListsBinary(buffer)) {
-                println("PLY::DOM::ParseInstance() failure")
+                println("PLY::DOM::ParseInstanceBinary() failure")
                 return false
             }
-            return true; // qui
+            println("PLY::DOM::ParseInstanceBinary() succeeded")
+            return true
         }
     }
 
@@ -705,6 +704,12 @@ class DOM(
     }
 }
 
-
-
-
+/**
+ * brief Helper class to represent a loaded PLY face
+ */
+class Face(
+        //! Material index
+        var iMaterialIndex: Int = 0xFFFFFFFF.i,
+        //! List of vertex indices
+        var mIndices: IntArray = IntArray(3, { 0 })
+)

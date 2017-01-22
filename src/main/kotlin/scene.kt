@@ -1,5 +1,6 @@
 import mat.Mat4
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 13/11/2016.
@@ -144,7 +145,7 @@ class AiScene {
      *
      * Use the indices given in the aiNode structure to access this array. The array is mNumMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    lateinit var mMeshes: MutableList<AiMesh>
+    var mMeshes: MutableList<AiMesh> = ArrayList<AiMesh>()
 
     /** The number of materials in the scene. */
     var mNumMaterials = 0
