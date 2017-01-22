@@ -83,13 +83,14 @@ class PlyLoader : BaseImporter() {
         val sPlyDom = DOM()
         if (mBuffer2.nextWord() == "format") {
 
-            if (mBuffer2.nextWord() == "ascii") {
+            val format = mBuffer2.nextWord()
+            if (format == "ascii") {
                 mBuffer2.skipLine()
                 if (!DOM.parseInstance(mBuffer2, sPlyDom))
                     throw Error("Invalid .ply file: Unable to build DOM (#1)")
             } else {
                 // revert ascii
-                mBuffer2.position(mBuffer2.position() - "ascii".length)
+                mBuffer2.position(mBuffer2.position() - format.length)
 
                 if (mBuffer2.startsWith("binary_")) {
 

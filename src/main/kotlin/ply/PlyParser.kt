@@ -1,5 +1,6 @@
 package ply
 
+import com.sun.org.apache.xpath.internal.SourceTree
 import d
 import f
 import i
@@ -433,8 +434,6 @@ class PropertyInstance(
             } else
             // parse the property
                 parseValueBinary(buffer, prop.eType, p_pcOut.last().avList)
-
-            buffer.skipSpacesAndLineEnd()
             return true
         }
 
@@ -519,6 +518,7 @@ class ElementInstance(
 
         fun parseInstanceBinary(buffer: ByteBuffer, pcElement: Element, p_pcOut: MutableList<ElementInstance>): Boolean {
 
+            p_pcOut.add(ElementInstance())
             pcElement.alProperties.forEach {
                 if (!PropertyInstance.parseInstanceBinary(buffer, it, p_pcOut.last().alProperties)) {
 
@@ -571,7 +571,13 @@ class ElementInstanceList(
              * (we don't know its exact size due to the fact that lists could be contained in the property list of the
              * unknown element)
              */
+            p_pcOut.add(ElementInstanceList())
             repeat(pcElement.numOccur) {
+//                if(it == 29)
+//                    println("block")
+//                if(buffer.position() != 276 + it * 31) {
+//                    println("different, it: $it, position: ${buffer.position()}")
+//                }
                 ElementInstance.parseInstanceBinary(buffer, pcElement, p_pcOut.last().alInstances)
             }
         }
@@ -627,7 +633,6 @@ class DOM(
             println("PLY::DOM::ParseInstanceBinary() failure")
 
             if (!p_pcOut.parseHeader(buffer, false)) {
-
                 println("PLY::DOM::ParseInstanceBinary() failure")
                 return false
             }
