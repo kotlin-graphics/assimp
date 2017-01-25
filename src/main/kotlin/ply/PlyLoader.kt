@@ -41,7 +41,7 @@ class PlyLoader : BaseImporter() {
 
         val desc = AiImporterDesc(
                 mName = "Stanford Polygon Library (PLY) Importer",
-                mFlags = AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportTextFlavour,
+                mFlags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportTextFlavour,
                 mFileExtensions = "ply"
         )
     }

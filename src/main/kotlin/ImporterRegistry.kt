@@ -1,3 +1,4 @@
+import collada.ColladaLoader
 import obj.ObjFileImporter
 import ply.PlyLoader
 import stl.STLImporter
@@ -67,15 +68,20 @@ fun getImporterInstanceList(): MutableList<BaseImporter> {
     if (!ASSIMP_BUILD_NO_MD2_IMPORTER) {
 //        res.add(Md2Importer())
     }
-    if (!ASSIMP_BUILD_NO_STL_IMPORTER) {
+
+    if (!ASSIMP_BUILD_NO_STL_IMPORTER)
+
         res.add(STLImporter())
-    }
-    if (!ASSIMP_BUILD_NO_OBJ_IMPORTER) {
+
+    if (!ASSIMP_BUILD_NO_OBJ_IMPORTER)
         res.add(ObjFileImporter())
-    }
-    if (!ASSIMP_BUILD_NO_PLY_IMPORTER) {
+
+    if (!ASSIMP_BUILD_NO_PLY_IMPORTER)
         res.add(PlyLoader())
-    }
+
+    if(!ASSIMP_BUILD_NO_COLLADA_IMPORTER)
+        res.add(ColladaLoader())
+
     return res
 }
 
