@@ -1,4 +1,5 @@
 import mat.Mat4
+import org.w3c.dom.Element
 import vec._2.Vec2
 import vec._2.Vec2d
 import vec._3.Vec3
@@ -10,6 +11,8 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
+import javax.xml.stream.XMLEventReader
+import javax.xml.stream.events.XMLEvent
 import kotlin.reflect.KClass
 
 /**
@@ -44,3 +47,19 @@ val URI.s
 
 val String.URI
     get() = javaClass.getResource(this).toURI()
+
+fun Element.elementChildren(): ArrayList<Element> {
+
+    val res = ArrayList<Element>()
+
+    for (i in 0 until childNodes.length) {
+
+        val element = childNodes.item(i)
+
+        if (element is Element)
+            res.add(element)
+    }
+    return res
+}
+
+operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
