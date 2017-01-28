@@ -165,7 +165,10 @@ data class AiAnimMesh(
          * This has always the same value as the mNumVertices property in the corresponding aiMesh. It is duplicated
          * here merely to make the length of the member arrays accessible even if the aiMesh is not known, e.g. from
          * language bindings.         */
-        var mNumVertices: Int = 0
+        var mNumVertices: Int = 0,
+
+        /** Weight of the AnimMesh. */
+        var mWeight: Float = 0f
 ) {
     /** Check whether the anim mesh overrides the vertex positions of its host mesh*/
     fun hasPositions() = mVertices.isNotEmpty()
@@ -184,6 +187,18 @@ data class AiAnimMesh(
     /** Check whether the anim mesh overrides a particular set of texture coordinates on his host mesh.
      *  @param pIndex 0<index<AI_MAX_NUMBER_OF_TEXTURECOORDS */
     fun hasTextureCoords(pIndex: Int) = if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS) false else mTextureCoords[pIndex] != null
+}
+
+/** Enumerates the methods of mesh morphing supported by Assimp.    */
+enum class aiMorphingMethod(val i: Int) {
+    /** Interpolation between morph targets */
+    VERTEX_BLEND(0x1),
+
+    /** Normalized morphing between morph targets  */
+    MORPH_NORMALIZED(0x2),
+
+    /** Relative morphing between morph targets  */
+    MORPH_RELATIVE(0x3)
 }
 
 // ---------------------------------------------------------------------------
@@ -303,13 +318,16 @@ data class AiMesh(
          *   - Vertex animations refer to meshes by their names.         **/
         var mName: String = "",
 
-        /** NOT CURRENTLY IN USE. The number of attachment meshes */
+        /** The number of attachment meshes. Note! Currently only works with Collada loader. */
         var mNumAnimMeshes: Int = 0,
 
-        /** NOT CURRENTLY IN USE. Attachment meshes for this mesh, for vertex-based animation.
-         *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions,
-         *  normals). */
-        var mAnimMeshes: List<AiMesh>? = null
+        /** Attachment meshes for this mesh, for vertex-based animation.
+         *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions, normals).
+         *  Note! Currently only works with Collada loader.*/
+        var mAnimMeshes: List<AiMesh>? = null,
+
+        /** Method of morphing when animeshes are specified. */
+        var mMethod: Int = 0
 ) {
     //! Check whether the mesh contains positions. Provided no special
     //! scene flags are set, this will always be true

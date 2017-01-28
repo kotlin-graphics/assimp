@@ -46,11 +46,23 @@ enum class InputType {
     Bitangent
 }
 
+/** Supported controller types */
+enum class ControllerType {
+    Skin,
+    Morph
+}
+
+/** Supported morph methods */
+enum class MorphMethod {
+    Normalized,
+    Relative
+}
+
 /** Contains all data for one of the different transformation types */
 class Transform(
-        var mID: String, ///< SID of the transform step, by which anim channels address their target node
-        var mType: TransformType,
-        var f: FloatArray) ///< Interpretation of data depends on the type of the transformation
+        var mID: String = "", ///< SID of the transform step, by which anim channels address their target node
+        var mType: TransformType = TransformType.LOOKAT,
+        var f: FloatArray = floatArrayOf()) ///< Interpretation of data depends on the type of the transformation
 
 /** A collada camera. */
 class Camera(
@@ -109,58 +121,58 @@ class InputSemanticMapEntry(
 /** Table to map from effect to vertex input semantics */
 class SemanticMappingTable(
         //! Name of material
-        var mMatName: String,
+        var mMatName: String = "",
         //! List of semantic map commands, grouped by effect semantic name
-        var mMap: Map<String, InputSemanticMapEntry>)
+        var mMap: MutableMap<String, InputSemanticMapEntry> = mutableMapOf())
 
 /** A reference to a mesh inside a node, including materials assigned to the various subgroups.
  * The ID refers to either a mesh or a controller which specifies the mesh  */
 class MeshInstance(
         ///< ID of the mesh or controller to be instanced
-        var mMeshOrController: String,
+        var mMeshOrController: String = "",
         ///< Map of materials by the subgroup ID they're applied to
-        var mMaterials: Map<String, SemanticMappingTable>)
+        var mMaterials: MutableMap<String, SemanticMappingTable> = mutableMapOf())
 
 /** A reference to a camera inside a node*/
 class CameraInstance(
         ///< ID of the camera
-        var mCamera: String)
+        var mCamera: String = "")
 
 /** A reference to a light inside a node*/
 class LightInstance(
         ///< ID of the camera
-        var mLight: String)
+        var mLight: String = "")
 
 /** A reference to a node inside a node*/
 class NodeInstance(
         ///< ID of the node
-        var mNode: String)
+        var mNode: String = "")
 
 /** A node in a scene hierarchy */
 class Node(
-        var mName: String,
-        var mID: String,
-        var mSID: String,
+        var mName: String = "",
+        var mID: String = "",
+        var mSID: String = "",
         var mParent: Node? = null,
-        var mChildren: ArrayList<Node>,
+        var mChildren: ArrayList<Node> = arrayListOf(),
 
         /** Operations in order to calculate the resulting transformation to parent. */
-        var mTransforms: ArrayList<Transform>,
+        var mTransforms: ArrayList<Transform> = arrayListOf(),
 
         /** Meshes at this node */
-        var mMeshes: ArrayList<MeshInstance>,
+        var mMeshes: ArrayList<MeshInstance> = arrayListOf(),
 
         /** Lights at this node */
-        var mLights: ArrayList<LightInstance>,
+        var mLights: ArrayList<LightInstance> = arrayListOf(),
 
         /** Cameras at this node */
-        var mCameras: ArrayList<CameraInstance>,
+        var mCameras: ArrayList<CameraInstance> = arrayListOf(),
 
         /** Node instances at this node */
-        var mNodeInstances: ArrayList<NodeInstance>,
+        var mNodeInstances: ArrayList<NodeInstance> = arrayListOf(),
 
         /** Rootnodes: Name of primary camera, if any */
-        var mPrimaryCamera: String)
+        var mPrimaryCamera: String = "")
 
 /** Data source array: either floats or strings */
 class Data(
@@ -243,6 +255,12 @@ enum class PrimitiveType {
 
 /** A skeleton controller to deform a mesh with the use of joints */
 class Controller(
+        // controller type
+        var mType: ControllerType = ControllerType.Morph,
+
+        // Morphing method if type is Morph
+        var mMethod: MorphMethod = MorphMethod.Normalized,
+
         // the URL of the mesh deformed by the controller.
         var mMeshId: String = "",
 
@@ -264,12 +282,15 @@ class Controller(
         var mWeightCounts: MutableList<Int> = mutableListOf(),
 
         // JointIndex-WeightIndex pairs for all vertices
-        var mWeights: MutableList<Pair<Int, Int>> = mutableListOf())
+        var mWeights: MutableList<Pair<Int, Int>> = mutableListOf(),
+
+        var mMorphTarget: String = "",
+        var mMorphWeight: String = "")
 
 /** A collada material. Pretty much the only member is a reference to an effect. */
 class Material(
-        var mName: String,
-        var mEffect: String)
+        var mName: String = "",
+        var mEffect: String = "")
 
 /** Type of the effect param */
 enum class ParamType {
@@ -279,8 +300,8 @@ enum class ParamType {
 
 /** A param for an effect. Might be of several types, but they all just refer to each other, so I summarize them */
 class EffectParam(
-        var mType: ParamType,
-        var mReference: String) // to which other thing the param is referring to.
+        var mType: ParamType = ParamType.Sampler,
+        var mReference: String = "") // to which other thing the param is referring to.
 
 /** Shading type supported by the standard effect spec of Collada */
 enum class ShadeType {
@@ -294,7 +315,7 @@ enum class ShadeType {
 /** Represents a texture sampler in collada */
 class Sampler(
         /** Name of image reference     */
-        var mName: String,
+        var mName: String = "",
 
         /** Wrap U?     */
         var mWrapU: Boolean = true,
@@ -303,19 +324,19 @@ class Sampler(
         var mWrapV: Boolean = true,
 
         /** Mirror U?     */
-        var mMirrorU: Boolean,
+        var mMirrorU: Boolean = false,
 
         /** Mirror V?     */
-        var mMirrorV: Boolean,
+        var mMirrorV: Boolean = false,
 
         /** Blend mode     */
         var mOp: AiTexture.Op = AiTexture.Op.multiply,
 
         /** UV transformation         */
-        var mTransform: AiUVTransform,
+        var mTransform: AiUVTransform = AiUVTransform(),
 
         /** Name of source UV channel         */
-        var mUVChannel: String,
+        var mUVChannel: String = "",
 
         /** Resolved UV channel index or UINT_MAX if not known         */
         var mUVId: Int = 0xFFFFFFFF.i,
@@ -324,12 +345,12 @@ class Sampler(
         // -------------------------------------------------------
 
         /** Weighting factor                 */
-        var mWeighting: Float,
+        var mWeighting: Float = 1f,
 
         /** Mixing factor from OKINO */
-        var mMixWithPrevious: Float)
+        var mMixWithPrevious: Float = 1f)
 
-typealias ParamLibrary = Map<String, EffectParam>
+typealias ParamLibrary = MutableMap<String, EffectParam>
 
 /** A collada effect. Can contain about anything according to the Collada spec, but we limit our version to a reasonable subset. */
 class Effect(
@@ -342,16 +363,16 @@ class Effect(
         var mDiffuse: AiColor4D = AiColor4D(.6f, .6f, .6f, 1f),
         var mSpecular: AiColor4D = AiColor4D(.4, .4f, .4f, 1f),
         var mTransparent: AiColor4D = AiColor4D(0, 0, 0, 1),
-        var mReflective: AiColor4D,
+        var mReflective: AiColor4D = AiColor4D(),
 
         // Textures
-        var mTexEmissive: Sampler,
-        var mTexAmbient: Sampler,
-        var mTexDiffuse: Sampler,
-        var mTexSpecular: Sampler,
-        var mTexTransparent: Sampler,
-        var mTexBump: Sampler,
-        var mTexReflective: Sampler,
+        var mTexEmissive: Sampler = Sampler(),
+        var mTexAmbient: Sampler = Sampler(),
+        var mTexDiffuse: Sampler = Sampler(),
+        var mTexSpecular: Sampler = Sampler(),
+        var mTexTransparent: Sampler = Sampler(),
+        var mTexBump: Sampler = Sampler(),
+        var mTexReflective: Sampler = Sampler(),
 
         // Scalar factory
         var mShininess: Float = 10f,
@@ -363,7 +384,7 @@ class Effect(
         var mInvertTransparency: Boolean = false,
 
         // local params referring to each other by their SID
-        var mParams: ParamLibrary,
+        var mParams: ParamLibrary = mutableMapOf(),
 
         // MAX3D extensions
         // ---------------------------------------------------------
@@ -375,13 +396,13 @@ class Effect(
 /** An image, meaning texture */
 class Image(
 
-        var mFileName: String,
+        var mFileName: String = "",
 
         /** If image file name is zero, embedded image data     */
-        var mImageData: ArrayList<Byte>,
+        var mImageData: ByteArray = byteArrayOf(),
 
         /** If image file name is zero, file format of embedded image data.     */
-        var mEmbeddedFormat: String)
+        var mEmbeddedFormat: String = "")
 
 /** An animation channel. */
 class AnimationChannel(
@@ -392,7 +413,13 @@ class AnimationChannel(
         /** Source URL of the time values. Collada calls them "input". Meh. */
         var mSourceTimes: String = "",
         /** Source URL of the value values. Collada calls them "output". */
-        var mSourceValues: String = "")
+        var mSourceValues: String = "",
+        /** Source URL of the IN_TANGENT semantic values. */
+        var mInTanValues: String = "",
+        /** Source URL of the OUT_TANGENT semantic values. */
+        var mOutTanValues: String = "",
+        /** Source URL of the INTERPOLATION semantic values. */
+        var mInterpolationValues: String = "")
 
 /** An animation. Container for 0-x animation channels or 0-x animations */
 class Animation(
@@ -440,6 +467,7 @@ class Animation(
 /** Description of a collada animation channel which has been determined to affect the current node */
 class ChannelEntry(
         val mChannel: AnimationChannel, ///> the source channel
+        var mTargetId: String,
         var mTransformId: String, // the ID of the transformation step of the node which is influenced
         var mTransformIndex: Int, // Index into the node's transform chain to apply the channel to
         val mSubElement: Int, // starting index inside the transform data

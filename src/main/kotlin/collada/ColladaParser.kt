@@ -10,12 +10,16 @@ import java.io.File
 import java.net.URI
 import javax.xml.parsers.DocumentBuilderFactory
 import AiVector3D
+import AiColor3D
 import AiColor4D
 import AI_MAX_NUMBER_OF_TEXTURECOORDS
 import AI_MAX_NUMBER_OF_COLOR_SETS
+import b
 import com.sun.xml.internal.stream.events.StartElementEvent
 import elementChildren
 import get
+import lc
+import words
 import java.io.FileReader
 import javax.xml.namespace.QName
 import javax.xml.stream.XMLEventReader
@@ -132,6 +136,15 @@ class ColladaParser(pFile: URI) {
         readContents()
     }
 
+    /** Read bool from text contents of current element */
+    private fun readBoolFromTextContent(): Boolean {
+        val cur = getTextContent().trimStart()
+        return cur.startsWith("true") || cur[0] == '1'
+    }
+
+    /** Read float from text contents of current element    */
+    private fun readFloatFromTextContent() = getTextContent().trimStart().split("\\s+".toRegex())[0].f
+
     /** Reads the contents of the file  */
     private fun readContents() {
 
@@ -150,7 +163,9 @@ class ColladaParser(pFile: URI) {
         // handle the root element "COLLADA"
             if (event is StartElement)
 
-                if (isElement("COLLADA")) {
+                if (element.name_ == "COLLADA") {
+
+                    val a = element["version"]
 
                     element["version"]?.let {
 
@@ -167,11 +182,15 @@ class ColladaParser(pFile: URI) {
                         }
                     }
                     readStructure()
+
                 } else {
                     println("Ignoring global element ${element.name}>.")
                     skipElement()
                 }
-        // skip everything else silently
+            else {  // skip everything else silently
+            }
+
+        val s = '§'
     }
 
     /** Reads the structure of the file */
@@ -183,16 +202,39 @@ class ColladaParser(pFile: URI) {
             if (event is StartElement)
 
                 when (element.name_) {
-                    "asset" -> readAssetInfo()
-                    "library_animations" -> readAnimationLibrary()
-                    "library_animation_clips" -> readAnimationClipLibrary()
-                    "library_controllers" -> readControllerLibrary()
-                    "library_images" -> readImageLibrary()
-//                    "library_geometries" -> readGeometryLibrary(it)
 
+                    "asset" -> readAssetInfo()
+
+                    "library_animations" -> readAnimationLibrary()
+
+                    "library_animation_clips" -> readAnimationClipLibrary()
+
+                    "library_controllers" -> readControllerLibrary()
+
+                    "library_images" -> readImageLibrary()
+
+                    "library_materials" -> readMaterialLibrary()
+
+                    "library_effects" -> readEffectLibrary()
+
+                    "library_geometries" -> readGeometryLibrary()
+
+                    "library_visual_scenes" -> readSceneLibrary()
+
+                    "library_lights" -> readLightLibrary()
+
+                    "library_cameras" -> readCameraLibrary()
+
+                    "library_nodes" -> readSceneNode(null)  /* some hacking to reuse this piece of code */
+
+                    "scene" -> readScene()
+
+                    else -> skipElement()
                 }
-            println()
+            else if(event is EndElement)
+                break
         }
+        postProcessRootAnimations()
     }
 
     /** Reads asset informations such as coordinate system informations and legal blah  */
@@ -294,6 +336,39 @@ class ColladaParser(pFile: URI) {
             }
     }
 
+    /** Re-build animations from animation clip library, if present, otherwise combine single-channel animations    */
+    private fun postProcessRootAnimations()    {
+
+        if (mAnimationClipLibrary.size > 0)        {
+
+            val temp = Animation()
+
+            mAnimationClipLibrary.forEach {
+
+                val clipName = it.first
+
+                val clip = Animation(mName = clipName)
+
+                temp.mSubAnims.add(clip)
+
+                it.second.forEach {
+
+                    mAnimationLibrary[it]?.let {
+
+                        it.collectChannelsRecursively(clip.mChannels)
+                    }
+                }
+            }
+
+            mAnims = temp
+
+            // Ensure no double deletes.
+            temp.mSubAnims.clear()
+        }
+        else
+            mAnims!!.combineSingleChannelAnimations()
+    }
+
     /** Reads the animation library */
     fun readAnimationLibrary() {
 
@@ -302,9 +377,9 @@ class ColladaParser(pFile: URI) {
 
         while (mReader.read())
 
-            if (element is StartElement)
+            if (event is StartElement)
 
-                if (isElement("animation"))
+                if (element.name_ == "animation")
                 // delegate the reading. Depending on the inner elements it will be a container or a anim channel
                     readAnimation(mAnims)
                 else
@@ -382,7 +457,7 @@ class ColladaParser(pFile: URI) {
                 }
             else if (event is EndElement) {
 
-                if (endElement.name_ == "animation")
+                if (endElement.name_ != "animation")
                     throw Exception("Expected end of <animation> element.")
 
                 break
@@ -428,11 +503,13 @@ class ColladaParser(pFile: URI) {
                         throw Exception("Unsupported URL format")
                     source = source.removePrefix("#")
 
-                    if (semantic == "INPUT")
-                        pChannel.mSourceTimes = source
-                    else if (semantic == "OUTPUT")
-                        pChannel.mSourceValues = source
-
+                    when (semantic) {
+                        "INPUT" -> pChannel.mSourceTimes = source
+                        "OUTPUT" -> pChannel.mSourceValues = source
+                        "IN_TANGENT" -> pChannel.mInTanValues = source
+                        "OUT_TANGENT" -> pChannel.mOutTanValues = source
+                        "INTERPOLATION" -> pChannel.mInterpolationValues = source
+                    }
                     if (!isEmptyElement())
                         skipElement()
 
@@ -474,7 +551,7 @@ class ColladaParser(pFile: URI) {
             //
             else if (event is EndElement) {
 
-                if (endElement.name_ == "library_controllers")
+                if (endElement.name_ != "library_controllers")
                     throw Exception("Expected end of <library_controllers> element.")
 
                 break
@@ -484,6 +561,10 @@ class ColladaParser(pFile: URI) {
     /** Reads a controller into the given mesh structure    */
     private fun readController(pController: Controller) {
 
+        // initial values
+        pController.mType = ControllerType.Skin
+        pController.mMethod = MorphMethod.Normalized
+
         while (mReader.read())
 
             if (event is StartElement)
@@ -491,7 +572,14 @@ class ColladaParser(pFile: URI) {
                 when (element.name_) {
 
                 // two types of controllers: "skin" and "morph". Only the first one is relevant, we skip the other
-                    "morph" -> skipElement()    // should skip everything inside, so there's no danger of catching elements in between
+                    "morph" -> {
+                        pController.mType = ControllerType.Morph
+                        pController.mMeshId = element["source"]!!.substring(1)
+                        element["method"]?.let {
+                            if (it == "RELATIVE")
+                                pController.mMethod = MorphMethod.Relative
+                        }
+                    }
 
                     "skin" ->
                         // read the mesh it refers to. According to the spec this could also be another controller, but I refuse to implement every single idea
@@ -503,7 +591,7 @@ class ColladaParser(pFile: URI) {
                         val content = getTextContent()
 
                         // read the 16 floats
-                        pController.mBindShapeMatrix = content.split("\\s+".toRegex()).map { it.f }.toFloatArray()
+                        pController.mBindShapeMatrix = content.words.map { it.f }.toFloatArray()
 
                         testClosing("bind_shape_matrix")
                     }
@@ -514,13 +602,36 @@ class ColladaParser(pFile: URI) {
 
                     "vertex_weights" -> readControllerWeights(pController)
 
+                    "targets" -> {
+
+                        while (mReader.read())
+
+                            if (event is StartElement) {
+
+                                if (element.name_ == "input") {
+
+                                    val semantics = element["semantic"]!!
+                                    val source = element["source"]!!
+
+                                    if (semantics == "MORPH_TARGET")
+                                        pController.mMorphTarget = source.substring(1)
+                                    else if (semantics == "MORPH_WEIGHT")
+                                        pController.mMorphWeight = source.substring(1)
+                                }
+                            } else if (event is EndElement)
+                                if (endElement.name_ == "targets")
+                                    break
+                                else
+                                    throw Exception("Expected end of <targets> element.")
+                    }
+
                     else -> skipElement()   // ignore the rest
                 }
             else if (event is EndElement) {
 
                 if (endElement.name_ == "controller")
                     break
-                else if (endElement.name_ == "skin")
+                else if (endElement.name_ != "skin" && endElement.name_ != "morph")
                     throw Exception("Expected end of <controller> element.")
             }
     }
@@ -576,72 +687,76 @@ class ColladaParser(pFile: URI) {
 
             if (event is StartElement)
 
-            // Input channels for weight data. Two possible semantics: "JOINT" and "WEIGHT"
-                if (element.name_ == "input" && vertexCount > 0) {
+                when (element.name_) {
+                // Input channels for weight data. Two possible semantics: "JOINT" and "WEIGHT"
+                    "input" -> if (vertexCount > 0) {
 
-                    val channel = InputChannel()
+                        val channel = InputChannel()
 
-                    val semantic = element["semantic"]!!
-                    val source = element["source"]!!
-                    element["offset"]?.let { channel.mOffset = it.i }
+                        val semantic = element["semantic"]!!
+                        val source = element["source"]!!
+                        element["offset"]?.let { channel.mOffset = it.i }
 
-                    // local URLS always start with a '#'. We don't support global URLs
-                    if (source[0] != '#')
-                        throw Exception("Unsupported URL format in $source in source attribute of <vertex_weights> data <input> element")
-                    channel.mAccessor = source.removePrefix("#")
+                        // local URLS always start with a '#'. We don't support global URLs
+                        if (source[0] != '#')
+                            throw Exception("Unsupported URL format in $source in source attribute of <vertex_weights> data <input> element")
+                        channel.mAccessor = source.removePrefix("#")
 
-                    // parse source URL to corresponding source
-                    when (semantic) {
-                        "JOINT" -> pController.mWeightInputJoints = channel
-                        "WEIGHT" -> pController.mWeightInputWeights = channel
-                        else -> throw Exception("Unknown semantic $semantic in <vertex_weights> data <input> element")
+                        // parse source URL to corresponding source
+                        when (semantic) {
+                            "JOINT" -> pController.mWeightInputJoints = channel
+                            "WEIGHT" -> pController.mWeightInputWeights = channel
+                            else -> throw Exception("Unknown semantic $semantic in <vertex_weights> data <input> element")
+                        }
+
+                        // skip inner data, if present
+                        if (!isEmptyElement())
+                            skipElement()
                     }
 
-                    // skip inner data, if present
-                    if (!isEmptyElement())
-                        skipElement()
+                    "vcount" -> if (vertexCount > 0) {
 
-                } else if (element.name_ == "vcount" && vertexCount > 0) {
+                        // read weight count per vertex
+                        val ints = getTextContent().words.map { it.i }
+                        var numWeights = 0
+                        var i = 0
+                        pController.mWeightCounts.replaceAll {
 
-                    // read weight count per vertex
-                    val ints = getTextContent().split("\\s+".toRegex()).map { it.i }
-                    var numWeights = 0
-                    var i = 0
-                    pController.mWeightCounts.replaceAll {
+                            if (i == ints.size)
+                                throw Exception("Out of data while reading <vcount>")
 
-                        if (i == ints.size)
-                            throw Exception("Out of data while reading <vcount>")
+                            val int = ints[i++]
+                            numWeights += int
+                            int
+                        }
 
-                        val int = ints[i++]
-                        numWeights += int
-                        int
+                        testClosing("vcount")
+
+                        // reserve weight count
+                        pController.mWeights = MutableList(numWeights, { Pair(0, 0) })
                     }
 
-                    testClosing("vcount")
+                    "v" -> if (vertexCount > 0) {
 
-                    // reserve weight count
-                    pController.mWeights = MutableList(numWeights, { Pair(0, 0) })
+                        // read JointIndex - WeightIndex pairs
+                        val ints = getTextContent().words.map { it.i }
+                        var i = 0
+                        // FIXME crap solution, alternatives?
+                        pController.mWeights.replaceAll { weight ->
+                            if (i > ints.size - 1)
+                                throw Exception("Out of data while reading <vertex_weights>")
+                            Pair(i++, i++)
+                        }
 
-                } else if (element.name_ == "v" && vertexCount > 0) {
-
-                    // read JointIndex - WeightIndex pairs
-                    val ints = getTextContent().split("\\s+".toRegex()).map { it.i }
-                    var i = 0
-                    // FIXME crap solution, alternatives?
-                    pController.mWeights.replaceAll { weight ->
-                        if (i > ints.size - 1)
-                            throw Exception("Out of data while reading <vertex_weights>")
-                        Pair(i++, i++)
+                        testClosing("v")
                     }
 
-                    testClosing("v")
-
-                } else
-                    skipElement()   // ignore the rest
+                    else -> skipElement()   // ignore the rest
+                }
             //
             else if (event is EndElement) {
 
-                if (endElement.name_ == "vertex_weights")
+                if (endElement.name_ != "vertex_weights")
                     throw Exception("Expected end of <vertex_weights> element.")
 
                 break
@@ -649,119 +764,836 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the image library contents    */
-    private fun readImageLibrary(element: Element) = element.elementChildren().forEach {
+    private fun readImageLibrary() {
 
-        when(it.nodeName) { qui
+        if (!isEmptyElement())
+            return
 
-        // Need to run different code paths here, depending on the Collada XSD version
-            "image" -> {            }
-//            "init_from" ->             {
-//                if (mFormat == FormatVersion._1_4_n)                {
-//                    // FIX: C4D exporter writes empty <init_from/> tags
-//                    if (it.textContent.isNotEmpty()) {
-//                        // element content is filename - hopefully
-//                        val sz = it.textContent
-//                        if (sz)pImage.mFileName = sz;
-//                    TestClosing( "init_from");
-//                }
-//                    if (!pImage.mFileName.length()) {
-//                        pImage.mFileName = "unknown_texture";
-//                    }
-//                }
-//                else if (mFormat == FV_1_5_n)
-//                {
-//                    // make sure we skip over mip and array initializations, which
-//                    // we don't support, but which could confuse the loader if
-//                    // they're not skipped.
-//                    int attrib = TestAttribute("array_index");
-//                    if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
-//                    DefaultLogger::get()->warn("Collada: Ignoring texture array index");
-//                    continue;
-//                }
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "image") {
+                    // read ID. Another entry which is "optional" by design but obligatory in reality
+                    val id = element["id"]!!
+
+                    // create an entry and store it in the library under its ID
+                    mImageLibrary[id] = Image()
+
+                    // read on from there
+                    readImage(mImageLibrary[id]!!)
+
+                } else
+                    skipElement()   // ignore the rest
+
+            else if (event is EndElement) {
+                if (endElement.name_ != "library_images")
+                    throw Exception("Expected end of <library_images> element.")
+
+                break
+            }
+    }
+
+    /** Reads an image entry into the given image   */
+    private fun readImage(pImage: Image) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+            // Need to run different code paths here, depending on the Collada XSD version
+                if (element.name_ == "image")
+                    skipElement()
 //
-//                    attrib = TestAttribute("mip_index");
-//                    if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
-//                    DefaultLogger::get()->warn("Collada: Ignoring MIP map layer");
-//                    continue;
-//                }
+                else if (element.name_ == "init_from") {
+
+                    if (mFormat == FormatVersion._1_4_n) {
+                        // FIX: C4D exporter writes empty <init_from/> tags
+                        if (!isEmptyElement()) {
+                            // element content is filename - hopefully
+                            val sz = testTextContent()
+                            if (sz != null) pImage.mFileName = sz
+                            testClosing("init_from")
+                        }
+                        if (pImage.mFileName.isEmpty())
+                            pImage.mFileName = "unknown_texture"
+
+                    } else if (mFormat == FormatVersion._1_5_n) {
+                        // make sure we skip over mip and array initializations, which we don't support, but which could confuse the loader if they're not skipped.
+                        // but in Kotlin we don't need ^^
+//                        element["array_index"]?.i.let {
+//                            if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
+//                            DefaultLogger::get()->warn("Collada: Ignoring texture array index");
+//                            continue;
+//                        }
+//                        }
 //
-//                    // TODO: correctly jump over cube and volume maps?
-//                }
-//            }
-//            else if (mFormat == FV_1_5_n)
-//            {
-//                if( IsElement( "ref"))
-//                {
-//                    // element content is filename - hopefully
-//                    const char* sz = TestTextContent();
-//                    if (sz)pImage.mFileName = sz;
-//                    TestClosing( "ref");
-//                }
-//                else if( IsElement( "hex") && !pImage.mFileName.length())
-//                {
-//                    // embedded image. get format
-//                    const int attrib = TestAttribute("format");
-//                    if (-1 == attrib)
-//                        DefaultLogger::get()->warn("Collada: Unknown image file format");
-//                    else pImage.mEmbeddedFormat = mReader->getAttributeValue(attrib);
-//
-//                    const char* data = GetTextContent();
-//
-//                    // hexadecimal-encoded binary octets. First of all, find the
-//                    // required buffer size to reserve enough storage.
-//                    const char* cur = data;
-//                    while (!IsSpaceOrNewLine(*cur)) cur++;
-//
-//                    const unsigned int size = (unsigned int)(cur-data) * 2;
-//                    pImage.mImageData.resize(size);
-//                    for (unsigned int i = 0; i < size;++i)
-//                    pImage.mImageData[i] = HexOctetToDecimal(data+(i<<1));
-//
-//                    TestClosing( "hex");
-//                }
-//            }
+//                        attrib = TestAttribute("mip_index");
+//                        if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
+//                            DefaultLogger::get()->warn("Collada: Ignoring MIP map layer");
+//                            continue;
+//                        }
+
+                        // TODO: correctly jump over cube and volume maps?
+                    }
+                } else if (mFormat == FormatVersion._1_5_n) {
+
+                    if (element.name_ == "ref") {
+
+                        // element content is filename - hopefully
+                        val sz = testTextContent()
+                        if (sz != null) pImage.mFileName = sz
+                        testClosing("ref")
+
+                    } else if (element.name_ == "hex" && pImage.mFileName.isNotEmpty()) {
+
+                        // embedded image. get format
+                        val format = element["format"]
+                        if (format == null)
+                            System.err.println("Collada: Unknown image file format")
+                        else pImage.mEmbeddedFormat = format
+
+                        val data = getTextContent()
+
+                        // hexadecimal-encoded binary octets. First of all, find the required buffer size to reserve enough storage.
+                        pImage.mImageData = hexStringToByteArray(data)
+
+                        testClosing("hex")
+                    }
+                } else
+                    skipElement()   // ignore the rest
+
+            else if (event is EndElement && endElement.name_ == "image")
+                break
+    }
+
+    /** Reads the material library  */
+    private fun readMaterialLibrary() {
+
+        if (isEmptyElement())
+            return
+
+        val names = mutableMapOf<String, Int>()
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "material") {
+
+                    // read ID. By now you probably know my opinion about this "specification"
+                    val id = element["id"]!!
+
+                    var name = element["name"] ?: ""
+
+                    // create an entry and store it in the library under its ID
+                    mMaterialLibrary[id] = Material()
+
+                    if (name.isNotEmpty()) {
+
+                        if (names.contains(name)) {
+                            val nextId = names.keys.sorted().indexOf(name) + 1
+                            val nextName = names.keys.sorted()[nextId]
+                            name += " " + names[nextName]
+                        } else
+                            names[name] = 0
+
+                        mMaterialLibrary[id]!!.mName = name
+                    }
+
+                    readMaterial(mMaterialLibrary[id]!!)
+
+                } else
+                    skipElement()   // ignore the rest
+
+            else if (event is EndElement) {
+                if (endElement.name_ != "library_materials")
+                    throw Exception("Expected end of <library_materials> element.")
+
+                break
+            }
+
+    }
+
+    /** Reads the light library */
+    private fun readLightLibrary() {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read()) {
+
+            if (event is StartElement) {
+
+                if (element.name_ == "light") {
+
+                    // read ID. By now you probably know my opinion about this "specification"
+                    val id = element["light"]!!
+
+                    // create an entry and store it in the library under its ID
+                    val light = Light()
+                    mLightLibrary[id] = Light()
+                    readLight(light)
+
+                } else skipElement()    // ignore the rest
+
+            } else if (event is EndElement) {
+                if (endElement.name_ != "library_lights")
+                    throw Exception("Expected end of <library_lights> element.")
+
+                break
+            }
         }
+    }
+
+    /** Reads the camera library    */
+    private fun readCameraLibrary() {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "camera") {
+
+                    // read ID. By now you probably know my opinion about this "specification"
+                    val id = element["id"]!!
+
+                    // create an entry and store it in the library under its ID
+                    val cam = mCameraLibrary[id]!!
+                    element["name"]?.let {
+                        cam.mName = it
+                    }
+
+                    readCamera(cam)
+
+                } else
+                    skipElement()   // ignore the rest
+
+            else if (event is EndElement) {
+                if (endElement.name_ != "library_cameras")
+                    throw Exception("Expected end of <library_cameras> element.")
+
+                break
+            }
+    }
+
+    /** Reads a material entry into the given material  */
+    private fun readMaterial(pMaterial: Material) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "material" -> skipElement()
+
+                    "instance_effect" -> {
+                        // referred effect by URL
+                        val url = element["url"]!!
+                        if (url[0] != '#')
+                            throw Exception("Unknown reference format")
+
+                        pMaterial.mEffect = url.substring(1)
+
+                        skipElement()
+                    }
+                    else -> skipElement()   // ignore the rest
+                }
+            else if (event is EndElement) {
+
+                if (endElement.name_ != "material")
+                    throw Exception("Expected end of <material> element.")
+
+                break
+            }
+    }
+
+    /** Reads a light entry into the given light    */
+    private fun readLight(pLight: Light) {
+
+        while (mReader.read())
+
+            if (event is StartElement) {
+
+                when (element.name_) {
+
+                    "light" -> skipElement()
+
+                    "spot" -> pLight.mType = AiLightSourceType.SPOT
+
+                    "ambient" -> pLight.mType = AiLightSourceType.AMBIENT
+
+                    "directional" -> pLight.mType = AiLightSourceType.DIRECTIONAL
+
+                    "point" -> pLight.mType = AiLightSourceType.POINT
+
+                    "color" -> {
+                        // text content contains 3 floats
+                        val floats = getTextContent().words.map { it.f }
+
+                        pLight.mColor = AiColor3D(floats)
+
+                        testClosing("color")
+                    }
+                    "constant_attenuation" -> {
+                        pLight.mAttConstant = readFloatFromTextContent()
+                        testClosing("constant_attenuation")
+                    }
+                    "linear_attenuation" -> {
+                        pLight.mAttLinear = readFloatFromTextContent()
+                        testClosing("linear_attenuation")
+                    }
+                    "quadratic_attenuation" -> {
+                        pLight.mAttQuadratic = readFloatFromTextContent()
+                        testClosing("quadratic_attenuation")
+                    }
+                    "falloff_angle" -> {
+                        pLight.mFalloffAngle = readFloatFromTextContent()
+                        testClosing("falloff_angle")
+                    }
+                    "falloff_exponent" -> {
+                        pLight.mFalloffExponent = readFloatFromTextContent()
+                        testClosing("falloff_exponent")
+                    }
+                // FCOLLADA extensions
+                // -------------------------------------------------------
+                    "outer_cone" -> {
+                        pLight.mOuterAngle = readFloatFromTextContent()
+                        testClosing("outer_cone")
+                    }
+                // ... and this one is even deprecated
+                    "penumbra_angle" -> {
+                        pLight.mPenumbraAngle = readFloatFromTextContent()
+                        testClosing("penumbra_angle")
+                    }
+                    "intensity" -> {
+                        pLight.mIntensity = readFloatFromTextContent()
+                        testClosing("intensity")
+                    }
+                    "falloff" -> {
+                        pLight.mOuterAngle = readFloatFromTextContent()
+                        testClosing("falloff")
+                    }
+                    "hotspot_beam" -> {
+                        pLight.mFalloffAngle = readFloatFromTextContent()
+                        testClosing("hotspot_beam")
+                    }
+                // OpenCOLLADA extensions
+                // -------------------------------------------------------
+                    "decay_falloff" -> {
+                        pLight.mOuterAngle = readFloatFromTextContent()
+                        testClosing("decay_falloff")
+                    }
+                }
+            } else if (event is EndElement)
+                if (endElement.name_ == "light")
+                    break
+    }
+
+    /** Reads a camera entry into the given light   */
+    private fun readCamera(pCamera: Camera) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "camera" -> skipElement()
+
+                    "orthographic" -> pCamera.mOrtho = true
+
+                    "xfov", "xmag" -> {
+                        pCamera.mHorFov = readFloatFromTextContent()
+                        testClosing(if (pCamera.mOrtho) "xmag" else "xfov")
+                    }
+                    "yfov", "ymag" -> {
+                        pCamera.mVerFov = readFloatFromTextContent()
+                        testClosing(if (pCamera.mOrtho) "ymag" else "yfov")
+                    }
+                    "aspect_ratio" -> {
+                        pCamera.mAspect = readFloatFromTextContent()
+                        testClosing("aspect_ratio")
+                    }
+                    "znear" -> {
+                        pCamera.mZNear = readFloatFromTextContent()
+                        testClosing("znear")
+                    }
+                    "zfar" -> {
+                        pCamera.mZFar = readFloatFromTextContent()
+                        testClosing("zfar")
+                    }
+                }
+            else if (event is EndElement)
+                if (endElement.name_ == "camera")
+                    break
+    }
+
+    /** Reads the effect library    */
+    private fun readEffectLibrary() {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "effect") {
+
+                    // read ID. Do I have to repeat my ranting about "optional" attributes?
+                    val id = element["id"]!!
+
+                    // create an entry and store it in the library under its ID
+                    mEffectLibrary[id] = Effect()
+                    // read on from there
+                    readEffect(mEffectLibrary[id]!!)
+
+                } else
+                    skipElement()   // ignore the rest
+//
+            else if (event is EndElement) {
+
+                if (endElement.name_ != "library_effects")
+                    throw Exception("Expected end of <library_effects> element.")
+
+                break
+            }
+    }
+
+    /** Reads an effect entry into the given effect */
+    private fun readEffect(pEffect: Effect) {
+
+        // for the moment we don't support any other type of effect.
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "profile_COMMON")
+                    readEffectProfileCommon(pEffect)
+                else
+                    skipElement()
+            else if (event is EndElement) {
+
+                if (endElement.name_ == "effect")
+                    throw Exception("Expected end of <effect> element.")
+
+                break
+            }
+    }
+
+    /** Reads an COMMON effect profile  */
+    private fun readEffectProfileCommon(pEffect: Effect) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "newparam" -> {
+                        // save ID
+                        val sid = element["sid"]!!
+                        pEffect.mParams[sid] = EffectParam()
+                        readEffectParam(pEffect.mParams[sid]!!)
+                    }
+                    "technique", "extra" -> {   // just syntactic sugar
+                    }
+
+                    "image" -> if (mFormat == FormatVersion._1_4_n) {
+
+                        // read ID. Another entry which is "optional" by design but obligatory in reality
+                        val id = element["id"]!!
+
+                        // create an entry and store it in the library under its ID
+                        mImageLibrary[id] = Image()
+
+                        // read on from there
+                        readImage(mImageLibrary[id]!!)
+                    }
+
+                /* Shading modes */
+
+                    "phong" -> pEffect.mShadeType = ShadeType.Phong
+
+                    "constant" -> pEffect.mShadeType = ShadeType.Constant
+
+                    "lambert" -> pEffect.mShadeType = ShadeType.Lambert
+
+                    "blinn" -> pEffect.mShadeType = ShadeType.Blinn
+
+                /* Color + texture properties */
+
+                    "emission" -> readEffectColor(pEffect.mEmissive, pEffect.mTexEmissive)
+
+                    "ambient" -> readEffectColor(pEffect.mAmbient, pEffect.mTexAmbient)
+
+                    "diffuse" -> readEffectColor(pEffect.mDiffuse, pEffect.mTexDiffuse)
+
+                    "specular" -> readEffectColor(pEffect.mSpecular, pEffect.mTexSpecular)
+
+                    "reflective" -> readEffectColor(pEffect.mReflective, pEffect.mTexReflective)
+
+                    "transparent" -> {
+
+                        pEffect.mHasTransparency = true
+
+                        val opaque = element["opaque"] ?: ""
+
+                        if (opaque == "RGB_ZERO" || opaque == "RGB_ONE")
+                            pEffect.mRGBTransparency = true
+
+                        // In RGB_ZERO mode, the transparency is interpreted in reverse, go figure...
+                        if (opaque == "RGB_ZERO" || opaque == "A_ZERO")
+                            pEffect.mInvertTransparency = true
+
+                        readEffectColor(pEffect.mTransparent, pEffect.mTexTransparent)
+                    }
+
+                    "shininess" -> pEffect.mShininess = readEffectFloat(pEffect.mShininess)
+
+                    "reflectivity" -> pEffect.mReflectivity = readEffectFloat(pEffect.mReflectivity)
+
+                /* Single scalar properties */
+
+                    "transparency" -> pEffect.mTransparency = readEffectFloat(pEffect.mTransparency)
+
+                    "index_of_refraction" -> pEffect.mRefractIndex = readEffectFloat(pEffect.mRefractIndex)
+
+                // GOOGLEEARTH/OKINO extensions
+                // -------------------------------------------------------
+
+                    "double_sided" -> pEffect.mDoubleSided = readBoolFromTextContent()
+
+                // FCOLLADA extensions
+                // -------------------------------------------------------
+
+                    "bump" -> readEffectColor(AiColor4D(), pEffect.mTexBump)
+
+                // MAX3D extensions
+                // -------------------------------------------------------
+
+                    "wireframe" -> {
+                        pEffect.mWireframe = readBoolFromTextContent()
+                        testClosing("wireframe")
+                    }
+                    "faceted" -> {
+                        pEffect.mFaceted = readBoolFromTextContent()
+                        testClosing("faceted")
+                    }
+                    else -> skipElement()   // ignore the rest
+                }
+            else if (event is EndElement && endElement.name_ == "profile_COMMON")
+                break
+    }
+
+    /** Read texture wrapping + UV transform settings from a profile==Maya chunk    */
+    private fun readSamplerProperties(oSampler: Sampler) {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+                // MAYA extensions
+                // -------------------------------------------------------
+                    "wrapU" -> {
+                        oSampler.mWrapU = readBoolFromTextContent()
+                        testClosing("wrapU")
+                    }
+                    "wrapV" -> {
+                        oSampler.mWrapV = readBoolFromTextContent()
+                        testClosing("wrapV")
+                    }
+                    "mirrorU" -> {
+                        oSampler.mMirrorU = readBoolFromTextContent()
+                        testClosing("mirrorU")
+                    }
+                    "mirrorV" -> {
+                        oSampler.mMirrorV = readBoolFromTextContent()
+                        testClosing("mirrorV")
+                    }
+                    "repeatU" -> {
+                        oSampler.mTransform.mScaling.x = readFloatFromTextContent()
+                        testClosing("repeatU")
+                    }
+                    "repeatV" -> {
+                        oSampler.mTransform.mScaling.y = readFloatFromTextContent()
+                        testClosing("repeatV")
+                    }
+                    "offsetU" -> {
+                        oSampler.mTransform.mTranslation.x = readFloatFromTextContent()
+                        testClosing("offsetU")
+                    }
+                    "offsetV" -> {
+                        oSampler.mTransform.mTranslation.y = readFloatFromTextContent()
+                        testClosing("offsetV")
+                    }
+                    "rotateUV" -> {
+                        oSampler.mTransform.mRotation = readFloatFromTextContent()
+                        testClosing("rotateUV")
+                    }
+                    "blend_mode" -> {
+
+                        // http://www.feelingsoftware.com/content/view/55/72/lang,en/
+                        // NONE, OVER, IN, OUT, ADD, SUBTRACT, MULTIPLY, DIFFERENCE, LIGHTEN, DARKEN, SATURATE, DESATURATE and ILLUMINATE
+                        when (getTextContent().words[0]) {
+                            "ADD" -> oSampler.mOp = AiTexture.Op.add
+                            "SUBTRACT" -> oSampler.mOp = AiTexture.Op.subtract
+                            "MULTIPLY" -> oSampler.mOp = AiTexture.Op.multiply
+                            else -> System.out.println("Collada: Unsupported MAYA texture blend mode")
+                        }
+                        testClosing("blend_mode")
+                    }
+                // OKINO extensions
+                // -------------------------------------------------------
+                    "weighting" -> {
+                        oSampler.mWeighting = readFloatFromTextContent()
+                        testClosing("weighting")
+                    }
+                    "mix_with_previous_layer" -> {
+                        oSampler.mMixWithPrevious = readFloatFromTextContent()
+                        testClosing("mix_with_previous_layer")
+                    }
+                // MAX3D extensions
+                // -------------------------------------------------------
+                    "amount" -> {
+                        oSampler.mWeighting = readFloatFromTextContent()
+                        testClosing("amount")
+                    }
+                }
+            else if (event is EndElement && endElement.name_ == "technique")
+                break
+    }
+
+    /** Reads an effect entry containing a color or a texture defining that color   */
+    private fun readEffectColor(pColor: AiColor4D, pSampler: Sampler) {
+
+        if (isEmptyElement())
+            return
+
+        // Save current element name
+        val curElem = element.name_
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "color" -> {
+                        // text content contains 4 floats
+                        val floats = getTextContent().words.map { it.f }
+
+                        pColor.Set(floats)
+
+                        testClosing("color")
+                    }
+                    "texture" -> {
+                        // get name of source texture/sampler
+                        pSampler.mName = element["texture"]!!
+
+                        // get name of UV source channel. Specification demands it to be there, but some exporters don't write it.
+                        // It will be the default UV channel in case it's missing.
+                        element["texcoord"]?.let {
+                            pSampler.mUVChannel = it
+                        }
+                        //SkipElement();
+
+                        // as we've read texture, the color needs to be 1,1,1,1
+                        pColor Set 1f
+                    }
+                    "technique" -> {
+
+                        val profile = element["profile"]
+
+                        // Some extensions are quite useful ... ReadSamplerProperties processes several extensions in MAYA, OKINO and MAX3D profiles.
+                        if (profile == "MAYA" || profile == "MAX3D" || profile == "OKINO")
+                        // get more information on this sampler
+                            readSamplerProperties(pSampler)
+                        else
+                            skipElement()
+                    }
+                    "extra" -> skipElement()    // ignore the rest
+                }
+            else if (event is EndElement && endElement.name_ == curElem)
+                break
+    }
+
+    /** Reads an effect entry containing a float    */
+    private fun readEffectFloat(pFloat: Float): Float {
+
+        var result = pFloat
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "float") {
+                    // text content contains a single floats
+                    result = getTextContent().words[0].f
+
+                    testClosing("float")
+
+                } else
+                    skipElement()
+//
+            else if (event is EndElement)
+                break
+
+        return result
+    }
+
+    /** Reads an effect parameter specification of any kind */
+    private fun readEffectParam(pParam: EffectParam) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "surface" -> {
+                        // image ID given inside <init_from> tags
+                        testOpening("init_from")
+                        val content = getTextContent()
+                        pParam.mType = ParamType.Surface
+                        pParam.mReference = content
+                        testClosing("init_from")
+
+                        // don't care for remaining stuff
+                        skipElement("surface")
+                    }
+                    "sampler2D" ->
+                        if (mFormat == FormatVersion._1_4_n || mFormat == FormatVersion._1_3_n) {
+
+                            // surface ID is given inside <source> tags
+                            testOpening("source")
+                            val content = getTextContent()
+                            pParam.mType = ParamType.Sampler
+                            pParam.mReference = content
+                            testClosing("source")
+
+                            // don't care for remaining stuff
+                            skipElement("sampler2D")
+
+                        } else {
+                            // surface ID is given inside <instance_image> tags
+                            testOpening("instance_image")
+                            var url = element["url"]!!
+                            if (url[0] != '#')
+                                throw Exception("Unsupported URL format in instance_image")
+                            url.substring(1)
+                            pParam.mType = ParamType.Sampler
+                            pParam.mReference = url
+                            skipElement("sampler2D")
+                        }
+                    else -> skipElement()   // ignore unknown element
+                }
+            else if (event is EndElement)
+                break
     }
 
     /** Reads the geometry library contents */
-    private fun readGeometryLibrary(element: Element) = element.elementChildren().filter { it.nodeName == "geometry" }.forEach {
+    private fun readGeometryLibrary() {
 
-        // read ID. Another entry which is "optional" by design but obligatory in reality
-        val id = it.getAttribute("id")
+        if (isEmptyElement())
+            return
 
-        // TODO: (thom) support SIDs
-        // ai_assert( TestAttribute( "sid") == -1)
+        while (mReader.read())
 
-        // create a mesh and store it in the library under its ID
-        val mesh = Mesh()
-        mMeshLibrary[id] = mesh
+            if (event is StartElement)
 
-        // read the mesh name if it exists
-        mesh.mName = element.getAttribute("name")
+                if (element.name_ == "geometry") {
 
-        // read on from there
-        readGeometry(it, mesh)
+                    // read ID. Another entry which is "optional" by design but obligatory in reality
+                    val id = element["id"]!!
+
+                    // TODO: (thom) support SIDs
+                    // ai_assert( TestAttribute( "sid") == -1);
+
+                    // create a mesh and store it in the library under its ID
+                    val mesh = Mesh()
+                    mMeshLibrary[id] = mesh
+
+                    // read the mesh name if it exists
+                    element["name"]?.let {
+                        mesh.mName = it
+                    }
+
+                    // read on from there
+                    readGeometry(mesh)
+
+                } else skipElement()    // ignore the rest
+
+            else if (event is EndElement) {
+                if (endElement.name_ != "library_geometries")
+                    throw Exception("Expected end of <library_geometries> element.")
+
+                break
+            }
     }
 
     /** Reads a geometry from the geometry library. */
-    private fun readGeometry(element: Element, pMesh: Mesh) = element.elementChildren().filter { it.nodeName == "mesh" }.forEach {
-        // read on from there
-        readMesh(it, pMesh)
+    private fun readGeometry(pMesh: Mesh) {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "mesh")
+                    readMesh(pMesh) // read on from there
+                else
+                    skipElement()   // ignore the rest
+
+            else if (event is EndElement) {
+                if (endElement.name_ != "geometry")
+                    throw Exception("Expected end of <geometry> element.")
+
+                break
+            }
     }
 
     /** Reads a mesh from the geometry library  */
-    private fun readMesh(element: Element, pMesh: Mesh) = element.elementChildren().forEach {
+    private fun readMesh(pMesh: Mesh) {
 
-        when (it.nodeName) {
-        // we have professionals dealing with this
-            "source" -> readSource(it)
-        // read per-vertex mesh data
-//            "vertices" -> readVertexData(it, pMesh)
-        // read per-index mesh data and faces setup
-//            "triangles", "lines", "linestrips", "polygons", "polylist", "trifans", "tristrips" -> readIndexData(it, pMesh)
-            else -> {// ignore the rest
-            }
-        }
+        if (isEmptyElement())
+            return
+
+        w@ while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "source" -> readSource()    // we have professionals dealing with this
+
+                    "vertices" -> readVertexData(pMesh) // read per-vertex mesh data
+
+                    "triangles", "lines", "linestrips", "polygons", "polylist", "trifans", "tristrips" ->
+                        readIndexData(pMesh)    // read per-index mesh data and faces setup
+
+                    else -> skipElement()   // ignore the rest
+                }
+            else if (event is EndElement)
+
+                when (endElement.name_) {
+
+                    "technique_common" -> { // end of another meaningless element - read over it
+                    }
+
+                    "mesh" -> break@w
+
+                    else -> throw Exception("Expected end of <mesh> element.")
+                }
     }
 
     /** Reads a source element  */
@@ -777,7 +1609,8 @@ class ColladaParser(pFile: URI) {
 
                     "float_array", "IDREF_array", "Name_array" -> readDataArray()
 
-                    "technique_common" -> return    // I don't care for your profiles
+                    "technique_common" -> { // I don't care for your profiles
+                    }
 
                     "accessor" -> readAccessor(sourceID)
 
@@ -801,6 +1634,7 @@ class ColladaParser(pFile: URI) {
 
         val elmName = element.name_
         val isStringArray = elmName == "IDREF_array" || elmName == "Name_array"
+        val isEmptyElement = isEmptyElement()
 
         // read attributes
         val id = element["id"]!!
@@ -816,15 +1650,16 @@ class ColladaParser(pFile: URI) {
 
             if (isStringArray) {
 
-                val strings = content.split("\\s+".toRegex())
+                val strings = content.words
 
                 if (strings.size < count)
                     throw Exception("Expected more values while reading IDREF_array contents.")
 
                 data.mStrings.addAll(strings)
+
             } else {
 
-                val ints = content.split("\\s+".toRegex()).map { it.f }
+                val ints = content.words.map { it.f }
 
                 if (ints.size < count)
                     throw Exception("Expected more values while reading float_array contents.")
@@ -833,7 +1668,7 @@ class ColladaParser(pFile: URI) {
             }
 
         // test for closing tag
-        if (!isEmptyElement())
+        if (!isEmptyElement)
             testClosing(elmName)
     }
 
@@ -915,414 +1750,725 @@ class ColladaParser(pFile: URI) {
                 break
             }
     }
-//
-//    /** Reads input declarations of per-vertex mesh data into the given mesh    */
-//    private fun readVertexData(element: Element, pMesh: Mesh) {
-//
-//        // extract the ID of the <vertices> element. Not that we care, but to catch strange referencing schemes we should warn about
-//        pMesh.mVertexID = element.getAttribute("id")
-//
-//        // a number of <input> elements
-//        element.elementChildren().forEach {
-//
-//            if (it.nodeName == "input")
-//                readInputChannel(it, pMesh.mPerVertexData)
-//            else
-//                System.err.println("Unexpected sub element <${element.nodeName}> in tag <vertices>")
-//        }
-//    }
-//
-//    /** Reads a single input channel element and stores it in the given array, if valid */
-//    private fun readInputChannel(element: Element, poChannels: ArrayList<InputChannel>) {
-//
-//        val channel = InputChannel()
-//
-//        // read semantic
-//        val semantic = element.getAttribute("semantic")
-//        channel.mType = getTypeForSemantic(semantic)
-//
-//        // read source
-//        val source = element.getAttribute("source")
-//        if (source[0] != '#')
-//            System.err.println("Unknown reference format in url $source in source attribute of <input> element.")
-//        channel.mAccessor = source.removePrefix("#")
-//
-//        // read index offset, if per-index <input>
-//        if (element.hasAttribute("offset"))
-//            channel.mOffset = element["offset"]!!.i
-//
-//        // read set if texture coordinates
-//        if (channel.mType == InputType.Texcoord || channel.mType == InputType.Color) {
-//            val attrSet = element.getAttribute("set")
-//            if (attrSet.isNotEmpty()) {
-//                if (attrSet.i < 0)
-//                    System.err.println("Invalid index $attrSet in set attribute of <input> element")
-//
-//                channel.mIndex = attrSet.i
-//            }
-//        }
-//
-//        // store, if valid type
-//        if (channel.mType != InputType.Invalid)
-//            poChannels.add(channel)
-//    }
-//
-//    /** Reads input declarations of per-index mesh data into the given mesh */
-//    private fun readIndexData(element: Element, pMesh: Mesh) {
-//
-//        val vcount = ArrayList<Int>()
-//        val perIndexData = ArrayList<InputChannel>()
-//
-//        // read primitive count from the attribute
-//        val numPrimitives = element.getAttribute("count").i
-//        // some mesh types (e.g. tristrips) don't specify primitive count upfront, so we need to sum up the actual number of primitives while we read the <p>-tags
-//        var actualPrimitives = 0
-//
-//        // material subgroup
-//        val subgroup = SubMesh()
-//        if (element.hasAttribute("material"))
-//            subgroup.mMaterial = element["material"]!!
-//
-//        // distinguish between polys and triangles
-//        val elementName = element.nodeName
-//        val primType = when (elementName) {
-//            "lines" -> PrimitiveType.Lines
-//            "linestrips" -> PrimitiveType.LineStrip
-//            "polygons" -> PrimitiveType.Polygon
-//            "polylist" -> PrimitiveType.Polylist
-//            "triangles" -> PrimitiveType.Triangles
-//            "trifans" -> PrimitiveType.TriFans
-//            "tristrips" -> PrimitiveType.TriStrips
-//            else -> PrimitiveType.Invalid
-//        }
-//
-//        assert(primType != PrimitiveType.Invalid)
-//
-//        // also a number of <input> elements, but in addition a <p> primitive collection and probably index counts for all primitives
-//        element.elementChildren().forEach {
-//
-//            when (it.nodeName) {
-//
-//                "input" -> readInputChannel(it, perIndexData)
-//
-//                "vcount" -> if (numPrimitives != 0) // It is possible to define a mesh without any primitives
-//                    it.textContent.split("\\s+".toRegex()).mapTo(vcount, { it.i })  // case <polylist> - specifies the number of indices for each polygon
-//
-//                "p" -> actualPrimitives += readPrimitives(it, pMesh, perIndexData, numPrimitives, vcount, primType)
-//
-//                "extra" -> {
-//                }
-//
-//                else -> throw Exception("Unexpected sub element <${it.nodeName}> in tag <$elementName>")
-//            }
-//        }
-//    }
-//
-//    /** Reads a <p> primitive index list and assembles the mesh data into the given mesh    */
-//    private fun readPrimitives(element: Element, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>,
-//                               pPrimType: PrimitiveType): Int {
-//
-//        // determine number of indices coming per vertex find the offset index for all per-vertex channels
-//        var numOffsets = 1
-//        var perVertexOffset = 0xffffffff.i
-//        pPerIndexChannels.forEach {
-//            numOffsets = glm.max(numOffsets, it.mOffset + 1)
-//            if (it.mType == InputType.Vertex)
-//                perVertexOffset = it.mOffset
-//        }
-//
-//        // determine the expected number of indices
-//        val expectedPointCount = when (pPrimType) {
-//
-//            PrimitiveType.Polylist -> pVCount.sum()
-//
-//            PrimitiveType.Lines -> 2 * pNumPrimitives
-//
-//            PrimitiveType.Triangles -> 3 * pNumPrimitives
-//
-//            else -> 0 // other primitive types don't state the index count upfront... we need to guess
-//        }
-//
-//        // and read all indices into a temporary array
-//        val indices = ArrayList<Int>()
-//        if (pNumPrimitives > 0)   // It is possible to not contain any indices
-//        // read a value. Hack: (thom) Some exporters put negative indices sometimes. We just try to carry on anyways.
-//            element.textContent.split("\\s+".toRegex()).mapTo(indices, { it.ui.v })
-//
-//        var numPrimitives = pNumPrimitives
-//
-//        // complain if the index count doesn't fit
-//        if (expectedPointCount > 0 && indices.size != expectedPointCount * numOffsets)
-//            if (pPrimType == PrimitiveType.Lines) {
-//                // HACK: We just fix this number since SketchUp 15.3.331 writes the wrong 'count' for 'lines'
-//                System.err.println("Expected different index count in <p> element, ${indices.size} instead of ${expectedPointCount * numOffsets}.")
-//                numPrimitives = (indices.size / numOffsets) / 2
-//            } else throw Exception("Expected different index count in <p> element.")
-//        else if (expectedPointCount == 0 && (indices.size % numOffsets) != 0)
-//            throw Exception("Expected different index count in <p> element.")
-//
-//        // find the data for all sources
-//        pMesh.mPerVertexData.forEach { input ->
-//            if (input.mResolved != null)
-//                return@forEach
-//
-//            // find accessor
-//            input.mResolved = mAccessorLibrary[input.mAccessor]
-//            // resolve accessor's data pointer as well, if necessary
-//            val acc = input.mResolved!!
-//            if (acc.mData == null)
-//                acc.mData = mDataLibrary[acc.mSource]
-//        }
-//        // and the same for the per-index channels
-//        pPerIndexChannels.forEach { input ->
-//            if (input.mResolved != null)
-//                return@forEach
-//
-//            // ignore vertex pointer, it doesn't refer to an accessor
-//            if (input.mType == InputType.Vertex) {
-//                // warn if the vertex channel does not refer to the <vertices> element in the same mesh
-//                if (input.mAccessor != pMesh.mVertexID)
-//                    throw Exception("Unsupported vertex referencing scheme.")
-//                return@forEach
-//            }
-//
-//            // find accessor
-//            input.mResolved = mAccessorLibrary[input.mAccessor]
-//            // resolve accessor's data pointer as well, if necessary
-//            val acc = input.mResolved!!
-//            if (acc.mData == null)
-//                acc.mData = mDataLibrary[acc.mSource]
-//        }
-//
-//        // For continued primitives, the given count does not come all in one <p>, but only one primitive per <p>
-//        if (pPrimType == PrimitiveType.TriFans || pPrimType == PrimitiveType.Polygon)
-//            numPrimitives = 1
-//        // For continued primitives, the given count is actually the number of <p>'s inside the parent tag
-//        if (pPrimType == PrimitiveType.TriStrips) {
-//            val numberOfVertices = indices.size / numOffsets
-//            numPrimitives = numberOfVertices - 2
-//        }
-//
-//        var polylistStartVertex = 0
-//        for (currentPrimitive in 0 until numPrimitives) {
-//            // determine number of points for this primitive
-//            var numPoints = 0
-//            when (pPrimType) {
-//                PrimitiveType.Lines -> {
-//                    numPoints = 2
-//                    for (currentVertex in 0 until numPoints)
-//                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                }
-//                PrimitiveType.Triangles -> {
-//                    numPoints = 3
-//                    for (currentVertex in 0 until numPoints)
-//                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                }
-//                PrimitiveType.TriStrips -> {
-//                    numPoints = 3
-//                    readPrimTriStrips(numOffsets, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                }
-//                PrimitiveType.Polylist -> {
-//                    numPoints = pVCount [currentPrimitive]
-//                    for (currentVertex in 0 until numPoints)
-//                        copyVertex(polylistStartVertex + currentVertex, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, 0, indices)
-//                    polylistStartVertex += numPoints
-//                }
-//                PrimitiveType.TriFans, PrimitiveType.Polygon -> {
-//                    numPoints = indices.size / numOffsets
-//                    for (currentVertex in 0 until numPoints)
-//                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                }
-//            // LineStrip is not supported due to expected index unmangling
-//                else -> throw Exception("Unsupported primitive type.")
-//            }
-//            // store the face size to later reconstruct the face from
-//            pMesh.mFaceSize.add(numPoints)
-//        }
-//        // if I ever get my hands on that guy who invented this steaming pile of indirection...
-//        return numPrimitives
-//    }
-//
-//    /** Copies the data for a single primitive into the mesh, based on the InputChannels */
-//    private fun copyVertex(currentVertex: Int, numOffsets: Int, numPoints: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>,
-//                           currentPrimitive: Int, indices: ArrayList<Int>) {
-//
-//        // calculate the base offset of the vertex whose attributes we ant to copy
-//        val baseOffset = currentPrimitive * numOffsets * numPoints + currentVertex * numOffsets
-//
-//        // don't overrun the boundaries of the index list
-//        val maxIndexRequested = baseOffset + numOffsets - 1
-//        assert(maxIndexRequested < indices.size)
-//
-//        // extract per-vertex channels using the global per-vertex offset
-//        pMesh.mPerVertexData.forEach {
-//            extractDataObjectFromChannel(it, indices[baseOffset + perVertexOffset], pMesh)
-//        }
-//
-//        // and extract per-index channels using there specified offset
-//        pPerIndexChannels.forEach {
-//            extractDataObjectFromChannel(it, indices[baseOffset + it.mOffset], pMesh)
-//        }
-//
-//        // store the vertex-data index for later assignment of bone vertex weights
-//        pMesh.mFacePosIndices.add(indices[baseOffset + perVertexOffset])
-//    }
-//
-//    /** Reads one triangle of a tristrip into the mesh */
-//    private fun readPrimTriStrips(numOffsets: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, currentPrimitive: Int,
-//                                  indices: ArrayList<Int>) =
-//            if (currentPrimitive % 2 != 0) {
-//                //odd tristrip triangles need their indices mangled, to preserve winding direction
-//                copyVertex(1, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                copyVertex(0, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                copyVertex(2, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//            } else {//for non tristrips or even tristrip triangles
-//                copyVertex(0, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                copyVertex(1, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//                copyVertex(2, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
-//            }
-//
-//
-//    /** Extracts a single object from an input channel and stores it in the appropriate mesh data array */
-//    private fun extractDataObjectFromChannel(pInput: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
-//
-//        // ignore vertex referrer - we handle them that separate
-//        if (pInput.mType == InputType.Vertex)
-//            return
-//
-//        val acc = pInput.mResolved!!
-//        if (pLocalIndex >= acc.mCount)
-//            throw Exception("Invalid data index ($pLocalIndex/${acc.mCount}) in primitive specification")
-//
-//        // get a pointer to the start of the data object referred to by the accessor and the local index
-//        val offsetDataObject = acc.mOffset + pLocalIndex * acc.mStride
-//
-//        // assemble according to the accessors component sub-offset list. We don't care, yet,
-//        // what kind of object exactly we're extracting here
-//        val obj = FloatArray(4, { 0f })
-//        for (c in 0 until 4)
-//            obj[c] = acc.mData!!.mValues[offsetDataObject + acc.mSubOffset[c]]
-//
-//        // now we reinterpret it according to the type we're reading here
-//        when (pInput.mType) {
-//            InputType.Position -> { // ignore all position streams except 0 - there can be only one position
-//                if (pInput.mIndex == 0)
-//                    pMesh.mPositions.add(AiVector3D(obj[0], obj[1], obj[2]))
-//                else
-//                    System.err.println("Collada: just one vertex position stream supported")
-//            }
-//            InputType.Normal -> {
-//                // pad to current vertex count if necessary
-//                if (pMesh.mNormals.size < pMesh.mPositions.size - 1)
-//                    pMesh.mNormals.addAll(Array(pMesh.mPositions.size - pMesh.mNormals.size - 1, { AiVector3D(0, 1, 0) }))
-//
-//                // ignore all normal streams except 0 - there can be only one normal
-//                if (pInput.mIndex == 0)
-//                    pMesh.mNormals.add(AiVector3D(obj[0], obj[1], obj[2]))
-//                else
-//                    System.err.println("Collada: just one vertex normal stream supported")
-//            }
-//            InputType.Tangent -> {
-//                // pad to current vertex count if necessary
-//                if (pMesh.mTangents.size < pMesh.mPositions.size - 1)
-//                    pMesh.mTangents.addAll(Array(pMesh.mPositions.size - pMesh.mTangents.size - 1, { AiVector3D(1, 0, 0) }))
-//
-//                // ignore all tangent streams except 0 - there can be only one tangent
-//                if (pInput.mIndex == 0)
-//                    pMesh.mTangents.add(AiVector3D(obj[0], obj[1], obj[2]))
-//                else
-//                    System.err.println("Collada: just one vertex tangent stream supported")
-//            }
-//            InputType.Bitangent -> {
-//                // pad to current vertex count if necessary
-//                if (pMesh.mBitangents.size < pMesh.mPositions.size - 1)
-//                    pMesh.mBitangents.addAll(Array(pMesh.mPositions.size - pMesh.mBitangents.size - 1, { AiVector3D(0, 0, 1) }))
-//
-//                // ignore all bitangent streams except 0 - there can be only one bitangent
-//                if (pInput.mIndex == 0)
-//                    pMesh.mBitangents.add(AiVector3D(obj[0], obj[1], obj[2]))
-//                else
-//                    System.err.println("Collada: just one vertex bitangent stream supported")
-//            }
-//            InputType.Texcoord -> {
-//                // up to 4 texture coord sets are fine, ignore the others
-//                if (pInput.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
-//                    // pad to current vertex count if necessary
-//                    if (pMesh.mTexCoords[pInput.mIndex].size < pMesh.mPositions.size - 1)
-//                        pMesh.mTexCoords[pInput.mIndex].addAll(Array(pMesh.mPositions.size - pMesh.mTexCoords[pInput.mIndex].size - 1, { AiVector3D(0, 0, 0) }))
-//
-//                    pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(obj[0], obj[1], obj[2]))
-//                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
-//                        pMesh.mNumUVComponents[pInput.mIndex] = 3
-//                } else
-//                    System.err.println("Collada: too many texture coordinate sets. Skipping.")
-//            }
-//            InputType.Color -> {
-//                // up to 4 color sets are fine, ignore the others
-//                if (pInput.mIndex < AI_MAX_NUMBER_OF_COLOR_SETS) {
-//                    // pad to current vertex count if necessary
-//                    if (pMesh.mColors[pInput.mIndex].size < pMesh.mPositions.size - 1)
-//                        pMesh.mColors[pInput.mIndex].addAll(Array(pMesh.mPositions.size - pMesh.mColors[pInput.mIndex].size - 1, { AiColor4D(0, 0, 0, 1) }))
-//
-//                    val result = AiColor4D(0, 0, 0, 1)
-//                    for (i in 0 until pInput.mResolved!!.mSize)
-//                        result[i] = obj[pInput.mResolved!!.mSubOffset[i]]
-//
-//                    pMesh.mColors[pInput.mIndex].add(result)
-//                } else
-//                    System.err.println("Collada: too many vertex color sets. Skipping.")
-//            }
-//        // IT_Invalid and IT_Vertex
-//            else -> assert(false)
-//        }
-//    }
-//
-//    /** Determines the input data type for the given semantic string    */
-//    private fun getTypeForSemantic(semantic: String) = when (semantic) {
-//
-//        "" -> {
-//            System.err.println("Vertex input type is empty.")
-//            InputType.Invalid
-//        }
-//
-//        "position" -> InputType.Position
-//
-//        "texcoord" -> InputType.Texcoord
-//
-//        "normal" -> InputType.Normal
-//
-//        "color" -> InputType.Color
-//
-//        "vertex" -> InputType.Vertex
-//
-//        "binormal", "texbinormal" -> InputType.Bitangent
-//
-//        "tangent", "textangent" -> InputType.Tangent
-//
-//        else -> {
-//            System.err.println("Unknown vertex input type $semantic. Ignoring.")
-//            InputType.Invalid
-//        }
-//    }
 
-    /** Tests for the closing tag of the given element, throws an exception if not found    */
-    private fun testClosing(pName: String) {
-        // check if we're already on the closing tag and return right away
-        if (event.isEndElement && endElement.name_ == pName)
+    /** Reads input declarations of per-vertex mesh data into the given mesh    */
+    private fun readVertexData(pMesh: Mesh) {
+
+        // extract the ID of the <vertices> element. Not that we care, but to catch strange referencing schemes we should warn about
+        pMesh.mVertexID = element["id"]!!
+
+        // a number of <input> elements
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "input")
+                    readInputChannel(pMesh.mPerVertexData)
+                else
+                    throw Exception("Unexpected sub element <${element.name}> in tag <vertices>")
+//
+            else if (event is EndElement) {
+                if (endElement.name_ != "vertices")
+                    throw Exception("Expected end of <vertices> element.")
+
+                break
+            }
+    }
+
+    /** Reads input declarations of per-index mesh data into the given mesh */
+    private fun readIndexData(pMesh: Mesh) {
+
+        val vcount = ArrayList<Int>()
+        val perIndexData = ArrayList<InputChannel>()
+
+        // read primitive count from the attribute
+        val numPrimitives = element["count"]!!.i
+        // some mesh types (e.g. tristrips) don't specify primitive count upfront, so we need to sum up the actual number of primitives while we read the <p>-tags
+        var actualPrimitives = 0
+
+        // material subgroup
+        val subgroup = SubMesh()
+        element["material"]?.let {
+            subgroup.mMaterial = it
+        }
+
+        // distinguish between polys and triangles
+        val elementName = element.name_
+        val primType = when (elementName) {
+            "lines" -> PrimitiveType.Lines
+            "linestrips" -> PrimitiveType.LineStrip
+            "polygons" -> PrimitiveType.Polygon
+            "polylist" -> PrimitiveType.Polylist
+            "triangles" -> PrimitiveType.Triangles
+            "trifans" -> PrimitiveType.TriFans
+            "tristrips" -> PrimitiveType.TriStrips
+            else -> PrimitiveType.Invalid
+        }
+
+        assert(primType != PrimitiveType.Invalid)
+
+        // also a number of <input> elements, but in addition a <p> primitive collection and probably index counts for all primitives
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "input" -> readInputChannel(perIndexData)
+
+                    "vcount" -> {
+
+                        if (!isEmptyElement()) {
+
+                            if (numPrimitives > 0) {  // It is possible to define a mesh without any primitives
+
+                                // case <polylist> - specifies the number of indices for each polygon
+                                val ints = getTextContent().words.map { it.ui.v }
+                                if (numPrimitives > ints.size)
+                                    throw Exception("Expected more values while reading <vcount> contents.")
+                                vcount.addAll(ints)
+                            }
+                            testClosing("vcount")
+                        }
+                    }
+
+                    "p" ->  // now here the actual fun starts - these are the indices to construct the mesh data from
+                        if (!isEmptyElement())
+                            actualPrimitives += readPrimitives(pMesh, perIndexData, numPrimitives, vcount, primType)
+
+                    "extra" -> skipElement("extra")
+
+                    else -> throw Exception("Unexpected sub element <${element.name}> in tag <$elementName>")
+                }
+            else if (event is EndElement) {
+                if (endElement.name_ != elementName)
+                    throw Exception("Expected end of <$elementName> element.")
+
+                break
+            }
+
+        //TODO ASSIMP_BUILD_DEBUG?
+        if (primType != PrimitiveType.TriFans && primType != PrimitiveType.TriStrips && primType != PrimitiveType.Lines)
+        // this is ONLY to workaround a bug in SketchUp 15.3.331 where it writes the wrong 'count' when it writes out the 'lines'.
+            assert(actualPrimitives == numPrimitives)
+
+        // only when we're done reading all <p> tags (and thus know the final vertex count) can we commit the submesh
+        subgroup.mNumFaces = actualPrimitives
+        pMesh.mSubMeshes.add(subgroup)
+    }
+
+    /** Reads a single input channel element and stores it in the given array, if valid */
+    private fun readInputChannel(poChannels: ArrayList<InputChannel>) {
+
+        val channel = InputChannel()
+
+        // read semantic
+        val semantic = element["semantic"]!!
+        channel.mType = getTypeForSemantic(semantic)
+
+        // read source
+        val source = element["source"]!!
+        if (source[0] != '#')
+            throw Exception("Unknown reference format in url \"$source\" in source attribute of <input> element.")
+        channel.mAccessor = source.substring(1) // skipping the leading #, hopefully the remaining text is the accessor ID only
+
+        // read index offset, if per-index <input>
+        element["offset"]?.let {
+            channel.mOffset = it.i
+        }
+
+        // read set if texture coordinates
+        if (channel.mType == InputType.Texcoord || channel.mType == InputType.Color)
+            element["set"]?.let {
+                val attrSet = it.i
+                if (attrSet < 0)
+                    throw Exception("Invalid index \"$attrSet\" in set attribute of <input> element ")
+
+                channel.mIndex = attrSet
+            }
+
+        // store, if valid type
+        if (channel.mType != InputType.Invalid)
+            poChannels.add(channel)
+
+        // skip remaining stuff of this element, if any
+        skipElement()
+    }
+
+    /** Reads a <p> primitive index list and assembles the mesh data into the given mesh    */
+    private fun readPrimitives(pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>, pPrimType: PrimitiveType): Int {
+
+        var numPrimitives = pNumPrimitives
+
+        // determine number of indices coming per vertex find the offset index for all per-vertex channels
+        var numOffsets = 1
+        var perVertexOffset = 0xffffffff.i // invalid value
+        pPerIndexChannels.forEach {
+            numOffsets = glm.max(numOffsets, it.mOffset + 1)
+            if (it.mType == InputType.Vertex)
+                perVertexOffset = it.mOffset
+        }
+
+        // determine the expected number of indices
+        val expectedPointCount = when (pPrimType) {
+            PrimitiveType.Polylist -> pVCount.sum()
+            PrimitiveType.Lines -> 2 * numPrimitives
+            PrimitiveType.Triangles -> 3 * numPrimitives
+            else -> 0   // other primitive types don't state the index count upfront... we need to guess
+        }
+
+        // and read all indices into a temporary array
+        val indices = ArrayList<Int>()
+
+        if (numPrimitives > 0) // It is possible to not contain any indices
+            indices.addAll(getTextContent().words.map { it.i })
+
+        // complain if the index count doesn't fit
+        if (expectedPointCount > 0 && indices.size != expectedPointCount * numOffsets)
+
+            if (pPrimType == PrimitiveType.Lines) {
+                // HACK: We just fix this number since SketchUp 15.3.331 writes the wrong 'count' for 'lines'
+                System.out.println("Expected different index count in <p> element, ${indices.size} instead of ${expectedPointCount * numOffsets}.")
+                numPrimitives = (indices.size / numOffsets) / 2
+            } else
+                throw Exception("Expected different index count in <p> element.")
+//
+        else if (expectedPointCount == 0 && (indices.size % numOffsets) != 0)
+            throw Exception("Expected different index count in <p> element.")
+
+        // find the data for all sources
+        pMesh.mPerVertexData.filter { it.mResolved == null }.forEach { input ->
+
+            // find accessor
+            input.mResolved = mAccessorLibrary[input.mAccessor]!!
+            // resolve accessor's data pointer as well, if necessary
+            val acc = input.mResolved!!
+            if (acc.mData == null)
+                acc.mData = mDataLibrary[acc.mSource]
+        }
+        // and the same for the per-index channels
+        pPerIndexChannels.filter { it.mResolved == null }.filter {
+            // ignore vertex pointer, it doesn't refer to an accessor
+            if (it.mType == InputType.Vertex) {
+                // warn if the vertex channel does not refer to the <vertices> element in the same mesh
+                if (it.mAccessor != pMesh.mVertexID)
+                    throw Exception("Unsupported vertex referencing scheme.")
+                false
+            } else
+                true
+        }.forEach {
+
+            // find accessor
+            it.mResolved = mAccessorLibrary[it.mAccessor]
+            // resolve accessor's data pointer as well, if necessary
+            val acc = it.mResolved!!
+            if (acc.mData == null)
+                acc.mData = mDataLibrary[acc.mSource]
+        }
+
+        // For continued primitives, the given count does not come all in one <p>, but only one primitive per <p>
+        if (pPrimType == PrimitiveType.TriFans || pPrimType == PrimitiveType.Polygon)
+            numPrimitives = 1
+        // For continued primitives, the given count is actually the number of <p>'s inside the parent tag
+        if (pPrimType == PrimitiveType.TriStrips) {
+            val numberOfVertices = indices.size / numOffsets
+            numPrimitives = numberOfVertices - 2
+        }
+
+        var polylistStartVertex = 0
+        for (currentPrimitive in 0 until numPrimitives) {
+            // determine number of points for this primitive
+            var numPoints = 0
+            when (pPrimType) {
+
+                PrimitiveType.Lines -> {
+                    numPoints = 2
+                    for (currentVertex in 0 until numPoints)
+                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                }
+                PrimitiveType.Triangles -> {
+                    numPoints = 3
+                    for (currentVertex in 0 until numPoints)
+                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                }
+                PrimitiveType.TriStrips -> {
+                    numPoints = 3
+                    readPrimTriStrips(numOffsets, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                }
+                PrimitiveType.Polylist -> {
+                    numPoints = pVCount [currentPrimitive]
+                    for (currentVertex in 0 until numPoints)
+                        copyVertex(polylistStartVertex + currentVertex, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, 0, indices)
+                    polylistStartVertex += numPoints
+                }
+                PrimitiveType.TriFans, PrimitiveType.Polygon -> {
+                    numPoints = indices.size / numOffsets
+                    for (currentVertex in 0 until numPoints)
+                        copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                }
+                else -> throw Exception("Unsupported primitive type.")  // LineStrip is not supported due to expected index unmangling
+            }
+
+            // store the face size to later reconstruct the face from
+            pMesh.mFaceSize.add(numPoints)
+        }
+
+        // if I ever get my hands on that guy who invented this steaming pile of indirection...
+        testClosing("p")
+        return numPrimitives
+    }
+
+    /** Copies the data for a single primitive into the mesh, based on the InputChannels */
+    private fun copyVertex(currentVertex: Int, numOffsets: Int, numPoints: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>,
+                           currentPrimitive: Int, indices: ArrayList<Int>) {
+
+        // calculate the base offset of the vertex whose attributes we ant to copy
+        val baseOffset = currentPrimitive * numOffsets * numPoints + currentVertex * numOffsets
+
+        // don't overrun the boundaries of the index list
+        val maxIndexRequested = baseOffset + numOffsets - 1
+        assert(maxIndexRequested < indices.size)
+
+        // extract per-vertex channels using the global per-vertex offset
+        pMesh.mPerVertexData.forEach {
+            extractDataObjectFromChannel(it, indices[baseOffset + perVertexOffset], pMesh)
+        }
+        // and extract per-index channels using there specified offset
+        pPerIndexChannels.forEach {
+            extractDataObjectFromChannel(it, indices[baseOffset + it.mOffset], pMesh)
+        }
+
+        // store the vertex-data index for later assignment of bone vertex weights
+        pMesh.mFacePosIndices.add(indices[baseOffset + perVertexOffset])
+    }
+
+    /** Reads one triangle of a tristrip into the mesh */
+    private fun readPrimTriStrips(numOffsets: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, currentPrimitive: Int,
+                                  indices: ArrayList<Int>) =
+            if (currentPrimitive % 2 != 0) {
+                //odd tristrip triangles need their indices mangled, to preserve winding direction
+                copyVertex(1, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                copyVertex(0, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                copyVertex(2, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+            } else {//for non tristrips or even tristrip triangles
+                copyVertex(0, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                copyVertex(1, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                copyVertex(2, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+            }
+
+    /** Extracts a single object from an input channel and stores it in the appropriate mesh data array */
+    private fun extractDataObjectFromChannel(pInput: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
+
+        // ignore vertex referrer - we handle them that separate
+        if (pInput.mType == InputType.Vertex)
             return
 
-        // if not, read some more
-        if (!mReader.read())
-            throw Exception("Unexpected end of file while reading end of <$pName> element.")
-        // whitespace in front is ok, just read again if found
-        if (event is Characters)
-            if (!mReader.read())
-                throw Exception("Unexpected end of file while reading end of <$pName> element.")
+        val acc = pInput.mResolved!!
+        if (pLocalIndex >= acc.mCount)
+            throw Exception("Invalid data index ($pLocalIndex/${acc.mCount}) in primitive specification")
 
-        // but this has the be the closing tag, or we're lost
-        if (!event.isEndElement)
-            throw Exception("Expected end of <$pName> element.")
+        // get a pointer to the start of the data object referred to by the accessor and the local index
+        val offset = acc.mOffset + pLocalIndex * acc.mStride
+
+        // assemble according to the accessors component sub-offset list. We don't care, yet, what kind of object exactly we're extracting here
+        val obj = FloatArray(4, { acc.mData!!.mValues[offset + acc.mSubOffset[it]] })
+
+        // now we reinterpret it according to the type we're reading here
+        when (pInput.mType) {
+
+            InputType.Position -> // ignore all position streams except 0 - there can be only one position
+                if (pInput.mIndex == 0)
+                    pMesh.mPositions.add(AiVector3D(obj))
+                else
+                    System.err.println("Collada: just one vertex position stream supported")
+
+            InputType.Normal -> {
+                // pad to current vertex count if necessary
+                repeat(pMesh.mPositions.size - pMesh.mNormals.size - 1) {
+                    pMesh.mNormals.add(AiVector3D(0, 1, 0))
+                }
+
+                // ignore all normal streams except 0 - there can be only one normal
+                if (pInput.mIndex == 0)
+                    pMesh.mNormals.add(AiVector3D(obj))
+                else
+                    System.err.println("Collada: just one vertex normal stream supported")
+            }
+            InputType.Tangent -> {
+                // pad to current vertex count if necessary
+                repeat(pMesh.mPositions.size - pMesh.mTangents.size - 1) {
+                    pMesh.mTangents.add(AiVector3D(1, 0, 0))
+                }
+                // ignore all tangent streams except 0 - there can be only one tangent
+                if (pInput.mIndex == 0)
+                    pMesh.mTangents.add(AiVector3D(obj))
+                else
+                    System.err.println("Collada: just one vertex tangent stream supported")
+            }
+            InputType.Bitangent -> {
+                // pad to current vertex count if necessary
+                repeat(pMesh.mPositions.size - pMesh.mBitangents.size - 1) {
+                    pMesh.mBitangents.add(AiVector3D(0, 0, 1))
+                }
+
+                // ignore all bitangent streams except 0 - there can be only one bitangent
+                if (pInput.mIndex == 0)
+                    pMesh.mBitangents.add(AiVector3D(obj))
+                else
+                    System.err.println("Collada: just one vertex bitangent stream supported")
+            }
+            InputType.Texcoord -> {
+                // up to 4 texture coord sets are fine, ignore the others
+                if (pInput.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+                    // pad to current vertex count if necessary
+                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[pInput.mIndex].size - 1) {
+                        pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(0))
+                    }
+
+                    pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(obj))
+                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
+                        pMesh.mNumUVComponents[pInput.mIndex] = 3
+                } else
+                    System.err.println("Collada: too many texture coordinate sets. Skipping.")
+            }
+            InputType.Color -> {
+                // up to 4 color sets are fine, ignore the others
+                if (pInput.mIndex < AI_MAX_NUMBER_OF_COLOR_SETS) {
+                    // pad to current vertex count if necessary
+                    repeat(pMesh.mPositions.size - pMesh.mColors[pInput.mIndex].size - 1) {
+                        pMesh.mColors[pInput.mIndex].add(AiColor4D(0, 0, 0, 1))
+                    }
+
+                    val result = AiColor4D(0, 0, 0, 1)
+                    repeat(pInput.mResolved!!.mSize) {
+                        result[it] = obj[pInput.mResolved!!.mSubOffset[it]]
+                    }
+                    pMesh.mColors[pInput.mIndex].add(result)
+                } else
+                    System.err.println("Collada: too many vertex color sets. Skipping.")
+            }
+        // IT_Invalid and IT_Vertex
+            else -> throw Error("shouldn't ever get here")
+        }
     }
+
+    /** Reads the library of node hierarchies and scene parts   */
+    private fun readSceneLibrary() {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement) {
+
+                // a visual scene - generate root node under its ID and let ReadNode() do the recursive work
+                if (element.name_ == "visual_scene") {
+
+                    // read ID. Is optional according to the spec, but how on earth should a scene_instance refer to it then?
+                    val attrID = element["id"]!!
+
+                    // read name if given.
+                    val attrName = element["name"] ?: "unnamed"
+
+                    // create a node and store it in the library under its ID
+                    val node = Node(mID = attrID, mName = attrName)
+                    mNodeLibrary[node.mID] = node
+
+                    readSceneNode(node)
+
+                } else skipElement()
+
+            } else if (event is EndElement) {
+                if (endElement.name_ == "library_visual_scenes")
+                //ThrowException( "Expected end of \"library_visual_scenes\" element.");
+
+                    break
+            }
+    }
+
+    /** Reads a scene node's contents including children and stores it in the given node    */
+    private fun readSceneNode(pNode: Node?) {
+
+        // quit immediately on <bla/> elements
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement) {
+
+                if (element.name_ == "node") {
+
+                    val child = Node()
+                    element["id"]?.let {
+                        child.mID = it
+                    }
+                    element["sid"]?.let {
+                        child.mSID = it
+                    }
+                    element["name"]?.let {
+                        child.mName = it
+                    }
+
+                    // TODO: (thom) support SIDs
+                    // ai_assert( TestAttribute( "sid") == -1);
+
+                    if (pNode != null) {
+                        pNode.mChildren.add(child)
+                        child.mParent = pNode
+                    } else
+                    // no parent node given, probably called from <library_nodes> element.
+                    // create new node in node library
+                        mNodeLibrary[child.mID] = child
+
+                    // read on recursively from there
+                    readSceneNode(child)
+                    continue
+                }
+                // For any further stuff we need a valid node to work on
+                else if (pNode == null)
+                    continue
+
+                when (element.name_) {
+
+                    "lookat" -> readNodeTransformation(pNode, TransformType.LOOKAT)
+
+                    "matrix" -> readNodeTransformation(pNode, TransformType.MATRIX)
+
+                    "rotate" -> readNodeTransformation(pNode, TransformType.ROTATE)
+
+                    "scale" -> readNodeTransformation(pNode, TransformType.SCALE)
+
+                    "skew" -> readNodeTransformation(pNode, TransformType.SKEW)
+
+                    "translate" -> readNodeTransformation(pNode, TransformType.TRANSLATE)
+
+                    "render" ->
+                        if (pNode.mParent == null && pNode.mPrimaryCamera.isEmpty())
+                        // ... scene evaluation or, in other words, postprocessing pipeline, or, again in other words, a turing-complete description how to
+                        // render a Collada scene. The only thing that is interesting for us is the primary camera.
+                            element["camera_node"]?.let {
+                                if (it[0] != '#')
+                                    System.err.println("Collada: Unresolved reference format of camera")
+                                else
+                                    pNode.mPrimaryCamera = it.substring(1)
+                            }
+
+                    "instance_node" ->
+                        // find the node in the library
+                        element["url"]?.let {
+                            if (it[0] != '#')
+                                System.err.println("Collada: Unresolved reference format of node")
+                            else {
+                                pNode.mNodeInstances.add(NodeInstance())
+                                pNode.mNodeInstances.last().mNode = it.substring(1)
+                            }
+                        }
+
+                    "instance_geometry", "instance_controller" -> readNodeGeometry(pNode) // Reference to a mesh or controller, with possible material associations
+
+                    "instance_light" -> {
+                        val url = element["url"]
+                        // Reference to a light, name given in 'url' attribute
+                        if (url == null)
+                            System.err.println("Collada: Expected url attribute in <instance_light> element")
+                        else {
+                            if (url[0] != '#')
+                                throw Exception("Unknown reference format in <instance_light> element")
+
+                            pNode.mLights.add(LightInstance())
+                            pNode.mLights.last().mLight = url.substring(1)
+                        }
+                    }
+                    "instance_camera" -> {
+                        // Reference to a camera, name given in 'url' attribute
+                        val url = element["url"]
+                        if (url == null)
+                            System.err.println("Collada: Expected url attribute in <instance_camera> element")
+                        else {
+                            val url = element["url"]!!
+                            if (url[0] != '#')
+                                throw Exception("Unknown reference format in <instance_camera> element")
+
+                            pNode.mCameras.add(CameraInstance())
+                            pNode.mCameras.last().mCamera = url.substring(1)
+                        }
+                    }
+                    else -> skipElement()  // skip everything else for the moment
+                }
+            } else if (event is EndElement)
+                break
+    }
+
+    /** Reads a node transformation entry of the given type and adds it to the given node's transformation list.    */
+    private fun readNodeTransformation(pNode: Node, pType: TransformType) {
+
+        if (isEmptyElement())
+            return
+
+        val tagName = element.name_
+
+        val tf = Transform(mType = pType)
+
+        // read SID
+        element["sid"]?.let {
+            tf.mID = it
+        }
+
+        // how many parameters to read per transformation type
+        val sNumParameters = intArrayOf(9, 4, 3, 3, 7, 16)
+        val floats = getTextContent().words.map { it.f }
+
+        // read as many parameters and store in the transformation
+        tf.f = FloatArray(sNumParameters[pType.ordinal], { floats[it] })
+
+        // place the transformation at the queue of the node
+        pNode.mTransforms.add(tf)
+
+        // and consume the closing tag
+        testClosing(tagName)
+    }
+
+    /** Processes bind_vertex_input and bind elements   */
+    private fun readMaterialVertexInputBinding(tbl: SemanticMappingTable) {
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                when (element.name_) {
+
+                    "bind_vertex_input" -> {
+
+                        val vn = InputSemanticMapEntry()
+
+                        // effect semantic
+                        val s = element["semantic"]!!
+
+                        // input semantic
+                        vn.mType = getTypeForSemantic(element["input_semantic"]!!)
+
+                        // index of input set
+                        element["input_set"]?.let {
+                            vn.mSet = it.i
+                        }
+
+                        tbl.mMap[s] = vn
+                    }
+
+                    "bind" -> System.out.println("Collada: Found unsupported <bind> element")
+                }
+            else if (event is EndElement)
+                if (endElement.name_ == "instance_material")
+                    break
+    }
+
+    /** Reads a mesh reference in a node and adds it to the node's mesh list    */
+    private fun readNodeGeometry(pNode: Node) {
+
+        // referred mesh is given as an attribute of the <instance_geometry> element
+        val url = element["url"]!!
+        if (url[0] != '#')
+            throw Exception("Unknown reference format")
+
+        val instance = MeshInstance(mMeshOrController = url.substring(1))   // skipping the leading #
+
+        if (!isEmptyElement()) {
+
+            // read material associations. Ignore additional elements in between
+            while (mReader.read())
+
+                if (event is StartElement) {
+
+                    if (element.name_ == "instance_material") {
+
+                        // read ID of the geometry subgroup and the target material
+                        val group = element["symbol"]!!
+                        var urlMat = element["target"]!!
+                        val s = SemanticMappingTable()
+                        if (urlMat[0] == '#')
+                            urlMat = urlMat.substring(1)
+
+                        s.mMatName = urlMat
+
+                        // resolve further material details + THIS UGLY AND NASTY semantic mapping stuff
+                        if (!isEmptyElement())
+                            readMaterialVertexInputBinding(s);
+
+                        // store the association
+                        instance.mMaterials[group] = s;
+                    }
+                } else if (event is EndElement)
+                    if (endElement.name_ == "instance_geometry" || endElement.name_ == "instance_controller")
+                        break
+        }
+
+        // store it
+        pNode.mMeshes.add(instance)
+    }
+
+    /** Reads the collada scene */
+    private fun readScene() {
+
+        if (isEmptyElement())
+            return
+
+        while (mReader.read())
+
+            if (event is StartElement)
+
+                if (element.name_ == "instance_visual_scene") {
+
+                    // should be the first and only occurrence
+                    if (mRootNode != null)
+                        throw Exception("Invalid scene containing multiple root nodes in <instance_visual_scene> element")
+
+                    // read the url of the scene to instance. Should be of format "#some_name"
+                    val url = element["url"]!!
+                    if (url[0] != '#')
+                        throw Exception("Unknown reference format in <instance_visual_scene> element")
+
+                    // find the referred scene, skip the leading #
+                    val sit = mNodeLibrary[url.substring(1)]
+                    if (sit == null)
+                        throw Exception("Unable to resolve visual_scene reference \"$url\" in <instance_visual_scene> element.")
+                    mRootNode = sit
+                } else
+                    skipElement()
+//
+            else if (event is EndElement)
+                break
+    }
+
+    /** Determines the input data type for the given semantic string    */
+    private fun getTypeForSemantic(semantic: String) = when (semantic) {
+
+        "" -> {
+            System.err.println("Vertex input type is empty.")
+            InputType.Invalid
+        }
+
+        "POSITION" -> InputType.Position
+
+        "TEXCOORD" -> InputType.Texcoord
+
+        "NORMAL" -> InputType.Normal
+
+        "COLOR" -> InputType.Color
+
+        "VERTEX" -> InputType.Vertex
+
+        "BINORMAL", "TEXBINORMAL" -> InputType.Bitangent
+
+        "TANGENT", "TEXTANGENT" -> InputType.Tangent
+
+        else -> {
+            System.err.println("Unknown vertex input type $semantic. Ignoring.")
+            InputType.Invalid
+        }
+    }
+
 
     /** Reads the text contents of an element, throws an exception if not given. Skips leading whitespace.  */
     private fun getTextContent() = testTextContent() ?: throw Exception("Invalid contents in element.")
@@ -1354,18 +2500,48 @@ class ColladaParser(pFile: URI) {
             return
 
         // reroute
-        skipElement(element.name)
+        skipElement(element.name_)
     }
 
     /** Skips all data until the end node of the given element  */
-    private fun skipElement(pElement: QName) {
-
-        // copy the current node's name because it'a pointer to the reader's internal buffer, which is going to change with the upcoming parsing
-        val name = pElement.localPart
-
+    private fun skipElement(pElement: String) {
         while (mReader.read())
-            if (event.isEndElement && event.asEndElement().name_ == name)
+            if (event is EndElement && endElement.name_ == pElement)
                 break
+    }
+
+    /** Tests for an opening element of the given name, throws an exception if not found    */
+    private fun testOpening(pName: String) {
+
+        // read element start
+        if (!mReader.read())
+            throw Exception("Unexpected end of file while beginning of <$pName> element.")
+        // whitespace in front is ok, just read again if found
+        if (event is Characters)
+            if (!mReader.read())
+                throw Exception("Unexpected end of file while reading beginning of <$pName> element.")
+
+        if (event !is StartElement || element.name_ != pName)
+            throw Exception("Expected start of <$pName> element.")
+    }
+
+    /** Tests for the closing tag of the given element, throws an exception if not found    */
+    private fun testClosing(pName: String) {
+        // check if we're already on the closing tag and return right away
+        if (event.isEndElement && endElement.name_ == pName)
+            return
+
+        // if not, read some more
+        if (!mReader.read())
+            throw Exception("Unexpected end of file while reading end of <$pName> element.")
+        // whitespace in front is ok, just read again if found
+        if (event is Characters)
+            if (!mReader.read())
+                throw Exception("Unexpected end of file while reading end of <$pName> element.")
+
+        // but this has the be the closing tag, or we're lost
+        if (event !is EndElement || endElement.name_ != pName)
+            throw Exception("Expected end of <$pName> element.")
     }
 
     operator fun StartElement.get(string: String) = getAttributeByName(QName(string))?.value
@@ -1374,14 +2550,6 @@ class ColladaParser(pFile: URI) {
         get() = name.localPart
     val EndElement.name_
         get() = name.localPart
-
-    // TODO remove?
-    /** Check for element match */
-    fun isElement(pName: String): Boolean {
-        assert(event.isStartElement)
-        element = event.asStartElement()
-        return element.name_ == pName
-    }
 
     fun XMLEventReader.read(): Boolean {
         if (hasNext()) {
@@ -1393,5 +2561,14 @@ class ColladaParser(pFile: URI) {
             return true
         }
         return false
+    }
+
+    private fun hexStringToByteArray(s: String): ByteArray {
+        val len = s.length
+        val data = ByteArray(len / 2, { 0 })
+        for (i in 0 until len step 2) {
+            data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i + 1], 16)).b
+        }
+        return data
     }
 }

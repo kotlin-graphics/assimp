@@ -63,3 +63,9 @@ fun Element.elementChildren(): ArrayList<Element> {
 }
 
 operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
+
+val String.words
+    get() = trim().split("\\s+".toRegex())
+
+val String.lc
+    get() = toLowerCase()
