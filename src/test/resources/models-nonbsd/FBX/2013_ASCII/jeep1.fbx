@@ -862,7 +862,7 @@ Objects:  {
 		Shading: T
 		Culling: "CullingOff"
 	}
-	Model: 39795488, "Model::main.main", "Mesh" {
+	Model: 39795488, "Model::main", "Mesh" {
 		Version: 232
 		Properties70:  {
 			P: "ScalingMax", "Vector3D", "Vector", "",0,0,0
@@ -969,7 +969,7 @@ Connections:  {
 	;Model::lsteer, Model::RootNode
 	C: "OO",39793552,0
 	
-	;Model::main.main, Model::RootNode
+	;Model::main, Model::RootNode
 	C: "OO",39795488,0
 	
 	;Video::jeep1.jpg, Texture::jeep1.jpg
@@ -1011,10 +1011,10 @@ Connections:  {
 	;Material::Material01, Model::lsteer
 	C: "OO",39275328,39793552
 	
-	;Geometry::, Model::main.main
+	;Geometry::, Model::main
 	C: "OO",39376576,39795488
 	
-	;Material::Material01, Model::main.main
+	;Material::Material01, Model::main
 	C: "OO",39275328,39795488
 	
 	;AnimLayer::Base Layer, AnimStack::Take 001
