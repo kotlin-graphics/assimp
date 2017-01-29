@@ -1,3 +1,5 @@
+package main
+
 /**
  * Created by elect on 14/11/2016.
  */
@@ -66,6 +68,6 @@ class AiImporterDesc(
          * importers may respond to the same file extension - assimp calls all importers in the order in which they are
          * registered and each importer gets the opportunity to load the file until one importer "claims" the file.
          * Apart from file extension checks, importers typically use other methods to quickly reject files (i.e. magic
-         * words) so this does not mean that common or generic file extensions such as XML would be tediously slow. */
+         * Words) so this does not mean that common or generic file extensions such as XML would be tediously slow. */
         val mFileExtensions: String = ""
 )

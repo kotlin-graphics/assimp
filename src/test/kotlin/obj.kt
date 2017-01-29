@@ -1,8 +1,8 @@
 import io.kotlintest.specs.StringSpec
+import main.*
 import mat.Mat4
 import vec._3.Vec3
 import java.util.*
-import kotlin.reflect.KClass
 
 /**
  * Created by elect on 16/11/2016.

@@ -1,3 +1,5 @@
+package main
+
 import mat.Mat4
 import org.w3c.dom.Element
 import vec._2.Vec2
@@ -67,5 +69,11 @@ operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAt
 val String.words
     get() = trim().split("\\s+".toRegex())
 
-val String.lc
-    get() = toLowerCase()
+//////////////////////////////////////////////////////////////////////////
+/* Useful constants */
+//////////////////////////////////////////////////////////////////////////
+
+/* This is PI. Hi PI. */
+val AI_MATH_PI         = Math.PI // TODO glm
+val AI_MATH_TWO_PI      = Math.PI * 2
+val AI_MATH_HALF_PI    = AI_MATH_PI * 0.5

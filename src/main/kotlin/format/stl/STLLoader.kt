@@ -1,34 +1,20 @@
-package stl
+package format.stl
 
-import AI_DEFAULT_MATERIAL_NAME
-import MAXLEN
+import BYTES
+import and
+import f
+import i
+import main.*
+import s
+import ushr
 import java.io.File
 import java.io.RandomAccessFile
+import java.net.URI
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.nio.file.FileSystemException
 import java.util.*
-import ushr
-import and
-import AiScene
-import AiColor3D
-import AiColor4D
-import AiVector3D
-import i
-import AiMesh
-import AiNode
-import AiMaterial
-import BaseImporter
-import AiImporterDesc
-import BYTES
-import f
-import isNewLine
-import s
-import skipSpaces
-import startsWith
-import vec._4.Vec4
-import java.net.URI
-import java.nio.ByteOrder
 
 /**
  * Created by elect on 13/11/2016.
@@ -38,9 +24,9 @@ class STLImporter : BaseImporter() {
 
     companion object {
 
-        val desc = AiImporterDesc(
+        val desc = main.AiImporterDesc(
                 mName = "Stereolithography (STL) Importer",
-                mFlags = AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportBinaryFlavour,
+                mFlags = main.AiImporterFlags.SupportTextFlavour or main.AiImporterFlags.SupportBinaryFlavour,
                 mFileExtensions = "stl"
         )
 
@@ -293,7 +279,7 @@ class STLImporter : BaseImporter() {
         buffer = buffer.removePrefix("solid")    // skip the "solid"
         buffer = buffer.trim()
 
-        val words = buffer.split("\\s+".toRegex()).toMutableList()
+        val words = buffer.words
 
         // setup the name of the node
         if (!buffer[0].isNewLine()) {

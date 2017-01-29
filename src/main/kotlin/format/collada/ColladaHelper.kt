@@ -1,19 +1,11 @@
-package collada
+package format.collada
 
 /**
  * Created by elect on 23/01/2017.
  */
 
-import AiLightSourceType
-import AiColor3D
-import AiColor4D
-import AiVector3D
-import java.nio.ByteBuffer
-import AiUVTransform
-import com.sun.deploy.xml.XMLNode
 import i
-import org.w3c.dom.Element
-
+import main.*
 import org.w3c.dom.Node as XmlNode
 
 /** Collada file versions which evolved during the years ...  */

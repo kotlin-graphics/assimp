@@ -1,7 +1,8 @@
-package obj
+package format.obj
 
 import f
 import i
+import main.words
 
 /**
  * Created by elect on 27/11/2016.
@@ -24,7 +25,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
 
         for (line in buffer) {
 
-            val words = line.trim().split("\\s+".toRegex())
+            val words = line.words
 
             when (words[0][0]) {
                 'k', 'K' -> when (words[0][1]) {

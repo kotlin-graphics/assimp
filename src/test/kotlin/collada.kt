@@ -1,5 +1,6 @@
 import io.kotlintest.specs.StringSpec
-import vec._3.Vec3
+import main.Importer
+import main.URI
 
 /**
  * Created by elect on 24/01/2017.

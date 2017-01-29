@@ -1,11 +1,8 @@
-package obj
+package format.obj
 
-import AI_DEFAULT_MATERIAL_NAME
-import AiPrimitiveType
-import AiVector3D
 import f
+import main.*
 import java.io.File
-import plus
 
 /**
  * Created by elect on 21/11/2016.
@@ -43,7 +40,7 @@ class ObjFileParser {
 
             if (line.isEmpty()) continue
 
-            val words = line.split("\\s+".toRegex())
+            val words = line.words
 
             when (line[0]) {
             // Parse a vertex texture coordinate

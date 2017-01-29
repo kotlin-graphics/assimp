@@ -1,6 +1,6 @@
+package main
+
 import mat.Mat4
-import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 13/11/2016.

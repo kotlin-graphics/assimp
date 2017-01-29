@@ -1,9 +1,9 @@
-package obj
+package format.obj
 
-import AI_MAX_NUMBER_OF_TEXTURECOORDS
-import AiColor3D
-import AiPrimitiveType
-import AiVector3D
+import main.AI_MAX_NUMBER_OF_TEXTURECOORDS
+import main.AiColor3D
+import main.AiPrimitiveType
+import main.AiVector3D
 import mat.Mat4
 
 /**

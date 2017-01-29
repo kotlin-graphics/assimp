@@ -1,3 +1,5 @@
+package main
+
 /**
  * Created by elect on 17/11/2016.
  */

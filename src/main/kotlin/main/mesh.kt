@@ -1,8 +1,4 @@
-import mat.Mat4
-import vec._3.Vec3d
-import vec._4.Vec4d
-import java.util.*
-import kotlin.collections.ArrayList
+package main
 
 /**
  * Created by elect on 13/11/2016.

@@ -12,7 +12,7 @@ Files and media are provided "as is" without any explicit or implied warranty of
 
 
 DISTRIBUTION
-Copyright © 2009 KatsBits. Distribution MUST include this readme and authorship attribution.
+Copyright ï¿½ 2009 KatsBits. Distribution MUST include this readme and authorship attribution.
 Commercial use is permitted with written licensed permission.
 ----------------------------------------------------------------------------------------------
 

@@ -1,4 +1,7 @@
 import io.kotlintest.specs.StringSpec
+import main.AiPrimitiveType
+import main.Importer
+import main.URI
 import mat.Mat4
 import vec._3.Vec3
 

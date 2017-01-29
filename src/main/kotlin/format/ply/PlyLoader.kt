@@ -1,25 +1,19 @@
-package ply
+package format.ply
 
-import AiColor4D
-import AiImporterDesc
-import AiImporterFlags
-import AiMaterial
-import AiMesh
-import AiNode
-import AiScene
-import AiShadingMode
-import AiVector2D
-import AiVector3D
-import AiColor3D
-import BaseImporter
+import main.AiColor4D
+import main.AiMaterial
+import main.AiMesh
+import main.AiNode
+import main.AiScene
+import main.AiShadingMode
+import main.AiVector2D
+import main.AiVector3D
+import main.AiColor3D
+import main.BaseImporter
 import b
 import f
 import i
-import nextWord
-import s
-import skipLine
-import skipSpacesAndLineEnd
-import startsWith
+import main.*
 import ub
 import ui
 import us
@@ -39,9 +33,9 @@ class PlyLoader : BaseImporter() {
 
     companion object {
 
-        val desc = AiImporterDesc(
+        val desc = main.AiImporterDesc(
                 mName = "Stanford Polygon Library (PLY) Importer",
-                mFlags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportTextFlavour,
+                mFlags = main.AiImporterFlags.SupportBinaryFlavour or main.AiImporterFlags.SupportTextFlavour,
                 mFileExtensions = "ply"
         )
     }

@@ -1,5 +1,8 @@
 import io.kotlintest.specs.StringSpec
-import mat.Mat4
+import main.AiPrimitiveType
+import main.AiShadingMode
+import main.Importer
+import main.URI
 import vec._3.Vec3
 import java.util.*
 

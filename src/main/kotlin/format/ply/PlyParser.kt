@@ -1,14 +1,9 @@
-package ply
+package format.ply
 
-import com.sun.org.apache.xpath.internal.SourceTree
 import d
 import f
 import i
-import nextWord
-import restOfLine
-import skipLine
-import skipSpaces
-import skipSpacesAndLineEnd
+import main.*
 import ui
 import java.nio.ByteBuffer
 
@@ -49,14 +44,14 @@ enum class EDataType {
     companion object {
 
         fun of(string: String) = when (string) {
-            "char", "int8" -> EDataType.Char
-            "uchar", "uint8" -> EDataType.UChar
-            "short", "int16" -> EDataType.Short
-            "ushort", "uint16" -> EDataType.UShort
-            "int32", "int" -> EDataType.Int
-            "uint32", "uint" -> EDataType.UInt
-            "float", "float32" -> EDataType.Float
-            "double64", "double", "float64" -> EDataType.Double
+            "char", "int8" -> Char
+            "uchar", "uint8" -> UChar
+            "short", "int16" -> Short
+            "ushort", "uint16" -> UShort
+            "int32", "int" -> Int
+            "uint32", "uint" -> UInt
+            "float", "float32" -> Float
+            "double64", "double", "float64" -> Double
             else -> {
                 println("Found unknown data type in PLY file. This is OK")
                 INVALID
@@ -150,35 +145,35 @@ enum class ESemantic {
     companion object {
 
         fun of(string: String) = when (string) {
-            "red", "r" -> ESemantic.Red
-            "green", "g" -> ESemantic.Green
-            "blue", "b" -> ESemantic.Blue
-            "alpha" -> ESemantic.Alpha
-            "vertex_index", "vertex_indices" -> ESemantic.VertexIndex
-            "material_index" -> ESemantic.MaterialIndex
-            "ambient_red" -> ESemantic.AmbientRed
-            "ambient_green" -> ESemantic.AmbientGreen
-            "ambient_blue" -> ESemantic.AmbientBlue
-            "ambient_alpha" -> ESemantic.AmbientAlpha
-            "diffuse_red" -> ESemantic.DiffuseRed
-            "diffuse_green" -> ESemantic.DiffuseGreen
-            "diffuse_blue" -> ESemantic.DiffuseBlue
-            "diffuse_alpha" -> ESemantic.DiffuseAlpha
-            "specular_red" -> ESemantic.SpecularRed
-            "specular_green" -> ESemantic.SpecularGreen
-            "specular_blue" -> ESemantic.SpecularBlue
-            "specular_alpha" -> ESemantic.SpecularAlpha
-            "opacity" -> ESemantic.Opacity
-            "specular_power" -> ESemantic.PhongPower
+            "red", "r" -> Red
+            "green", "g" -> Green
+            "blue", "b" -> Blue
+            "alpha" -> Alpha
+            "vertex_index", "vertex_indices" -> VertexIndex
+            "material_index" -> MaterialIndex
+            "ambient_red" -> AmbientRed
+            "ambient_green" -> AmbientGreen
+            "ambient_blue" -> AmbientBlue
+            "ambient_alpha" -> AmbientAlpha
+            "diffuse_red" -> DiffuseRed
+            "diffuse_green" -> DiffuseGreen
+            "diffuse_blue" -> DiffuseBlue
+            "diffuse_alpha" -> DiffuseAlpha
+            "specular_red" -> SpecularRed
+            "specular_green" -> SpecularGreen
+            "specular_blue" -> SpecularBlue
+            "specular_alpha" -> SpecularAlpha
+            "opacity" -> Opacity
+            "specular_power" -> PhongPower
         // NOTE: Blender3D exports texture coordinates as s,t tuples
-            "u", "s", "tx" -> ESemantic.UTextureCoord
-            "v", "t", "ty" -> ESemantic.VTextureCoord
-            "x" -> ESemantic.XCoord
-            "y" -> ESemantic.YCoord
-            "z" -> ESemantic.ZCoord
-            "nx" -> ESemantic.XNormal
-            "ny" -> ESemantic.YNormal
-            "nz" -> ESemantic.ZNormal
+            "u", "s", "tx" -> UTextureCoord
+            "v", "t", "ty" -> VTextureCoord
+            "x" -> XCoord
+            "y" -> YCoord
+            "z" -> ZCoord
+            "nx" -> XNormal
+            "ny" -> YNormal
+            "nz" -> ZNormal
             else -> {
                 println("Found unknown property semantic in file. This is ok")
                 INVALID
@@ -405,7 +400,7 @@ class PropertyInstance(
             if (prop.bIsList) {
 
                 // parse all list elements
-                val words = buffer.restOfLine().trim().split("\\s+".toRegex())
+                val words = buffer.restOfLine().words
                 val iNum = words[0].ui
                 repeat(iNum.v) {
                     parseValue(words[it + 1], prop.eType, p_pcOut.last().avList)

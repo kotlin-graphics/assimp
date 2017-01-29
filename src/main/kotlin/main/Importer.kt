@@ -1,9 +1,7 @@
-import java.io.File
+package main
+
 import java.io.FileNotFoundException
 import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Created by elect on 13/11/2016.

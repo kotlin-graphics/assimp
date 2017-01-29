@@ -10,7 +10,7 @@ READMEFIRST v1.00 last update July 20, 2008 by B. Hahne
 This READMEFIRST file accompanies the cgspeed.com "BVH conversion"
 release of the Carnegie-Mellon University (CMU) Graphics Lab Motion
 Capture Database.  See "Where to find stuff" at the bottom of this
-file for where to get the BVH conversion and/or the original CMU
+file for where to main.main.get the BVH conversion and/or the original CMU
 dataset.
 
 The original CMU motion capture database isn't in BVH format - it's

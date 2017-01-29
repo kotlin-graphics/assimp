@@ -1,38 +1,35 @@
-package collada
+package format.collada
 
+import b
 import f
+import glm
 import i
-import org.w3c.dom.Document
-import org.w3c.dom.Element
+import main.*
 import ui
 import java.io.File
-import java.net.URI
-import javax.xml.parsers.DocumentBuilderFactory
-import AiVector3D
-import AiColor3D
-import AiColor4D
-import AI_MAX_NUMBER_OF_TEXTURECOORDS
-import AI_MAX_NUMBER_OF_COLOR_SETS
-import b
-import com.sun.beans.decoder.ElementHandler
-import com.sun.xml.internal.stream.events.StartElementEvent
-import elementChildren
-import get
-import lc
-import org.xml.sax.helpers.DefaultHandler
-import words
 import java.io.FileReader
+import java.net.URI
 import javax.xml.namespace.QName
-import javax.xml.parsers.SAXParserFactory
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.Characters
 import javax.xml.stream.events.EndElement
 import javax.xml.stream.events.StartElement
 import javax.xml.stream.events.XMLEvent
-import javax.xml.parsers.DocumentBuilder
-import org.w3c.dom.traversal.DocumentTraversal
-import org.w3c.dom.traversal.NodeFilter
+import kotlin.collections.ArrayList
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.contains
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.last
+import kotlin.collections.map
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.sorted
+import kotlin.collections.sum
+import kotlin.collections.toFloatArray
 
 
 /**
@@ -62,68 +59,68 @@ typealias ChannelMap = MutableMap<String, AnimationChannel>
 class ColladaParser(pFile: URI) {
 
     /** Filename, for a verbose error message */
-    private var mFileName = pFile
+    internal var mFileName = pFile
 
     /** XML reader, member for everyday use */
-    private lateinit var mReader: XMLEventReader
-    private lateinit var event: XMLEvent
-    private lateinit var element: StartElement
-    private lateinit var endElement: EndElement
+    internal lateinit var mReader: XMLEventReader
+    internal lateinit var event: XMLEvent
+    internal lateinit var element: StartElement
+    internal lateinit var endElement: EndElement
 
     /** All data arrays found in the file by ID. Might be referred to by actually
     everyone. Collada, you are a steaming pile of indirection. */
-    private var mDataLibrary: DataLibrary = mutableMapOf()
+    internal var mDataLibrary: DataLibrary = mutableMapOf()
 
     /** Same for accessors which define how the data in a data array is accessed. */
-    private var mAccessorLibrary: AccessorLibrary = mutableMapOf()
+    internal var mAccessorLibrary: AccessorLibrary = mutableMapOf()
 
     /** Mesh library: mesh by ID */
-    private var mMeshLibrary: MeshLibrary = mutableMapOf()
+    internal var mMeshLibrary: MeshLibrary = mutableMapOf()
 
     /** node library: root node of the hierarchy part by ID */
-    private var mNodeLibrary: NodeLibrary = mutableMapOf()
+    internal var mNodeLibrary: NodeLibrary = mutableMapOf()
 
     /** Image library: stores texture properties by ID */
-    private var mImageLibrary: ImageLibrary = mutableMapOf()
+    internal var mImageLibrary: ImageLibrary = mutableMapOf()
 
     /** Effect library: surface attributes by ID */
-    private var mEffectLibrary: EffectLibrary = mutableMapOf()
+    internal var mEffectLibrary: EffectLibrary = mutableMapOf()
 
     /** Material library: surface material by ID */
-    private var mMaterialLibrary: MaterialLibrary = mutableMapOf()
+    internal var mMaterialLibrary: MaterialLibrary = mutableMapOf()
 
     /** Light library: surface light by ID */
-    private var mLightLibrary: LightLibrary = mutableMapOf()
+    internal var mLightLibrary: LightLibrary = mutableMapOf()
 
     /** Camera library: surface material by ID */
-    private var mCameraLibrary: CameraLibrary = mutableMapOf()
+    internal var mCameraLibrary: CameraLibrary = mutableMapOf()
 
     /** Controller library: joint controllers by ID */
-    private var mControllerLibrary: ControllerLibrary = mutableMapOf()
+    internal var mControllerLibrary: ControllerLibrary = mutableMapOf()
 
     /** Animation library: animation references by ID */
-    private var mAnimationLibrary: AnimationLibrary = mutableMapOf()
+    internal var mAnimationLibrary: AnimationLibrary = mutableMapOf()
 
     /** Animation clip library: clip animation references by ID */
-    private var mAnimationClipLibrary: AnimationClipLibrary = ArrayList()
+    internal var mAnimationClipLibrary: AnimationClipLibrary = ArrayList()
 
     /** Pointer to the root node. Don't delete, it just points to one of
     the nodes in the node library. */
-    private var mRootNode: Node? = null
+    internal var mRootNode: Node? = null
 
     /** Root animation container */
-    private var mAnims = Animation()
+    internal var mAnims = Animation()
 
     /** Size unit: how large compared to a meter */
-    private var mUnitSize = 1f
+    internal var mUnitSize = 1f
 
-    private var mUpDirection = UpDirection.Y
+    internal var mUpDirection = UpDirection.Y
 
     /** Which is the up vector */
     enum class UpDirection { X, Y, Z }
 
     /** Collada file format version */
-    private var mFormat = FormatVersion._1_5_n // We assume the newest file format by default
+    internal var mFormat = FormatVersion._1_5_n // We assume the newest file format by default
 
     init {
 
@@ -159,16 +156,16 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Read bool from text contents of current element */
-    private fun readBoolFromTextContent(): Boolean {
+    internal fun readBoolFromTextContent(): Boolean {
         val cur = getTextContent().trimStart()
         return cur.startsWith("true") || cur[0] == '1'
     }
 
     /** Read float from text contents of current element    */
-    private fun readFloatFromTextContent() = getTextContent().trimStart().split("\\s+".toRegex())[0].f
+    internal fun readFloatFromTextContent() = getTextContent().trimStart().split("\\s+".toRegex())[0].f
 
     /** Reads the contents of the file  */
-    private fun readContents() {
+    internal fun readContents() {
 
         while (mReader.read())
 
@@ -216,7 +213,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the structure of the file */
-    private fun readStructure() {
+    internal fun readStructure() {
 
         while (mReader.read()) {
 
@@ -359,7 +356,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Re-build animations from animation clip library, if present, otherwise combine single-channel animations    */
-    private fun postProcessRootAnimations() {
+    internal fun postProcessRootAnimations() {
 
         if (mAnimationClipLibrary.size > 0) {
 
@@ -506,7 +503,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an animation sampler into the given anim channel  */
-    private fun readAnimationSampler(pChannel: AnimationChannel) {
+    internal fun readAnimationSampler(pChannel: AnimationChannel) {
 
         while (mReader.read())
 
@@ -543,7 +540,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the skeleton controller library   */
-    private fun readControllerLibrary() {
+    internal fun readControllerLibrary() {
 
         if (isEmptyElement())
             return
@@ -576,7 +573,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a controller into the given mesh structure    */
-    private fun readController(pController: Controller) {
+    internal fun readController(pController: Controller) {
 
         // initial values
         pController.mType = ControllerType.Skin
@@ -654,7 +651,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the joint definitions for the given controller    */
-    private fun readControllerJoints(pController: Controller) {
+    internal fun readControllerJoints(pController: Controller) {
 
         while (mReader.read())
 
@@ -694,7 +691,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the joint weights for the given controller    */
-    private fun readControllerWeights(pController: Controller) {
+    internal fun readControllerWeights(pController: Controller) {
 
         // read vertex count from attributes and resize the array accordingly
         val vertexCount = element["count"]!!.i
@@ -781,7 +778,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the image library contents    */
-    private fun readImageLibrary() {
+    internal fun readImageLibrary() {
 
         if (!isEmptyElement())
             return
@@ -812,7 +809,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an image entry into the given image   */
-    private fun readImage(pImage: Image) {
+    internal fun readImage(pImage: Image) {
 
         while (mReader.read())
 
@@ -827,8 +824,7 @@ class ColladaParser(pFile: URI) {
                         // FIX: C4D exporter writes empty <init_from/> tags
                         if (!isEmptyElement()) {
                             // element content is filename - hopefully
-                            val sz = testTextContent()
-                            if (sz != null) pImage.mFileName = sz
+                            testTextContent()?.let { pImage.mFileName = it }
                             testClosing("init_from")
                         }
                         if (pImage.mFileName.isEmpty())
@@ -857,8 +853,7 @@ class ColladaParser(pFile: URI) {
                     if (element.name_ == "ref") {
 
                         // element content is filename - hopefully
-                        val sz = testTextContent()
-                        if (sz != null) pImage.mFileName = sz
+                        testTextContent()?.let { pImage.mFileName = it }
                         testClosing("ref")
 
                     } else if (element.name_ == "hex" && pImage.mFileName.isNotEmpty()) {
@@ -884,7 +879,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the material library  */
-    private fun readMaterialLibrary() {
+    internal fun readMaterialLibrary() {
 
         if (isEmptyElement())
             return
@@ -931,7 +926,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the light library */
-    private fun readLightLibrary() {
+    internal fun readLightLibrary() {
 
         if (isEmptyElement())
             return
@@ -962,7 +957,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the camera library    */
-    private fun readCameraLibrary() {
+    internal fun readCameraLibrary() {
 
         if (isEmptyElement())
             return
@@ -996,7 +991,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a material entry into the given material  */
-    private fun readMaterial(pMaterial: Material) {
+    internal fun readMaterial(pMaterial: Material) {
 
         while (mReader.read())
 
@@ -1028,7 +1023,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a light entry into the given light    */
-    private fun readLight(pLight: Light) {
+    internal fun readLight(pLight: Light) {
 
         while (mReader.read())
 
@@ -1110,7 +1105,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a camera entry into the given light   */
-    private fun readCamera(pCamera: Camera) {
+    internal fun readCamera(pCamera: Camera) {
 
         while (mReader.read())
 
@@ -1149,7 +1144,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the effect library    */
-    private fun readEffectLibrary() {
+    internal fun readEffectLibrary() {
 
         if (isEmptyElement())
             return
@@ -1181,7 +1176,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an effect entry into the given effect */
-    private fun readEffect(pEffect: Effect) {
+    internal fun readEffect(pEffect: Effect) {
 
         // for the moment we don't support any other type of effect.
         while (mReader.read())
@@ -1202,7 +1197,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an COMMON effect profile  */
-    private fun readEffectProfileCommon(pEffect: Effect) {
+    internal fun readEffectProfileCommon(pEffect: Effect) {
 
         while (mReader.read())
 
@@ -1307,7 +1302,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Read texture wrapping + UV transform settings from a profile==Maya chunk    */
-    private fun readSamplerProperties(oSampler: Sampler) {
+    internal fun readSamplerProperties(oSampler: Sampler) {
 
         if (isEmptyElement())
             return
@@ -1389,7 +1384,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an effect entry containing a color or a texture defining that color   */
-    private fun readEffectColor(pColor: AiColor4D, pSampler: Sampler) {
+    internal fun readEffectColor(pColor: AiColor4D, pSampler: Sampler) {
 
         if (isEmptyElement())
             return
@@ -1443,7 +1438,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an effect entry containing a float    */
-    private fun readEffectFloat(pFloat: Float): Float {
+    internal fun readEffectFloat(pFloat: Float): Float {
 
         var result = pFloat
 
@@ -1467,7 +1462,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads an effect parameter specification of any kind */
-    private fun readEffectParam(pParam: EffectParam) {
+    internal fun readEffectParam(pParam: EffectParam) {
 
         while (mReader.read())
 
@@ -1517,7 +1512,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the geometry library contents */
-    private fun readGeometryLibrary() {
+    internal fun readGeometryLibrary() {
 
         if (isEmptyElement())
             return
@@ -1557,7 +1552,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a geometry from the geometry library. */
-    private fun readGeometry(pMesh: Mesh) {
+    internal fun readGeometry(pMesh: Mesh) {
 
         if (isEmptyElement())
             return
@@ -1580,7 +1575,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a mesh from the geometry library  */
-    private fun readMesh(pMesh: Mesh) {
+    internal fun readMesh(pMesh: Mesh) {
 
         if (isEmptyElement())
             return
@@ -1614,7 +1609,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a source element  */
-    private fun readSource() {
+    internal fun readSource() {
 
         val sourceID = element["id"]!!
 
@@ -1647,7 +1642,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a data array holding a number of floats, and stores it in the global library  */
-    private fun readDataArray() {
+    internal fun readDataArray() {
 
         val elmName = element.name_
         val isStringArray = elmName == "IDREF_array" || elmName == "Name_array"
@@ -1656,14 +1651,13 @@ class ColladaParser(pFile: URI) {
         // read attributes
         val id = element["id"]!!
         val count = element["count"]!!.i
-        val content = testTextContent()
 
         // read values and store inside an array in the data library
         mDataLibrary[id] = Data(mIsStringArray = isStringArray)
         val data = mDataLibrary[id]!!
 
         // some exporters write empty data arrays, but we need to conserve them anyways because others might reference them
-        if (content != null)
+        testTextContent()?.let { content ->
 
             if (isStringArray) {
 
@@ -1683,14 +1677,14 @@ class ColladaParser(pFile: URI) {
 
                 data.mValues.addAll(ints)
             }
-
+        }
         // test for closing tag
         if (!isEmptyElement)
             testClosing(elmName)
     }
 
     /** Reads an accessor and stores it in the global library   */
-    private fun readAccessor(pID: String) {
+    internal fun readAccessor(pID: String) {
 
         // read accessor attributes
         val source = element["source"]!!
@@ -1769,7 +1763,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads input declarations of per-vertex mesh data into the given mesh    */
-    private fun readVertexData(pMesh: Mesh) {
+    internal fun readVertexData(pMesh: Mesh) {
 
         // extract the ID of the <vertices> element. Not that we care, but to catch strange referencing schemes we should warn about
         pMesh.mVertexID = element["id"]!!
@@ -1793,7 +1787,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads input declarations of per-index mesh data into the given mesh */
-    private fun readIndexData(pMesh: Mesh) {
+    internal fun readIndexData(pMesh: Mesh) {
 
         val vcount = ArrayList<Int>()
         val perIndexData = ArrayList<InputChannel>()
@@ -1875,7 +1869,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a single input channel element and stores it in the given array, if valid */
-    private fun readInputChannel(poChannels: ArrayList<InputChannel>) {
+    internal fun readInputChannel(poChannels: ArrayList<InputChannel>) {
 
         val channel = InputChannel()
 
@@ -1913,7 +1907,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a <p> primitive index list and assembles the mesh data into the given mesh    */
-    private fun readPrimitives(pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>, pPrimType: PrimitiveType): Int {
+    internal fun readPrimitives(pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>, pPrimType: PrimitiveType): Int {
 
         var numPrimitives = pNumPrimitives
 
@@ -2036,8 +2030,8 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Copies the data for a single primitive into the mesh, based on the InputChannels */
-    private fun copyVertex(currentVertex: Int, numOffsets: Int, numPoints: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>,
-                           currentPrimitive: Int, indices: ArrayList<Int>) {
+    internal fun copyVertex(currentVertex: Int, numOffsets: Int, numPoints: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>,
+                            currentPrimitive: Int, indices: ArrayList<Int>) {
 
         // calculate the base offset of the vertex whose attributes we ant to copy
         val baseOffset = currentPrimitive * numOffsets * numPoints + currentVertex * numOffsets
@@ -2060,8 +2054,8 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads one triangle of a tristrip into the mesh */
-    private fun readPrimTriStrips(numOffsets: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, currentPrimitive: Int,
-                                  indices: ArrayList<Int>) =
+    internal fun readPrimTriStrips(numOffsets: Int, perVertexOffset: Int, pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, currentPrimitive: Int,
+                                   indices: ArrayList<Int>) =
             if (currentPrimitive % 2 != 0) {
                 //odd tristrip triangles need their indices mangled, to preserve winding direction
                 copyVertex(1, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
@@ -2074,7 +2068,7 @@ class ColladaParser(pFile: URI) {
             }
 
     /** Extracts a single object from an input channel and stores it in the appropriate mesh data array */
-    private fun extractDataObjectFromChannel(pInput: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
+    internal fun extractDataObjectFromChannel(pInput: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
 
         // ignore vertex referrer - we handle them that separate
         if (pInput.mType == InputType.Vertex)
@@ -2170,7 +2164,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the library of node hierarchies and scene parts   */
-    private fun readSceneLibrary() {
+    internal fun readSceneLibrary() {
 
         if (isEmptyElement())
             return
@@ -2206,7 +2200,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a scene node's contents including children and stores it in the given node    */
-    private fun readSceneNode(pNode: Node?) {
+    internal fun readSceneNode(pNode: Node?) {
         println("readSceneNode in")
         // quit immediately on <bla/> elements
         if (isEmptyElement())
@@ -2264,7 +2258,7 @@ class ColladaParser(pFile: URI) {
 
                     "render" ->
                         if (pNode.mParent == null && pNode.mPrimaryCamera.isEmpty())
-                        // ... scene evaluation or, in other words, postprocessing pipeline, or, again in other words, a turing-complete description how to
+                        // ... scene evaluation or, in other Words, postprocessing pipeline, or, again in other main.main.getWords, a turing-complete description how to
                         // render a Collada scene. The only thing that is interesting for us is the primary camera.
                             element["camera_node"]?.let {
                                 if (it[0] != '#')
@@ -2324,7 +2318,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a node transformation entry of the given type and adds it to the given node's transformation list.    */
-    private fun readNodeTransformation(pNode: Node, pType: TransformType) {
+    internal fun readNodeTransformation(pNode: Node, pType: TransformType) {
 
         if (isEmptyElement())
             return
@@ -2353,7 +2347,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Processes bind_vertex_input and bind elements   */
-    private fun readMaterialVertexInputBinding(tbl: SemanticMappingTable) {
+    internal fun readMaterialVertexInputBinding(tbl: SemanticMappingTable) {
 
         while (mReader.read())
 
@@ -2387,7 +2381,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a mesh reference in a node and adds it to the node's mesh list    */
-    private fun readNodeGeometry(pNode: Node) {
+    internal fun readNodeGeometry(pNode: Node) {
 
         // referred mesh is given as an attribute of the <instance_geometry> element
         val url = element["url"]!!
@@ -2431,7 +2425,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the collada scene */
-    private fun readScene() {
+    internal fun readScene() {
 
         if (isEmptyElement())
             return
@@ -2443,8 +2437,7 @@ class ColladaParser(pFile: URI) {
                 if (element.name_ == "instance_visual_scene") {
 
                     // should be the first and only occurrence
-                    if (mRootNode != null)
-                        throw Exception("Invalid scene containing multiple root nodes in <instance_visual_scene> element")
+                    mRootNode?.let { throw Exception("Invalid scene containing multiple root nodes in <instance_visual_scene> element") }
 
                     // read the url of the scene to instance. Should be of format "#some_name"
                     val url = element["url"]!!
@@ -2464,7 +2457,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Determines the input data type for the given semantic string    */
-    private fun getTypeForSemantic(semantic: String) = when (semantic) {
+    internal fun getTypeForSemantic(semantic: String) = when (semantic) {
 
         "" -> {
             System.err.println("Vertex input type is empty.")
@@ -2493,10 +2486,10 @@ class ColladaParser(pFile: URI) {
 
 
     /** Reads the text contents of an element, throws an exception if not given. Skips leading whitespace.  */
-    private fun getTextContent() = testTextContent() ?: throw Exception("Invalid contents in element.")
+    internal fun getTextContent() = testTextContent() ?: throw Exception("Invalid contents in element.")
 
     /** Reads the text contents of an element, returns NULL if not given. Skips leading whitespace. */
-    private fun testTextContent(): String? {
+    internal fun testTextContent(): String? {
         // present node should be the beginning of an element
         if (!event.isStartElement || isEmptyElement())
             return null
@@ -2512,7 +2505,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Returns if an element is an empty element, like <foo /> */
-    private fun isEmptyElement(): Boolean {
+    internal fun isEmptyElement(): Boolean {
         if (mReader.peek().isEndElement)
             if (element.name_ == mReader.peek().asEndElement().name_) {
                 mReader.nextEvent()
@@ -2522,7 +2515,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Skips all data until the end node of the current element    */
-    private fun skipElement() {
+    internal fun skipElement() {
 
         // nothing to skip if it's an </element>
         if (event.isEndElement)
@@ -2533,14 +2526,14 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Skips all data until the end node of the given element  */
-    private fun skipElement(pElement: String) {
+    internal fun skipElement(pElement: String) {
         while (mReader.read())
             if (event is EndElement && endElement.name_ == pElement)
                 break
     }
 
     /** Tests for an opening element of the given name, throws an exception if not found    */
-    private fun testOpening(pName: String) {
+    internal fun testOpening(pName: String) {
 
         // read element start
         if (!mReader.read())
@@ -2555,7 +2548,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Tests for the closing tag of the given element, throws an exception if not found    */
-    private fun testClosing(pName: String) {
+    internal fun testClosing(pName: String) {
         // check if we're already on the closing tag and return right away
         if (event.isEndElement && endElement.name_ == pName)
             return
@@ -2592,7 +2585,7 @@ class ColladaParser(pFile: URI) {
         return false
     }
 
-    private fun hexStringToByteArray(s: String): ByteArray {
+    internal fun hexStringToByteArray(s: String): ByteArray {
         val len = s.length
         val data = ByteArray(len / 2, { 0 })
         for (i in 0 until len step 2) {

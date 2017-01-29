@@ -28,7 +28,7 @@ progs.dat     : no
 Description of the Modification
 -------------------------------
 
-This is a new player.mdl for quake. It's main use is for bots. The Skins are Snake Eyes v4, Duke v3, Low-Light,
+This is a new player.mdl for quake. It's main.main use is for bots. The Skins are Snake Eyes v4, Duke v3, Low-Light,
 Storm Shadow v2, Shockwave, Repeater, Gung-Ho, Shipwreck, Dusty v3, and 
 Tunnel Rat v2. 
 
@@ -53,7 +53,7 @@ Author Information
 ------------------
 
 This is my first publicly distributed quake graphic change.
-I did it to get away from the stress of school.
+I did it to main.main.get away from the stress of school.
 
 
 Copyright and Distribution Permissions

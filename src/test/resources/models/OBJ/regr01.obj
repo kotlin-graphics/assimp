@@ -4838,7 +4838,7 @@ v  790.00000000 845.00000000 8.00000000
 # 72 vertices
 
 g Terraindek-01
-usemtl Terraindæk
+usemtl Terraindï¿½k
 f 1438 1433 1427
 f 1438 1427 1432
 f 1437 1438 1432
@@ -4931,7 +4931,7 @@ v  20.00000000 845.00000000 12.00000000
 # 36 vertices
 
 g Terraindek-02
-usemtl Terraindæk
+usemtl Terraindï¿½k
 f 1501 1500 1499
 f 1503 1502 1501
 f 1504 1503 1501

@@ -1,7 +1,9 @@
-import collada.ColladaLoader
-import obj.ObjFileImporter
-import ply.PlyLoader
-import stl.STLImporter
+package main
+
+import format.collada.ColladaLoader
+import format.obj.ObjFileImporter
+import format.ply.PlyLoader
+import format.stl.STLImporter
 
 /**
  * Created by elect on 13/11/2016.
@@ -70,7 +72,6 @@ fun getImporterInstanceList(): MutableList<BaseImporter> {
     }
 
     if (!ASSIMP_BUILD_NO_STL_IMPORTER)
-
         res.add(STLImporter())
 
     if (!ASSIMP_BUILD_NO_OBJ_IMPORTER)

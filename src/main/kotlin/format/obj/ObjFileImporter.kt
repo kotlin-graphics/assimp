@@ -1,22 +1,10 @@
-package obj
+package format.obj
 
-import BaseImporter
-import AiScene
-import AiNode
-import AiMesh
-import AiFace
-import AiVector3D
-import AiColor4D
-import AiMaterial
-import AiImporterDesc
-import i
-import or
-import java.io.File
-import java.nio.file.FileSystemException
-import AI_MAX_ALLOC
 import f
-import s
+import main.*
+import java.io.File
 import java.net.URI
+import java.nio.file.FileSystemException
 
 /**
  * Created by elect on 21/11/2016.
@@ -28,10 +16,10 @@ class ObjFileImporter : BaseImporter() {
 
     companion object {
 
-        val desc = AiImporterDesc(
+        val desc = main.AiImporterDesc(
                 mName = "Wavefront Object Importer",
                 mComments = "surfaces not supported",
-                mFlags = AiImporterFlags.SupportTextFlavour.i,
+                mFlags = main.AiImporterFlags.SupportTextFlavour.i,
                 mFileExtensions = "obj"
         )
     }
