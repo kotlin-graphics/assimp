@@ -1,6 +1,5 @@
 package collada
 
-import com.sun.org.apache.xpath.internal.SourceTree
 import f
 import i
 import org.w3c.dom.Document
@@ -15,19 +14,25 @@ import AiColor4D
 import AI_MAX_NUMBER_OF_TEXTURECOORDS
 import AI_MAX_NUMBER_OF_COLOR_SETS
 import b
+import com.sun.beans.decoder.ElementHandler
 import com.sun.xml.internal.stream.events.StartElementEvent
 import elementChildren
 import get
 import lc
+import org.xml.sax.helpers.DefaultHandler
 import words
 import java.io.FileReader
 import javax.xml.namespace.QName
+import javax.xml.parsers.SAXParserFactory
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.Characters
 import javax.xml.stream.events.EndElement
 import javax.xml.stream.events.StartElement
 import javax.xml.stream.events.XMLEvent
+import javax.xml.parsers.DocumentBuilder
+import org.w3c.dom.traversal.DocumentTraversal
+import org.w3c.dom.traversal.NodeFilter
 
 
 /**
@@ -107,7 +112,7 @@ class ColladaParser(pFile: URI) {
     private var mRootNode: Node? = null
 
     /** Root animation container */
-    private var mAnims: Animation? = null
+    private var mAnims = Animation()
 
     /** Size unit: how large compared to a meter */
     private var mUnitSize = 1f
@@ -126,6 +131,23 @@ class ColladaParser(pFile: URI) {
         // open the file
         if (!file.exists())
             throw Error("Failed to open file: $pFile")
+
+//        val dbFactory = DocumentBuilderFactory.newInstance()
+//        val dBuilder = dbFactory.newDocumentBuilder()
+//        val doc = dBuilder.parse(file)
+//        doc.getDocumentElement().normalize()
+//
+//        val traversal = doc as DocumentTraversal
+//
+//        val walker = traversal.createTreeWalker(
+//                doc.getDocumentElement(),
+//                NodeFilter.SHOW_ELEMENT, null, true)
+//
+//        var n = walker.nextNode()
+//        while(n!=null) {
+//            println(n.nodeName)
+//            n = n.nextSibling
+//        }
 
         // generate a XML reader for it
         val factory = XMLInputFactory.newInstance()
@@ -231,7 +253,7 @@ class ColladaParser(pFile: URI) {
 
                     else -> skipElement()
                 }
-            else if(event is EndElement)
+            else if (event is EndElement)
                 break
         }
         postProcessRootAnimations()
@@ -337,9 +359,9 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Re-build animations from animation clip library, if present, otherwise combine single-channel animations    */
-    private fun postProcessRootAnimations()    {
+    private fun postProcessRootAnimations() {
 
-        if (mAnimationClipLibrary.size > 0)        {
+        if (mAnimationClipLibrary.size > 0) {
 
             val temp = Animation()
 
@@ -352,11 +374,7 @@ class ColladaParser(pFile: URI) {
                 temp.mSubAnims.add(clip)
 
                 it.second.forEach {
-
-                    mAnimationLibrary[it]?.let {
-
-                        it.collectChannelsRecursively(clip.mChannels)
-                    }
+                    mAnimationLibrary[it]?.collectChannelsRecursively(clip.mChannels)
                 }
             }
 
@@ -364,9 +382,8 @@ class ColladaParser(pFile: URI) {
 
             // Ensure no double deletes.
             temp.mSubAnims.clear()
-        }
-        else
-            mAnims!!.combineSingleChannelAnimations()
+        } else
+            mAnims.combineSingleChannelAnimations()
     }
 
     /** Reads the animation library */
@@ -2177,7 +2194,8 @@ class ColladaParser(pFile: URI) {
 
                     readSceneNode(node)
 
-                } else skipElement()
+                } else
+                    skipElement()   // ignore the rest
 
             } else if (event is EndElement) {
                 if (endElement.name_ == "library_visual_scenes")
@@ -2189,7 +2207,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads a scene node's contents including children and stores it in the given node    */
     private fun readSceneNode(pNode: Node?) {
-
+        println("readSceneNode in")
         // quit immediately on <bla/> elements
         if (isEmptyElement())
             return
@@ -2280,6 +2298,7 @@ class ColladaParser(pFile: URI) {
                             pNode.mLights.add(LightInstance())
                             pNode.mLights.last().mLight = url.substring(1)
                         }
+                        testClosing("instance_light")
                     }
                     "instance_camera" -> {
                         // Reference to a camera, name given in 'url' attribute
@@ -2294,11 +2313,14 @@ class ColladaParser(pFile: URI) {
                             pNode.mCameras.add(CameraInstance())
                             pNode.mCameras.last().mCamera = url.substring(1)
                         }
+                        testClosing("instance_camera")
                     }
                     else -> skipElement()  // skip everything else for the moment
                 }
-            } else if (event is EndElement)
+            } else if (event is EndElement) {
+                println("readSceneNode out")
                 break
+            }
     }
 
     /** Reads a node transformation entry of the given type and adds it to the given node's transformation list.    */
@@ -2490,7 +2512,14 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Returns if an element is an empty element, like <foo /> */
-    private fun isEmptyElement() = mReader.peek().isEndElement
+    private fun isEmptyElement(): Boolean {
+        if (mReader.peek().isEndElement)
+            if (element.name_ == mReader.peek().asEndElement().name_) {
+                mReader.nextEvent()
+                return true
+            }
+        return false
+    }
 
     /** Skips all data until the end node of the current element    */
     private fun skipElement() {
