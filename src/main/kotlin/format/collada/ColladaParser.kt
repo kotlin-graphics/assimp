@@ -1,11 +1,7 @@
 package format.collada
 
-import b
-import f
-import glm
-import i
 import main.*
-import ui
+import mat.Mat4
 import java.io.File
 import java.io.FileReader
 import java.net.URI
@@ -1402,7 +1398,7 @@ class ColladaParser(pFile: URI) {
                         // text content contains 4 floats
                         val floats = getTextContent().words.map { it.f }
 
-                        pColor.Set(floats)
+                        pColor put floats
 
                         testClosing("color")
                     }
@@ -1418,7 +1414,7 @@ class ColladaParser(pFile: URI) {
                         //SkipElement();
 
                         // as we've read texture, the color needs to be 1,1,1,1
-                        pColor Set 1f
+                        pColor put 1f
                     }
                     "technique" -> {
 
@@ -2132,13 +2128,13 @@ class ColladaParser(pFile: URI) {
                 // up to 4 texture coord sets are fine, ignore the others
                 if (pInput.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                     // pad to current vertex count if necessary
-                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[pInput.mIndex].size - 1) {
-                        pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(0))
-                    }
-
-                    pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(obj))
-                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
-                        pMesh.mNumUVComponents[pInput.mIndex] = 3
+//                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[pInput.mIndex].size - 1) {
+//                        pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(0))
+//                    }
+//
+//                    pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(obj))
+//                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
+//                        pMesh.mNumUVComponents[pInput.mIndex] = 3
                 } else
                     System.err.println("Collada: too many texture coordinate sets. Skipping.")
             }
@@ -2454,6 +2450,62 @@ class ColladaParser(pFile: URI) {
 //
             else if (event is EndElement)
                 break
+    }
+
+    /** Calculates the resulting transformation fromm all the given transform steps */
+    internal fun calculateResultTransform(pTransforms: ArrayList<Transform>): Mat4 {
+
+        var res = Mat4()
+
+        pTransforms.forEach { tf ->
+
+            when (tf.mType) {
+
+                TransformType.LOOKAT -> {
+
+                    val pos = AiVector3D(tf.f)
+                    val dstPos = AiVector3D(tf.f, 3)
+                    val up = AiVector3D(tf.f, 6).normalize()
+                    val dir = (dstPos - pos).normalize()
+                    val right = (dir cross up).normalize()
+
+                    res *= Mat4(
+                            right.x, up.x, -dir.x, pos.x,
+                            right.y, up.y, -dir.y, pos.y,
+                            right.z, up.z, -dir.z, pos.z,
+                            0, 0, 0, 1)
+                }
+                TransformType.ROTATE -> {
+
+                    val angle = tf.f[3] * AI_MATH_PI.f / 180f
+                    val axis = AiVector3D(tf.f)
+                    val rot = glm.rotate(Mat4(), angle, axis)
+                    res *= rot
+                }
+                TransformType.TRANSLATE -> {
+                    val trans = glm.translate(Mat4(), AiVector3D(tf.f))
+                    res *= trans
+                }
+                TransformType.SCALE -> {
+                    val scale = Mat4(
+                            tf.f[0], 0.0f, 0.0f, 0.0f,
+                            0.0f, tf.f[1], 0.0f, 0.0f,
+                            0.0f, 0.0f, tf.f[2], 0.0f,
+                            0.0f, 0.0f, 0.0f, 1.0f)
+                    res *= scale
+                }
+                TransformType.SKEW -> assert(false) // TODO: (thom)
+
+                TransformType.MATRIX -> {
+                    val mat = Mat4(tf.f)
+                    res *= mat
+                }
+
+                else -> assert(false)
+            }
+        }
+
+        return res;
     }
 
     /** Determines the input data type for the given semantic string    */

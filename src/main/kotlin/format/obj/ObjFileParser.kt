@@ -1,6 +1,6 @@
 package format.obj
 
-import f
+import main.f
 import main.*
 import java.io.File
 

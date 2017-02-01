@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package main
 
-import f
+import main.f
 import mat.Mat4
 
 // ---------------------------------------------------------------------------

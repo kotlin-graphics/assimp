@@ -31,7 +31,7 @@ dependencies {
     testCompile("io.kotlintest:kotlintest:1.3.5")
 //    testCompile("io.kotlintest:kotlintest:2.0-SNAPSHOT")
     compile("com.github.elect86:kotlin-unsigned:-SNAPSHOT")
-    compile("com.github.elect86:glm:30982dc750")
+    compile("com.github.elect86:glm:ee12ebece0")
 }
 
 allprojects {

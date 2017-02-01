@@ -1,7 +1,7 @@
 package format.obj
 
-import f
-import i
+import main.f
+import main.i
 import main.words
 
 /**
@@ -30,11 +30,11 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
             when (words[0][0]) {
                 'k', 'K' -> when (words[0][1]) {
                 // Ambient color
-                    'a' -> m_pModel.m_pCurrentMaterial!!.ambient.Set(words[1].f, words[2].f, words[3].f)
+                    'a' -> m_pModel.m_pCurrentMaterial!!.ambient.put(words, 1)
                 // Diffuse color
-                    'd' -> m_pModel.m_pCurrentMaterial!!.diffuse.Set(words[1].f, words[2].f, words[3].f)
-                    's' -> m_pModel.m_pCurrentMaterial!!.specular.Set(words[1].f, words[2].f, words[3].f)
-                    'e' -> m_pModel.m_pCurrentMaterial!!.emissive.Set(words[1].f, words[2].f, words[3].f)
+                    'd' -> m_pModel.m_pCurrentMaterial!!.diffuse.put(words, 1)
+                    's' -> m_pModel.m_pCurrentMaterial!!.specular.put(words, 1)
+                    'e' -> m_pModel.m_pCurrentMaterial!!.emissive.put(words, 1)
                 }
                 'd' ->
                     if (words[0] == "disp") // A displacement map

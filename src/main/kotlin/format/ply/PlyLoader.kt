@@ -10,13 +10,13 @@ import main.AiVector2D
 import main.AiVector3D
 import main.AiColor3D
 import main.BaseImporter
-import b
-import f
-import i
+import main.b
+import main.f
+import main.i
 import main.*
-import ub
-import ui
-import us
+import main.ub
+import main.ui
+import main.us
 import vec._3.Vec3
 import java.io.File
 import java.io.RandomAccessFile
@@ -789,10 +789,10 @@ class PlyLoader : BaseImporter() {
                         // out of border
                             continue
 
-                        p_pcOut.mVertices[iVertex] Set avPositions[idx]
+                        p_pcOut.mVertices[iVertex] put avPositions[idx]
 
                         if (avColors.isNotEmpty())
-                            p_pcOut.mColors[0][iVertex] Set avColors[idx]
+                            p_pcOut.mColors[0][iVertex] put avColors[idx]
 
                         if (avTexCoords.isNotEmpty()) {
                             val vec = avTexCoords[idx]
@@ -800,7 +800,7 @@ class PlyLoader : BaseImporter() {
                         }
 
                         if (avNormals.isNotEmpty())
-                            p_pcOut.mNormals[iVertex] Set avNormals[idx]
+                            p_pcOut.mNormals[iVertex] put avNormals[idx]
 
                         iVertex++
                     }

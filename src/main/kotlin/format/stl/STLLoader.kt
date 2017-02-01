@@ -1,12 +1,12 @@
 package format.stl
 
-import BYTES
-import and
-import f
-import i
+import main.BYTES
+import main.and
+import main.f
+import main.i
 import main.*
-import s
-import ushr
+import main.s
+import unsigned.ushr
 import java.io.File
 import java.io.RandomAccessFile
 import java.net.URI
@@ -123,7 +123,7 @@ class STLImporter : BaseImporter() {
         this.mBuffer = mBuffer2
 
         // the default vertex color is light gray.
-        clrColorDefault Set 0.6f
+        clrColorDefault put 0.6f
 
         // allocate a single node
         pScene.mRootNode = AiNode()
@@ -149,7 +149,7 @@ class STLImporter : BaseImporter() {
 
         val clrDiffuse = AiColor4D(0.6, 0.6, 0.6, 1)
 
-        if (bMatClr) clrDiffuse Set clrColorDefault
+        if (bMatClr) clrDiffuse put clrColorDefault
 
         pcMat.color = AiMaterial.Color(
                 diffuse = AiColor3D(clrDiffuse),
@@ -249,8 +249,8 @@ class STLImporter : BaseImporter() {
                 }
                 // assign the color to all vertices of the face
                 val a = pMesh.mColors[i + 1]
-                pMesh.mColors[i + 1].forEach { it.Set(clr) }
-                pMesh.mColors[i + 2].forEach { it.Set(clr) }
+                pMesh.mColors[i + 1].forEach { it put clr }
+                pMesh.mColors[i + 2].forEach { it put clr }
             }
         }
         // now copy faces

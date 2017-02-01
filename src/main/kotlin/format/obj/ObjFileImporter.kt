@@ -1,6 +1,5 @@
 package format.obj
 
-import f
 import main.*
 import java.io.File
 import java.net.URI
@@ -252,19 +251,19 @@ class ObjFileImporter : BaseImporter() {
 
                 if (vertex >= pModel.m_Vertices.size) throw Error("OBJ: vertex index out of range")
 
-                pMesh.mVertices[newIndex] Set pModel.m_Vertices[vertex]
+                pMesh.mVertices[newIndex] put pModel.m_Vertices[vertex]
 
                 // Copy all normals
                 if (pModel.m_Normals.isNotEmpty() && vertexIndex in pSourceFace.m_normals.indices) {
                     val normal = pSourceFace.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
                         throw Error("OBJ: vertex normal index out of range")
-                    pMesh.mNormals[newIndex] Set pModel.m_Normals[normal]
+                    pMesh.mNormals[newIndex] put pModel.m_Normals[normal]
                 }
 
                 // Copy all vertex colors
                 if (pModel.m_VertexColors.isNotEmpty())
-                    pMesh.mColors[0][newIndex] Set pModel.m_VertexColors[vertex]
+                    pMesh.mColors[0][newIndex] put pModel.m_VertexColors[vertex]
 
                 // Copy all texture coordinates
                 if (pModel.m_TextureCoord.isNotEmpty() && vertexIndex < pSourceFace.m_texturCoords.size) {
@@ -380,8 +379,6 @@ class ObjFileImporter : BaseImporter() {
                         else
                             AiMaterial.Texture(type = AiTexture.Type.diffuse, file = it.name))
             }
-
-            // TODO
 
             // Store material property info in material array in scene
             pScene.mMaterials.add(mat)

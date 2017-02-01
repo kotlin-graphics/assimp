@@ -133,60 +133,13 @@ infix fun Int.or(other: AiPrimitiveType) = this or other.i
 
 fun AI_PRIMITIVE_TYPE_FOR_N_INDICES(n: Int) = if (n > 3) AiPrimitiveType.POLYGON else AiPrimitiveType.of(1 shl (n - 1))
 
-data class AiAnimMesh(
-        /** Replacement for aiMesh::mVertices. If this array is non-NULL, it *must* contain mNumVertices entries. The
-         * corresponding array in the host mesh must be non-NULL as well - animation
-         *  meshes may neither add or nor remove vertex components (if
-         *  a replacement array is NULL and the corresponding source
-         *  array is not, the source data is taken instead)*/
-        var mVertices: MutableList<AiVector3D> = mutableListOf(),
-
-        /** Replacement for aiMesh::mNormals.  */
-        var mNormals: MutableList<AiVector3D> = mutableListOf(),
-
-        /** Replacement for aiMesh::mTangents. */
-        var mTangents: MutableList<AiVector3D> = mutableListOf(),
-
-        /** Replacement for aiMesh::mBitangents. */
-        var mBitangents: MutableList<AiVector3D> = mutableListOf(),
-
-        /** Replacement for aiMesh::mColors */
-        var mColors: MutableList<AiColor4D?> = mutableListOf(),
-
-        /** Replacement for aiMesh::mTextureCoords */
-        var mTextureCoords: MutableList<AiVector3D?> = mutableListOf(),
-
-        /** The number of vertices in the aiAnimMesh, and thus the length of all the member arrays.
-         *
-         * This has always the same value as the mNumVertices property in the corresponding aiMesh. It is duplicated
-         * here merely to make the length of the member arrays accessible even if the aiMesh is not known, e.g. from
-         * language bindings.         */
-        var mNumVertices: Int = 0,
-
+data class AiAnimMesh (
         /** Weight of the AnimMesh. */
         var mWeight: Float = 0f
-) {
-    /** Check whether the anim mesh overrides the vertex positions of its host mesh*/
-    fun hasPositions() = mVertices.isNotEmpty()
-
-    /** Check whether the anim mesh overrides the vertex normals of its host mesh*/
-    fun hasNormals() = mNormals.isNotEmpty()
-
-    /** Check whether the anim mesh overrides the vertex tangents and bitangents of its host mesh. As for aiMesh,
-     * tangents and bitangents always go together. */
-    fun hasTangentsAndBitangents() = mTangents.isNotEmpty()
-
-    /** Check whether the anim mesh overrides a particular set of vertex colors on his host mesh.
-     *  @param pIndex 0<index<AI_MAX_NUMBER_OF_COLOR_SETS */
-    fun hasVertexColors(pIndex: Int) = if (pIndex >= AI_MAX_NUMBER_OF_COLOR_SETS) false else mColors[pIndex] != null
-
-    /** Check whether the anim mesh overrides a particular set of texture coordinates on his host mesh.
-     *  @param pIndex 0<index<AI_MAX_NUMBER_OF_TEXTURECOORDS */
-    fun hasTextureCoords(pIndex: Int) = if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS) false else mTextureCoords[pIndex] != null
-}
+): AiMesh()
 
 /** Enumerates the methods of mesh morphing supported by Assimp.    */
-enum class aiMorphingMethod(val i: Int) {
+enum class AiMorphingMethod(val i: Int) {
     /** Interpolation between morph targets */
     VERTEX_BLEND(0x1),
 
@@ -213,7 +166,7 @@ enum class aiMorphingMethod(val i: Int) {
  * @code
  * aiScene::mFlags
  * @endcode */
-data class AiMesh(
+open class AiMesh(
 
         /** Bitwise combination of the members of the #aiPrimitiveType enum.
          * This specifies which types of primitives are present in the mesh.
@@ -320,10 +273,10 @@ data class AiMesh(
         /** Attachment meshes for this mesh, for vertex-based animation.
          *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions, normals).
          *  Note! Currently only works with Collada loader.*/
-        var mAnimMeshes: List<AiMesh>? = null,
+        var mAnimMeshes: ArrayList<AiMesh> = arrayListOf(),
 
         /** Method of morphing when animeshes are specified. */
-        var mMethod: Int = 0
+        var mMethod: Int = 0    // TODO to enum AiMorphingMethod?
 ) {
     //! Check whether the mesh contains positions. Provided no special
     //! scene flags are set, this will always be true

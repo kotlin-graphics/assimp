@@ -1,10 +1,10 @@
 package format.ply
 
-import d
-import f
-import i
+import main.d
+import main.f
+import main.i
 import main.*
-import ui
+import main.ui
 import java.nio.ByteBuffer
 
 /**

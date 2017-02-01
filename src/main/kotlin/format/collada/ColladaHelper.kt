@@ -4,7 +4,6 @@ package format.collada
  * Created by elect on 23/01/2017.
  */
 
-import i
 import main.*
 import org.w3c.dom.Node as XmlNode
 
@@ -219,7 +218,7 @@ class Mesh(
         var mNormals: ArrayList<AiVector3D> = arrayListOf(),
         var mTangents: ArrayList<AiVector3D> = arrayListOf(),
         var mBitangents: ArrayList<AiVector3D> = arrayListOf(),
-        var mTexCoords: Array<ArrayList<AiVector3D>> = arrayOf(),
+        var mTexCoords: Array<ArrayList<FloatArray>> = arrayOf(),
         var mColors: Array<ArrayList<AiColor4D>> = arrayOf(),
 
         var mNumUVComponents: IntArray = intArrayOf(),
