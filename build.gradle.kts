@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath(kotlinModule("gradle-plugin", "1.1.0-beta-17"))
+        classpath(kotlinModule("gradle-plugin", "1.1.0-beta-38"))
         classpath("com.github.jengelman.gradle.plugins:shadow:1.2.3")
     }
 }
@@ -27,11 +27,10 @@ repositories {
 }
 
 dependencies {
-    compile(kotlinModule("stdlib", "1.1.0-beta-17"))
-    testCompile("io.kotlintest:kotlintest:1.3.5")
-//    testCompile("io.kotlintest:kotlintest:2.0-SNAPSHOT")
+    compile(kotlinModule("stdlib", "1.1.0-beta-38"))
+    testCompile("io.kotlintest:kotlintest:1.3.6")
     compile("com.github.elect86:kotlin-unsigned:-SNAPSHOT")
-    compile("com.github.elect86:glm:ee12ebece0")
+    compile("com.github.elect86:glm:4ce71204e6")
 }
 
 allprojects {

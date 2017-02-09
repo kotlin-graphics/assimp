@@ -356,6 +356,7 @@ class Effect(
         var mTransparent: AiColor4D = AiColor4D(0, 0, 0, 1),
         var mReflective: AiColor4D = AiColor4D(),
 
+        // TODO merge 'em all
         // Textures
         var mTexEmissive: Sampler = Sampler(),
         var mTexAmbient: Sampler = Sampler(),

@@ -69,6 +69,8 @@ fun Byte.isSpace() = this == ' '.b || this == '\t'.b
 
 infix fun ByteBuffer.startsWith(string: String) = string.all { get() == it.b }
 
+fun Char.isNumeric() = if (isDigit()) true else (this == '-' || this == '+')
+
 fun main(args: Array<String>) {
     println(' '.b)
     println('\t'.b)

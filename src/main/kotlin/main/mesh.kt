@@ -251,7 +251,7 @@ open class AiMesh(
 
         /** The bones of this mesh.
          * A bone consists of a name by which it can be found in the frame hierarchy and a set of vertex weights.         */
-        var mBones: List<AiBone>? = null,
+        var mBones: ArrayList<AiBone> = ArrayList(),
 
         /** The material used by this mesh.
          * A mesh uses only a single material. If an imported model uses multiple materials, the import splits up the

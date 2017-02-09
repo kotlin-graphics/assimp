@@ -3,6 +3,8 @@ package format.collada
 import main.BaseImporter
 import java.net.URI
 import main.*
+import mat.Mat4
+import unsigned.Uint
 
 /**
  * Created by elect on 23/01/2017.
@@ -44,7 +46,7 @@ class ColladaLoader : BaseImporter() {
     val mCameras = ArrayList<AiCamera>()
 
     /** Temporary light list */
-    val mLights = ArrayList<AiLightSourceType>()
+    val mLights = ArrayList<AiLight>()
 
     /** Temporary texture list */
     val mTextures = ArrayList<AiTexture>()
@@ -91,10 +93,13 @@ class ColladaLoader : BaseImporter() {
 
         // build the node hierarchy from it
         pScene.mRootNode = buildHierarchy(parser, parser.mRootNode!!)
+
+        // ... then fill the materials with the now adjusted settings
+        fillMaterials(parser)
     }
 
     /** Recursively constructs a scene node for the given parser node and returns it.   */
-    internal fun buildHierarchy(pParser: ColladaParser, pNode: Node): AiNode {
+    fun buildHierarchy(pParser: ColladaParser, pNode: Node): AiNode {
 
         // create a node for it and find a name for the new node. It's more complicated than you might think
         val node = AiNode(mName = findNameForNode(pNode))
@@ -122,18 +127,125 @@ class ColladaLoader : BaseImporter() {
         }
 
         // construct meshes
-//        BuildMeshesForNode(pParser, pNode, node);
-//
-//        // construct cameras
-//        BuildCamerasForNode(pParser, pNode, node);
-//
-//        // construct lights
-//        BuildLightsForNode(pParser, pNode, node);
-        return node;
+        buildMeshesForNode(pParser, pNode, node)
+
+        // construct cameras
+        buildCamerasForNode(pParser, pNode, node)
+
+        // construct lights
+        buildLightsForNode(pParser, pNode, node)
+
+        return node
+    }
+
+    /** Builds lights for the given node and references them    */
+    fun buildLightsForNode(pParser: ColladaParser, pNode: Node, pTarget: AiNode) = pNode.mLights.forEach {
+
+        // find the referred light
+        val srcLight = pParser.mLightLibrary[it.mLight] ?: run {
+            println("Collada: Unable to find light for ID \"${it.mLight}\". Skipping.")
+            return
+        }
+
+        // now fill our ai data structure
+        val out = AiLight(mName = pTarget.mName, mType = srcLight.mType)
+
+        // collada lights point in -Z by default, rest is specified in node transform
+        out.mDirection.put(0f, 0f, -1f)
+
+        out.mAttenuationConstant = srcLight.mAttConstant
+        out.mAttenuationLinear = srcLight.mAttLinear
+        out.mAttenuationQuadratic = srcLight.mAttQuadratic
+
+        val intensity = srcLight.mColor * srcLight.mIntensity
+        out.mColorDiffuse = intensity
+        out.mColorSpecular = intensity
+        out.mColorAmbient = intensity
+        if (out.mType == AiLightSourceType.AMBIENT) {
+            out.mColorDiffuse = AiColor3D(0)
+            out.mColorSpecular = AiColor3D(0)
+            out.mColorAmbient = srcLight.mColor * srcLight.mIntensity
+        } else {
+            // collada doesn't differentiate between these color types
+            out.mColorDiffuse = intensity
+            out.mColorSpecular = intensity
+            out.mColorAmbient = AiColor3D(0)
+        }
+
+        // convert falloff angle and falloff exponent in our representation, if given
+        if (out.mType == AiLightSourceType.SPOT) {
+
+            out.mAngleInnerCone = srcLight.mFalloffAngle.rad
+
+            // ... some extension magic.
+            if (srcLight.mOuterAngle >= ASSIMP_COLLADA_LIGHT_ANGLE_NOT_SET * (1 - 1e-6f)) {
+                // ... some deprecation magic.
+                if (srcLight.mPenumbraAngle >= ASSIMP_COLLADA_LIGHT_ANGLE_NOT_SET * (1 - 1e-6f))
+                // Need to rely on falloff_exponent. I don't know how to interpret it, so I need to guess .... epsilon chosen to be 0.1
+                    out.mAngleOuterCone = glm.acos(glm.pow(.1f, 1f / srcLight.mFalloffExponent)) + out.mAngleInnerCone
+                else {
+                    out.mAngleOuterCone = out.mAngleInnerCone + srcLight.mPenumbraAngle.rad
+                    if (out.mAngleOuterCone < out.mAngleInnerCone) {
+                        val temp = out.mAngleInnerCone
+                        out.mAngleInnerCone = out.mAngleOuterCone
+                        out.mAngleOuterCone = temp
+                    }
+                }
+            } else
+                out.mAngleOuterCone = srcLight.mOuterAngle.rad
+        }
+
+        // add to light list
+        mLights.add(out)
+    }
+
+    /** Builds cameras for the given node and references them   */
+    fun buildCamerasForNode(pParser: ColladaParser, pNode: Node, pTarget: AiNode) = pNode.mCameras.forEach {
+
+        // find the referred light
+        val srcCamera = pParser.mCameraLibrary[it.mCamera] ?: run {
+            println("Collada: Unable to find camera for ID \"${it.mCamera}\". Skipping.")
+            return
+        }
+
+        // orthographic cameras not yet supported in Assimp
+        if (srcCamera.mOrtho)
+            println("Collada: Orthographic cameras are not supported.")
+
+        // now fill our ai data structure
+        val out = AiCamera(mName = pTarget.mName)
+
+        // collada cameras point in -Z by default, rest is specified in node transform
+        out.mLookAt.put(0f, 0f, -1f)
+
+        // near/far z is already ok
+        out.mClipPlaneFar = srcCamera.mZFar
+        out.mClipPlaneNear = srcCamera.mZNear
+
+        // ... but for the rest some values are optional and we need to compute the others in any combination.
+        if (srcCamera.mAspect != 10e10f)
+            out.mAspect = srcCamera.mAspect
+
+        with(glm) {
+            if (srcCamera.mHorFov != 10e10f) {
+                out.mHorizontalFOV = srcCamera.mHorFov
+
+                if (srcCamera.mVerFov != 10e10f && srcCamera.mAspect == 10e10f)
+                    out.mAspect = tan(srcCamera.mHorFov.rad) / tan(srcCamera.mVerFov.rad)
+            } else if (srcCamera.mAspect != 10e10f && srcCamera.mVerFov != 10e10f) {
+                out.mHorizontalFOV = 2f * atan(srcCamera.mAspect * tan(srcCamera.mVerFov.rad * .5f)).deg
+            }
+        }
+
+        // Collada uses degrees, we use radians
+        out.mHorizontalFOV = out.mHorizontalFOV.rad
+
+        // add to camera list
+        mCameras.add(out)
     }
 
     /** Builds meshes for the given node and references them    */
-    internal fun buildMeshesForNode(pParser: ColladaParser, pNode: Node, pTarget: AiNode) {
+    fun buildMeshesForNode(pParser: ColladaParser, pNode: Node, pTarget: AiNode) {
 
         var srcController: Controller? = null
 
@@ -161,8 +273,8 @@ class ColladaLoader : BaseImporter() {
             // else ID found in the mesh library -> direct reference to an unskinned mesh
 
             // build a mesh for each of its subgroups
-            val vertexStart = 0
-            val faceStart = 0
+            var vertexStart = 0
+            var faceStart = 0
             for (sm in 0 until srcMesh!!.mSubMeshes.size) {
 
                 val submesh = srcMesh!!.mSubMeshes[sm]
@@ -210,47 +322,32 @@ class ColladaLoader : BaseImporter() {
                 }
 
                 // else we have to add the mesh to the collection and store its newly assigned index at the node
-//                val dstMesh = createMesh(pParser, srcMesh, submesh, srcController, vertexStart, faceStart)
-//
-//                // store the mesh, and store its new index in the node
-//                newMeshRefs.push_back(mMeshes.size());
-//                mMeshIndexByID[index] = mMeshes.size();
-//                mMeshes.push_back(dstMesh);
-//                vertexStart += dstMesh->mNumVertices; faceStart += submesh.mNumFaces;
-//
-//                // assign the material index
-//                dstMesh->mMaterialIndex = matIdx;
-//                if (dstMesh->mName.length == 0)
-//                {
-//                    dstMesh ->
-//                    mName = mid.mMeshOrController;
-//                }
+                val dstMesh = createMesh(pParser, srcMesh!!, submesh, srcController, vertexStart, faceStart)
+
+                // store the mesh, and store its new index in the node
+                newMeshRefs.add(mMeshes.size)
+                mMeshIndexByID[index] = mMeshes.size
+                mMeshes.add(dstMesh)
+                vertexStart += dstMesh.mNumVertices; faceStart += submesh.mNumFaces
+
+                // assign the material index
+                dstMesh.mMaterialIndex = matIdx
+                if (dstMesh.mName.isEmpty())
+                    dstMesh.mName = mid.mMeshOrController
             }
         }
 
         // now place all mesh references we gathered in the target node
-//        pTarget->mNumMeshes = static_cast<unsigned int>(newMeshRefs.size());
-//        if (newMeshRefs.size()) {
-//            struct UIntTypeConverter
-//                    {
-//                        unsigned int operator()(const size_t & v) const
-//                                {
-//                                    return static_cast < unsigned int >(v);
-//                                }
-//                    };
-//
-//            pTarget->mMeshes = new unsigned int[pTarget->mNumMeshes];
-//            std::transform(newMeshRefs.begin(), newMeshRefs.end(), pTarget->mMeshes, UIntTypeConverter());
-//        }
+        pTarget.mNumMeshes = newMeshRefs.size
+        if (newMeshRefs.isNotEmpty())
+            pTarget.mMeshes = newMeshRefs.toIntArray()
     }
 
     /** Find mesh from either meshes or morph target meshes */
-    internal fun findMesh(meshid: String) = mMeshes.firstOrNull { it.mName == meshid } ?: mTargetMeshes.firstOrNull { it.mName == meshid }
-
-//    typealias IndexPairVector = ArrayList<Pair<Int, Int>>
+    fun findMesh(meshid: String) = mMeshes.firstOrNull { it.mName == meshid } ?: mTargetMeshes.firstOrNull { it.mName == meshid }
 
     /** Creates a mesh for the given ColladaMesh face subset and returns the newly created mesh */
-    internal fun createMesh(pParser: ColladaParser, pSrcMesh: Mesh, pSubMesh: SubMesh, pSrcController: Controller?, pStartVertex: Int, pStartFace: Int): AiMesh {
+    fun createMesh(pParser: ColladaParser, pSrcMesh: Mesh, pSubMesh: SubMesh, pSrcController: Controller?, pStartVertex: Int, pStartFace: Int): AiMesh {
 
         val dstMesh = AiMesh(mName = pSrcMesh.mName)
 
@@ -382,126 +479,108 @@ class ColladaLoader : BaseImporter() {
 
             // create containers to collect the weights for each bone
             val numBones = jointNames.mStrings.size
-            val dstBones = MutableList(numBones, {AiVertexWeight()})
+            val dstBones = MutableList(numBones, { mutableListOf<AiVertexWeight>() })
 
             // build a temporary array of pointers to the start of each vertex's weights
-            val weightStartPerVertex = MutableList(pSrcController.mWeightCounts.size, {pSrcController.mWeights.last().toList().toMutableList()})
-//            wei
-//
-//            IndexPairVector::const_iterator pit = pSrcController->mWeights.begin();
-//            for (size_t a = 0; a < pSrcController->mWeightCounts.size(); ++a)
-//            {
-//                weightStartPerVertex[a] = pit;
-//                pit += pSrcController->mWeightCounts[a];
-//            }
+            val weightStartPerVertex = ArrayList<Int>()
+
+            var pit = 0
+            pSrcController.mWeightCounts.forEachIndexed { i, a ->
+                weightStartPerVertex[a] = pit
+                pit += pSrcController.mWeightCounts[a]
+            }
 
             // now for each vertex put the corresponding vertex weights into each bone's weight collection
-//            for( size_t a = pStartVertex; a < pStartVertex + numVertices; ++a)
-//            {
-//                // which position index was responsible for this vertex? that's also the index by which
-//                // the controller assigns the vertex weights
-//                size_t orgIndex = pSrcMesh->mFacePosIndices[a];
-//                // find the vertex weights for this vertex
-//                IndexPairVector::const_iterator iit = weightStartPerVertex[orgIndex];
-//                size_t pairCount = pSrcController->mWeightCounts[orgIndex];
-//
-//                for( size_t b = 0; b < pairCount; ++b, ++iit)
-//                {
-//                    size_t jointIndex = iit->first;
-//                    size_t vertexIndex = iit->second;
-//
-//                    ai_real weight = ReadFloat( weightsAcc, weights, vertexIndex, 0);
-//
-//                    // one day I gonna kill that XSI Collada exporter
-//                    if( weight > 0.0f)
-//                    {
-//                        aiVertexWeight w;
-//                        w.mVertexId = static_cast<unsigned int>(a - pStartVertex);
-//                        w.mWeight = weight;
-//                        dstBones[jointIndex].push_back( w);
-//                    }
-//                }
-//            }
-//
-//            // count the number of bones which influence vertices of the current submesh
-//            size_t numRemainingBones = 0;
-//            for( std::vector<std::vector<aiVertexWeight> >::const_iterator it = dstBones.begin(); it != dstBones.end(); ++it)
-//            if( it->size() > 0)
-//            numRemainingBones++;
-//
-//            // create bone array and copy bone weights one by one
-//            dstMesh->mNumBones = static_cast<unsigned int>(numRemainingBones);
-//            dstMesh->mBones = new aiBone*[numRemainingBones];
-//            size_t boneCount = 0;
-//            for( size_t a = 0; a < numBones; ++a)
-//            {
-//                // omit bones without weights
-//                if( dstBones[a].size() == 0)
-//                    continue;
-//
-//                // create bone with its weights
-//                aiBone* bone = new aiBone;
-//                bone->mName = ReadString( jointNamesAcc, jointNames, a);
-//                bone->mOffsetMatrix.a1 = ReadFloat( jointMatrixAcc, jointMatrices, a, 0);
-//                bone->mOffsetMatrix.a2 = ReadFloat( jointMatrixAcc, jointMatrices, a, 1);
-//                bone->mOffsetMatrix.a3 = ReadFloat( jointMatrixAcc, jointMatrices, a, 2);
-//                bone->mOffsetMatrix.a4 = ReadFloat( jointMatrixAcc, jointMatrices, a, 3);
-//                bone->mOffsetMatrix.b1 = ReadFloat( jointMatrixAcc, jointMatrices, a, 4);
-//                bone->mOffsetMatrix.b2 = ReadFloat( jointMatrixAcc, jointMatrices, a, 5);
-//                bone->mOffsetMatrix.b3 = ReadFloat( jointMatrixAcc, jointMatrices, a, 6);
-//                bone->mOffsetMatrix.b4 = ReadFloat( jointMatrixAcc, jointMatrices, a, 7);
-//                bone->mOffsetMatrix.c1 = ReadFloat( jointMatrixAcc, jointMatrices, a, 8);
-//                bone->mOffsetMatrix.c2 = ReadFloat( jointMatrixAcc, jointMatrices, a, 9);
-//                bone->mOffsetMatrix.c3 = ReadFloat( jointMatrixAcc, jointMatrices, a, 10);
-//                bone->mOffsetMatrix.c4 = ReadFloat( jointMatrixAcc, jointMatrices, a, 11);
-//                bone->mNumWeights = static_cast<unsigned int>(dstBones[a].size());
-//                bone->mWeights = new aiVertexWeight[bone->mNumWeights];
-//                std::copy( dstBones[a].begin(), dstBones[a].end(), bone->mWeights);
-//
-//                // apply bind shape matrix to offset matrix
-//                aiMatrix4x4 bindShapeMatrix;
-//                bindShapeMatrix.a1 = pSrcController->mBindShapeMatrix[0];
-//                bindShapeMatrix.a2 = pSrcController->mBindShapeMatrix[1];
-//                bindShapeMatrix.a3 = pSrcController->mBindShapeMatrix[2];
-//                bindShapeMatrix.a4 = pSrcController->mBindShapeMatrix[3];
-//                bindShapeMatrix.b1 = pSrcController->mBindShapeMatrix[4];
-//                bindShapeMatrix.b2 = pSrcController->mBindShapeMatrix[5];
-//                bindShapeMatrix.b3 = pSrcController->mBindShapeMatrix[6];
-//                bindShapeMatrix.b4 = pSrcController->mBindShapeMatrix[7];
-//                bindShapeMatrix.c1 = pSrcController->mBindShapeMatrix[8];
-//                bindShapeMatrix.c2 = pSrcController->mBindShapeMatrix[9];
-//                bindShapeMatrix.c3 = pSrcController->mBindShapeMatrix[10];
-//                bindShapeMatrix.c4 = pSrcController->mBindShapeMatrix[11];
-//                bindShapeMatrix.d1 = pSrcController->mBindShapeMatrix[12];
-//                bindShapeMatrix.d2 = pSrcController->mBindShapeMatrix[13];
-//                bindShapeMatrix.d3 = pSrcController->mBindShapeMatrix[14];
-//                bindShapeMatrix.d4 = pSrcController->mBindShapeMatrix[15];
-//                bone->mOffsetMatrix *= bindShapeMatrix;
-//
-//                // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.
-//                // Therefore I added a little name replacement here: I search for the bone's node by either name, ID or SID,
-//                // and replace the bone's name by the node's name so that the user can use the standard
-//                // find-by-name method to associate nodes with bones.
-//                const Collada::Node* bnode = FindNode( pParser.mRootNode, bone->mName.data);
-//                if( !bnode)
-//                    bnode = FindNodeBySID( pParser.mRootNode, bone->mName.data);
-//
-//                // assign the name that we would have assigned for the source node
-//                if( bnode)
-//                    bone->mName.Set( FindNameForNode( bnode));
-//                else
-//                DefaultLogger::get()->warn( format() << "ColladaLoader::CreateMesh(): could not find corresponding node for joint \"" << bone->mName.data << "\"." );
-//
-//                // and insert bone
-//                dstMesh->mBones[boneCount++] = bone;
-//            }
+            for (a in pStartVertex until pStartVertex + numVertices) {
+
+                // which position index was responsible for this vertex? that's also the index by which the controller assigns the vertex weights
+                val orgIndex = pSrcMesh.mFacePosIndices[a]
+                // find the vertex weights for this vertex
+                val iit = weightStartPerVertex[orgIndex]
+                val pairCount = pSrcController.mWeightCounts[orgIndex]
+
+                for (b in 0 until pairCount) {
+
+                    val jointIndex = pSrcController.mWeights[iit].first
+                    val vertexIndex = pSrcController.mWeights[iit].second
+
+                    val weight = readFloat(weightsAcc, weights, vertexIndex, 0)
+
+                    // one day I gonna kill that XSI Collada exporter
+                    if (weight > 0f)
+                        dstBones[jointIndex].add(AiVertexWeight(mVertexId = (a - pStartVertex).ui.v, mWeight = weight))
+                }
+            }
+
+            // count the number of bones which influence vertices of the current submesh
+            val numRemainingBones = dstBones.filter { it.isNotEmpty() }.size
+
+            // create bone array and copy bone weights one by one
+            dstMesh.mNumBones = numRemainingBones
+            for (a in 0 until numBones) {
+
+                // omit bones without weights
+                if (dstBones[a].isEmpty())
+                    continue
+
+                // create bone with its weights
+                val bone = AiBone(mName = readString(jointNamesAcc, jointNames, a))
+                bone.mOffsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, a, 0)
+                bone.mOffsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, a, 1)
+                bone.mOffsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, a, 2)
+                bone.mOffsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, a, 3)
+                bone.mOffsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, a, 4)
+                bone.mOffsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, a, 5)
+                bone.mOffsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, a, 6)
+                bone.mOffsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, a, 7)
+                bone.mOffsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, a, 8)
+                bone.mOffsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, a, 9)
+                bone.mOffsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, a, 10)
+                bone.mOffsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, a, 11)
+                bone.mNumWeights = dstBones[a].size
+                bone.mWeights = dstBones[a].toList()
+
+                // apply bind shape matrix to offset matrix
+                val bindShapeMatrix = Mat4()
+                bindShapeMatrix.a0 = pSrcController.mBindShapeMatrix[0]
+                bindShapeMatrix.a1 = pSrcController.mBindShapeMatrix[1]
+                bindShapeMatrix.a2 = pSrcController.mBindShapeMatrix[2]
+                bindShapeMatrix.a3 = pSrcController.mBindShapeMatrix[3]
+                bindShapeMatrix.b0 = pSrcController.mBindShapeMatrix[4]
+                bindShapeMatrix.b1 = pSrcController.mBindShapeMatrix[5]
+                bindShapeMatrix.b2 = pSrcController.mBindShapeMatrix[6]
+                bindShapeMatrix.b3 = pSrcController.mBindShapeMatrix[7]
+                bindShapeMatrix.c0 = pSrcController.mBindShapeMatrix[8]
+                bindShapeMatrix.c1 = pSrcController.mBindShapeMatrix[9]
+                bindShapeMatrix.c2 = pSrcController.mBindShapeMatrix[10]
+                bindShapeMatrix.c3 = pSrcController.mBindShapeMatrix[11]
+                bindShapeMatrix.d0 = pSrcController.mBindShapeMatrix[12]
+                bindShapeMatrix.d1 = pSrcController.mBindShapeMatrix[13]
+                bindShapeMatrix.d2 = pSrcController.mBindShapeMatrix[14]
+                bindShapeMatrix.d3 = pSrcController.mBindShapeMatrix[15]
+                bone.mOffsetMatrix *= bindShapeMatrix
+
+                // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.
+                // Therefore I added a little name replacement here: I search for the bone's node by either name, ID or SID, and replace the bone's name by the
+                // node's name so that the user can use the standard find-by-name method to associate nodes with bones.
+                val bnode = findNode(pParser.mRootNode!!, bone.mName) ?: findNodeBySID(pParser.mRootNode!!, bone.mName)
+
+                // assign the name that we would have assigned for the source node
+                if (bnode != null)
+                    bone.mName = findNameForNode(bnode)
+                else
+                    println("ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.mName}\".")
+
+                // and insert bone
+                dstMesh.mBones.add(bone)
+            }
         }
 
         return dstMesh
     }
 
     /** Resolve node instances  */
-    internal fun resolveNodeInstances(pParser: ColladaParser, pNode: Node, resolved: ArrayList<Node>) =
+    fun resolveNodeInstances(pParser: ColladaParser, pNode: Node, resolved: ArrayList<Node>) =
             // iterate through all nodes to be instanced as children of pNode
             pNode.mNodeInstances.forEach {
 
@@ -521,15 +600,145 @@ class ColladaLoader : BaseImporter() {
             }
 
     /** Resolve UV channels */
-    internal fun applyVertexToEffectSemanticMapping(sampler: Sampler, table: SemanticMappingTable) = table.mMap[sampler.mUVChannel]?.let {
+    fun applyVertexToEffectSemanticMapping(sampler: Sampler, table: SemanticMappingTable) = table.mMap[sampler.mUVChannel]?.let {
         if (it.mType != InputType.Texcoord)
             System.err.println("Collada: Unexpected effect input mapping")
 
         sampler.mUVId = it.mSet
     }
 
+    /** Add a texture to a material structure   */
+    fun addTexture(mat: AiMaterial, pParser: ColladaParser, effect: Effect, sampler: Sampler, type: AiTexture.Type, idx: Int = mat.textures.lastIndex) {
+
+        // first of all, basic file name
+        val tex = AiMaterial.Texture(type = type, file = findFilenameForEffectTexture(pParser, effect, sampler.mName))
+
+        // mapping mode
+        tex.mapModeU =
+                if (sampler.mWrapU)
+                    if (sampler.mMirrorU) AiTexture.MapMode.mirror
+                    else AiTexture.MapMode.wrap
+                else AiTexture.MapMode.clamp
+
+        tex.mapModeV =
+                if (sampler.mWrapV)
+                    if (sampler.mMirrorU) AiTexture.MapMode.mirror
+                    else AiTexture.MapMode.wrap
+                else AiTexture.MapMode.clamp
+
+        // UV transformation
+        tex.uvTrafo = sampler.mTransform
+
+        // Blend mode
+        tex.op = sampler.mOp
+
+        // Blend factor
+        tex.blend = sampler.mWeighting
+
+        // UV source index ... if we didn't resolve the mapping, it is actually just a guess but it works in most cases. We search for the frst occurrence of a
+        // number in the channel name. We assume it is the zero-based index into the UV channel array of all corresponding meshes. It could also be one-based
+        // for some exporters, but we won't care of it unless someone complains about.
+        tex.uvwsrc =
+                if (sampler.mUVId != Uint.MAX_VALUE.i) // TODO MAX_VALUE to Int
+                    sampler.mUVId
+                else
+                    sampler.mUVChannel.firstOrNull { it.isNumeric() }?.let {
+                        println("Collada: unable to determine UV channel for texture")
+                        0
+                    }
+
+        mat.textures.add(idx, tex)
+    }
+
+    /** Fills materials from the collada material definitions   */
+    fun fillMaterials(pParser: ColladaParser) = newMats.forEach {
+
+        val mat = it.second
+        val effect = it.first
+
+        // resolve shading mode
+        mat.shadingModel =
+                if (effect.mFaceted) /* fixme */
+                    AiShadingMode.flat
+                else
+                    when (effect.mShadeType) {
+                        ShadeType.Constant -> AiShadingMode.noShading
+                        ShadeType.Lambert -> AiShadingMode.gouraud
+                        ShadeType.Blinn -> AiShadingMode.blinn
+                        ShadeType.Phong -> AiShadingMode.phong
+                        else -> {
+                            println("Collada: Unrecognized shading mode, using gouraud shading")
+                            AiShadingMode.gouraud
+                        }
+                    }
+
+        // double-sided?
+        mat.twoSided = effect.mDoubleSided
+
+        // wireframe?
+        mat.wireframe = effect.mWireframe
+
+        // add material colors
+        mat.color = AiMaterial.Color(
+                ambient = AiColor3D(effect.mAmbient),
+                diffuse = AiColor3D(effect.mDiffuse),
+                specular = AiColor3D(effect.mSpecular),
+                emissive = AiColor3D(effect.mEmissive),
+                reflective = AiColor3D(effect.mReflective))
+
+        // scalar properties
+        mat.shininess = effect.mShininess
+        mat.reflectivity = effect.mReflectivity
+        mat.refracti = effect.mRefractIndex
+
+        // transparency, a very hard one. seemingly not all files are following the specification here (1.0 transparency => completly opaque)...
+        // therefore, we let the opportunity for the user to manually invert the transparency if necessary and we add preliminary support for RGB_ZERO mode
+        if (effect.mTransparency >= 0f && effect.mTransparency <= 1f) {
+            // handle RGB transparency completely, cf Collada specs 1.5.0 pages 249 and 304
+            if (effect.mRGBTransparency) {
+                // use luminance as defined by ISO/CIE color standards (see ITU-R Recommendation BT.709-4)
+                effect.mTransparency *= (.212671f * effect.mTransparent.r + .715160f * effect.mTransparent.g + .072169f * effect.mTransparent.b)
+
+                effect.mTransparent.a = 1.f
+
+                mat.color!!.transparent = AiColor3D(effect.mTransparent)
+            } else
+                effect.mTransparency *= effect.mTransparent.a
+
+            if (effect.mInvertTransparency)
+                effect.mTransparency = 1f - effect.mTransparency
+
+            // Is the material finally transparent ?
+            if (effect.mHasTransparency || effect.mTransparency < 1f)
+                mat.opacity = effect.mTransparency
+        }
+
+        // add textures, if given
+        if (effect.mTexAmbient.mName.isNotEmpty())
+        /* It is merely a lightmap */
+            addTexture(mat, pParser, effect, effect.mTexAmbient, AiTexture.Type.lightmap)
+
+        if (effect.mTexEmissive.mName.isNotEmpty())
+            addTexture(mat, pParser, effect, effect.mTexEmissive, AiTexture.Type.emissive);
+
+        if (effect.mTexSpecular.mName.isNotEmpty())
+            addTexture(mat, pParser, effect, effect.mTexSpecular, AiTexture.Type.specular);
+
+        if (effect.mTexDiffuse.mName.isNotEmpty())
+            addTexture(mat, pParser, effect, effect.mTexDiffuse, AiTexture.Type.diffuse);
+
+//        if (!effect.mTexBump.mName.empty())
+//            AddTexture(mat, pParser, effect, effect.mTexBump, aiTextureType_NORMALS);
+//
+//        if (!effect.mTexTransparent.mName.empty())
+//            AddTexture(mat, pParser, effect, effect.mTexTransparent, aiTextureType_OPACITY);
+//
+//        if (!effect.mTexReflective.mName.empty())
+//            AddTexture(mat, pParser, effect, effect.mTexReflective, aiTextureType_REFLECTION);
+    }
+
     /** Constructs materials from the collada material definitions  */
-    internal fun buildMaterials(pParser: ColladaParser) = pParser.mMaterialLibrary.forEach { id, material ->
+    fun buildMaterials(pParser: ColladaParser) = pParser.mMaterialLibrary.forEach { id, material ->
 
         // a material is only a reference to an effect
         pParser.mEffectLibrary[material.mEffect]?.let { effect ->
@@ -543,9 +752,70 @@ class ColladaLoader : BaseImporter() {
         }
     }
 
+    /** Resolves the texture name for the given effect texture entry    */
+    fun findFilenameForEffectTexture(pParser: ColladaParser, pEffect: Effect, pName: String): String {
+
+        // recurse through the param references until we end up at an image
+        var name = pName
+        while (true) {
+            // the given string is a param entry. Find it, if not found, we're at the end of the recursion. The resulting string should be the image ID
+            if (!pEffect.mParams.contains(name))
+                break
+
+            // else recurse on
+            name = pEffect.mParams[name]!!.mReference
+        }
+
+        // find the image referred by this name in the image library of the scene
+        val image = pParser.mImageLibrary[name] ?: throw Error("Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\".")
+
+        var result = ""
+
+        // if this is an embedded texture image setup an aiTexture for it
+        if (image.mFileName.isEmpty()) {
+            if (image.mImageData.isEmpty())
+                throw Error("Collada: Invalid texture, no data or file reference given")
+
+            val tex = AiTexture()
+
+            // setup format hint
+            if (image.mEmbeddedFormat.length > 3)
+                println("Collada: texture format hint is too long, truncating to 3 characters")
+
+            tex.achFormatHint = image.mEmbeddedFormat.substring(0, 4)
+
+            // and copy texture data
+            tex.mWidth = image.mImageData.size
+            tex.pcData = image.mImageData.clone()
+
+            // setup texture reference string
+            result = "*"
+
+            // and add this texture to the list
+            mTextures.add(tex)
+        } else
+            result = image.mFileName
+
+        return result
+    }
+
+    /** Reads a float value from an accessor and its data array.    */
+    fun readFloat(pAccessor: Accessor, pData: Data, pIndex: Int, pOffset: Int): Float {
+        // FIXME: (thom) Test for data type here in every access? For the moment, I leave this to the caller
+        val pos = pAccessor.mStride * pIndex + pAccessor.mOffset + pOffset
+        assert(pos < pData.mValues.size)
+        return pData.mValues[pos]
+    }
+
+    /** Reads a string value from an accessor and its data array.   */
+    fun readString(pAccessor: Accessor, pData: Data, pIndex: Int): String {
+        val pos = pAccessor.mStride * pIndex + pAccessor.mOffset
+        assert(pos < pData.mStrings.size)
+        return pData.mStrings[pos]
+    }
 
     /** Finds a node in the collada scene by the given name */
-    internal fun findNode(pNode: Node, pName: String): Node? {
+    fun findNode(pNode: Node, pName: String): Node? {
         if (pNode.mName == pName || pNode.mID == pName)
             return pNode
 
@@ -554,8 +824,22 @@ class ColladaLoader : BaseImporter() {
         return null
     }
 
+    /** Finds a node in the collada scene by the given SID  */
+    fun findNodeBySID(pNode: Node, pSID: String): Node? {
+        if (pNode.mSID == pSID)
+            return pNode
+
+        pNode.mChildren.forEach {
+            val node = findNodeBySID(it, pSID)
+            if (node != null)
+                return node
+        }
+
+        return null
+    }
+
     /** Finds a proper name for a node derived from the collada-node's properties   */
-    internal fun findNameForNode(pNode: Node) =
+    fun findNameForNode(pNode: Node) =
             // now setup the name of the node. We take the name if not empty, otherwise the collada ID
             // FIX: Workaround for XSI calling the instanced visual scene 'untitled' by default.
             if (pNode.mName.isNotEmpty() && pNode.mName != "untitled")
