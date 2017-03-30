@@ -41,8 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package main
 
-import main.f
-import mat.Mat4
+import glm.f
+import glm.mat.Mat4
 
 // ---------------------------------------------------------------------------
 /** Helper structure to describe a virtual camera.

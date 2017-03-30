@@ -1,9 +1,6 @@
 package format.stl
 
-import main.BYTES
-import main.and
-import main.f
-import main.i
+import glm.*
 import main.*
 import main.s
 import unsigned.ushr
@@ -217,7 +214,7 @@ class STLImporter : BaseImporter() {
             val vn = AiVector3D(mBuffer, sz)
             sz += AiVector3D.SIZE
             repeat(3) {
-                pMesh.mNormals.add(vn.copy())
+                pMesh.mNormals.add(AiVector3D(vn))
                 pMesh.mVertices.add(AiVector3D(mBuffer, sz))
                 sz += AiVector3D.SIZE
             }
@@ -314,8 +311,8 @@ class STLImporter : BaseImporter() {
                         vn.x = words[++i].toFloat()
                         vn.y = words[++i].toFloat()
                         vn.z = words[++i].toFloat()
-                        normalBuffer.add(vn.copy())
-                        normalBuffer.add(vn.copy())
+                        normalBuffer.add(AiVector3D(vn))
+                        normalBuffer.add(AiVector3D(vn))
                     } catch (exc: NumberFormatException) {
                         throw Error("STL: unexpected EOF while parsing facet")
                     }

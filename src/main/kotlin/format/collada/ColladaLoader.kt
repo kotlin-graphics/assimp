@@ -1,10 +1,12 @@
 package format.collada
 
+import glm.*
 import main.BaseImporter
 import java.net.URI
 import main.*
-import mat.Mat4
 import unsigned.Uint
+import unsigned.ui
+import glm.mat.Mat4
 
 /**
  * Created by elect on 23/01/2017.
@@ -642,7 +644,7 @@ class ColladaLoader : BaseImporter() {
                 if (sampler.mUVId != Uint.MAX_VALUE.i) // TODO MAX_VALUE to Int
                     sampler.mUVId
                 else
-                    sampler.mUVChannel.firstOrNull { it.isNumeric() }?.let {
+                    sampler.mUVChannel.firstOrNull(Char::isNumeric)?.let {
                         println("Collada: unable to determine UV channel for texture")
                         0
                     }
@@ -691,9 +693,10 @@ class ColladaLoader : BaseImporter() {
         mat.reflectivity = effect.mReflectivity
         mat.refracti = effect.mRefractIndex
 
-        // transparency, a very hard one. seemingly not all files are following the specification here (1.0 transparency => completly opaque)...
-        // therefore, we let the opportunity for the user to manually invert the transparency if necessary and we add preliminary support for RGB_ZERO mode
-        if (effect.mTransparency >= 0f && effect.mTransparency <= 1f) {
+        /* transparency, a very hard one. seemingly not all files are following the specification here
+         (1.0 transparency => completly opaque)... therefore, we let the opportunity for the user to manually invert
+         the transparency if necessary and we add preliminary support for RGB_ZERO mode */
+        if (effect.mTransparency in 0f..1f) {
             // handle RGB transparency completely, cf Collada specs 1.5.0 pages 249 and 304
             if (effect.mRGBTransparency) {
                 // use luminance as defined by ISO/CIE color standards (see ITU-R Recommendation BT.709-4)

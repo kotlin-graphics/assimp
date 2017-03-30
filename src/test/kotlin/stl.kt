@@ -2,8 +2,9 @@ import io.kotlintest.specs.StringSpec
 import main.AiPrimitiveType
 import main.Importer
 import main.URI
-import mat.Mat4
-import vec._3.Vec3
+import glm.mat.Mat4
+import glm.vec._3.Vec3
+import io.kotlintest.matchers.shouldBe
 
 /**
  * Created by elect on 18/11/2016.

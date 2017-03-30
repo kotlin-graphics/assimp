@@ -3,7 +3,8 @@ import main.AiPrimitiveType
 import main.AiShadingMode
 import main.Importer
 import main.URI
-import vec._3.Vec3
+import glm.vec._3.Vec3
+import io.kotlintest.matchers.shouldBe
 import java.util.*
 
 /**

@@ -1,7 +1,8 @@
 package format.collada
 
+import glm.*
 import main.*
-import mat.Mat4
+import glm.mat.Mat4
 import java.io.File
 import java.io.FileReader
 import java.net.URI
@@ -2477,7 +2478,7 @@ class ColladaParser(pFile: URI) {
                 }
                 TransformType.ROTATE -> {
 
-                    val angle = tf.f[3] * AI_MATH_PI.f / 180f
+                    val angle = tf.f[3] * glm.PIf / 180f
                     val axis = AiVector3D(tf.f)
                     val rot = glm.rotate(Mat4(), angle, axis)
                     res *= rot

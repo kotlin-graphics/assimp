@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath(kotlinModule("gradle-plugin", "1.1.0"))
+        classpath(kotlinModule("gradle-plugin", "1.1.1"))
 //        classpath("com.github.jengelman.gradle.plugins:shadow:1.2.3")
     }
 }
@@ -25,10 +25,10 @@ repositories {
 }
 
 dependencies {
-    compile(kotlinModule("stdlib", "1.1.0"))
-    testCompile("com.github.elect86:kotlintest:d8878d6da0944ec6bcbcdad6a1540bba021d768d")
-    compile("com.github.elect86:kotlin-unsigned:405b68c99309459eeb24c2639f016f26dcf59ba3")
-    compile("com.github.elect86:glm:05859e02c3529f7a95b4b8cefbeb16f9b5e0b515")
+    compile(kotlinModule("stdlib", "1.1.1"))
+    testCompile("io.kotlintest:kotlintest:2.0.0")
+    compile("com.github.elect86:kotlin-unsigned:3a9f8afc98ed3636b7d8c2bbff1b1223f027fab4")
+    compile("com.github.elect86:glm:51f9ee28a3dd327b2a2e63fedf58210950fc61ff")
 }
 
 allprojects {

@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package main
 
-import quat.Quat
+import glm.quat.Quat
 
 /**
  * Created by elect on 29/01/2017.

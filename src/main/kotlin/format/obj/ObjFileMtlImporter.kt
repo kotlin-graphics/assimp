@@ -1,7 +1,7 @@
 package format.obj
 
-import main.f
-import main.i
+import glm.f
+import glm.i
 import main.words
 
 /**

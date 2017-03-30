@@ -4,7 +4,7 @@ import main.AI_MAX_NUMBER_OF_TEXTURECOORDS
 import main.AiColor3D
 import main.AiPrimitiveType
 import main.AiVector3D
-import mat.Mat4
+import glm.mat.Mat4
 
 /**
  * Created by elect on 21/11/2016.

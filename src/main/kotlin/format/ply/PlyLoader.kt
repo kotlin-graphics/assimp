@@ -1,5 +1,7 @@
 package format.ply
 
+import glm.*
+import glm.vec._3.Vec3
 import main.AiColor4D
 import main.AiMaterial
 import main.AiMesh
@@ -10,14 +12,7 @@ import main.AiVector2D
 import main.AiVector3D
 import main.AiColor3D
 import main.BaseImporter
-import main.b
-import main.f
-import main.i
 import main.*
-import main.ub
-import main.ui
-import main.us
-import vec._3.Vec3
 import java.io.File
 import java.io.RandomAccessFile
 import java.net.URI

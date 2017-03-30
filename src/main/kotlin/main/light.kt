@@ -41,8 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package main
 
-import main.f
-import main.i
+import glm.f
 
 /**
  * Created by elect on 29/01/2017.

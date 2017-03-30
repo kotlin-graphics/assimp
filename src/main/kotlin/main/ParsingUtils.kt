@@ -1,6 +1,6 @@
 package main
 
-import main.b
+import glm.b
 import java.nio.ByteBuffer
 
 /**

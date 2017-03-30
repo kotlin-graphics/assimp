@@ -1,21 +1,16 @@
 package main
 
-import mat.Mat4
+import glm.mat.Mat4
+import glm.vec._2.Vec2
+import glm.vec._3.Vec3
+import glm.vec._4.Vec4
 import org.w3c.dom.Element
-import vec._2.Vec2
-import vec._2.Vec2d
-import vec._3.Vec3
-import vec._3.Vec3d
-import vec._4.Vec4
-import vec._4.Vec4d
 import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import javax.xml.stream.XMLEventReader
-import javax.xml.stream.events.XMLEvent
-import kotlin.reflect.KClass
+import glm.glm
 
 /**
  * Created by elect on 14/11/2016.
@@ -47,16 +42,16 @@ fun URI.exists() = Files.exists(Paths.get(this))
 val URI.s
     get() = toString()
 
-val String.URI
+val String.URI: URI
     get() = javaClass.getResource(this).toURI()
 
 fun Element.elementChildren(): ArrayList<Element> {
 
     val res = ArrayList<Element>()
 
-    for (i in 0 until childNodes.length) {
+    repeat(childNodes.length) {
 
-        val element = childNodes.item(i)
+        val element = childNodes.item(it)
 
         if (element is Element)
             res.add(element)
@@ -74,6 +69,5 @@ val String.words
 //////////////////////////////////////////////////////////////////////////
 
 /* This is PI. Hi PI. */
-val AI_MATH_PI         = Math.PI // TODO glm
-val AI_MATH_TWO_PI      = Math.PI * 2
-val AI_MATH_HALF_PI    = AI_MATH_PI * 0.5
+val AI_MATH_TWO_PI      = Math.PI * 2   // TODO glm?
+val AI_MATH_HALF_PI    = glm.PIf * 0.5

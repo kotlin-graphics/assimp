@@ -1,6 +1,6 @@
 package main
 
-import mat.Mat4
+import glm.mat.Mat4
 
 /**
  * Created by elect on 13/11/2016.
