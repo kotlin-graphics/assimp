@@ -18,7 +18,7 @@ AiScene scene = new Importer().readFile("test/resources/models/OBJ/box.obj");
 val scene = Importer().readFile("test/resources/models/OBJ/box.obj")
 ```
 
-###[Port Status](https://github.com/java-graphics/assimp/wiki/Status)
+[Port Status](https://github.com/java-graphics/assimp/wiki/Status)
 
 [Format priority list](https://github.com/java-graphics/assimp/wiki/Priority-list-of-file-formats)
 
