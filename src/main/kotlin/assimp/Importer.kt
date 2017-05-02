@@ -1,5 +1,8 @@
 package assimp
 
+import java.io.FileNotFoundException
+import java.net.URI
+
 /**
  * Created by elect on 13/11/2016.
  */
@@ -47,7 +50,7 @@ class ImporterPimpl {
  */
 class Importer(
         // Just because we don't want you to know how we're hacking around.
-        private val pimpl: assimp.ImporterPimpl = assimp.ImporterPimpl(
+        private val pimpl: ImporterPimpl = ImporterPimpl(
                 getImporterInstanceList(),
                 getPostProcessingStepInstanceList())
 ) {
@@ -59,13 +62,15 @@ class Importer(
         val MaxLenHint = 200
     }
 
-    fun readFile(_pFile: java.net.URI, pFlags: Int = 0): AiScene? {
+    fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context::class.java.classLoader.getResource(_pFile).toURI(), pFlags)
+
+    fun readFile(_pFile: URI, pFlags: Int = 0): AiScene? {
 
         // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
 
         // First check if the file is accessible at all
-        if (!_pFile.exists()) throw java.io.FileNotFoundException("Unable to open file " + _pFile)
+        if (!_pFile.exists()) throw FileNotFoundException("Unable to open file " + _pFile)
 
         // Find an worker class which can handle the file
         val imp: BaseImporter? = pimpl.mImporter.firstOrNull { it.canRead(_pFile, false) }
