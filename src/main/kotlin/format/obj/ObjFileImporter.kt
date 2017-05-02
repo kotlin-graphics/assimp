@@ -222,7 +222,7 @@ class ObjFileImporter : BaseImporter() {
         pMesh.mNumVertices = numIndices
         if (pMesh.mNumVertices == 0)
             throw Error("OBJ: no vertices")
-        else if (pMesh.mNumVertices > AI_MAX_ALLOC(AiVector3D.SIZE))
+        else if (pMesh.mNumVertices > AI_MAX_ALLOC(AiVector3D.size))
             throw Error("OBJ: Too many vertices, would run out of memory")
 
         pMesh.mVertices = MutableList(pMesh.mNumVertices, { AiVector3D() })

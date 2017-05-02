@@ -6,7 +6,7 @@ import java.net.URI
 import main.*
 import unsigned.Uint
 import unsigned.ui
-import glm.mat.Mat4
+import glm.mat4x4.Mat4
 
 /**
  * Created by elect on 23/01/2017.

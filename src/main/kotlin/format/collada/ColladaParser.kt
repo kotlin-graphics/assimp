@@ -2,7 +2,7 @@ package format.collada
 
 import glm.*
 import main.*
-import glm.mat.Mat4
+import glm.mat4x4.Mat4
 import java.io.File
 import java.io.FileReader
 import java.net.URI

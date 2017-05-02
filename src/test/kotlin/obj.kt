@@ -1,7 +1,7 @@
 import io.kotlintest.specs.StringSpec
 import main.*
-import glm.mat.Mat4
-import glm.vec._3.Vec3
+import glm.mat4x4.Mat4
+import glm.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import java.util.*
 

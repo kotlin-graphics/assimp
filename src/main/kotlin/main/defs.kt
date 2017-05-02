@@ -1,9 +1,9 @@
 package main
 
-import glm.mat.Mat4
-import glm.vec._2.Vec2
-import glm.vec._3.Vec3
-import glm.vec._4.Vec4
+import glm.mat4x4.Mat4
+import glm.vec2.Vec2
+import glm.vec3.Vec3
+import glm.vec4.Vec4
 import org.w3c.dom.Element
 import java.io.File
 import java.net.URI

@@ -1,7 +1,7 @@
 package format.ply
 
 import glm.*
-import glm.vec._3.Vec3
+import glm.vec3.Vec3
 import main.AiColor4D
 import main.AiMaterial
 import main.AiMesh

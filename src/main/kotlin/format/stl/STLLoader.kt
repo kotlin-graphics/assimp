@@ -212,11 +212,11 @@ class STLImporter : BaseImporter() {
             // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
             // step should fix that
             val vn = AiVector3D(mBuffer, sz)
-            sz += AiVector3D.SIZE
+            sz += AiVector3D.size
             repeat(3) {
                 pMesh.mNormals.add(AiVector3D(vn))
                 pMesh.mVertices.add(AiVector3D(mBuffer, sz))
-                sz += AiVector3D.SIZE
+                sz += AiVector3D.size
             }
 
             val color = mBuffer.getShort(sz)
