@@ -5,6 +5,12 @@ import glm.vec2.Vec2
 import glm.vec3.Vec3
 import glm.vec4.Vec4
 import glm.mat4x4.Mat4
+import org.w3c.dom.Element
+import java.io.File
+import java.net.URI
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * Created by elect on 14/11/2016.
@@ -29,40 +35,37 @@ typealias AiVector2D = Vec2
 fun AI_MAX_ALLOC(size: Int) = (256 * 1024 * 1024) / size
 
 // TODO file operators overloading, https://youtrack.jetbrains.com/issue/KT-15009
-infix operator fun java.io.File.plus(another: String) = java.io.File(this, another)
+infix operator fun File.plus(another: String) = File(this, another)
 
-fun java.net.URL.exists() = java.nio.file.Files.exists(java.nio.file.Paths.get(toURI()))
-fun java.net.URI.exists() = java.nio.file.Files.exists(java.nio.file.Paths.get(this))
-val java.net.URI.s
-    get() = toString()
+fun URL.exists() = Files.exists(Paths.get(toURI()))
+fun URI.exists() = Files.exists(Paths.get(this))
+val URI.s get() = toString()
 
-val String.URI: java.net.URI
-    get() = javaClass.getResource(this).toURI()
+val String.URI get() = javaClass.getResource(this).toURI()
 
-fun org.w3c.dom.Element.elementChildren(): ArrayList<org.w3c.dom.Element> {
+fun Element.elementChildren(): ArrayList<Element> {
 
-    val res = ArrayList<org.w3c.dom.Element>()
+    val res = ArrayList<Element>()
 
     repeat(childNodes.length) {
 
         val element = childNodes.item(it)
 
-        if (element is org.w3c.dom.Element)
+        if (element is Element)
             res.add(element)
     }
     return res
 }
 
-operator fun org.w3c.dom.Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
+operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
 
-val String.words
-    get() = trim().split("\\s+".toRegex())
+val String.words get() = trim().split("\\s+".toRegex())
 
 //////////////////////////////////////////////////////////////////////////
 /* Useful constants */
 //////////////////////////////////////////////////////////////////////////
 
 /* This is PI. Hi PI. */
-val AI_MATH_TWO_PI      = glm.PI * 2   // TODO glm?
-val AI_MATH_TWO_PIf      = glm.PIf * 2   // TODO glm?
-val AI_MATH_HALF_PI    = glm.PIf * 0.5
+val AI_MATH_TWO_PI = glm.PI * 2   // TODO glm?
+val AI_MATH_TWO_PIf = glm.PIf * 2   // TODO glm?
+val AI_MATH_HALF_PI = glm.PIf * 0.5
