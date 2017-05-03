@@ -36,6 +36,9 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
                     's' -> m_pModel.m_pCurrentMaterial!!.specular.put(words, 1)
                     'e' -> m_pModel.m_pCurrentMaterial!!.emissive.put(words, 1)
                 }
+                'T' -> when (words[0][1]) { // Material transmission
+                    'f' -> m_pModel.m_pCurrentMaterial!!.transparent.put(words, 1)
+                }
                 'd' ->
                     if (words[0] == "disp") // A displacement map
                         getTexture(line)
@@ -87,6 +90,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         if (mat == null) {
             // New Material created
             m_pModel.m_pCurrentMaterial = Material(matName)
+            m_pModel.m_pCurrentMesh?.m_uiMaterialIndex = m_pModel.m_MaterialLib.size
             m_pModel.m_MaterialLib.add(matName)
             m_pModel.m_MaterialMap.put(matName, m_pModel.m_pCurrentMaterial!!)
         }

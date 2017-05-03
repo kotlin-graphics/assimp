@@ -356,9 +356,6 @@ class ObjFileImporter : BaseImporter() {
                 }
             }
 
-            // multiplying the specular exponent with 2 seems to yield better results
-            pCurrentMaterial.shineness *= 4.f
-
             // Adding material colors
             mat.color = AiMaterial.Color()
             mat.color?.ambient = pCurrentMaterial.ambient
@@ -367,18 +364,20 @@ class ObjFileImporter : BaseImporter() {
             mat.color?.emissive = pCurrentMaterial.emissive
             mat.shininess = pCurrentMaterial.shineness
             mat.opacity = pCurrentMaterial.alpha
+            mat.color?.transparent = pCurrentMaterial.transparent
 
             // Adding refraction index
             mat.refracti = pCurrentMaterial.ior
 
             // Adding textures
+            val uvwIndex = 0
             pCurrentMaterial.textures.forEach {
                 mat.textures.add(
                         if (it.clamp)
-                            AiMaterial.Texture(type = map[it.type], file = it.name,
+                            AiMaterial.Texture(type = map[it.type], file = it.name, uvwsrc = uvwIndex,
                                     mapModeU = AiTexture.MapMode.clamp, mapModeV = AiTexture.MapMode.clamp)
                         else
-                            AiMaterial.Texture(type = AiTexture.Type.diffuse, file = it.name))
+                            AiMaterial.Texture(type = map[it.type], file = it.name, uvwsrc = uvwIndex))
             }
 
             // Store material property info in material array in scene

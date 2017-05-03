@@ -16,6 +16,302 @@ class obj : io.kotlintest.specs.StringSpec() {
 
     init {
 
+        val nanosuit = "nanosuit/nanosuit.obj"
+
+        nanosuit {
+
+            with(Importer().readFile((obj + nanosuit).URI)!!) {
+
+                with(mRootNode) {
+
+                    mName shouldBe "nanosuit.obj"
+                    mTransformation shouldBe Mat4()
+                    mNumChildren shouldBe 7
+
+                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
+
+                    (0 until mNumChildren).map {
+                        mChildren[it].mName shouldBe names[it]
+                        mChildren[it].mMeshes!![0] shouldBe it
+                    }
+
+                    mNumMeshes shouldBe 0
+                }
+
+                with(mMeshes[0]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 156
+                    mNumFaces shouldBe 52
+
+                    mVertices[0] shouldBe Vec3(x = 0.320383996f, y = 14.0575409f, z = 0.507779002)
+                    mVertices[77] shouldBe Vec3(x = 0.00970300008f, y = 14.3252335f, z = 0.651058972)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = -0.300857008f, y = 14.0575409f, z = 0.507779002f)
+
+                    mNormals[0] shouldBe Vec3(x = 0.496899992f, y = -0.240799993f, z = 0.833700001)
+                    mNormals[77] shouldBe Vec3(x = 0.108800001f, y = -0.159199998f, z = 0.981199980f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = -0.496399999f, y = -0.241899997f, z = 0.833700001f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][77], floatArrayOf(0.0595699996f, 0.754760981f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[25] shouldBe listOf(75, 76, 77)
+                    mFaces[mNumFaces - 1] shouldBe listOf(153, 154, 155)
+
+                    mMaterialIndex shouldBe 3
+
+                    mName shouldBe "Visor"
+                }
+
+                with(mMeshes[1]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 15222
+                    mNumFaces shouldBe 5074
+
+                    mVertices[0] shouldBe Vec3(x = 1.899165f, y = 2.31763411f, z = -0.120600000f)
+                    mVertices[7610] shouldBe Vec3(x = -0.425206006f, y = 6.15252495f, z = 0.327194005f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = 0.602433026f, y = 7.82357216f, z = -1.3782050f)
+
+                    mNormals[0] shouldBe Vec3(x = -0.710300028f, y = 0.137300000f, z = 0.690400004)
+                    mNormals[7610] shouldBe Vec3(x = 0.849799991f, y = -0.326099992f, z = 0.414099991f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = 0.0302000009f, y = -0.153899997f, z = -0.987600029f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.283690989f, 0.568114996f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][7610], floatArrayOf(1.9658200f, 0.282715f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.373046994f, 0.152344003f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[2536] shouldBe listOf(7608, 7609, 7610)
+                    mFaces[mNumFaces - 1] shouldBe listOf(15219, 15220, 15221)
+
+                    mMaterialIndex shouldBe 6
+
+                    mName shouldBe "Legs"
+                }
+
+                with(mMeshes[2]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 19350
+                    mNumFaces shouldBe 6450
+
+                    mVertices[0] shouldBe Vec3(x = -3.55469608f, y = 8.31433487f, z = 1.45077002)
+                    mVertices[9675] shouldBe Vec3(x = 3.56796789f, y = 7.70999908f, z = 1.54873502f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = 3.46042705f, y = 7.47475290f, z = 1.01681304f)
+
+                    mNormals[0] shouldBe Vec3(x = -0.408199996f, y = -0.825800002f, z = -0.389200002f)
+                    mNormals[9675] shouldBe Vec3(x = 0.930800021f, y = -0.305799991f, z = 0.200299993f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = 0.365900010f, y = 0.658500016f, z = -0.657599986f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.948729992f, 0.610351980f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][9675], floatArrayOf(0.949218988f, 0.799315989f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.321045011f, 0.451660007f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[2536] shouldBe listOf(7608, 7609, 7610)
+                    mFaces[mNumFaces - 1] shouldBe listOf(19347, 19348, 19349)
+
+                    mMaterialIndex shouldBe 4
+
+                    mName shouldBe "hands"
+                }
+
+                with(mMeshes[3]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 78
+                    mNumFaces shouldBe 26
+
+                    mVertices[0] shouldBe Vec3(x = 0.519383013f, y = 14.0981007f, z = 0.399747014f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = -0.454726994f, y = 14.0737648f, z = 0.435452998f)
+
+                    mNormals[0] shouldBe Vec3(x = 0.663699985f, y = -0.158099994f, z = 0.731100023)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = -0.663699985f, y = -0.158099994f, z = 0.731100023f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.470214993f, 0.796020985f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.148314998f, 0.648193002f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[mNumFaces - 1] shouldBe listOf(75, 76, 77)
+
+                    mMaterialIndex shouldBe 3
+
+                    mName shouldBe "Lights"
+                }
+
+                with(mMeshes[4]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 6804
+                    mNumFaces shouldBe 2268
+
+                    mVertices[0] shouldBe Vec3(x = 3.65801501f, y = 9.13363171f, z = 1.10836804f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = 3.06237602f, y = 10.2043982f, z = -0.735961020f)
+
+                    mNormals[0] shouldBe Vec3(x = -0.949199975f, y = -0.0269000009f, z = -0.313499987f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = 0.365000010f, y = -0.602299988f, z = -0.709900022f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.451171994f, 0.0678709969f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.772948980f, 0.980515003f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[mNumFaces - 1] shouldBe listOf(6801, 6802, 6803)
+
+                    mMaterialIndex shouldBe 1
+
+                    mName shouldBe "Arms"
+                }
+
+                with(mMeshes[5]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 7248
+                    mNumFaces shouldBe 2416
+
+                    mVertices[0] shouldBe Vec3(x = 0.169514000f, y = 13.7492905f, z = 0.552182019f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = 0.564511001f, y = 14.9660711f, z = 0.226483002)
+
+                    mNormals[0] shouldBe Vec3(x = 0.738699973f, y = -0.110500000f, z = 0.664900005f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = 0.956200004f, y = -0.109999999f, z = 0.271400005f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.153198004f, 0.172362998f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.491210997f, 0.944916010f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[mNumFaces - 1] shouldBe listOf(7245, 7246, 7247)
+
+                    mMaterialIndex shouldBe 5
+
+                    mName shouldBe "Helmet"
+                }
+
+                with(mMeshes[6]) {
+
+                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    mNumVertices shouldBe 8316
+                    mNumFaces shouldBe 2772
+
+                    mVertices[0] shouldBe Vec3(x = 1.41331196f, y = 11.7699909f, z = -1.45877004f)
+                    mVertices[mNumVertices - 1] shouldBe Vec3(x = -0.137869999f, y = 13.8385210f, z = -1.14200103f)
+
+                    mNormals[0] shouldBe Vec3(x = 0.990599990f, y = 0.0780000016f, z = -0.112599999f)
+                    mNormals[mNumVertices - 1] shouldBe Vec3(x = 0.610899985f, y = 0.394199997f, z = -0.686600029f)
+
+                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.819335997f, 0.985771000f)) shouldBe true
+                    Arrays.equals(mTextureCoords[0][mNumVertices - 1], floatArrayOf(0.0746460035f, 0.579346001f)) shouldBe true
+
+                    mTextureCoords[0][0].size shouldBe 2
+
+                    mFaces[0] shouldBe listOf(0, 1, 2)
+                    mFaces[mNumFaces - 1] shouldBe listOf(8313, 8314, 8315)
+
+                    mMaterialIndex shouldBe 2
+
+                    mName shouldBe "Body"
+                }
+
+                with(mMaterials[0]) {
+
+                    name shouldBe "DefaultMaterial"
+                    shadingModel shouldBe AiShadingMode.gouraud
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.600000024f)
+                        specular shouldBe Vec3(0)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 0f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)   // TODO add transparent to other tests
+                        refracti shouldBe 1f
+                    }
+                }
+
+                with(mMaterials[1]) {
+
+                    name shouldBe "Arm"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "arm_dif.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "arm_showroom_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.specular }!!) {
+                        file shouldBe "arm_showroom_spec.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "arm_showroom_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+
+                with(mMaterials[2]) {
+
+                    name shouldBe "Body"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "body_dif.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "body_showroom_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.specular }!!) {
+                        file shouldBe "body_showroom_spec.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "body_showroom_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+            }
+        }
+
         val spider = "spider.obj"
 
         spider {
@@ -354,7 +650,7 @@ class obj : io.kotlintest.specs.StringSpec() {
                         diffuse!! shouldBe Vec3(0.141176000, 0.184313998, 0.411765009)
                         specular!! shouldBe Vec3(0)
                         emissive!! shouldBe Vec3(0)
-                        shininess!! shouldBe 1_600f
+                        shininess!! shouldBe 400f
                         opacity!! shouldBe 1f
                         refracti!! shouldBe 1f
                     }

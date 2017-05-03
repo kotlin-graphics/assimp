@@ -73,7 +73,9 @@ data class Material(
         //! Illumination model
         var illumination_model: Int = 1,
         //! Index of refraction
-        var ior: Float = 1.0f
+        var ior: Float = 1.0f,
+        //! Transparency color
+        var transparent: AiColor3D = AiColor3D(1f)
 ) {
     class Texture(
             val name: String,

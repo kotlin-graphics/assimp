@@ -10,6 +10,7 @@ buildscript {
     ext.kotlinVersion = '1.1.2-2'
 
     repositories {
+//        jcenter()
         mavenCentral()
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -17,8 +18,11 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+//        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
     }
 }
+
+//apply plugin: 'com.github.johnrengelman.shadow'
 
 
 dependencies {
@@ -28,11 +32,8 @@ dependencies {
     compile 'com.github.kotlin-graphics:glm:4711d0f44930262d53f4c3b9a799edb4f6a4401d'
     compile 'com.github.kotlin-graphics:kotlin-unsigned:48c570946f845fb2a016bf4f7e9caa9129765529'
 
-    testCompile 'com.github.elect86:kotlintest:b31cda5fb3f38606bb08f32c22f2177a98c634aa'
-
-    def joglVersion = '2.3.2'
-    compile "org.jogamp.gluegen:gluegen-rt-main:$joglVersion"
-    compile "org.jogamp.jogl:jogl-all-main:$joglVersion"
+//    testCompile 'com.github.elect86:kotlintest:b31cda5fb3f38606bb08f32c22f2177a98c634aa'
+    testCompile 'io.kotlintest:kotlintest:2.0.1'
 }
 
 repositories {
