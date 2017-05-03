@@ -11,15 +11,12 @@ import java.io.File
 val DEFAULT_MATERIAL = AI_DEFAULT_MATERIAL_NAME
 val DefaultObjName = "defaultobject"
 
-class ObjFileParser {
+class ObjFileParser(private val file: File) {
 
     //! Pointer to model instance
     val m_pModel = Model()
-    private var file: File
 
-    constructor(file: File) {
-
-        this.file = file
+    init {
         // Create the model instance to store all the data
         m_pModel.m_ModelName = file.name
 

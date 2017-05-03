@@ -1,5 +1,7 @@
 package assimp
 
+import java.nio.ByteBuffer
+
 /**
  * Created by elect on 17/11/2016.
  */
@@ -369,11 +371,11 @@ data class AiMaterial(
 
         var opacity: Float? = null,
 
-        var bumpScaling: Float? = null, // unsure
+        var bumpScaling: Float? = null, // TODO unsure
 
         var shininess: Float? = null,
 
-        var reflectivity: Float? = null, // unsure
+        var reflectivity: Float? = null, // TODO unsure
 
         var shininessStrength: Float? = null,
 
@@ -381,7 +383,7 @@ data class AiMaterial(
 
         var color: AiMaterial.Color? = null,
 
-        var textures: MutableList<AiMaterial.Texture> = mutableListOf()
+        var textures: ArrayList<AiMaterial.Texture> = ArrayList()
 ) {
 
     data class Color(
@@ -396,7 +398,7 @@ data class AiMaterial(
 
             var transparent: AiColor3D? = null,
 
-            var reflective: AiColor3D? = null // unsure
+            var reflective: AiColor3D? = null // TODO unsure
     )
 
     data class Texture(
@@ -421,6 +423,7 @@ data class AiMaterial(
 
             var flags: Int? = null,
 
-            var uvTrafo: AiUVTransform? = null
-    )
+            var uvTrafo: AiUVTransform? = null,
+
+            var data: ByteBuffer? = null)
 }
