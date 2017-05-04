@@ -1,6 +1,5 @@
 package assimp.format.obj
 
-import glm.f
 import assimp.*
 import java.io.File
 import java.net.URI
@@ -414,7 +413,7 @@ class ObjFileImporter : BaseImporter() {
                 // TODO handle file null?
                 val name = tex.file!!
 
-                if (!scene.texData.containsKey(name)) {
+                if (!scene.textures.containsKey(name)) {
 
                     var i = 0
                     while (!name[i].isLetter()) i++
@@ -422,9 +421,7 @@ class ObjFileImporter : BaseImporter() {
 
                     val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
 
-                    val data = gli.load(texFile).data()
-
-                    scene.texData[name] = data
+                    scene.textures[name] = gli.load(texFile)
                 }
             }
         }
