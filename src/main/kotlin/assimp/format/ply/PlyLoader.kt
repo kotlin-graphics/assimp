@@ -138,7 +138,7 @@ class PlyLoader : BaseImporter() {
 
         // now generate the output scene object. Fill the material list
         pScene.mNumMaterials = avMaterials.size
-        pScene.mMaterials = avMaterials.toMutableList()
+        pScene.mMaterials.addAll(avMaterials)
 
         // fill the mesh list
         pScene.mNumMeshes = avMeshes.size

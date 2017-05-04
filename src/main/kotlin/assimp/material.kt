@@ -423,7 +423,6 @@ data class AiMaterial(
 
             var flags: Int? = null,
 
-            var uvTrafo: AiUVTransform? = null,
-
-            var data: ByteBuffer? = null)
+            var uvTrafo: AiUVTransform? = null
+    )
 }

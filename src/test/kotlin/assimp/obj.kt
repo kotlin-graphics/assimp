@@ -4,13 +4,14 @@ import assimp.*
 import glm.mat4x4.Mat4
 import glm.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
+import io.kotlintest.specs.StringSpec
 import java.util.*
 
 /**
  * Created by elect on 16/11/2016.
  */
 
-class obj : io.kotlintest.specs.StringSpec() {
+class obj : StringSpec() {
 
     val obj = models + "/OBJ/"
 
@@ -306,6 +307,138 @@ class obj : io.kotlintest.specs.StringSpec() {
                     }
                     with(textures.find { it.type == AiTexture.Type.height }!!) {
                         file shouldBe "body_showroom_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+
+                with(mMaterials[3]) {
+
+                    name shouldBe "Glass"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "glass_dif.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "glass_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "glass_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+
+                with(mMaterials[4]) {
+
+                    name shouldBe "Hand"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "hand_dif.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "hand_showroom_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.specular }!!) {
+                        file shouldBe "hand_showroom_spec.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "hand_showroom_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+
+                with(mMaterials[5]) {
+
+                    name shouldBe "Helmet"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "helmet_diff.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "helmet_showroom_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.specular }!!) {
+                        file shouldBe "helmet_showroom_spec.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "helmet_showroom_ddn.png"
+                        uvwsrc shouldBe 0
+                    }
+                }
+
+                with(mMaterials[6]) {
+
+                    name shouldBe "Leg"
+                    shadingModel shouldBe AiShadingMode.phong
+
+                    with(color!!) {
+                        ambient shouldBe Vec3(0)
+                        diffuse shouldBe Vec3(0.639999986f)
+                        specular shouldBe Vec3(0.5f)
+                        emissive shouldBe Vec3(0)
+                        shininess shouldBe 96.0784302f
+                        opacity shouldBe 1f
+                        transparent shouldBe Vec3(1f)
+                        refracti shouldBe 1f
+                    }
+
+                    with(textures.find { it.type == AiTexture.Type.diffuse }!!) {
+                        file shouldBe "leg_dif.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.ambient }!!) {
+                        file shouldBe "leg_showroom_refl.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.specular }!!) {
+                        file shouldBe "leg_showroom_spec.png"
+                        uvwsrc shouldBe 0
+                    }
+                    with(textures.find { it.type == AiTexture.Type.height }!!) {
+                        file shouldBe "leg_showroom_ddn.png"
                         uvwsrc shouldBe 0
                     }
                 }

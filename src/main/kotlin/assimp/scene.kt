@@ -1,5 +1,8 @@
 package assimp
 
+import glm.mat4x4.Mat4
+import java.nio.ByteBuffer
+
 /**
  * Created by elect on 13/11/2016.
  */
@@ -39,16 +42,16 @@ data class AiNode(
         var mName: String = "",
 
         /** The transformation relative to the node's parent. */
-        var mTransformation: glm.mat4x4.Mat4 = glm.mat4x4.Mat4(),
+        var mTransformation: Mat4 = Mat4(),
 
         /** Parent node. NULL if this node is the root node. */
-        var mParent: assimp.AiNode? = null,
+        var mParent: AiNode? = null,
 
         /** The number of child nodes of this node. */
         var mNumChildren: Int = 0,
 
         /** The child nodes of this node. NULL if mNumChildren is 0. */
-        var mChildren: MutableList<assimp.AiNode> = ArrayList(),
+        var mChildren: MutableList<AiNode> = ArrayList(),
 
         /** The number of meshes of this node. */
         var mNumMeshes: Int = 0,
@@ -60,7 +63,7 @@ data class AiNode(
          *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
          *  @endlink page for more information on every source file format. Importers that don't document any metadata
          *  don't write any.         */
-        var mMetaData: MutableList<assimp.AiMetadata>? = null
+        var mMetaData: MutableList<AiMetadata>? = null
 ) {
 
 //    fun finNode(name: String): AiNode? {
@@ -134,7 +137,7 @@ class AiScene {
      *
      * There will always be at least the root node if the import was successful (and no special flags have been set).
      * Presence of further nodes depends on the format and content of the imported file.         */
-    lateinit var mRootNode: assimp.AiNode
+    lateinit var mRootNode: AiNode
 
     /** The number of meshes in the scene. */
     var mNumMeshes = 0
@@ -143,7 +146,7 @@ class AiScene {
      *
      * Use the indices given in the aiNode structure to access this array. The array is mNumMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var mMeshes: MutableList<AiMesh> = ArrayList<AiMesh>()
+    var mMeshes = ArrayList<AiMesh>()
 
     /** The number of materials in the scene. */
     var mNumMaterials = 0
@@ -152,7 +155,9 @@ class AiScene {
      *
      * Use the index given in each aiMesh structure to access this array. The array is mNumMaterials in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    lateinit var mMaterials: MutableList<AiMaterial>
+    var mMaterials = ArrayList<AiMaterial>()
+
+    val texData = mutableMapOf<String, ByteBuffer>()
 
     /** The number of animations in the scene. */
     var mNumAnimations = 0
