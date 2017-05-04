@@ -78,7 +78,7 @@ class ObjFileImporter : BaseImporter() {
         // Create all materials
         createMaterials(pModel, pScene)
 
-        if(ASSIMP_LOAD_TEXTURES)
+        if (ASSIMP_LOAD_TEXTURES)
             loadTextures(pScene)
     }
 
@@ -414,9 +414,13 @@ class ObjFileImporter : BaseImporter() {
                 // TODO handle file null?
                 val name = tex.file!!
 
-                if(!scene.texData.containsKey(name)) {
+                if (!scene.texData.containsKey(name)) {
 
-                    val texFile = file.listFiles().first { it.name == name }!!
+                    var i = 0
+                    while (!name[i].isLetter()) i++
+                    val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
+
+                    val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
 
                     val data = gli.load(texFile).data()
 
