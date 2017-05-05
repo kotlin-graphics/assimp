@@ -157,7 +157,7 @@ class AiScene {
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
     var mMaterials = ArrayList<AiMaterial>()
 
-    val texData = mutableMapOf<String, ByteBuffer>()
+    val textures = mutableMapOf<String, gli.Texture>()
 
     /** The number of animations in the scene. */
     var mNumAnimations = 0
