@@ -1,6 +1,5 @@
 package assimp.format.obj
 
-import glm.f
 import assimp.*
 import java.io.File
 import java.net.URI
@@ -24,8 +23,7 @@ class ObjFileImporter : BaseImporter() {
         )
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Returns true, if file is an obj file.
+    /**  Returns true, if file is an obj file.  */
     override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
 
         if (!checkSig)   //Check File Extension
@@ -34,12 +32,14 @@ class ObjFileImporter : BaseImporter() {
             return false
     }
 
-    // ------------------------------------------------------------------------------------------------
-    // Obj-file import implementation
+    //  reference to load textures later
+    private lateinit var file: File
+
+    /** Obj-file import implementation  */
     override fun internReadFile(pFile: URI, pScene: AiScene) {
 
         // Read file into memory
-        val file = File(pFile)
+        file = File(pFile)
         if (!file.canRead()) throw FileSystemException("Failed to open file $pFile.")
 
         // Get the file-size and validate it, throwing an exception when fails
@@ -54,8 +54,7 @@ class ObjFileImporter : BaseImporter() {
         createDataFromImport(parser.m_pModel, pScene)
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Create the data from parsed obj-file
+    /**  Create the data from parsed obj-file   */
     fun createDataFromImport(pModel: Model, pScene: AiScene) {
 
         // Create the root node of the scene
@@ -73,14 +72,16 @@ class ObjFileImporter : BaseImporter() {
 
         // Create mesh pointer buffer for this scene
         if (pScene.mNumMeshes > 0)
-            pScene.mMeshes = meshArray.toMutableList()
+            pScene.mMeshes.addAll(meshArray)
 
         // Create all materials
         createMaterials(pModel, pScene)
+
+        if (ASSIMP_LOAD_TEXTURES)
+            loadTextures(pScene)
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Creates all nodes of the model
+    /**  Creates all nodes of the model */
     fun createNodes(pModel: Model, pObject: Object, pParent: AiNode, pScene: AiScene, meshArray: MutableList<AiMesh>): AiNode {
 
         // Store older mesh size to be able to computes mesh offsets for new mesh instances
@@ -124,8 +125,7 @@ class ObjFileImporter : BaseImporter() {
         return pNode
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Appends this node to the parent node
+    /**  Appends this node to the parent node   */
     fun appendChildToParentNode(pParent: AiNode, pChild: AiNode) {
 
         // Assign parent to child
@@ -135,8 +135,7 @@ class ObjFileImporter : BaseImporter() {
         pParent.mChildren.add(pChild)
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Create topology data
+    /**  Create topology data   */
     fun createTopology(pModel: Model, pData: Object, meshIndex: Int): AiMesh? {
 
         // Create faces
@@ -207,8 +206,7 @@ class ObjFileImporter : BaseImporter() {
         return pMesh
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Creates a vertex array
+    /**  Creates a vertex array */
     fun createVertexArray(pModel: Model, pCurrentObject: Object, uiMeshIndex: Int, pMesh: AiMesh, numIndices: Int) {
 
         // Break, if no faces are stored in object
@@ -322,8 +320,7 @@ class ObjFileImporter : BaseImporter() {
         }
     }
 
-    // ------------------------------------------------------------------------------------------------
-    //  Creates the material
+    /**  Creates the material   */
     fun createMaterials(pModel: Model, pScene: AiScene) {
 
         val numMaterials = pModel.m_MaterialLib.size
@@ -333,7 +330,6 @@ class ObjFileImporter : BaseImporter() {
             return
         }
 
-        pScene.mMaterials = ArrayList<AiMaterial>(numMaterials)
         for (matIndex in 0 until numMaterials) {
 
             // Store material name
@@ -371,6 +367,25 @@ class ObjFileImporter : BaseImporter() {
 
             // Adding textures
             val uvwIndex = 0
+
+            val map = mapOf(
+                    Material.Texture.Type.diffuse to AiTexture.Type.diffuse,
+                    Material.Texture.Type.ambient to AiTexture.Type.ambient,
+                    Material.Texture.Type.emissive to AiTexture.Type.emissive,
+                    Material.Texture.Type.specular to AiTexture.Type.specular,
+                    Material.Texture.Type.bump to AiTexture.Type.height,
+                    Material.Texture.Type.normal to AiTexture.Type.normals,
+                    Material.Texture.Type.reflectionCubeBack to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionCubeBottom to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionCubeFront to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionCubeLeft to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionCubeRight to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionCubeTop to AiTexture.Type.reflection,
+                    Material.Texture.Type.reflectionSphere to AiTexture.Type.reflection,
+                    Material.Texture.Type.disp to AiTexture.Type.displacement,
+                    Material.Texture.Type.opacity to AiTexture.Type.opacity,
+                    Material.Texture.Type.specularity to AiTexture.Type.shininess)
+
             pCurrentMaterial.textures.forEach {
                 mat.textures.add(
                         if (it.clamp)
@@ -389,23 +404,28 @@ class ObjFileImporter : BaseImporter() {
         assert(pScene.mNumMaterials == numMaterials)
     }
 
-    val map = mapOf(
-            Material.Texture.Type.diffuse to AiTexture.Type.diffuse,
-            Material.Texture.Type.ambient to AiTexture.Type.ambient,
-            Material.Texture.Type.emissive to AiTexture.Type.emissive,
-            Material.Texture.Type.specular to AiTexture.Type.specular,
-            Material.Texture.Type.bump to AiTexture.Type.height,
-            Material.Texture.Type.normal to AiTexture.Type.normals,
-            Material.Texture.Type.reflectionCubeBack to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionCubeBottom to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionCubeFront to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionCubeLeft to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionCubeRight to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionCubeTop to AiTexture.Type.reflection,
-            Material.Texture.Type.reflectionSphere to AiTexture.Type.reflection,
-            Material.Texture.Type.disp to AiTexture.Type.displacement,
-            Material.Texture.Type.opacity to AiTexture.Type.opacity,
-            Material.Texture.Type.specularity to AiTexture.Type.shininess)
+    /**  Load textures   */
+    fun loadTextures(scene: AiScene) {
+
+        scene.mMaterials.forEach { mtl ->
+
+            mtl.textures.forEach { tex ->
+                // TODO handle file null?
+                val name = tex.file!!
+
+                if (!scene.textures.containsKey(name)) {
+
+                    var i = 0
+                    while (!name[i].isLetter()) i++
+                    val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
+
+                    val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
+
+                    scene.textures[name] = gli.load(texFile)
+                }
+            }
+        }
+    }
 }
 
 

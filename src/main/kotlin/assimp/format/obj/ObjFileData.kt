@@ -56,7 +56,7 @@ data class Material(
         var materialName: String,
 
         //! Textures
-        var textures: MutableList<Texture> = mutableListOf(),
+        var textures: ArrayList<Texture> = ArrayList(),
 
         //! Ambient color
         var ambient: AiColor3D = AiColor3D(),

@@ -31,7 +31,7 @@ class ScenePreprocessor(
 
         // Generate a default material if none was specified
         if(scene.mNumMaterials == 0 && scene.mNumMeshes > 0) {
-            scene.mMaterials = java.util.ArrayList(2)
+            scene.mMaterials = ArrayList(2) // TODO useless
 
             val helper = AiMaterial()
 
