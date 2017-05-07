@@ -62,7 +62,9 @@ class Importer(
         val MaxLenHint = 200
     }
 
-    fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context::class.java.classLoader.getResource(_pFile).toURI(), pFlags)
+    fun readFile(_pFile: String, pFlags: Int = 0) = readFile(String::class.java.getResource(_pFile).toURI(), pFlags)
+
+    fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context.classLoader.getResource(_pFile).toURI(), pFlags)
 
     fun readFile(_pFile: URI, pFlags: Int = 0): AiScene? {
 

@@ -2,7 +2,6 @@ package assimp
 
 import io.kotlintest.specs.StringSpec
 import assimp.Importer
-import assimp.URI
 
 /**
  * Created by elect on 24/01/2017.

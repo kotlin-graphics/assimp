@@ -18,7 +18,7 @@ class ply : io.kotlintest.specs.StringSpec() {
         val cube = "cube.ply"
         cube {
 
-            with(Importer().readFile((ply + cube).URI)!!) {
+            with(Importer().readFile(ply + cube)!!) {
 
                 mNumMeshes shouldBe 1
                 with(mMeshes[0]) {
@@ -55,7 +55,7 @@ class ply : io.kotlintest.specs.StringSpec() {
         val wuson = "Wuson.ply"
         wuson {
 
-            with(Importer().readFile((ply + wuson).URI)!!) {
+            with(Importer().readFile(ply + wuson)!!) {
 
                 mNumMeshes shouldBe 1
                 with(mMeshes[0]) {
@@ -102,7 +102,7 @@ class ply : io.kotlintest.specs.StringSpec() {
         val pond0 = "pond.0.ply"
         pond0 {
 
-            with(Importer().readFile((ply + pond0).URI)!!) {
+            with(Importer().readFile(ply + pond0)!!) {
 
                 mNumMeshes shouldBe 1
                 with(mMeshes[0]) {

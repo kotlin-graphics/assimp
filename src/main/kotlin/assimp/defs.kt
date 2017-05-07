@@ -41,8 +41,6 @@ fun URL.exists() = Files.exists(Paths.get(toURI()))
 fun URI.exists() = Files.exists(Paths.get(this))
 val URI.s get() = toString()
 
-val String.URI get() = javaClass.getResource(this).toURI()
-
 fun Element.elementChildren(): ArrayList<Element> {
 
     val res = ArrayList<Element>()

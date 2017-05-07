@@ -3,11 +3,12 @@ package assimp
 import glm.mat4x4.Mat4
 import glm.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
+import io.kotlintest.specs.StringSpec
 
 /**
  * Created by elect on 18/11/2016.
  */
-class stl : io.kotlintest.specs.StringSpec() {
+class stl : StringSpec() {
 
     val stl = models + "/STL/"
 
@@ -17,7 +18,7 @@ class stl : io.kotlintest.specs.StringSpec() {
 
         triangle {
 
-            val scene = Importer().readFile((stl + triangle).URI)!!
+            val scene = Importer().readFile(stl + triangle)!!
 
             scene.mFlags shouldBe 0
 
@@ -88,7 +89,7 @@ class stl : io.kotlintest.specs.StringSpec() {
 
         sphereWithHole {
 
-            val scene = Importer().readFile((stl + sphereWithHole).URI)!!
+            val scene = Importer().readFile(stl + sphereWithHole)!!
 
             scene.mFlags shouldBe 0
 
@@ -173,7 +174,7 @@ class stl : io.kotlintest.specs.StringSpec() {
 
         spiderBinary {
 
-            val scene = Importer().readFile((stl + spiderBinary).URI)!!
+            val scene = Importer().readFile(stl + spiderBinary)!!
 
             scene.mFlags shouldBe 0
 

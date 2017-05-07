@@ -20,7 +20,7 @@ class obj : io.kotlintest.specs.StringSpec() {
 
         nanosuit {
 
-            with(Importer().readFile((obj + nanosuit).URI)!!) {
+            with(Importer().readFile(obj + nanosuit)!!) {
 
                 with(mRootNode) {
 
@@ -316,7 +316,7 @@ class obj : io.kotlintest.specs.StringSpec() {
 
         spider {
 
-            with(Importer().readFile((obj + spider).URI)!!) {
+            with(Importer().readFile(obj + spider)!!) {
 
                 with(mRootNode) {
 
@@ -512,7 +512,7 @@ class obj : io.kotlintest.specs.StringSpec() {
 
         box {
 
-            with(Importer().readFile((obj + box).URI)!!) {
+            with(Importer().readFile(obj + box)!!) {
 
                 with(mRootNode) {
 
@@ -569,7 +569,7 @@ class obj : io.kotlintest.specs.StringSpec() {
 
         concavePolygon {
 
-            with(Importer().readFile((obj + concavePolygon).URI)!!) {
+            with(Importer().readFile(obj + concavePolygon)!!) {
 
                 with(mRootNode) {
 
