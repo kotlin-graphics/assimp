@@ -76,6 +76,7 @@ class Importer(
         //TODO if (pimpl.mScene != null) FreeScene()
         Log.d("Assimp", "in")
         // First check if the file is accessible at all
+        Log.d("Assimp", "${assets.open(path)}")
         val stream = assets.open(path) ?: throw Error("Unable to open stream: $path")
         Log.d("Assimp", "in2")
         // Find an worker class which can handle the file
