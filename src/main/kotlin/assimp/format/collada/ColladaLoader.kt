@@ -7,12 +7,21 @@ import assimp.*
 import unsigned.Uint
 import unsigned.ui
 import glm.mat4x4.Mat4
+import java.io.InputStream
 
 /**
  * Created by elect on 23/01/2017.
  */
 
 class ColladaLoader : BaseImporter() {
+
+    override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun internReadFile(stream: InputStream, pScene: AiScene) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     companion object {
 
@@ -64,7 +73,7 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    fun canRead(pFile: URI, checkSig: Boolean): Boolean {
 
         // check file extension
         val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
@@ -80,7 +89,7 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    fun internReadFile(pFile: URI, pScene: AiScene) {
 
         mFileName = pFile
 

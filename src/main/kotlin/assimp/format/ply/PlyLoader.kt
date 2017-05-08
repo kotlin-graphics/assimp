@@ -1,14 +1,10 @@
 package assimp.format.ply
 
+import assimp.*
 import glm.*
 import glm.vec3.Vec3
-import assimp.*
-import java.io.File
-import java.io.RandomAccessFile
-import java.net.URI
+import java.io.InputStream
 import java.nio.ByteOrder
-import java.nio.channels.FileChannel
-import java.nio.file.FileSystemException
 
 /**
  * Created by elect on 10/12/2016.
@@ -30,9 +26,9 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
 
-        val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
+        val extension = _filename.substringAfterLast('.')
 
         if (extension == "ply")
             return true
@@ -42,43 +38,36 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(stream: InputStream, pScene: AiScene) {
 
-        val file = File(pFile)
-
-        // Check whether we can read from the file
-        if (!file.canRead()) throw FileSystemException("Failed to open PLY file $pFile.")
-
-        // allocate storage and copy the contents of the file to a memory buffer
-        val fileChannel = RandomAccessFile(file, "r").channel
-        val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        val buffer = stream.toByteBuffer()
 
         // the beginning of the file must be PLY - magic, magic
-        if (mBuffer2.nextWord().toLowerCase() != "ply") throw Error("Invalid .ply file: Magic number 'ply' is no there")
+        if (buffer.nextWord().toLowerCase() != "ply") throw Error("Invalid .ply file: Magic number 'ply' is no there")
 
-        mBuffer2.skipSpacesAndLineEnd()
+        buffer.skipSpacesAndLineEnd()
 
         // determine the format of the file data
         val sPlyDom = DOM()
-        if (mBuffer2.nextWord() == "format") {
+        if (buffer.nextWord() == "format") {
 
-            val format = mBuffer2.nextWord()
+            val format = buffer.nextWord()
             if (format == "ascii") {
-                mBuffer2.skipLine()
-                if (!DOM.parseInstance(mBuffer2, sPlyDom))
+                buffer.skipLine()
+                if (!DOM.parseInstance(buffer, sPlyDom))
                     throw Error("Invalid .ply file: Unable to build DOM (#1)")
             } else {
                 // revert ascii
-                mBuffer2.position(mBuffer2.position() - format.length)
+                buffer.position(buffer.position() - format.length)
 
-                if (mBuffer2.startsWith("binary_")) {
+                if (buffer.startsWith("binary_")) {
 
-                    val bIsBE = mBuffer2.get(mBuffer2.position()) == 'b'.b || mBuffer2.get(mBuffer2.position()) == 'B'.b
-                    mBuffer2.order(if (bIsBE) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN)
+                    val bIsBE = buffer.get(buffer.position()) == 'b'.b || buffer.get(buffer.position()) == 'B'.b
+                    buffer.order(if (bIsBE) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN)
 
                     // skip the line, parse the rest of the header and build the DOM
-                    mBuffer2.skipLine()
-                    if (!DOM.parseInstanceBinary(mBuffer2, sPlyDom))
+                    buffer.skipLine()
+                    if (!DOM.parseInstanceBinary(buffer, sPlyDom))
                         throw Error("Invalid .ply file: Unable to build DOM (#2)")
 
                 } else throw Error("Invalid .ply file: Unknown file format")

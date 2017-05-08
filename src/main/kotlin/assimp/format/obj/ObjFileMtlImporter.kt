@@ -3,6 +3,7 @@ package assimp.format.obj
 import glm.f
 import glm.i
 import assimp.words
+import java.util.stream.Stream
 
 /**
  * Created by elect on 27/11/2016.
@@ -13,7 +14,7 @@ import assimp.words
  *  @brief  Loads the material description from a mtl file.
  */
 
-class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
+class ObjFileMtlImporter(buffer: Stream<String>, private val m_pModel: Model) {
 
     init {
         if (m_pModel.m_pDefaultMaterial == null)
@@ -21,7 +22,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         load(buffer)
     }
 
-    fun load(buffer: List<String>) {
+    fun load(buffer: Stream<String>) {
 
         for (line in buffer) {
 

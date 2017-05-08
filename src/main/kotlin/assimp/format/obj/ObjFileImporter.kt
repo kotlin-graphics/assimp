@@ -1,9 +1,7 @@
 package assimp.format.obj
 
 import assimp.*
-import java.io.File
-import java.net.URI
-import java.nio.file.FileSystemException
+import java.io.InputStream
 
 /**
  * Created by elect on 21/11/2016.
@@ -24,31 +22,24 @@ class ObjFileImporter : BaseImporter() {
     }
 
     /**  Returns true, if file is an obj file.  */
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
 
         if (!checkSig)   //Check File Extension
-            return pFile.s.substring(pFile.s.lastIndexOf('.') + 1) == "obj"
+            return _filename.substringAfterLast('.') == "obj"
         else //Check file Header
             return false
     }
 
-    //  reference to load textures later
-    private lateinit var file: File
-
     /** Obj-file import implementation  */
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
-
-        // Read file into memory
-        file = File(pFile)
-        if (!file.canRead()) throw FileSystemException("Failed to open file $pFile.")
+    override fun internReadFile(stream: InputStream, pScene: AiScene) {
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = file.length()
+        for (i in 0..ObjMinSize) if (stream.read() == -1) throw Error("OBJ-file is too small.")
 
-        if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
+        stream.reset()
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(file)
+        val parser = ObjFileParser(stream)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, pScene)
@@ -77,8 +68,8 @@ class ObjFileImporter : BaseImporter() {
         // Create all materials
         createMaterials(pModel, pScene)
 
-        if (ASSIMP_LOAD_TEXTURES)
-            loadTextures(pScene)
+//        if (ASSIMP_LOAD_TEXTURES) // TODO
+//            loadTextures(pScene)
     }
 
     /**  Creates all nodes of the model */
@@ -405,27 +396,27 @@ class ObjFileImporter : BaseImporter() {
     }
 
     /**  Load textures   */
-    fun loadTextures(scene: AiScene) {
-
-        scene.mMaterials.forEach { mtl ->
-
-            mtl.textures.forEach { tex ->
-                // TODO handle file null?
-                val name = tex.file!!
-
-                if (!scene.textures.containsKey(name)) {
-
-                    var i = 0
-                    while (!name[i].isLetter()) i++
-                    val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
-
-                    val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
-
-                    scene.textures[name] = gli.load(texFile)
-                }
-            }
-        }
-    }
+//    fun loadTextures(scene: AiScene) {
+//
+//        scene.mMaterials.forEach { mtl ->
+//
+//            mtl.textures.forEach { tex ->
+//                // TODO handle file null?
+//                val name = tex.file!!
+//
+//                if (!scene.textures.containsKey(name)) {
+//
+//                    var i = 0
+//                    while (!name[i].isLetter()) i++
+//                    val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
+//
+//                    val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
+//
+//                    scene.textures[name] = gli.load(texFile)
+//                }
+//            }
+//        }
+//    }
 }
 
 

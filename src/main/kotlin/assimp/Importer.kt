@@ -1,7 +1,12 @@
 package assimp
 
-import java.io.FileNotFoundException
-import java.net.URI
+import android.content.res.AssetManager
+import glm.b
+import glm.set
+import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.properties.Delegates
 
 /**
  * Created by elect on 13/11/2016.
@@ -25,8 +30,8 @@ class ImporterPimpl {
     val mErrorString: String = ""
 
     constructor(mImporter: List<BaseImporter>, mPostProcessingSteps: List<BaseProcess>) {
-        this.mImporter=mImporter
-        this.mPostProcessingSteps=mPostProcessingSteps
+        this.mImporter = mImporter
+        this.mPostProcessingSteps = mPostProcessingSteps
     }
 }
 
@@ -60,29 +65,29 @@ class Importer(
          *  @brief The upper limit for hints.
          */
         val MaxLenHint = 200
+
     }
 
-    fun readFile(_pFile: String, pFlags: Int = 0) = readFile(String::class.java.getResource(_pFile).toURI(), pFlags)
+    fun readFile(assets: AssetManager, path: String, pFlags: Int = 0): AiScene? {
 
-    fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context.classLoader.getResource(_pFile).toURI(), pFlags)
-
-    fun readFile(_pFile: URI, pFlags: Int = 0): AiScene? {
-
+        _assets = assets
         // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
 
         // First check if the file is accessible at all
-        if (!_pFile.exists()) throw FileNotFoundException("Unable to open file " + _pFile)
+        val stream = assets.open(path) ?: throw Error("Unable to open stream: $path")
 
         // Find an worker class which can handle the file
-        val imp: BaseImporter? = pimpl.mImporter.firstOrNull { it.canRead(_pFile, false) }
+        val imp = pimpl.mImporter.firstOrNull { it.canRead(stream, false) }
 
         if (imp == null) {
             // TODO
             return null
         }
 
-        pimpl.mScene = imp.readFile(this, _pFile)
+        pimpl.mScene = imp.readFile(this, stream)
+
+        stream.close()
 
         // If successful, apply all active post processing steps to the imported data
         if (pimpl.mScene != null) {
@@ -94,3 +99,16 @@ class Importer(
     }
 }
 
+var _filename = ""
+var _assets by Delegates.notNull<AssetManager>()
+
+fun InputStream.toByteBuffer(): ByteBuffer {
+    var i = read()
+    val bytes = ArrayList<Byte>()
+    while (i != -1) {
+        bytes += i.b
+        i = read()
+    }
+
+    return ByteBuffer.allocate(bytes.size).order(ByteOrder.nativeOrder()).apply { repeat(bytes.size) { this[it] = bytes[it] } }
+}

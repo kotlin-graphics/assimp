@@ -1,8 +1,9 @@
 package assimp.format.obj
 
-import glm.f
 import assimp.*
-import java.io.File
+import glm.f
+import java.io.InputStream
+import java.util.stream.Stream
 
 /**
  * Created by elect on 21/11/2016.
@@ -11,14 +12,14 @@ import java.io.File
 val DEFAULT_MATERIAL = AI_DEFAULT_MATERIAL_NAME
 val DefaultObjName = "defaultobject"
 
-class ObjFileParser(private val file: File) {
+class ObjFileParser(stream: InputStream) {
 
     //! Pointer to model instance
     val m_pModel = Model()
 
     init {
         // Create the model instance to store all the data
-        m_pModel.m_ModelName = file.name
+        m_pModel.m_ModelName = _filename.substringAfterLast('/')
 
         // create default material and store it
         m_pModel.m_pDefaultMaterial = Material(DEFAULT_MATERIAL)
@@ -26,12 +27,13 @@ class ObjFileParser(private val file: File) {
         m_pModel.m_MaterialMap.put(DEFAULT_MATERIAL, m_pModel.m_pDefaultMaterial!!)
 
         // Start parsing the file
-        parseFile(file.readLines())
+
+        parseFile(stream.bufferedReader().lines())
     }
 
     // -------------------------------------------------------------------
     //  File parsing method.
-    fun parseFile(streamBuffer: List<String>) {
+    fun parseFile(streamBuffer: Stream<String>) {
 
         for (line in streamBuffer) {
 
@@ -246,13 +248,14 @@ class ObjFileParser(private val file: File) {
 
         val filename = words[1]
 
-        val pFile = file.parentFile + filename
+        val parent = _filename.substringBeforeLast('/')
+        val stream = _assets.open(parent + filename)
 
-        if (!pFile.exists()) {
+        if (stream == null) {
             System.err.println("OBJ: Unable to locate material file $filename")
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
-            if (!File(strMatFallbackName).exists()) {
+            if (_assets.open(strMatFallbackName) == null) {
                 System.err.println("OBJ: Unable to locate fallback material file $strMatFallbackName")
                 return
             }
@@ -260,7 +263,7 @@ class ObjFileParser(private val file: File) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = pFile.readLines().filter(String::isNotBlank)
+        val buffer = stream.bufferedReader().lines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }

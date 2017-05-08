@@ -1,6 +1,8 @@
 package assimp
 
+import java.io.InputStream
 import java.net.URI
+import java.nio.ByteBuffer
 
 /**
  * Created by elect on 13/11/2016.
@@ -24,7 +26,7 @@ abstract class BaseImporter {
      * @return true if the class can read this file, false if not.
      */
     abstract fun canRead(
-            pFile: URI,
+            stream: InputStream,
             checkSig: Boolean
     ): Boolean
 
@@ -45,13 +47,13 @@ abstract class BaseImporter {
      */
     fun readFile(
             pImp: Importer,
-            pFile: URI): AiScene {
+            stream: InputStream): AiScene {
 
         // create a scene object to hold the data
         val sc = AiScene()
 
         // dispatch importing
-        internReadFile(pFile, sc)
+        internReadFile(stream, sc)
 
         return sc
     }
@@ -91,7 +93,7 @@ abstract class BaseImporter {
      * @param pIOHandler The IO handler to use for any file access.
      * NULL is not a valid parameter. */
     protected abstract fun internReadFile(
-            pFile: URI,
+            stream: InputStream,
             pScene: AiScene)
 
     // ------------------------------------------------------------------------------------------------

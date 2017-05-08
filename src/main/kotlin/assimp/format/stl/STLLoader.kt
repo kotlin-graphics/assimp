@@ -1,15 +1,13 @@
 package assimp.format.stl
 
 import assimp.*
-import glm.*
+import glm.BYTES
+import glm.and
+import glm.f
+import glm.s
 import unsigned.ushr
-import java.io.File
-import java.io.RandomAccessFile
-import java.net.URI
+import java.io.InputStream
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.channels.FileChannel
-import java.nio.file.FileSystemException
 import java.util.*
 
 /**
@@ -81,9 +79,9 @@ class STLImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
 
-        val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
+        val extension = _filename.substringAfterLast('.')
 
         if (extension == "stl") {
             return true
@@ -102,21 +100,14 @@ class STLImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(stream: InputStream, pScene: AiScene) {
 
-        val file = File(pFile)
+        val buffer = stream.toByteBuffer()
 
-        // Check whether we can read from the file
-        if (!file.canRead()) throw FileSystemException("Failed to open STL file $pFile.")
-
-        fileSize = file.length().i
-
-        // allocate storage and copy the contents of the file to a memory buffer
-        val fileChannel = RandomAccessFile(file, "r").channel
-        val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        fileSize = buffer.capacity()
 
         this.pScene = pScene
-        this.mBuffer = mBuffer2
+        this.mBuffer = buffer
 
         // the default vertex color is light gray.
         clrColorDefault put 0.6f
@@ -130,7 +121,7 @@ class STLImporter : BaseImporter() {
             bMatClr = loadBinaryFile()
         else if (isAsciiSTL(mBuffer, fileSize))
             loadASCIIFile()
-        else throw Error("Failed to determine STL storage representation for $pFile.")
+        else throw Error("Failed to determine STL storage representation for $_filename.")
 
         // add all created meshes to the single node
         pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
