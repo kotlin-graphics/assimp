@@ -15,9 +15,7 @@ import java.io.InputStream
 
 class ColladaLoader : BaseImporter() {
 
-    override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun canRead(stream: InputStream, checkSig: Boolean) = false
 
     override fun internReadFile(stream: InputStream, pScene: AiScene) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
