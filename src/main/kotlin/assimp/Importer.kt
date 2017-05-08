@@ -74,13 +74,14 @@ class Importer(
         _assets = assets
         // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
-        Log.d("Assimp", "in")
+
         // First check if the file is accessible at all
-        Log.d("Assimp", if(assets.open(path) == null) "null" else "!null")
         val stream = assets.open(path) ?: throw Error("Unable to open stream: $path")
-        Log.d("Assimp", "in2")
+
         // Find an worker class which can handle the file
         val imp = pimpl.mImporter.firstOrNull { it.canRead(stream, false) }
+
+        Log.d("Assimp", "in2")
 
         if (imp == null) {
             // TODO

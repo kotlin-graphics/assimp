@@ -24,7 +24,7 @@ class ObjFileImporter : BaseImporter() {
 
     /**  Returns true, if file is an obj file.  */
     override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
-Log.d("Assimp", _filename.substringAfterLast('.'))
+        Log.d("Assimp", _filename.substringAfterLast('.'))
         if (!checkSig)   //Check File Extension
             return _filename.substringAfterLast('.') == "obj"
         else //Check file Header

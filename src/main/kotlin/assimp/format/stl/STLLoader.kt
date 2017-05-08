@@ -1,5 +1,6 @@
 package assimp.format.stl
 
+import android.util.Log
 import assimp.*
 import glm.BYTES
 import glm.and
@@ -80,7 +81,7 @@ class STLImporter : BaseImporter() {
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
     override fun canRead(stream: InputStream, checkSig: Boolean): Boolean {
-
+        Log.d("Assimp.stl", "canread")
         val extension = _filename.substringAfterLast('.')
 
         if (extension == "stl") {
