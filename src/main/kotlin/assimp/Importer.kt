@@ -81,15 +81,15 @@ class Importer(
         // Find an worker class which can handle the file
         val imp = pimpl.mImporter.firstOrNull { it.canRead(stream, false) }
 
-        Log.d("Assimp", "in2")
-
         if (imp == null) {
             // TODO
+            Log.d("Assimp", "return null")
             return null
         }
 
+        Log.d("Assimp", "in")
         pimpl.mScene = imp.readFile(this, stream)
-
+        Log.d("Assimp", "in2")
         stream.close()
 
         // If successful, apply all active post processing steps to the imported data
