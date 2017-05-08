@@ -31,6 +31,10 @@ dependencies {
 
     compile 'com.github.kotlin-graphics:gli:15f63adafe12435aa0d94c46d1ad1cda5c8f0462'
 
+    // https://mvnrepository.com/artifact/com.google.android/android
+    compileOnly group: 'com.google.android', name: 'android', version: '2.3.1'
+
+
 //    testCompile 'com.github.elect86:kotlintest:b31cda5fb3f38606bb08f32c22f2177a98c634aa'
     testCompile 'io.kotlintest:kotlintest:2.0.1'
 }
