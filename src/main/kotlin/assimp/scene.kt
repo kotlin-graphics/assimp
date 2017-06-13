@@ -1,6 +1,6 @@
 package assimp
 
-import glm.mat4x4.Mat4
+import glm_.mat4x4.Mat4
 import java.nio.ByteBuffer
 
 /**

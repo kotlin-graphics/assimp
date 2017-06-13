@@ -1,7 +1,7 @@
 package assimp
 
 import assimp.AiPrimitiveType
-import glm.vec3.Vec3
+import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import java.util.*
 

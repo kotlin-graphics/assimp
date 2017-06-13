@@ -1,7 +1,7 @@
 package assimp.format.stl
 
 import assimp.*
-import glm.*
+import glm_.*
 import unsigned.ushr
 import java.io.File
 import java.io.RandomAccessFile

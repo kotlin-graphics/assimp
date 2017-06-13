@@ -7,7 +7,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.1.2-2'
+    ext.kotlinVersion = '1.1.2-5'
 
     repositories {
 //        jcenter()
@@ -29,7 +29,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:gli:15f63adafe12435aa0d94c46d1ad1cda5c8f0462'
+    compile 'com.github.kotlin-graphics:gli:21d969448fea09fbe928103f4a4af52f27f00791'
 
 //    testCompile 'com.github.elect86:kotlintest:b31cda5fb3f38606bb08f32c22f2177a98c634aa'
     testCompile 'io.kotlintest:kotlintest:2.0.1'

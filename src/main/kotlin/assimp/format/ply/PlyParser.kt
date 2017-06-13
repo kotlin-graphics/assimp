@@ -1,10 +1,10 @@
 package assimp.format.ply
 
-import glm.d
-import glm.f
-import glm.i
+import glm_.d
+import glm_.f
+import glm_.i
 import assimp.*
-import glm.ui
+import glm_.ui
 import java.nio.ByteBuffer
 
 /**

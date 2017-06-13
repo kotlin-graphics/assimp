@@ -1,6 +1,6 @@
 package assimp.format.obj
 
-import glm.f
+import glm_.f
 import assimp.*
 import java.io.File
 

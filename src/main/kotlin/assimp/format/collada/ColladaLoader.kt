@@ -1,12 +1,12 @@
 package assimp.format.collada
 
-import glm.*
+import glm_.*
 import assimp.BaseImporter
 import java.net.URI
 import assimp.*
 import unsigned.Uint
 import unsigned.ui
-import glm.mat4x4.Mat4
+import glm_.mat4x4.Mat4
 
 /**
  * Created by elect on 23/01/2017.

@@ -1,8 +1,8 @@
 package assimp
 
 import assimp.*
-import glm.mat4x4.Mat4
-import glm.vec3.Vec3
+import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
 import java.util.*
@@ -16,6 +16,31 @@ class obj : StringSpec() {
     val obj = models + "/OBJ/"
 
     init {
+
+        val dragon = "dragon/dragon.obj"
+
+        dragon {
+
+            with(Importer().readFile(obj + dragon)!!) {
+
+                println()
+//                with(mRootNode) {
+//
+//                    mName shouldBe "nanosuit.obj"
+//                    mTransformation shouldBe Mat4()
+//                    mNumChildren shouldBe 7
+//
+//                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
+//
+//                    (0 until mNumChildren).map {
+//                        mChildren[it].mName shouldBe names[it]
+//                        mChildren[it].mMeshes!![0] shouldBe it
+//                    }
+//
+//                    mNumMeshes shouldBe 0
+//                }
+            }
+        }
 
         val nanosuit = "nanosuit/nanosuit.obj"
 

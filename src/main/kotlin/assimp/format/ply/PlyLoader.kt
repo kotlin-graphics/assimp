@@ -1,7 +1,7 @@
 package assimp.format.ply
 
-import glm.*
-import glm.vec3.Vec3
+import glm_.*
+import glm_.vec3.Vec3
 import assimp.*
 import java.io.File
 import java.io.RandomAccessFile

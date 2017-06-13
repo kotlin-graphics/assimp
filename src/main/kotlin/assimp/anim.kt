@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
-import glm.quat.Quat
+import glm_.quat.Quat
 
 /**
  * Created by elect on 29/01/2017.
@@ -64,7 +64,7 @@ class AiQuatKey(
         var mTime: Double = 0.0,
 
         /** The value of this key */
-        var mValue: glm.quat.Quat = glm.quat.Quat())
+        var mValue: Quat = Quat())
 
 // ---------------------------------------------------------------------------
 /** Binds a anim mesh to a specific point in time. */

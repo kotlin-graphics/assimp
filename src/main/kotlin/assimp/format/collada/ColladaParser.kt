@@ -1,8 +1,8 @@
 package assimp.format.collada
 
 import assimp.*
-import glm.*
-import glm.mat4x4.Mat4
+import glm_.*
+import glm_.mat4x4.Mat4
 import java.io.File
 import java.io.FileReader
 import java.net.URI

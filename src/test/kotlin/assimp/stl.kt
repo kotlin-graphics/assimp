@@ -1,7 +1,7 @@
 package assimp
 
-import glm.mat4x4.Mat4
-import glm.vec3.Vec3
+import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
 

@@ -4,7 +4,7 @@ package assimp.format.collada
  * Created by elect on 23/01/2017.
  */
 
-import glm.i
+import glm_.i
 import assimp.*
 import org.w3c.dom.Node as XmlNode
 

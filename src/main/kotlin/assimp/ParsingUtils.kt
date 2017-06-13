@@ -1,6 +1,6 @@
 package assimp
 
-import glm.b
+import glm_.b
 import java.nio.ByteBuffer
 
 /**

@@ -4,7 +4,7 @@ import assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS
 import assimp.AiColor3D
 import assimp.AiPrimitiveType
 import assimp.AiVector3D
-import glm.mat4x4.Mat4
+import glm_.mat4x4.Mat4
 
 /**
  * Created by elect on 21/11/2016.

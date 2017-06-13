@@ -1,7 +1,7 @@
 package assimp.format.obj
 
-import glm.f
-import glm.i
+import glm_.f
+import glm_.i
 import assimp.words
 
 /**
