@@ -17,30 +17,30 @@ class obj : StringSpec() {
 
     init {
 
-        val dragon = "dragon/dragon.obj"
-
-        dragon {
-
-            with(Importer().readFile(obj + dragon)!!) {
-
-                println()
-//                with(mRootNode) {
+//        val dragon = "dragon/dragon.obj"
 //
-//                    mName shouldBe "nanosuit.obj"
-//                    mTransformation shouldBe Mat4()
-//                    mNumChildren shouldBe 7
+//        dragon {
 //
-//                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
+//            with(Importer().readFile(obj + dragon)!!) {
 //
-//                    (0 until mNumChildren).map {
-//                        mChildren[it].mName shouldBe names[it]
-//                        mChildren[it].mMeshes!![0] shouldBe it
-//                    }
-//
-//                    mNumMeshes shouldBe 0
-//                }
-            }
-        }
+//                println()
+////                with(mRootNode) {
+////
+////                    mName shouldBe "nanosuit.obj"
+////                    mTransformation shouldBe Mat4()
+////                    mNumChildren shouldBe 7
+////
+////                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
+////
+////                    (0 until mNumChildren).map {
+////                        mChildren[it].mName shouldBe names[it]
+////                        mChildren[it].mMeshes!![0] shouldBe it
+////                    }
+////
+////                    mNumMeshes shouldBe 0
+////                }
+//            }
+//        }
 
         val nanosuit = "nanosuit/nanosuit.obj"
 
@@ -58,7 +58,7 @@ class obj : StringSpec() {
 
                     (0 until mNumChildren).map {
                         mChildren[it].mName shouldBe names[it]
-                        mChildren[it].mMeshes!![0] shouldBe it
+                        mChildren[it].mMeshes[0] shouldBe it
                     }
 
                     mNumMeshes shouldBe 0
@@ -487,7 +487,7 @@ class obj : StringSpec() {
 
                     (0 until mNumChildren).map {
                         mChildren[it].mName shouldBe names[it]
-                        mChildren[it].mMeshes!![0] shouldBe it
+                        mChildren[it].mMeshes[0] shouldBe it
                     }
 
                     mNumMeshes shouldBe 0
@@ -684,7 +684,7 @@ class obj : StringSpec() {
                         mTransformation shouldBe Mat4()
                         mNumChildren shouldBe 0
                         mNumMeshes shouldBe 1
-                        mMeshes!![0] shouldBe 0
+                        mMeshes[0] shouldBe 0
                     }
                     mNumMeshes shouldBe 0
                 }
@@ -750,7 +750,7 @@ class obj : StringSpec() {
                         mParent === mRootNode
                         mNumChildren shouldBe 0
                         mNumMeshes shouldBe 1
-                        mMeshes!![0] shouldBe 0
+                        mMeshes[0] shouldBe 0
                     }
                 }
                 with(mMeshes[0]) {

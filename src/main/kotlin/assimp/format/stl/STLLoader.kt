@@ -136,7 +136,7 @@ class STLImporter : BaseImporter() {
         pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
         pScene.mRootNode.mMeshes = IntArray(pScene.mNumMeshes)
         for (i in 0 until pScene.mNumMeshes)
-            pScene.mRootNode.mMeshes!![i] = i
+            pScene.mRootNode.mMeshes[i] = i
 
         // create a single default material, using a light gray diffuse color for consistency with other geometric types
         // (e.g., PLY).

@@ -78,7 +78,11 @@ enum class AiLightSourceType(val i: Int) {
     //! An area light is a rectangle with predefined size that uniformly
     //! emits light from one of its sides. The position is center of the
     //! rectangle and direction is its normal vector.
-    AREA(0x5)
+    AREA(0x5);
+
+    companion object {
+        fun of(i:Int) = values().first { it.i == i }
+    }
 }
 
 // ---------------------------------------------------------------------------

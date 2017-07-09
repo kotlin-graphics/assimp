@@ -10,13 +10,11 @@ import java.net.URI
 // ---------------------------------------------------------------------------
 /** @brief Internal PIMPL implementation for Assimp::Importer   */
 
-class ImporterPimpl {
-
-    /** Format-specific importer worker objects - one for each format we can read.*/
-    val mImporter: List<BaseImporter>
-
-    /** Post processing steps we can apply at the imported data. */
-    val mPostProcessingSteps: List<BaseProcess>
+class ImporterPimpl(
+        /** Format-specific importer worker objects - one for each format we can read.*/
+        val mImporter: List<BaseImporter>,
+        /** Post processing steps we can apply at the imported data. */
+        val mPostProcessingSteps: List<BaseProcess>) {
 
     /** The imported data, if ReadFile() was successful, NULL otherwise. */
     lateinit var mScene: AiScene
@@ -24,10 +22,6 @@ class ImporterPimpl {
     /** The error description, if there was one. */
     val mErrorString: String = ""
 
-    constructor(mImporter: List<BaseImporter>, mPostProcessingSteps: List<BaseProcess>) {
-        this.mImporter=mImporter
-        this.mPostProcessingSteps=mPostProcessingSteps
-    }
 }
 
 // ----------------------------------------------------------------------------------

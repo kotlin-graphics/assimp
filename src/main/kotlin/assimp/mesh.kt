@@ -211,7 +211,7 @@ open class AiMesh(
          * but the normals for vertices that are only referenced by point or line primitives are undefined and set to
          * qNaN.  See the #mNormals member for a detailed discussion of qNaNs.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mTangents: List<AiVector3D> = listOf(),
+        var mTangents: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex bitangents.
          * The bitangent of a vertex points in the direction of the positive Y texture axis. The array contains

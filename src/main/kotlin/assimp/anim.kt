@@ -41,7 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
-import glm_.quat.Quat
 
 /**
  * Created by elect on 29/01/2017.
@@ -64,7 +63,7 @@ class AiQuatKey(
         var mTime: Double = 0.0,
 
         /** The value of this key */
-        var mValue: Quat = Quat())
+        var mValue: AiQuaternion = AiQuaternion())
 
 // ---------------------------------------------------------------------------
 /** Binds a anim mesh to a specific point in time. */
@@ -109,7 +108,11 @@ enum class AiAnimBehaviour(val i: Int) {
      *
      *  If the animation key go from n to m and the current
      *  time is t, use the value at (t-n) % (|m-n|).*/
-    REPEAT(0x3)
+    REPEAT(0x3);
+
+    companion object {
+        fun of(i: Int) = values().first { it.i == i }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -140,7 +143,7 @@ class AiNodeAnim(
          *
          * If there are position keys, there will also be at least one
          * scaling and one rotation key.*/
-        var mPositionKeys: List <assimp.AiVectorKey> = ArrayList(),
+        var mPositionKeys: List<AiVectorKey> = ArrayList(),
 
         /** The number of rotation keys */
         var mNumRotationKeys: Int = 0,
@@ -151,7 +154,7 @@ class AiNodeAnim(
          *
          * If there are rotation keys, there will also be at least one
          * scaling and one position key. */
-        var mRotationKeys: List<assimp.AiQuatKey> = ArrayList(),
+        var mRotationKeys: List<AiQuatKey> = ArrayList(),
 
         /** The number of scaling keys */
         var mNumScalingKeys: Int = 0,
@@ -161,21 +164,21 @@ class AiNodeAnim(
          *
          * If there are scaling keys, there will also be at least one
          * position and one rotation key.*/
-        var mScalingKeys: List<assimp.AiQuatKey> = ArrayList(),
+        var mScalingKeys: List<AiQuatKey> = ArrayList(),
 
         /** Defines how the animation behaves before the first
          *  key is encountered.
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is used).*/
-        var mPreState: assimp.AiAnimBehaviour = assimp.AiAnimBehaviour.DEFAULT,
+        var mPreState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT,
 
         /** Defines how the animation behaves after the last
          *  key was processed.
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is taken).*/
-        var mPostState: assimp.AiAnimBehaviour = assimp.AiAnimBehaviour.DEFAULT)
+        var mPostState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT)
 
 // ---------------------------------------------------------------------------
 /** Describes vertex-based animations for a single mesh or a group of
@@ -232,7 +235,7 @@ class AiAnimation(
 
         /** The node animation channels. Each channel affects a single node.
          *  The array is mNumChannels in size. */
-        var mChannels: List<List<assimp.AiNodeAnim>> = ArrayList(),
+        var mChannels: MutableList<AiNodeAnim> = ArrayList(),
 
         /** The number of mesh animation channels. Each channel affects
          *  a single mesh and defines vertex-based animation. */
@@ -240,7 +243,7 @@ class AiAnimation(
 
         /** The mesh animation channels. Each channel affects a single mesh.
          *  The array is mNumMeshChannels in size. */
-        var mMeshChannels: List<List<assimp.AiMeshAnim>> = ArrayList(),
+        var mMeshChannels: List<List<AiMeshAnim>> = ArrayList(),
 
         /** The number of mesh animation channels. Each channel affects
          *  a single mesh and defines morphing animation. */
@@ -248,4 +251,4 @@ class AiAnimation(
 
         /** The morph mesh animation channels. Each channel affects a single mesh.
          *  The array is mNumMorphMeshChannels in size. */
-        var mMorphMeshChannels: List<List<assimp.AiMeshMorphAnim>> = ArrayList())
+        var mMorphMeshChannels: List<List<AiMeshMorphAnim>> = ArrayList())

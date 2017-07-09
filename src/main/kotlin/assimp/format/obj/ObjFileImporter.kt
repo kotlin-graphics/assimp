@@ -116,7 +116,7 @@ class ObjFileImporter : BaseImporter() {
             pNode.mNumMeshes = meshSizeDiff
             var index = 0
             for (i in oldMeshSize until meshArray.size) {
-                pNode.mMeshes!![index] = pScene.mNumMeshes
+                pNode.mMeshes[index] = pScene.mNumMeshes
                 pScene.mNumMeshes++
                 index++
             }
@@ -413,7 +413,7 @@ class ObjFileImporter : BaseImporter() {
                 // TODO handle file null?
                 val name = tex.file!!
 
-                if (!scene.textures.containsKey(name)) {
+                if (!scene.mTextures.containsKey(name)) {
 
                     var i = 0
                     while (!name[i].isLetter()) i++
@@ -421,7 +421,7 @@ class ObjFileImporter : BaseImporter() {
 
                     val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
 
-                    scene.textures[name] = gli.load(texFile)
+                    scene.mTextures[name] = gli.load(texFile)
                 }
             }
         }

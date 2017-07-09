@@ -32,7 +32,7 @@ class stl : StringSpec() {
                     mNumChildren shouldBe 0
 //                mChildren shouldBe null
                     mNumMeshes shouldBe 1
-                    mMeshes!![0] shouldBe 0
+                    mMeshes[0] shouldBe 0
                     mMetaData shouldBe null
                 }
                 mNumMeshes shouldBe 1
@@ -103,7 +103,7 @@ class stl : StringSpec() {
                     mNumChildren shouldBe 0
 //                mChildren shouldBe null
                     mNumMeshes shouldBe 1
-                    mMeshes!![0] shouldBe 0
+                    mMeshes[0] shouldBe 0
                     mMetaData shouldBe null
                 }
                 mNumMeshes shouldBe 1
@@ -188,7 +188,7 @@ class stl : StringSpec() {
                     mNumChildren shouldBe 0
 //                mChildren shouldBe null
                     mNumMeshes shouldBe 1
-                    mMeshes!![0] shouldBe 0
+                    mMeshes[0] shouldBe 0
                     mMetaData shouldBe null
                 }
                 mNumMeshes shouldBe 1

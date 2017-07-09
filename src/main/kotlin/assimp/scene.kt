@@ -57,7 +57,7 @@ data class AiNode(
         var mNumMeshes: Int = 0,
 
         /** The meshes of this node. Each entry is an index into the mesh list of the #aiScene.     */
-        var mMeshes: IntArray? = null,
+        var mMeshes: IntArray = intArrayOf(),
 
         /** Metadata associated with this node or NULL if there is no metadata.
          *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
@@ -157,7 +157,7 @@ class AiScene {
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
     var mMaterials = ArrayList<AiMaterial>()
 
-    val textures = mutableMapOf<String, gli.Texture>()
+    val mTextures = mutableMapOf<String, gli.Texture>()
 
     /** The number of animations in the scene. */
     var mNumAnimations = 0
@@ -166,7 +166,7 @@ class AiScene {
      *
      * All animations imported from the given file are listed here.
      * The array is mNumAnimations in size.         */
-    //        C_STRUCT aiAnimation** mAnimations; TODO
+    var mAnimations = ArrayList<AiAnimation>()
 
     /** The number of textures embedded into the file */
     var mNumTextures = 0
@@ -185,7 +185,7 @@ class AiScene {
     /** The array of light sources.
      *
      * All light sources imported from the given file are listed here. The array is mNumLights in size.         */
-    //        C_STRUCT aiLight** mLights; TODO
+    var mLights: List<AiLight> = arrayListOf()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
     var mNumCameras = 0
@@ -195,7 +195,7 @@ class AiScene {
      * All cameras imported from the given file are listed here.
      * The array is mNumCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
-    //        C_STRUCT aiCamera** mCameras; TODO
+    var mCameras: List<AiCamera> = arrayListOf()
 
     //! Check whether the scene contains meshes
     //! Unless no special scene flags are set this will always be true.

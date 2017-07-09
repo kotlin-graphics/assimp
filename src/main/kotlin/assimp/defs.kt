@@ -5,6 +5,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import org.w3c.dom.Element
 import java.io.File
 import java.net.URI
@@ -27,6 +28,8 @@ typealias AiColor4D = Vec4
 typealias AiMatrix4x4 = Mat4
 
 typealias AiVector2D = Vec2
+
+typealias AiQuaternion = Quat
 
 /* To avoid running out of memory
  * This can be adjusted for specific use cases
