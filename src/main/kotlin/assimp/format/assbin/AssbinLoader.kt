@@ -3,12 +3,10 @@ package assimp.format.assbin
 import assimp.*
 import gli.has
 import gli.hasnt
-import glm_.b
-import glm_.bool
-import glm_.i
-import glm_.readMat4
-import java.io.DataInputStream
+import glm_.*
+import glm_.mat4x4.Mat4
 import java.io.File
+import java.io.InputStream
 import java.net.URI
 
 class AssbinLoader : BaseImporter() {
@@ -31,17 +29,17 @@ class AssbinLoader : BaseImporter() {
 
     override fun internReadFile(pFile: URI, pScene: AiScene) {
 
-        DataInputStream(pFile.toURL().openStream()).use {
+        pFile.toURL().openStream().use {
 
             it.skip(44) // signature
 
-            it.readInt()   // unsigned int versionMajor
-            it.readInt()   // unsigned int versionMinor
-            it.readInt()   // unsigned int versionRevision
-            it.readInt()   // unsigned int compileFlags
+            val a = it.int()   // unsigned int versionMajor
+            val b = it.int()   // unsigned int versionMinor
+            val c = it.int()   // unsigned int versionRevision
+            val d = it.int()   // unsigned int compileFlags
 
-            shortened = it.readShort().bool
-            compressed = it.readShort().bool
+            shortened = it.short().bool
+            compressed = it.short().bool
 
             if (shortened) throw Error("Shortened binaries are not supported!")
 
@@ -74,18 +72,19 @@ class AssbinLoader : BaseImporter() {
         }
     }
 
-    fun DataInputStream.readScene(scene: AiScene) {
 
-        assert(readInt() == ASSBIN_CHUNK_AISCENE)
-        readInt()    // size
+    fun InputStream.readScene(scene: AiScene) {
 
-        scene.mFlags = readInt()
-        scene.mNumMeshes = readInt()
-        scene.mNumMaterials = readInt()
-        scene.mNumAnimations = readInt()
-        scene.mNumTextures = readInt()
-        scene.mNumLights = readInt()
-        scene.mNumCameras = readInt()
+        assert(int() == ASSBIN_CHUNK_AISCENE)
+        int()    // size
+
+        scene.mFlags = int()
+        scene.mNumMeshes = int()
+        scene.mNumMaterials = int()
+        scene.mNumAnimations = int()
+        scene.mNumTextures = int()
+        scene.mNumLights = int()
+        scene.mNumCameras = int()
 
         // Read node graph
         scene.mRootNode = AiNode()
@@ -123,37 +122,37 @@ class AssbinLoader : BaseImporter() {
             scene.mCameras = List(scene.mNumCameras, { AiCamera().also { readCamera(it) } })
     }
 
-    private fun DataInputStream.readNode(node: AiNode, parent: AiNode? = null) {
+    private fun InputStream.readNode(node: AiNode, parent: AiNode? = null) {
 
-        assert(readInt() == ASSBIN_CHUNK_AINODE)
-        readInt()    // size
+        assert(int() == ASSBIN_CHUNK_AINODE)
+        int()    // size
 
         node.mName = readString()
-        node.mTransformation = readMat4()
-        node.mNumChildren = readInt()
-        node.mNumMeshes = readInt()
+        node.mTransformation = mat4()
+        node.mNumChildren = int()
+        node.mNumMeshes = int()
         parent?.let { node.mParent = parent }
 
         if (node.mNumMeshes > 0)
-            node.mMeshes = IntArray(node.mNumMeshes, { readInt() })
+            node.mMeshes = IntArray(node.mNumMeshes, { int() })
 
         for (i in 0 until node.mNumChildren)
             node.mChildren.add(AiNode().also { readNode(it, node) })
     }
 
-    private fun DataInputStream.readMesh(mesh: AiMesh) {
+    private fun InputStream.readMesh(mesh: AiMesh) {
 
-        assert(readInt() == ASSBIN_CHUNK_AIMESH)
-        readInt()    // size
+        assert(int() == ASSBIN_CHUNK_AIMESH)
+        int()    // size
 
-        mesh.mPrimitiveTypes = readInt()
-        mesh.mNumVertices = readInt()
-        mesh.mNumFaces = readInt()
-        mesh.mNumBones = readInt()
-        mesh.mMaterialIndex = readInt()
+        mesh.mPrimitiveTypes = int()
+        mesh.mNumVertices = int()
+        mesh.mNumFaces = int()
+        mesh.mNumBones = int()
+        mesh.mMaterialIndex = int()
 
         // first of all, write bits for all existent vertex components
-        val c = readInt()
+        val c = int()
 
         if (c has ASSBIN_MESH_HAS_POSITIONS)
             if (shortened)
@@ -190,13 +189,13 @@ class AssbinLoader : BaseImporter() {
                 break
 
             // write number of UV components
-            val mNumUVComponents = readInt()
+            val mNumUVComponents = int()
 
             if (shortened)
                 TODO()//ReadBounds(stream, mesh->mTextureCoords[n], mesh->mNumVertices)
             else    // else write as usual
                 mesh.mTextureCoords.add(MutableList(mesh.mNumVertices, {
-                    FloatArray(mNumUVComponents, { readFloat() })
+                    FloatArray(mNumUVComponents, { float() })
                 }))
         }
 
@@ -204,13 +203,13 @@ class AssbinLoader : BaseImporter() {
             the face data to the dump file. We generate a single 32 Bit hash for 512 faces using Assimp's standard
             hashing function.   */
         if (shortened)
-            readInt()
+            int()
         else  // else write as usual
         // if there are less than 2^16 vertices, we can simply use 16 bit integers ...
             mesh.mFaces = MutableList(mesh.mNumFaces, {
                 assert(AI_MAX_FACE_INDICES <= 0xffff, { "AI_MAX_FACE_INDICES <= 0xffff" })
-                val mNumIndices = readShort()
-                MutableList(mNumIndices.i, { if (mesh.mNumVertices < (1 shl 16)) readShort().i else readInt() })
+                val mNumIndices = short()
+                MutableList(mNumIndices.i, { if (mesh.mNumVertices < (1 shl 16)) short() else int() })
             })
 
         // write bones
@@ -218,14 +217,14 @@ class AssbinLoader : BaseImporter() {
             mesh.mBones.add(AiBone().also { readBone(it) })
     }
 
-    private fun DataInputStream.readBone(b: AiBone) {
+    private fun InputStream.readBone(b: AiBone) {
 
-        assert(readInt() == ASSBIN_CHUNK_AIBONE)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AIBONE)
+        int()   // size
 
         b.mName = readString()
-        b.mNumWeights = readInt()
-        b.mOffsetMatrix = readMat4()
+        b.mNumWeights = int()
+        b.mOffsetMatrix = mat4()
 
         // for the moment we write dumb min/max values for the bones, too.
         // maybe I'll add a better, hash-like solution later
@@ -235,12 +234,12 @@ class AssbinLoader : BaseImporter() {
             b.mWeights = List(b.mNumWeights, { readVertexWeight() })
     }
 
-    private fun DataInputStream.readMaterial(mat: AiMaterial) {
+    private fun InputStream.readMaterial(mat: AiMaterial) {
 
-        assert(readInt() == ASSBIN_CHUNK_AIMATERIAL)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AIMATERIAL)
+        int()   // size
 
-        val mNumProperties = readInt()
+        val mNumProperties = int()
         if (mNumProperties > 0) {
             readMaterialProperty(mat)
 //            if (mat->mProperties)
@@ -253,10 +252,10 @@ class AssbinLoader : BaseImporter() {
         }
     }
 
-    private fun DataInputStream.readMaterialProperty(mat: AiMaterial) {
+    private fun InputStream.readMaterialProperty(mat: AiMaterial) {
 
-        assert(readInt() == ASSBIN_CHUNK_AIMATERIALPROPERTY)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AIMATERIALPROPERTY)
+        int()   // size
 
         val mKey = readString()
 //        prop->mSemantic = Read<unsigned int>(stream)
@@ -268,30 +267,30 @@ class AssbinLoader : BaseImporter() {
 //        stream->Read(prop->mData,1,prop->mDataLength)
     }
 
-    private fun DataInputStream.readAnimation(anim: AiAnimation) {
+    private fun InputStream.readAnimation(anim: AiAnimation) {
 
-        assert(readInt() == ASSBIN_CHUNK_AIANIMATION)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AIANIMATION)
+        int()   // size
 
         anim.mName = readString()
-        anim.mDuration = readDouble()
-        anim.mTicksPerSecond = readDouble()
-        anim.mNumChannels = readInt()
+        anim.mDuration = double()
+        anim.mTicksPerSecond = double()
+        anim.mNumChannels = int()
 
         anim.mChannels = MutableList(anim.mNumChannels, { AiNodeAnim().also { readNodeAnim(it) } })
     }
 
-    private fun DataInputStream.readNodeAnim(nd: AiNodeAnim) {
+    private fun InputStream.readNodeAnim(nd: AiNodeAnim) {
 
-        assert(readInt() == ASSBIN_CHUNK_AINODEANIM)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AINODEANIM)
+        int()   // size
 
         nd.mNodeName = readString()
-        nd.mNumPositionKeys = readInt()
-        nd.mNumRotationKeys = readInt()
-        nd.mNumScalingKeys = readInt()
-        nd.mPreState = AiAnimBehaviour.of(readInt())
-        nd.mPostState = AiAnimBehaviour.of(readInt())
+        nd.mNumPositionKeys = int()
+        nd.mNumRotationKeys = int()
+        nd.mNumScalingKeys = int()
+        nd.mPreState = AiAnimBehaviour.of(int())
+        nd.mPostState = AiAnimBehaviour.of(int())
 
         if (nd.mNumPositionKeys > 0)
             if (shortened)
@@ -312,18 +311,18 @@ class AssbinLoader : BaseImporter() {
                 nd.mScalingKeys = List(nd.mNumScalingKeys, { readQuatKey() })
     }
 
-    private fun DataInputStream.readLight(l: AiLight) {
+    private fun InputStream.readLight(l: AiLight) {
 
-        assert(readInt() == ASSBIN_CHUNK_AILIGHT)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AILIGHT)
+        int()   // size
 
         l.mName = readString()
-        l.mType = AiLightSourceType.of(readInt())
+        l.mType = AiLightSourceType.of(int())
 
         if (l.mType != AiLightSourceType.DIRECTIONAL) {
-            l.mAttenuationConstant = readFloat()
-            l.mAttenuationLinear = readFloat()
-            l.mAttenuationQuadratic = readFloat()
+            l.mAttenuationConstant = float()
+            l.mAttenuationLinear = float()
+            l.mAttenuationQuadratic = float()
         }
 
         l.mColorDiffuse = AiColor3D(this)
@@ -331,24 +330,24 @@ class AssbinLoader : BaseImporter() {
         l.mColorAmbient = AiColor3D(this)
 
         if (l.mType == AiLightSourceType.SPOT) {
-            l.mAngleInnerCone = readFloat()
-            l.mAngleOuterCone = readFloat()
+            l.mAngleInnerCone = float()
+            l.mAngleOuterCone = float()
         }
     }
 
-    private fun DataInputStream.readCamera( cam :AiCamera)    {
+    private fun InputStream.readCamera(cam: AiCamera) {
 
-        assert(readInt()== ASSBIN_CHUNK_AICAMERA)
-        readInt()   // size
+        assert(int() == ASSBIN_CHUNK_AICAMERA)
+        int()   // size
 
         cam.mName = readString()
         cam.mPosition = AiVector3D(this)
         cam.mLookAt = AiVector3D(this)
         cam.mUp = AiVector3D(this)
-        cam.mHorizontalFOV = readFloat()
-        cam.mClipPlaneNear = readFloat()
-        cam.mClipPlaneFar = readFloat()
-        cam.mAspect = readFloat()
+        cam.mHorizontalFOV = float()
+        cam.mClipPlaneNear = float()
+        cam.mClipPlaneFar = float()
+        cam.mAspect = float()
     }
 
     private val ASSBIN_HEADER_LENGTH = 512
@@ -375,8 +374,39 @@ class AssbinLoader : BaseImporter() {
     private fun ASSBIN_MESH_HAS_TEXCOORD(n: Int) = ASSBIN_MESH_HAS_TEXCOORD_BASE shl n
     private fun ASSBIN_MESH_HAS_COLOR(n: Int) = ASSBIN_MESH_HAS_COLOR_BASE shl n
 
-    private fun DataInputStream.readString() = String(ByteArray(readInt(), { readByte() }))
-    private fun DataInputStream.readVertexWeight() = AiVertexWeight(readInt(), readFloat())
-    private fun DataInputStream.readVectorKey() = AiVectorKey(readDouble(), AiVector3D(this))
-    private fun DataInputStream.readQuatKey() = AiQuatKey(readDouble(), AiQuaternion(this))
+    fun InputStream.int(): Int {
+        val a = read()
+        val b = read()
+        val c = read()
+        val d = read()
+        return (d shl 24) + (c shl 16) + (b shl 8) + a
+    }
+
+    fun InputStream.short(): Int {
+        val a = read()
+        val b = read()
+        return (b shl 8) + a
+    }
+
+    fun InputStream.byte() = read().b
+
+    fun InputStream.float() = Float.intBitsToFloat(int())
+    fun InputStream.double() = Double.longBitsToDouble(long())
+
+    fun InputStream.long(): Long {
+        val a = int()
+        val b = int()
+        return (b.L shl 32) + a
+    }
+
+    fun InputStream.mat4() = Mat4(
+            float(), float(), float(), float(),
+            float(), float(), float(), float(),
+            float(), float(), float(), float(),
+            float(), float(), float(), float())
+
+    private fun InputStream.readString() = String(ByteArray(int(), { byte() }))
+    private fun InputStream.readVertexWeight() = AiVertexWeight(int(), float())
+    private fun InputStream.readVectorKey() = AiVectorKey(double(), AiVector3D(this))
+    private fun InputStream.readQuatKey() = AiQuatKey(double(), AiQuaternion(this))
 }
