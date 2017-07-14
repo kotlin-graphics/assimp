@@ -1,5 +1,6 @@
 package assimp
 
+import uno.kotlin.uri
 import java.io.FileNotFoundException
 import java.net.URI
 
@@ -56,7 +57,7 @@ class Importer(
         val MaxLenHint = 200
     }
 
-    fun readFile(_pFile: String, pFlags: Int = 0) = readFile(String::class.java.getResource(_pFile).toURI(), pFlags)
+    fun readFile(_pFile: String, pFlags: Int = 0) = readFile(_pFile.uri, pFlags)
 
     fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context.classLoader.getResource(_pFile).toURI(), pFlags)
 

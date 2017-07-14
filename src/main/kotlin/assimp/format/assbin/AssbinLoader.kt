@@ -4,7 +4,6 @@ import assimp.*
 import gli.has
 import gli.hasnt
 import glm_.*
-import glm_.mat4x4.Mat4
 import java.io.File
 import java.io.InputStream
 import java.net.URI
@@ -23,6 +22,7 @@ class AssbinLoader : BaseImporter() {
 
     var shortened = false
     var compressed = false
+    private val be = false // big endian TODO glm global?
 
     override fun canRead(pFile: URI, checkSig: Boolean) =
             File(pFile).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
@@ -33,13 +33,13 @@ class AssbinLoader : BaseImporter() {
 
             it.skip(44) // signature
 
-            val a = it.int()   // unsigned int versionMajor
-            val b = it.int()   // unsigned int versionMinor
-            val c = it.int()   // unsigned int versionRevision
-            val d = it.int()   // unsigned int compileFlags
+            val a = it.int(be)   // unsigned int versionMajor
+            val b = it.int(be)   // unsigned int versionMinor
+            val c = it.int(be)   // unsigned int versionRevision
+            val d = it.int(be)   // unsigned int compileFlags
 
-            shortened = it.short().bool
-            compressed = it.short().bool
+            shortened = it.short(be).bool
+            compressed = it.short(be).bool
 
             if (shortened) throw Error("Shortened binaries are not supported!")
 
@@ -50,7 +50,7 @@ class AssbinLoader : BaseImporter() {
             if (compressed) {
 
                 TODO()
-//            val uncompressedSize = stream.readInt()
+//            val uncompressedSize = stream.readint(be)
 //            val compressedSize = static_cast < uLongf >(stream->FileSize()-stream->Tell())
 //
 //            unsigned char * compressedData = new unsigned char [compressedSize]
@@ -75,16 +75,16 @@ class AssbinLoader : BaseImporter() {
 
     fun InputStream.readScene(scene: AiScene) {
 
-        assert(int() == ASSBIN_CHUNK_AISCENE)
-        int()    // size
+        assert(int(be) == ASSBIN_CHUNK_AISCENE)
+        int(be)    // size
 
-        scene.mFlags = int()
-        scene.mNumMeshes = int()
-        scene.mNumMaterials = int()
-        scene.mNumAnimations = int()
-        scene.mNumTextures = int()
-        scene.mNumLights = int()
-        scene.mNumCameras = int()
+        scene.mFlags = int(be)
+        scene.mNumMeshes = int(be)
+        scene.mNumMaterials = int(be)
+        scene.mNumAnimations = int(be)
+        scene.mNumTextures = int(be)
+        scene.mNumLights = int(be)
+        scene.mNumCameras = int(be)
 
         // Read node graph
         scene.mRootNode = AiNode()
@@ -124,17 +124,17 @@ class AssbinLoader : BaseImporter() {
 
     private fun InputStream.readNode(node: AiNode, parent: AiNode? = null) {
 
-        assert(int() == ASSBIN_CHUNK_AINODE)
-        int()    // size
+        assert(int(be) == ASSBIN_CHUNK_AINODE)
+        int(be)    // size
 
-        node.mName = readString()
+        node.mName = string()
         node.mTransformation = mat4()
-        node.mNumChildren = int()
-        node.mNumMeshes = int()
+        node.mNumChildren = int(be)
+        node.mNumMeshes = int(be)
         parent?.let { node.mParent = parent }
 
         if (node.mNumMeshes > 0)
-            node.mMeshes = IntArray(node.mNumMeshes, { int() })
+            node.mMeshes = IntArray(node.mNumMeshes, { int(be) })
 
         for (i in 0 until node.mNumChildren)
             node.mChildren.add(AiNode().also { readNode(it, node) })
@@ -142,37 +142,37 @@ class AssbinLoader : BaseImporter() {
 
     private fun InputStream.readMesh(mesh: AiMesh) {
 
-        assert(int() == ASSBIN_CHUNK_AIMESH)
-        int()    // size
+        assert(int(be) == ASSBIN_CHUNK_AIMESH)
+        int(be)    // size
 
-        mesh.mPrimitiveTypes = int()
-        mesh.mNumVertices = int()
-        mesh.mNumFaces = int()
-        mesh.mNumBones = int()
-        mesh.mMaterialIndex = int()
+        mesh.mPrimitiveTypes = int(be)
+        mesh.mNumVertices = int(be)
+        mesh.mNumFaces = int(be)
+        mesh.mNumBones = int(be)
+        mesh.mMaterialIndex = int(be)
 
         // first of all, write bits for all existent vertex components
-        val c = int()
+        val c = int(be)
 
         if (c has ASSBIN_MESH_HAS_POSITIONS)
             if (shortened)
                 TODO()//ReadBounds(stream, mesh->mVertices, mesh->mNumVertices)
             else    // else write as usual
-                mesh.mVertices = MutableList(mesh.mNumVertices, { AiVector3D(this) })
+                mesh.mVertices = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
 
         if (c has ASSBIN_MESH_HAS_NORMALS)
             if (shortened)
                 TODO()//ReadBounds(stream, mesh->mNormals, mesh->mNumVertices)
             else    // else write as usual
-                mesh.mNormals = MutableList(mesh.mNumVertices, { AiVector3D(this) })
+                mesh.mNormals = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
 
         if (c has ASSBIN_MESH_HAS_TANGENTS_AND_BITANGENTS) {
             if (shortened) {
                 TODO()//ReadBounds(stream, mesh->mTangents, mesh->mNumVertices)
                 //ReadBounds(stream, mesh->mBitangents, mesh->mNumVertices)
             } else {   // else write as usual
-                mesh.mTangents = MutableList(mesh.mNumVertices, { AiVector3D(this) })
-                mesh.mBitangents = MutableList(mesh.mNumVertices, { AiVector3D(this) })
+                mesh.mTangents = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
+                mesh.mBitangents = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
             }
         }
         for (n in 0 until AI_MAX_NUMBER_OF_COLOR_SETS) {
@@ -189,13 +189,14 @@ class AssbinLoader : BaseImporter() {
                 break
 
             // write number of UV components
-            val mNumUVComponents = int()
+            val mNumUVComponents = int(be)
 
             if (shortened)
                 TODO()//ReadBounds(stream, mesh->mTextureCoords[n], mesh->mNumVertices)
             else    // else write as usual
                 mesh.mTextureCoords.add(MutableList(mesh.mNumVertices, {
-                    FloatArray(mNumUVComponents, { float() })
+                    val uv = AiVector3D(this, be)
+                    (0 until mNumUVComponents).map { uv[it] }.toFloatArray()
                 }))
         }
 
@@ -203,13 +204,13 @@ class AssbinLoader : BaseImporter() {
             the face data to the dump file. We generate a single 32 Bit hash for 512 faces using Assimp's standard
             hashing function.   */
         if (shortened)
-            int()
+            int(be)
         else  // else write as usual
         // if there are less than 2^16 vertices, we can simply use 16 bit integers ...
             mesh.mFaces = MutableList(mesh.mNumFaces, {
                 assert(AI_MAX_FACE_INDICES <= 0xffff, { "AI_MAX_FACE_INDICES <= 0xffff" })
-                val mNumIndices = short()
-                MutableList(mNumIndices.i, { if (mesh.mNumVertices < (1 shl 16)) short() else int() })
+                val mNumIndices = short(be)
+                MutableList(mNumIndices.i, { if (mesh.mNumVertices < (1 shl 16)) short(be) else int(be) })
             })
 
         // write bones
@@ -219,11 +220,11 @@ class AssbinLoader : BaseImporter() {
 
     private fun InputStream.readBone(b: AiBone) {
 
-        assert(int() == ASSBIN_CHUNK_AIBONE)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AIBONE)
+        int(be)   // size
 
-        b.mName = readString()
-        b.mNumWeights = int()
+        b.mName = string()
+        b.mNumWeights = int(be)
         b.mOffsetMatrix = mat4()
 
         // for the moment we write dumb min/max values for the bones, too.
@@ -231,98 +232,158 @@ class AssbinLoader : BaseImporter() {
         if (shortened)
             TODO()  //ReadBounds(stream, b->mWeights, b->mNumWeights)
         else    // else write as usual
-            b.mWeights = List(b.mNumWeights, { readVertexWeight() })
+            b.mWeights = List(b.mNumWeights, { vertexWeight() })
     }
 
     private fun InputStream.readMaterial(mat: AiMaterial) {
 
-        assert(int() == ASSBIN_CHUNK_AIMATERIAL)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AIMATERIAL)
+        int(be)   // size
 
-        val mNumProperties = int()
+        val mNumProperties = int(be)
         if (mNumProperties > 0) {
-            readMaterialProperty(mat)
+            // TODO reset?
 //            if (mat->mProperties)
 //                delete[] mat->mProperties
-//            mat.mProperties = new aiMaterialProperty*[mat->mNumProperties]
-//            for (unsigned int i = 0; i < mat->mNumProperties;++i) {
-//                mat.mProperties[i] = new aiMaterialProperty ()
-//                ReadBinaryMaterialProperty(stream, mat->mProperties[i])
-//            }
+            for (i in 0 until mNumProperties)
+                readMaterialProperty(mat)
         }
     }
 
     private fun InputStream.readMaterialProperty(mat: AiMaterial) {
 
-        assert(int() == ASSBIN_CHUNK_AIMATERIALPROPERTY)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AIMATERIALPROPERTY)
+        int(be)   // size
 
-        val mKey = readString()
-//        prop->mSemantic = Read<unsigned int>(stream)
-//        prop->mIndex = Read<unsigned int>(stream)
-//
-//        prop->mDataLength = Read<unsigned int>(stream)
-//        prop->mType = (aiPropertyTypeInfo)Read<unsigned int>(stream)
-//        prop->mData = new char [ prop->mDataLength ]
-//        stream->Read(prop->mData,1,prop->mDataLength)
+        val mKey = string()
+        val mSemantic = int(be)
+        val mIndex = int(be)
+
+        val mDataLength = int(be)
+        val mType = int(be)
+        when (mKey) {
+            "?mat.name" -> mat.name = string(mDataLength).replace(Regex("[^A-Za-z0-9 ]"), "")
+            "\$mat.twosided" -> mat.twoSided = short(be).bool
+            "\$mat.shadingm" -> mat.shadingModel = AiShadingMode.of(int(be))
+            "\$mat.wireframe" -> mat.wireframe = short(be).bool
+            "\$mat.blend" -> mat.blendFunc = AiBlendMode.of(int(be))
+            "\$mat.opacity" -> mat.opacity = float(be)
+            "\$mat.bumpscaling" -> mat.bumpScaling = float(be)
+            "\$mat.shininess" -> mat.shininess = float(be)
+            "\$mat.reflectivity" -> mat.reflectivity = float(be)
+            "\$mat.shinpercent" -> mat.shininessStrength = float(be)
+            "\$mat.refracti" -> mat.refracti = float(be)
+            "\$clr.diffuse" -> {
+                val diffuse = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.diffuse = diffuse
+                mat.color = AiMaterial.Color(diffuse = diffuse)
+            }
+            "\$clr.ambient" -> {
+                val ambient = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.ambient = ambient
+                mat.color = AiMaterial.Color(ambient = ambient)
+            }
+            "\$clr.specular" -> {
+                val specular = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.specular = specular
+                mat.color = AiMaterial.Color(specular = specular)
+            }
+            "\$clr.emissive" -> {
+                val emissive = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.emissive = emissive
+                mat.color = AiMaterial.Color(emissive = emissive)
+            }
+            "\$clr.transparent" -> {
+                val transparent = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.transparent = transparent
+                mat.color = AiMaterial.Color(transparent = transparent)
+            }
+            "\$clr.reflective" -> {
+                val reflective = AiColor3D(this, be)
+                if (mat.color != null)
+                    mat.color!!.reflective = reflective
+                mat.color = AiMaterial.Color(reflective = reflective)
+            }
+            "?bg.global" -> TODO()
+
+            "\$tex.file" -> {
+                if (mIndex >= mat.textures.size)
+                    mat.textures.add(AiMaterial.Texture())
+                mat.textures[mIndex].file = string(mDataLength).replace(Regex("[^A-Za-z0-9 ]"), "")
+            }
+            "\$tex.uvwsrc" -> mat.textures[mIndex].uvwsrc = int(be)
+            "\$tex.op" -> mat.textures[mIndex].op = AiTexture.Op.of(int(be))
+            "\$tex.mapping" -> mat.textures[mIndex].mapping = AiTexture.Mapping.of(int(be))
+            "\$tex.blend" -> mat.textures[mIndex].blend = float(be)
+            "\$tex.mapmodeu" -> mat.textures[mIndex].mapModeU = AiTexture.MapMode.of(int(be))
+            "\$tex.mapmodev" -> mat.textures[mIndex].mapModeV = AiTexture.MapMode.of(int(be))
+            "\$tex.mapaxis" -> mat.textures[mIndex].mapAxis = AiVector3D(this, be)
+            "\$tex.uvtrafo" -> TODO("vec2(this)")//mat.textures[mIndex].uvTrafo = AiUVTransform()
+            "\$tex.flags" -> mat.textures[mIndex].flags = int(be)
+        }
     }
 
     private fun InputStream.readAnimation(anim: AiAnimation) {
 
-        assert(int() == ASSBIN_CHUNK_AIANIMATION)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AIANIMATION)
+        int(be)   // size
 
-        anim.mName = readString()
-        anim.mDuration = double()
-        anim.mTicksPerSecond = double()
-        anim.mNumChannels = int()
+        anim.mName = string()
+        anim.mDuration = double(be)
+        anim.mTicksPerSecond = double(be)
+        anim.mNumChannels = int(be)
 
         anim.mChannels = MutableList(anim.mNumChannels, { AiNodeAnim().also { readNodeAnim(it) } })
     }
 
     private fun InputStream.readNodeAnim(nd: AiNodeAnim) {
 
-        assert(int() == ASSBIN_CHUNK_AINODEANIM)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AINODEANIM)
+        int(be)   // size
 
-        nd.mNodeName = readString()
-        nd.mNumPositionKeys = int()
-        nd.mNumRotationKeys = int()
-        nd.mNumScalingKeys = int()
-        nd.mPreState = AiAnimBehaviour.of(int())
-        nd.mPostState = AiAnimBehaviour.of(int())
+        nd.mNodeName = string()
+        nd.mNumPositionKeys = int(be)
+        nd.mNumRotationKeys = int(be)
+        nd.mNumScalingKeys = int(be)
+        nd.mPreState = AiAnimBehaviour.of(int(be))
+        nd.mPostState = AiAnimBehaviour.of(int(be))
 
         if (nd.mNumPositionKeys > 0)
             if (shortened)
                 TODO()//ReadBounds(stream, nd->mPositionKeys, nd->mNumPositionKeys)
             else    // else write as usual
-                nd.mPositionKeys = List(nd.mNumPositionKeys, { readVectorKey() })
+                nd.mPositionKeys = List(nd.mNumPositionKeys, { vectorKey() })
 
         if (nd.mNumRotationKeys > 0)
             if (shortened)
                 TODO()//ReadBounds(stream, nd->mRotationKeys, nd->mNumRotationKeys)
             else    // else write as usual
-                nd.mRotationKeys = List(nd.mNumRotationKeys, { readQuatKey() })
+                nd.mRotationKeys = List(nd.mNumRotationKeys, { quatKey() })
 
         if (nd.mNumScalingKeys > 0)
             if (shortened)
                 TODO()//ReadBounds(stream, nd->mScalingKeys, nd->mNumScalingKeys)
             else    // else write as usual
-                nd.mScalingKeys = List(nd.mNumScalingKeys, { readQuatKey() })
+                nd.mScalingKeys = List(nd.mNumScalingKeys, { vectorKey() })
     }
 
     private fun InputStream.readLight(l: AiLight) {
 
-        assert(int() == ASSBIN_CHUNK_AILIGHT)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AILIGHT)
+        int(be)   // size
 
-        l.mName = readString()
-        l.mType = AiLightSourceType.of(int())
+        l.mName = string()
+        l.mType = AiLightSourceType.of(int(be))
 
         if (l.mType != AiLightSourceType.DIRECTIONAL) {
-            l.mAttenuationConstant = float()
-            l.mAttenuationLinear = float()
-            l.mAttenuationQuadratic = float()
+            l.mAttenuationConstant = float(be)
+            l.mAttenuationLinear = float(be)
+            l.mAttenuationQuadratic = float(be)
         }
 
         l.mColorDiffuse = AiColor3D(this)
@@ -330,24 +391,24 @@ class AssbinLoader : BaseImporter() {
         l.mColorAmbient = AiColor3D(this)
 
         if (l.mType == AiLightSourceType.SPOT) {
-            l.mAngleInnerCone = float()
-            l.mAngleOuterCone = float()
+            l.mAngleInnerCone = float(be)
+            l.mAngleOuterCone = float(be)
         }
     }
 
     private fun InputStream.readCamera(cam: AiCamera) {
 
-        assert(int() == ASSBIN_CHUNK_AICAMERA)
-        int()   // size
+        assert(int(be) == ASSBIN_CHUNK_AICAMERA)
+        int(be)   // size
 
-        cam.mName = readString()
-        cam.mPosition = AiVector3D(this)
-        cam.mLookAt = AiVector3D(this)
-        cam.mUp = AiVector3D(this)
-        cam.mHorizontalFOV = float()
-        cam.mClipPlaneNear = float()
-        cam.mClipPlaneFar = float()
-        cam.mAspect = float()
+        cam.mName = string()
+        cam.mPosition = AiVector3D(this, be)
+        cam.mLookAt = AiVector3D(this, be)
+        cam.mUp = AiVector3D(this, be)
+        cam.mHorizontalFOV = float(be)
+        cam.mClipPlaneNear = float(be)
+        cam.mClipPlaneFar = float(be)
+        cam.mAspect = float(be)
     }
 
     private val ASSBIN_HEADER_LENGTH = 512
@@ -374,39 +435,9 @@ class AssbinLoader : BaseImporter() {
     private fun ASSBIN_MESH_HAS_TEXCOORD(n: Int) = ASSBIN_MESH_HAS_TEXCOORD_BASE shl n
     private fun ASSBIN_MESH_HAS_COLOR(n: Int) = ASSBIN_MESH_HAS_COLOR_BASE shl n
 
-    fun InputStream.int(): Int {
-        val a = read()
-        val b = read()
-        val c = read()
-        val d = read()
-        return (d shl 24) + (c shl 16) + (b shl 8) + a
-    }
 
-    fun InputStream.short(): Int {
-        val a = read()
-        val b = read()
-        return (b shl 8) + a
-    }
-
-    fun InputStream.byte() = read().b
-
-    fun InputStream.float() = Float.intBitsToFloat(int())
-    fun InputStream.double() = Double.longBitsToDouble(long())
-
-    fun InputStream.long(): Long {
-        val a = int()
-        val b = int()
-        return (b.L shl 32) + a
-    }
-
-    fun InputStream.mat4() = Mat4(
-            float(), float(), float(), float(),
-            float(), float(), float(), float(),
-            float(), float(), float(), float(),
-            float(), float(), float(), float())
-
-    private fun InputStream.readString() = String(ByteArray(int(), { byte() }))
-    private fun InputStream.readVertexWeight() = AiVertexWeight(int(), float())
-    private fun InputStream.readVectorKey() = AiVectorKey(double(), AiVector3D(this))
-    private fun InputStream.readQuatKey() = AiQuatKey(double(), AiQuaternion(this))
+    private fun InputStream.string(length: Int = int(be)) = String(ByteArray(length, { byte() }))
+    private fun InputStream.vertexWeight() = AiVertexWeight(int(be), float(be))
+    private fun InputStream.vectorKey() = AiVectorKey(double(be), AiVector3D(this, be))
+    private fun InputStream.quatKey() = AiQuatKey(double(be), AiQuaternion(this, be))
 }

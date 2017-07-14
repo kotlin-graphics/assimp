@@ -29,7 +29,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:gli:074fd1b351301a7709b25ef8b025aa9d4f9a656b'
+    compile 'com.github.kotlin-graphics:uno-sdk:7d4d78804f70dd3354eac232e7966ea585afb196'
 
     testCompile 'com.github.elect86:kotlintest:43281b7e1b'
 //    testCompile 'io.kotlintest:kotlintest:2.0.1'

@@ -131,7 +131,7 @@ class AiScene {
 
     /** Any combination of the AI_SCENE_FLAGS_XXX flags. By default this value is 0, no flags are set. Most
      * applications will want to reject all scenes with the AI_SCENE_FLAGS_INCOMPLETE bit set.         */
-    var mFlags: Int = 0
+    var mFlags = 0
 
     /** The root node of the hierarchy.
      *
@@ -157,8 +157,6 @@ class AiScene {
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
     var mMaterials = ArrayList<AiMaterial>()
 
-    val mTextures = mutableMapOf<String, gli.Texture>()
-
     /** The number of animations in the scene. */
     var mNumAnimations = 0
 
@@ -171,12 +169,12 @@ class AiScene {
     /** The number of textures embedded into the file */
     var mNumTextures = 0
 
-    /** The array of embedded textures.
+    /** JVM ASSIMP CUSTOM, the array of the textures used in the scene.
      *
      * Not many file formats embed their textures into the file.
      * An example is Quake's MDL format (which is also used by some GameStudio versions)
      */
-    //        C_STRUCT aiTexture** mTextures; TODO
+    val mTextures = mutableMapOf<String, gli.Texture>()
 
     /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
      * will be 0         */
@@ -197,33 +195,23 @@ class AiScene {
      * the scene.         */
     var mCameras: List<AiCamera> = arrayListOf()
 
-    //! Check whether the scene contains meshes
-    //! Unless no special scene flags are set this will always be true.
-//        fun hasMeshes() = mMeshes != NULL && mNumMeshes > 0; TODO
+    /** Check whether the scene contains meshes
+     *  Unless no special scene flags are set this will always be true. */
+    fun hasMeshes() = mMeshes.isNotEmpty()
 
-    //! Check whether the scene contains materials
-    //! Unless no special scene flags are set this will always be true.
-//        inline bool HasMaterials() const { TODO
-//                return mMaterials != NULL && mNumMaterials > 0;
-//        }
+    /** Check whether the scene contains materials
+     *  Unless no special scene flags are set this will always be true. */
+    fun hasMaterials() = mMaterials.isNotEmpty()
 
-    //! Check whether the scene contains lights
-//        inline bool HasLights() const { TODO
-//                return mLights != NULL && mNumLights > 0;
-//        }
+    /** Check whether the scene contains lights */
+    fun hasLights() = mLights.isNotEmpty()
 
-    //! Check whether the scene contains textures
-//        inline bool HasTextures() const { TODO
-//                return mTextures != NULL && mNumTextures > 0;
-//        }
+    /** Check whether the scene contains textures   */
+    fun hasTextures() = mTextures.isNotEmpty()
 
-    //! Check whether the scene contains cameras
-//        inline bool HasCameras() const { TODO
-//                return mCameras != NULL && mNumCameras > 0;
-//        }
+    /** Check whether the scene contains cameras    */
+    fun hasCameras() = mCameras.isNotEmpty()
 
-    //! Check whether the scene contains animations
-//        inline bool HasAnimations() const { TODO
-//                return mAnimations != NULL && mNumAnimations > 0;
-//        }
+    /** Check whether the scene contains animations */
+    fun hasAnimations() = mAnimations.isNotEmpty()
 }

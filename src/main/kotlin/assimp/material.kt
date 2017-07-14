@@ -82,7 +82,11 @@ class AiTexture {
         smoothAdd(0x4),
 
         /** T ( T1 + (T2-0.5) */
-        signedAdd(0x5)
+        signedAdd(0x5);
+
+        companion object {
+            fun of(i: Int) = values().first { it.i == i }
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -105,7 +109,11 @@ class AiTexture {
 
         /** A texture coordinate u|v becomes u%1|v%1 if (u-(u%1))%2 is zero and
          *  1-(u%1)|1-(v%1) otherwise     */
-        mirror(0x2),
+        mirror(0x2);
+
+        companion object {
+            fun of(i: Int) = values().first { it.i == i }
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -138,7 +146,11 @@ class AiTexture {
         plane(0x4),
 
         /** Undefined mapping. Have fun. */
-        other(0x5)
+        other(0x5);
+
+        companion object {
+            fun of(i: Int) = values().first { it.i == i }
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -293,7 +305,11 @@ enum class AiShadingMode(val i: Int) {
     noShading(0x9),
 
     /** Fresnel shading     */
-    fresnel(0xa)
+    fresnel(0xa);
+
+    companion object {
+        fun of(i: Int) = values().first { it.i == i }
+    }
 }
 
 
@@ -325,7 +341,11 @@ enum class AiBlendMode(val i: Int) {
      *  @code
      *  SourceColor*1 + DestColor*1
      *  @endcode     */
-    additive(0x1)
+    additive(0x1);
+
+    companion object {
+        fun of(i: Int) = values().first { it.i == i }
+    }
 
     // we don't need more for the moment, but we might need them in future versions ...
 }
@@ -384,6 +404,8 @@ data class AiMaterial(
         var color: AiMaterial.Color? = null,
 
         var textures: ArrayList<AiMaterial.Texture> = ArrayList()
+
+        // TODO const AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = '?bg.global';
 ) {
 
     data class Color(

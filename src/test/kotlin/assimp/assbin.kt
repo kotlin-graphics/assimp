@@ -17,5 +17,14 @@ class assbin : StringSpec() {
             println()
 //            scene.mFlags shouldBe 0
         }
+
+        val boblampclean = "ogldev/boblampclean.assbin"
+
+        boblampclean {
+
+            val scene = Importer().readFile(assbin + boblampclean)
+
+            println()
+        }
     }
 }
