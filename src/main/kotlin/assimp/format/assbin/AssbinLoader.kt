@@ -4,6 +4,7 @@ import assimp.*
 import gli.has
 import gli.hasnt
 import glm_.*
+import glm_.vec4.Vec4
 import java.io.File
 import java.io.InputStream
 import java.net.URI
@@ -103,7 +104,8 @@ class AssbinLoader : BaseImporter() {
             scene.mAnimations.add(AiAnimation().also { readAnimation(it) })
 
         // Read all textures
-//        for (i in 0 until scene.mNumTextures)
+        for (i in 0 until scene.mNumTextures)
+            readTexture()
 //            scene.mTextures["$i"] = gli.Texture(AiAnimation().also { readAnimation(it) })
 //        if (scene.mNumTextures > 0) {
 //            scene.mTextures = new aiTexture *[scene->mNumTextures]
@@ -275,36 +277,42 @@ class AssbinLoader : BaseImporter() {
             "\$mat.refracti" -> mat.refracti = float(be)
             "\$clr.diffuse" -> {
                 val diffuse = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.diffuse = diffuse
                 mat.color = AiMaterial.Color(diffuse = diffuse)
             }
             "\$clr.ambient" -> {
                 val ambient = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.ambient = ambient
                 mat.color = AiMaterial.Color(ambient = ambient)
             }
             "\$clr.specular" -> {
                 val specular = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.specular = specular
                 mat.color = AiMaterial.Color(specular = specular)
             }
             "\$clr.emissive" -> {
                 val emissive = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.emissive = emissive
                 mat.color = AiMaterial.Color(emissive = emissive)
             }
             "\$clr.transparent" -> {
                 val transparent = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.transparent = transparent
                 mat.color = AiMaterial.Color(transparent = transparent)
             }
             "\$clr.reflective" -> {
                 val reflective = AiColor3D(this, be)
+                if (mDataLength == AiColor4D.size) float() // read another float
                 if (mat.color != null)
                     mat.color!!.reflective = reflective
                 mat.color = AiMaterial.Color(reflective = reflective)
@@ -326,6 +334,26 @@ class AssbinLoader : BaseImporter() {
             "\$tex.uvtrafo" -> TODO("vec2(this)")//mat.textures[mIndex].uvTrafo = AiUVTransform()
             "\$tex.flags" -> mat.textures[mIndex].flags = int(be)
         }
+    }
+
+    private fun InputStream.readTexture() {
+
+        assert(int(be) == ASSBIN_CHUNK_AITEXTURE)
+        int()   // size
+
+        val tex = AiTexture()
+        tex.mWidth = int(be)
+        tex.mWidth = int(be)
+        tex.achFormatHint = string(4)
+
+        if (!shortened)
+            tex.pcData =
+                    if (tex.mHeight == 0)
+                        ByteArray(tex.mWidth, { byte() })
+                    else
+                        ByteArray(tex.mWidth * tex.mHeight * 4, { byte() })
+
+        // TODO
     }
 
     private fun InputStream.readAnimation(anim: AiAnimation) {
