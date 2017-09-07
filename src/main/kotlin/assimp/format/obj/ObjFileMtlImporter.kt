@@ -90,7 +90,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         if (mat == null) {
             // New Material created
             m_pModel.m_pCurrentMaterial = Material(matName)
-            m_pModel.m_pCurrentMesh?.m_uiMaterialIndex = m_pModel.m_MaterialLib.size
+            m_pModel.m_pCurrentMesh?.m_uiMaterialIndex = m_pModel.m_MaterialLib.size - 1
             m_pModel.m_MaterialLib.add(matName)
             m_pModel.m_MaterialMap.put(matName, m_pModel.m_pCurrentMaterial!!)
         }

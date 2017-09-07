@@ -4,6 +4,8 @@ import glm_.*
 import assimp.BaseImporter
 import java.net.URI
 import assimp.*
+import glm_.func.deg
+import glm_.func.rad
 import unsigned.Uint
 import unsigned.ui
 import glm_.mat4x4.Mat4

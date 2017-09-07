@@ -68,7 +68,7 @@ class ObjFileParser(private val file: File) {
                 'l' -> getFace(AiPrimitiveType.LINE, line)
                 'f' -> getFace(AiPrimitiveType.POLYGON, line)
             // Parse a material desc. setter
-                'u' -> getMaterialDesc(line)
+                'u' -> if (words[0] == "usemtl") getMaterialDesc(line)
             // Parse a material library or merging group ('mg')
                 'm' -> {
                     when (words[0]) {
