@@ -194,16 +194,22 @@ class ObjFileParser(private val file: File) {
     fun getMaterialDesc(line: String) {
 
         // Get name
-        var strName = line.split("\\s+".toRegex())[1].trim()
+        val strName = line.split("\\s+".toRegex())[1].trim()
 
         // If the current mesh has the same material, we simply ignore that 'usemtl' command
         // There is no need to create another object or even mesh here
         if (m_pModel.m_pCurrentMaterial == null || m_pModel.m_pCurrentMaterial!!.materialName != strName) {
             // Search for material
             m_pModel.m_pCurrentMaterial = m_pModel.m_MaterialMap.getOrElse(strName, {
-                System.err.println("OBJ: failed to locate material $strName, skipping")
-                strName = m_pModel.m_pDefaultMaterial!!.materialName
-                m_pModel.m_pDefaultMaterial!!
+                /*  Not found, so we don't know anything about the material except for its name.
+                    This may be the case if the material library is missing. We don't want to lose all materials if that
+                    happens, so create a new named material instead of discarding it completely.    */
+                System.err.println("OBJ: failed to locate material $strName, creating new material")
+                with(m_pModel) {
+                    m_pCurrentMaterial = Material(materialName = strName)
+                    m_MaterialLib.add(strName)
+                    m_MaterialMap.put(strName, m_pCurrentMaterial!!)
+                }
             })
         }
 
