@@ -138,19 +138,19 @@ class STLImporter : BaseImporter() {
         for (i in 0 until pScene.mNumMeshes)
             pScene.mRootNode.mMeshes[i] = i
 
-        // create a single default material, using a light gray diffuse color for consistency with other geometric types
-        // (e.g., PLY).
+        /*  create a single default material, using a light white diffuse color for consistency with other geometric
+            types (e.g., PLY).  */
         val pcMat = AiMaterial()
         pcMat.name = AI_DEFAULT_MATERIAL_NAME
 
-        val clrDiffuse = AiColor4D(0.6, 0.6, 0.6, 1)
+        val clrDiffuse = AiColor4D(1f)
 
         if (bMatClr) clrDiffuse put clrColorDefault
 
         pcMat.color = AiMaterial.Color(
                 diffuse = AiColor3D(clrDiffuse),
                 specular = AiColor3D(clrDiffuse),
-                ambient = AiColor3D(0.05, 0.05, 0.05)
+                ambient = AiColor3D(1f)
         )
 
         pScene.mNumMaterials = 1
