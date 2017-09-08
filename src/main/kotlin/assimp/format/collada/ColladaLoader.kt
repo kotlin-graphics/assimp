@@ -4,6 +4,7 @@ import glm_.*
 import assimp.BaseImporter
 import java.net.URI
 import assimp.*
+import assimp.format.logger
 import glm_.func.deg
 import glm_.func.rad
 import unsigned.Uint
@@ -724,13 +725,13 @@ class ColladaLoader : BaseImporter() {
             addTexture(mat, pParser, effect, effect.mTexAmbient, AiTexture.Type.lightmap)
 
         if (effect.mTexEmissive.mName.isNotEmpty())
-            addTexture(mat, pParser, effect, effect.mTexEmissive, AiTexture.Type.emissive);
+            addTexture(mat, pParser, effect, effect.mTexEmissive, AiTexture.Type.emissive)
 
         if (effect.mTexSpecular.mName.isNotEmpty())
-            addTexture(mat, pParser, effect, effect.mTexSpecular, AiTexture.Type.specular);
+            addTexture(mat, pParser, effect, effect.mTexSpecular, AiTexture.Type.specular)
 
         if (effect.mTexDiffuse.mName.isNotEmpty())
-            addTexture(mat, pParser, effect, effect.mTexDiffuse, AiTexture.Type.diffuse);
+            addTexture(mat, pParser, effect, effect.mTexDiffuse, AiTexture.Type.diffuse)
 
 //        if (!effect.mTexBump.mName.empty())
 //            AddTexture(mat, pParser, effect, effect.mTexBump, aiTextureType_NORMALS);
@@ -760,6 +761,8 @@ class ColladaLoader : BaseImporter() {
     /** Resolves the texture name for the given effect texture entry    */
     fun findFilenameForEffectTexture(pParser: ColladaParser, pEffect: Effect, pName: String): String {
 
+        var result = ""
+
         // recurse through the param references until we end up at an image
         var name = pName
         while (true) {
@@ -772,9 +775,13 @@ class ColladaLoader : BaseImporter() {
         }
 
         // find the image referred by this name in the image library of the scene
-        val image = pParser.mImageLibrary[name] ?: throw Error("Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\".")
+        val image = pParser.mImageLibrary[name] ?: run {
+            logger.error { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
 
-        var result = ""
+            //set default texture file name
+            result = "$name.jpg"
+            return result
+        }
 
         // if this is an embedded texture image setup an aiTexture for it
         if (image.mFileName.isEmpty()) {

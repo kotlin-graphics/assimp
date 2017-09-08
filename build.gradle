@@ -33,6 +33,8 @@ dependencies {
 
     testCompile 'com.github.elect86:kotlintest:43281b7e1b'
 //    testCompile 'io.kotlintest:kotlintest:2.0.1'
+
+    compile 'io.github.microutils:kotlin-logging:1.4.6'
 }
 
 repositories {

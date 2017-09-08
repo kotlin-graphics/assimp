@@ -1771,7 +1771,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads input declarations of per-index mesh data into the given mesh */
-    internal fun readIndexData(pMesh: Mesh) {
+    private fun readIndexData(pMesh: Mesh) {
 
         val vcount = ArrayList<Int>()
         val perIndexData = ArrayList<InputChannel>()
@@ -1832,6 +1832,8 @@ class ColladaParser(pFile: URI) {
                             actualPrimitives += readPrimitives(pMesh, perIndexData, numPrimitives, vcount, primType)
 
                     "extra" -> skipElement("extra")
+
+                    "ph" -> skipElement("ph")
 
                     else -> throw Exception("Unexpected sub element <${element.name}> in tag <$elementName>")
                 }
