@@ -50,7 +50,7 @@ package assimp
 /** A time-value pair specifying a certain 3D vector for the given time. */
 class AiVectorKey(
         /** The time of this key */
-        var mTime: Double = 0.0,
+        var time: Double = 0.0,
 
         /** The value of this key */
         var mValue: AiVector3D = AiVector3D())
@@ -60,7 +60,7 @@ class AiVectorKey(
  *  Rotations are expressed with quaternions. */
 class AiQuatKey(
         /** The time of this key */
-        var mTime: Double = 0.0,
+        var time: Double = 0.0,
 
         /** The value of this key */
         var mValue: AiQuaternion = AiQuaternion())
@@ -80,14 +80,12 @@ class AiMeshKey(
 /** Binds a morph anim mesh to a specific point in time. */
 class AiMeshMorphKey(
         /** The time of this key */
-        var mTime: Double = 0.0,
-
+        var time: Double,
         /** The values and weights at the time of this key */
-        var mValues: List<Int> = ArrayList(),
-        var mWeights: List<Double> = ArrayList(),
-
+        var values: IntArray,
+        var weights: DoubleArray,
         /** The number of values and weights */
-        var mNumValuesAndWeights: Int = 0)
+        var numValuesAndWeights: Int)
 
 // ---------------------------------------------------------------------------
 /** Defines how an animation channel behaves outside the defined time
@@ -136,14 +134,14 @@ class AiNodeAnim(
         var mNodeName: String = "",
 
         /** The number of position keys */
-        var mNumPositionKeys: Int = 0,
+        var numPositionKeys: Int = 0,
 
         /** The position keys of this animation channel. Positions are
-         * specified as 3D vector. The array is mNumPositionKeys in size.
+         * specified as 3D vector. The array is numPositionKeys in size.
          *
          * If there are position keys, there will also be at least one
          * scaling and one rotation key.*/
-        var mPositionKeys: List<AiVectorKey> = ArrayList(),
+        var positionKeys: List<AiVectorKey> = ArrayList(),
 
         /** The number of rotation keys */
         var mNumRotationKeys: Int = 0,
@@ -154,7 +152,7 @@ class AiNodeAnim(
          *
          * If there are rotation keys, there will also be at least one
          * scaling and one position key. */
-        var mRotationKeys: List<AiQuatKey> = ArrayList(),
+        var rotationKeys: List<AiQuatKey> = ArrayList(),
 
         /** The number of scaling keys */
         var mNumScalingKeys: Int = 0,
@@ -164,7 +162,7 @@ class AiNodeAnim(
          *
          * If there are scaling keys, there will also be at least one
          * position and one rotation key.*/
-        var mScalingKeys: List<AiVectorKey> = ArrayList(),
+        var scalingKeys: List<AiVectorKey> = ArrayList(),
 
         /** Defines how the animation behaves before the first
          *  key is encountered.
@@ -193,7 +191,7 @@ class AiMeshAnim(
          *  of meshes with similar animation setup)*/
         var mName: String = "",
 
-        /** Size of the #mKeys array. Must be 1, at least. */
+        /** Size of the #keys array. Must be 1, at least. */
         var mNumKeys: Int = 0,
 
         /** Key frames of the animation. May not be NULL. */
@@ -202,53 +200,35 @@ class AiMeshAnim(
 // ---------------------------------------------------------------------------
 /** Describes a morphing animation of a given mesh. */
 class AiMeshMorphAnim(
-        /** Name of the mesh to be animated. An empty string is not allowed,
-         *  animated meshes need to be named (not necessarily uniquely,
-         *  the name can basically serve as wildcard to select a group
-         *  of meshes with similar animation setup)*/
-        var mName: String = "",
-
-        /** Size of the #mKeys array. Must be 1, at least. */
-        var mNumKeys: Int = 0,
-
+        /** Name of the mesh to be animated. An empty string is not allowed, animated meshes need to be named
+         *  (not necessarily uniquely, the name can basically serve as wildcard to select a group of meshes
+         *  with similar animation setup)*/
+        var name: String = "",
+        /** Size of the #keys array. Must be 1, at least. */
+        var numKeys: Int = 0,
         /** Key frames of the animation. May not be NULL. */
-        var mKeys: List<assimp.AiMeshMorphKey> = ArrayList())
+        var keys: Array<AiMeshMorphKey> = arrayOf())
 
 // ---------------------------------------------------------------------------
 /** An animation consists of key-frame data for a number of nodes. For
  *  each node affected by the animation a separate series of data is given.*/
 class AiAnimation(
-        /** The name of the animation. If the modeling package this data was
-         *  exported from does support only a single animation channel, this
-         *  name is usually empty (length is zero). */
-        var mName: String = "",
-
+        /** The name of the animation. If the modeling package this data was exported from does support only
+         *  a single animation channel, this name is usually empty (length is zero). */
+        var name: String = "",
         /** Duration of the animation in ticks.  */
-        var mDuration: Double = -1.0,
-
+        var duration: Double = -1.0,
         /** Ticks per second. 0 if not specified in the imported file */
-        var mTicksPerSecond: Double = 0.0,
-
-        /** The number of bone animation channels. Each channel affects
-         *  a single node. */
-        var mNumChannels: Int = 0,
-
-        /** The node animation channels. Each channel affects a single node.
-         *  The array is mNumChannels in size. */
-        var mChannels: MutableList<AiNodeAnim> = ArrayList(),
-
-        /** The number of mesh animation channels. Each channel affects
-         *  a single mesh and defines vertex-based animation. */
+        var ticksPerSecond: Double = 0.0,
+        /** The number of bone animation channels. Each channel affects a single node. */
+        var numChannels: Int = 0,
+        /** The node animation channels. Each channel affects a single node. The array is numChannels in size. */
+        var channels: ArrayList<AiNodeAnim?> = ArrayList(),
+        /** The number of mesh animation channels. Each channel affects a single mesh and defines vertex-based animation. */
         var mNumMeshChannels: Int = 0,
-
-        /** The mesh animation channels. Each channel affects a single mesh.
-         *  The array is mNumMeshChannels in size. */
+        /** The mesh animation channels. Each channel affects a single mesh. The array is mNumMeshChannels in size. */
         var mMeshChannels: List<List<AiMeshAnim>> = ArrayList(),
-
-        /** The number of mesh animation channels. Each channel affects
-         *  a single mesh and defines morphing animation. */
-        var mNumMorphMeshChannels: Int = 0,
-
-        /** The morph mesh animation channels. Each channel affects a single mesh.
-         *  The array is mNumMorphMeshChannels in size. */
-        var mMorphMeshChannels: List<List<AiMeshMorphAnim>> = ArrayList())
+        /** The number of mesh animation channels. Each channel affects a single mesh and defines morphing animation. */
+        var numMorphMeshChannels: Int = 0,
+        /** The morph mesh animation channels. Each channel affects a single mesh. The array is numMorphMeshChannels in size. */
+        var morphMeshChannels: ArrayList<AiMeshMorphAnim> = ArrayList())

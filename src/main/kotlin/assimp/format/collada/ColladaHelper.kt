@@ -169,22 +169,29 @@ class Node(
 /** Data source array: either floats or strings */
 class Data(
         var mIsStringArray: Boolean = false,
-        var mValues: ArrayList<Float> = arrayListOf(),
+        var values: ArrayList<Float> = arrayListOf(),
         var mStrings: ArrayList<String> = arrayListOf())
 
 /** Accessor to a data array */
-class Accessor(
-        var mCount: Int = 0, // in number of objects
-        var mSize: Int = 0, // size of an object, in elements (floats or strings, mostly 1)
-        var mOffset: Int = 0, // in number of values
-        var mStride: Int = 0, // Stride in number of values
-        // names of the data streams in the accessors. Empty string tells to ignore.
-        var mParams: ArrayList<String> = ArrayList(),
-        // Suboffset inside the object for the common 4 elements. For a vector, thats XYZ, for a color RGBA and so on.
-        // For example, SubOffset[0] denotes which of the values inside the object is the vector X component.
-        var mSubOffset: IntArray = IntArray(4, { 0 }),
-        var mSource: String = "", // URL of the source array
-        var mData: Data? = null) // Pointer to the source array, if resolved. NULL else
+class Accessor {
+    /** in number of objects    */
+    var count = 0L
+    /** size of an object, in elements (floats or strings, mostly 1)    */
+    var size = 0L
+    /** in number of values */
+    var offset = 0
+    /** Stride in number of values  */
+    var stride = 0L
+    /** names of the data streams in the accessors. Empty string tells to ignore.   */
+    var mParams = ArrayList<String>()
+    /** Suboffset inside the object for the common 4 elements. For a vector, thats XYZ, for a color RGBA and so on.
+     *  For example, SubOffset[0] denotes which of the values inside the object is the vector X component.  */
+    var mSubOffset = LongArray(4, { 0 })
+    /** URL of the source array */
+    var source = ""
+    /** Pointer to the source array, if resolved. NULL else */
+    var mData: Data? = null
+}
 
 /** A single face in a mesh */
 typealias Face = ArrayList<Int>
@@ -195,7 +202,7 @@ class InputChannel(
         var mIndex: Int = 0, // Optional index, if multiple sets of the same data type are given
         var mOffset: Int = 0, // Index offset in the indices array of per-face indices. Don't ask, can't explain that any better.
         var mAccessor: String = "", // ID of the accessor where to read the actual values from.
-        var mResolved: Accessor? = null) // Pointer to the accessor, if resolved. NULL else
+        var resolved: Accessor? = null) // Pointer to the accessor, if resolved. NULL else
 
 /** Subset of a mesh with a certain material */
 class SubMesh(
@@ -271,10 +278,10 @@ class Controller(
         var mWeightInputWeights: InputChannel = InputChannel(),
 
         // Number of weights per vertex.
-        var mWeightCounts: MutableList<Int> = mutableListOf(),
+        var weightCounts: LongArray = longArrayOf(),
 
         // JointIndex-WeightIndex pairs for all vertices
-        var mWeights: MutableList<Pair<Int, Int>> = mutableListOf(),
+        var weights: ArrayList<Pair<Long, Long>> = ArrayList(),
 
         var mMorphTarget: String = "",
         var mMorphWeight: String = "")
@@ -458,15 +465,25 @@ class Animation(
 }
 
 /** Description of a collada animation channel which has been determined to affect the current node */
-class ChannelEntry(
-        val mChannel: AnimationChannel, ///> the source channel
-        var mTargetId: String,
-        var mTransformId: String, // the ID of the transformation step of the node which is influenced
-        var mTransformIndex: Int, // Index into the node's transform chain to apply the channel to
-        val mSubElement: Int, // starting index inside the transform data
+class ChannelEntry() {
+    /** the source channel  */
+    var mChannel = AnimationChannel()
 
-        // resolved data references
-        val mTimeAccessor: Accessor, ///> Collada accessor to the time values
-        val mTimeData: Data, ///> Source data array for the time values
-        val mValueAccessor: Accessor, ///> Collada accessor to the key value values
-        val mValueData: Data) ///> Source datat array for the key value values
+    var targetId = ""
+    /** the ID of the transformation step of the node which is influenced   */
+    var mTransformId = ""
+    /** Index into the node's transform chain to apply the channel to   */
+    var mTransformIndex = 0L
+    /** starting index inside the transform data    */
+    var mSubElement = 0L
+
+    // resolved data references
+    /** Collada accessor to the time values */
+    var mTimeAccessor = Accessor()
+    /** Source data array for the time values   */
+    var timeData = Data()
+    /** Collada accessor to the key value values    */
+    var mValueAccessor = Accessor()
+    /** Source datat array for the key value values */
+    var valueData = Data()
+}

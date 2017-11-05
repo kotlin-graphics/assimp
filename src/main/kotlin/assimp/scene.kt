@@ -67,7 +67,7 @@ data class AiNode(
 ) {
 
 //    fun finNode(name: String): AiNode? {
-//        if(mName == name) return this
+//        if(name == name) return this
 //        mChildren.forEach {
 //            val p = it.finNode(name)
 //        } ?: null
@@ -174,7 +174,7 @@ class AiScene {
      * Not many file formats embed their textures into the file.
      * An example is Quake's MDL format (which is also used by some GameStudio versions)
      */
-    val mTextures = mutableMapOf<String, gli.Texture>()
+    val mTextures = mutableMapOf<String, gli_.Texture>()
 
     /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
      * will be 0         */
@@ -183,7 +183,7 @@ class AiScene {
     /** The array of light sources.
      *
      * All light sources imported from the given file are listed here. The array is mNumLights in size.         */
-    var mLights: List<AiLight> = arrayListOf()
+    var mLights = ArrayList<AiLight>()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
     var mNumCameras = 0
@@ -193,7 +193,7 @@ class AiScene {
      * All cameras imported from the given file are listed here.
      * The array is mNumCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
-    var mCameras: List<AiCamera> = arrayListOf()
+    var mCameras = ArrayList<AiCamera>()
 
     /** Check whether the scene contains meshes
      *  Unless no special scene flags are set this will always be true. */

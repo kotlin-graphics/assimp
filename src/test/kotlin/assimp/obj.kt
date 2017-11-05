@@ -26,14 +26,14 @@ class obj : StringSpec() {
 //                println()
 ////                with(mRootNode) {
 ////
-////                    mName shouldBe "nanosuit.obj"
+////                    name shouldBe "nanosuit.obj"
 ////                    mTransformation shouldBe Mat4()
 ////                    mNumChildren shouldBe 7
 ////
 ////                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
 ////
 ////                    (0 until mNumChildren).map {
-////                        mChildren[it].mName shouldBe names[it]
+////                        mChildren[it].name shouldBe names[it]
 ////                        mChildren[it].mMeshes!![0] shouldBe it
 ////                    }
 ////

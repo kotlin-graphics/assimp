@@ -1,10 +1,9 @@
 package assimp.format.assbin
 
 import assimp.*
-import gli.has
-import gli.hasnt
+import gli_.has
+import gli_.hasnt
 import glm_.*
-import glm_.vec4.Vec4
 import java.io.File
 import java.io.InputStream
 import java.net.URI
@@ -117,11 +116,11 @@ class AssbinLoader : BaseImporter() {
 
         // Read lights
         for (i in 0 until scene.mNumLights)
-            scene.mLights = List(scene.mNumLights, { AiLight().also { readLight(it) } })
+            scene.mLights = Array(scene.mNumLights, { AiLight().also { readLight(it) } }).toCollection(ArrayList())
 
         // Read cameras
         for (i in 0 until scene.mNumCameras)
-            scene.mCameras = List(scene.mNumCameras, { AiCamera().also { readCamera(it) } })
+            scene.mCameras = Array(scene.mNumCameras, { AiCamera().also { readCamera(it) } }).toCollection(ArrayList())
     }
 
     private fun InputStream.readNode(node: AiNode, parent: AiNode? = null) {
@@ -232,7 +231,7 @@ class AssbinLoader : BaseImporter() {
         // for the moment we write dumb min/max values for the bones, too.
         // maybe I'll add a better, hash-like solution later
         if (shortened)
-            TODO()  //ReadBounds(stream, b->mWeights, b->mNumWeights)
+            TODO()  //ReadBounds(stream, b->weights, b->mNumWeights)
         else    // else write as usual
             b.mWeights = List(b.mNumWeights, { vertexWeight() })
     }
@@ -361,12 +360,12 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AIANIMATION)
         int(be)   // size
 
-        anim.mName = string()
-        anim.mDuration = double(be)
-        anim.mTicksPerSecond = double(be)
-        anim.mNumChannels = int(be)
+        anim.name = string()
+        anim.duration = double(be)
+        anim.ticksPerSecond = double(be)
+        anim.numChannels = int(be)
 
-        anim.mChannels = MutableList(anim.mNumChannels, { AiNodeAnim().also { readNodeAnim(it) } })
+        anim.channels = Array(anim.numChannels, { AiNodeAnim().also { readNodeAnim(it) } }).toCollection(ArrayList())
     }
 
     private fun InputStream.readNodeAnim(nd: AiNodeAnim) {
@@ -375,29 +374,29 @@ class AssbinLoader : BaseImporter() {
         int(be)   // size
 
         nd.mNodeName = string()
-        nd.mNumPositionKeys = int(be)
+        nd.numPositionKeys = int(be)
         nd.mNumRotationKeys = int(be)
         nd.mNumScalingKeys = int(be)
         nd.mPreState = AiAnimBehaviour.of(int(be))
         nd.mPostState = AiAnimBehaviour.of(int(be))
 
-        if (nd.mNumPositionKeys > 0)
+        if (nd.numPositionKeys > 0)
             if (shortened)
-                TODO()//ReadBounds(stream, nd->mPositionKeys, nd->mNumPositionKeys)
+                TODO()//ReadBounds(stream, nd->positionKeys, nd->numPositionKeys)
             else    // else write as usual
-                nd.mPositionKeys = List(nd.mNumPositionKeys, { vectorKey() })
+                nd.positionKeys = List(nd.numPositionKeys, { vectorKey() })
 
         if (nd.mNumRotationKeys > 0)
             if (shortened)
-                TODO()//ReadBounds(stream, nd->mRotationKeys, nd->mNumRotationKeys)
+                TODO()//ReadBounds(stream, nd->rotationKeys, nd->mNumRotationKeys)
             else    // else write as usual
-                nd.mRotationKeys = List(nd.mNumRotationKeys, { quatKey() })
+                nd.rotationKeys = List(nd.mNumRotationKeys, { quatKey() })
 
         if (nd.mNumScalingKeys > 0)
             if (shortened)
-                TODO()//ReadBounds(stream, nd->mScalingKeys, nd->mNumScalingKeys)
+                TODO()//ReadBounds(stream, nd->scalingKeys, nd->mNumScalingKeys)
             else    // else write as usual
-                nd.mScalingKeys = List(nd.mNumScalingKeys, { vectorKey() })
+                nd.scalingKeys = List(nd.mNumScalingKeys, { vectorKey() })
     }
 
     private fun InputStream.readLight(l: AiLight) {

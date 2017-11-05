@@ -1,6 +1,7 @@
 package assimp.format.obj
 
 import assimp.*
+import gli_.gli
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystemException
@@ -421,7 +422,7 @@ class ObjFileImporter : BaseImporter() {
 
                     val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
 
-                    scene.mTextures[name] = gli.load(texFile)
+                    scene.mTextures[name] = gli.load(texFile.toPath())
                 }
             }
         }

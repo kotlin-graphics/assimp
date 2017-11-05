@@ -1,7 +1,6 @@
 package assimp.format.collada
 
 import assimp.*
-import assimp.format.logger
 import glm_.*
 import glm_.mat4x4.Mat4
 import java.io.File
@@ -21,17 +20,17 @@ import kotlin.collections.set
  * Created by elect on 23/01/2017.
  */
 
-typealias DataLibrary = MutableMap<String, Data>
-typealias AccessorLibrary = MutableMap<String, Accessor>
-typealias MeshLibrary = MutableMap<String, Mesh>
-typealias NodeLibrary = MutableMap<String, Node>
-typealias ImageLibrary = MutableMap<String, Image>
-typealias EffectLibrary = MutableMap<String, Effect>
-typealias MaterialLibrary = MutableMap<String, Material>
-typealias LightLibrary = MutableMap<String, Light>
-typealias CameraLibrary = MutableMap<String, Camera>
-typealias ControllerLibrary = MutableMap<String, Controller>
-typealias AnimationLibrary = MutableMap<String, Animation>
+typealias DataLibrary = HashMap<String, Data>
+typealias AccessorLibrary = HashMap<String, Accessor>
+typealias MeshLibrary = HashMap<String, Mesh>
+typealias NodeLibrary = HashMap<String, Node>
+typealias ImageLibrary = HashMap<String, Image>
+typealias EffectLibrary = HashMap<String, Effect>
+typealias MaterialLibrary = HashMap<String, Material>
+typealias LightLibrary = HashMap<String, Light>
+typealias CameraLibrary = HashMap<String, Camera>
+typealias ControllerLibrary = HashMap<String, Controller>
+typealias AnimationLibrary = HashMap<String, Animation>
 typealias AnimationClipLibrary = ArrayList<Pair<String, ArrayList<String>>>
 
 typealias ChannelMap = MutableMap<String, AnimationChannel>
@@ -52,27 +51,27 @@ class ColladaParser(pFile: URI) {
     lateinit var endElement: EndElement
     /** All data arrays found in the file by ID. Might be referred to by actually everyone. Collada, you are a steaming
      *  pile of indirection. */
-    var mDataLibrary: DataLibrary = mutableMapOf()
+    var mDataLibrary: DataLibrary = HashMap()
     /** Same for accessors which define how the data in a data array is accessed. */
-    var mAccessorLibrary: AccessorLibrary = mutableMapOf()
+    var mAccessorLibrary: AccessorLibrary = HashMap()
     /** Mesh library: mesh by ID */
-    var mMeshLibrary: MeshLibrary = mutableMapOf()
+    var mMeshLibrary: MeshLibrary = HashMap()
     /** node library: root node of the hierarchy part by ID */
-    var mNodeLibrary: NodeLibrary = mutableMapOf()
+    var mNodeLibrary: NodeLibrary = HashMap()
     /** Image library: stores texture properties by ID */
-    var mImageLibrary: ImageLibrary = mutableMapOf()
+    var mImageLibrary: ImageLibrary = HashMap()
     /** Effect library: surface attributes by ID */
-    var mEffectLibrary: EffectLibrary = mutableMapOf()
+    var mEffectLibrary: EffectLibrary = HashMap()
     /** Material library: surface material by ID */
-    var mMaterialLibrary: MaterialLibrary = mutableMapOf()
+    var mMaterialLibrary: MaterialLibrary = HashMap()
     /** Light library: surface light by ID */
-    var mLightLibrary: LightLibrary = mutableMapOf()
+    var mLightLibrary: LightLibrary = HashMap()
     /** Camera library: surface material by ID */
-    var mCameraLibrary: CameraLibrary = mutableMapOf()
+    var mCameraLibrary: CameraLibrary = HashMap()
     /** Controller library: joint controllers by ID */
-    var mControllerLibrary: ControllerLibrary = mutableMapOf()
+    var mControllerLibrary: ControllerLibrary = HashMap()
     /** Animation library: animation references by ID */
-    var mAnimationLibrary: AnimationLibrary = mutableMapOf()
+    var mAnimationLibrary: AnimationLibrary = HashMap()
     /** Animation clip library: clip animation references by ID */
     var mAnimationClipLibrary: AnimationClipLibrary = ArrayList()
     /** Pointer to the root node. Don't delete, it just points to one of the nodes in the node library. */
@@ -330,7 +329,7 @@ class ColladaParser(pFile: URI) {
                 from an <instance_animation>.   */
 /*        // special filtering for stupid exporters packing each channel into a separate animation
         if( channels.size() == 1)
-            pParent->mChannels.push_back( channels.begin()->second);
+            pParent->channels.push_back( channels.begin()->second);
         else {
 */
             if (anim == null) { // else create the animation, if not done yet, and store the channels
@@ -462,9 +461,9 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads the joint weights for the given controller    */
-    fun readControllerWeights(pController: Controller) {
+    fun readControllerWeights(controller: Controller) {
         val vertexCount = element["count"]!!.i  // read vertex count from attributes and resize the array accordingly
-        pController.mWeightCounts = MutableList(vertexCount, { 0 })
+        controller.weightCounts = LongArray(vertexCount)
         while (mReader.read())
             if (event is StartElement)
                 when (element.name_) {
@@ -480,8 +479,8 @@ class ColladaParser(pFile: URI) {
                         channel.mAccessor = source.removePrefix("#")
                         // parse source URL to corresponding source
                         when (semantic) {
-                            "JOINT" -> pController.mWeightInputJoints = channel
-                            "WEIGHT" -> pController.mWeightInputWeights = channel
+                            "JOINT" -> controller.mWeightInputJoints = channel
+                            "WEIGHT" -> controller.mWeightInputWeights = channel
                             else -> throw Exception("Unknown semantic $semantic in <vertex_weights> data <input> element")
                         }
                         consume()   // skip inner data, if present
@@ -489,25 +488,18 @@ class ColladaParser(pFile: URI) {
                     "vcount" -> if (vertexCount > 0) {
                         val ints = getTextContent().words.map { it.i }  // read weight count per vertex
                         var numWeights = 0
-                        var i = 0
-                        pController.mWeightCounts.replaceAll {
+                        for (i in 0 until controller.weightCounts.size) {
                             if (i == ints.size) throw Exception("Out of data while reading <vcount>")
-                            val int = ints[i++]
+                            val int = ints[i]
                             numWeights += int
-                            int
                         }
                         testClosing("vcount")
-                        pController.mWeights = MutableList(numWeights, { Pair(0, 0) })  // reserve weight count
+                        controller.weights = Array(numWeights, { Pair(0L, 0L) }).toCollection(ArrayList())  // reserve weight count
                     }
                     "v" -> if (vertexCount > 0) {
-                        // read JointIndex - WeightIndex pairs
-                        val ints = getTextContent().words.map { it.i }
-                        var i = 0
-                        // FIXME crap solution, alternatives?
-                        pController.mWeights.replaceAll { weight ->
-                            if (i > ints.size - 1) throw Exception("Out of data while reading <vertex_weights>")
-                            Pair(i++, i++)
-                        }
+                        val ints = getTextContent().words.map { it.i }  // read JointIndex - WeightIndex pairs
+                        var p = 0
+                        controller.weights.replaceAll { Pair(ints[p++].L, ints[p++].L) }
                         testClosing("v")
                     }
                     else -> skipElement()   // ignore the rest
@@ -520,7 +512,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads the image library contents    */
     fun readImageLibrary() {
-        if (!isEmptyElement()) return
+        if (isEmptyElement()) return
         while (mReader.read())
             if (event is StartElement)
                 if (element.name_ == "image") {
@@ -639,7 +631,9 @@ class ColladaParser(pFile: URI) {
                 if (element.name_ == "camera") {
                     // read ID. By now you probably know my opinion about this "specification"
                     val id = element["id"]!!
-                    val cam = mCameraLibrary[id]!!  // create an entry and store it in the library under its ID
+                    // create an entry and store it in the library under its ID
+                    val cam = Camera()
+                    mCameraLibrary[id] = cam
                     element["name"]?.let { cam.mName = it }
                     readCamera(cam)
                 } else skipElement()   // ignore the rest
@@ -1116,7 +1110,7 @@ class ColladaParser(pFile: URI) {
             } else {
                 val ints = content.words.map { it.f }
                 if (ints.size < count) throw Exception("Expected more values while reading float_array contents.")
-                data.mValues.addAll(ints)
+                data.values.addAll(ints)
             }
         }
         // test for closing tag
@@ -1129,12 +1123,13 @@ class ColladaParser(pFile: URI) {
         val source = element["source"]!!
         if (source[0] != '#')
             throw Exception("Unknown reference format in url $source in source attribute of <accessor> element.")
-        val count = element["count"]!!.i
-        val offset = element["offset"]?.i ?: 0
-        val stride = element["stride"]?.i ?: 1
         // store in the library under the given ID
-        mAccessorLibrary[pID] = Accessor(mCount = count, mOffset = offset, mStride = stride, mSize = 0,
-                mSource = source.removePrefix("#")) // ignore the leading '#'
+        mAccessorLibrary[pID] = Accessor().apply {
+            count = element["count"]!!.L
+            offset = element["offset"]?.i ?: 0
+            stride = element["stride"]?.L ?: 1L
+            this.source = source.removePrefix("#")
+        } // ignore the leading '#'
         val acc = mAccessorLibrary[pID]!!
         while (mReader.read())  // and read the components
             if (event is StartElement)
@@ -1145,23 +1140,23 @@ class ColladaParser(pFile: URI) {
                     // analyse for common type components and store it's sub-offset in the corresponding field
                         when (name) {
                         /* Cartesian coordinates */
-                            "X" -> acc.mSubOffset[0] = acc.mParams.size
-                            "Y" -> acc.mSubOffset[1] = acc.mParams.size
-                            "Z" -> acc.mSubOffset[2] = acc.mParams.size
+                            "X" -> acc.mSubOffset[0] = acc.mParams.size.L
+                            "Y" -> acc.mSubOffset[1] = acc.mParams.size.L
+                            "Z" -> acc.mSubOffset[2] = acc.mParams.size.L
                         /* RGBA colors */
-                            "R" -> acc.mSubOffset[0] = acc.mParams.size
-                            "G" -> acc.mSubOffset[1] = acc.mParams.size
-                            "B" -> acc.mSubOffset[2] = acc.mParams.size
-                            "A" -> acc.mSubOffset[3] = acc.mParams.size
+                            "R" -> acc.mSubOffset[0] = acc.mParams.size.L
+                            "G" -> acc.mSubOffset[1] = acc.mParams.size.L
+                            "B" -> acc.mSubOffset[2] = acc.mParams.size.L
+                            "A" -> acc.mSubOffset[3] = acc.mParams.size.L
                         /* UVWQ (STPQ) texture coordinates */
-                            "S" -> acc.mSubOffset[0] = acc.mParams.size
-                            "T" -> acc.mSubOffset[1] = acc.mParams.size
-                            "P" -> acc.mSubOffset[2] = acc.mParams.size
+                            "S" -> acc.mSubOffset[0] = acc.mParams.size.L
+                            "T" -> acc.mSubOffset[1] = acc.mParams.size.L
+                            "P" -> acc.mSubOffset[2] = acc.mParams.size.L
                         //  else if( name == "Q") acc.mSubOffset[3] = acc.mParams.size();
                         /* 4D uv coordinates are not supported in Assimp */
                         /* Generic extra data, interpreted as UV data, too*/
-                            "U" -> acc.mSubOffset[0] = acc.mParams.size
-                            "V" -> acc.mSubOffset[1] = acc.mParams.size
+                            "U" -> acc.mSubOffset[0] = acc.mParams.size.L
+                            "V" -> acc.mSubOffset[1] = acc.mParams.size.L
                         //else
                         //  DefaultLogger::get()->warn( format() << "Unknown accessor parameter \"" << name << "\". Ignoring data channel." );
                         }
@@ -1170,7 +1165,7 @@ class ColladaParser(pFile: URI) {
                         /*  for the moment we only distinguish between a 4x4 matrix and anything else.
                             TODO: (thom) I don't have a spec here at work. Check if there are other multi-value types
                             which should be tested for here.                         */
-                        acc.mSize += if (it == "float4x4") 16 else 1
+                        acc.size += if (it == "float4x4") 16 else 1
                     }
                     acc.mParams.add(name)
                     skipElement()   // skip remaining stuff of this element, if any
@@ -1315,15 +1310,15 @@ class ColladaParser(pFile: URI) {
         else if (expectedPointCount == 0 && (indices.size % numOffsets) != 0)
             throw Exception("Expected different index count in <p> element.")
         // find the data for all sources
-        pMesh.mPerVertexData.filter { it.mResolved == null }.forEach { input ->
+        pMesh.mPerVertexData.filter { it.resolved == null }.forEach { input ->
             // find accessor
-            input.mResolved = mAccessorLibrary[input.mAccessor]!!
+            input.resolved = mAccessorLibrary[input.mAccessor]!!
             // resolve accessor's data pointer as well, if necessary
-            val acc = input.mResolved!!
-            if (acc.mData == null) acc.mData = mDataLibrary[acc.mSource]
+            val acc = input.resolved!!
+            if (acc.mData == null) acc.mData = mDataLibrary[acc.source]
         }
         // and the same for the per-index channels
-        pPerIndexChannels.filter { it.mResolved == null }.filter {
+        pPerIndexChannels.filter { it.resolved == null }.filter {
             // ignore vertex pointer, it doesn't refer to an accessor
             if (it.mType == InputType.Vertex) {
                 // warn if the vertex channel does not refer to the <vertices> element in the same mesh
@@ -1332,11 +1327,11 @@ class ColladaParser(pFile: URI) {
             } else true
         }.forEach {
             // find accessor
-            it.mResolved = mAccessorLibrary[it.mAccessor]
+            it.resolved = mAccessorLibrary[it.mAccessor]
             // resolve accessor's data pointer as well, if necessary
-            val acc = it.mResolved!!
+            val acc = it.resolved!!
             if (acc.mData == null)
-                acc.mData = mDataLibrary[acc.mSource]
+                acc.mData = mDataLibrary[acc.source]
         }
         // For continued primitives, the given count does not come all in one <p>, but only one primitive per <p>
         if (pPrimType == PrimitiveType.TriFans || pPrimType == PrimitiveType.Polygon)
@@ -1349,7 +1344,7 @@ class ColladaParser(pFile: URI) {
         var polylistStartVertex = 0
         for (currentPrimitive in 0 until numPrimitives) {
             // determine number of points for this primitive
-            var numPoints = 0
+            val numPoints: Int
             when (pPrimType) {
                 PrimitiveType.Lines -> {
                     numPoints = 2
@@ -1421,20 +1416,20 @@ class ColladaParser(pFile: URI) {
             }
 
     /** Extracts a single object from an input channel and stores it in the appropriate mesh data array */
-    fun extractDataObjectFromChannel(pInput: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
+    fun extractDataObjectFromChannel(input: InputChannel, pLocalIndex: Int, pMesh: Mesh) {
         // ignore vertex referrer - we handle them that separate
-        if (pInput.mType == InputType.Vertex) return
-        val acc = pInput.mResolved!!
-        if (pLocalIndex >= acc.mCount)
-            throw Exception("Invalid data index ($pLocalIndex/${acc.mCount}) in primitive specification")
+        if (input.mType == InputType.Vertex) return
+        val acc = input.resolved!!
+        if (pLocalIndex >= acc.count)
+            throw Exception("Invalid data index ($pLocalIndex/${acc.count}) in primitive specification")
         // get a pointer to the start of the data object referred to by the accessor and the local index
-        val offset = acc.mOffset + pLocalIndex * acc.mStride
+        val offset = acc.offset + pLocalIndex * acc.stride
         // assemble according to the accessors component sub-offset list. We don't care, yet, what kind of object exactly we're extracting here
-        val obj = FloatArray(4, { acc.mData!!.mValues[offset + acc.mSubOffset[it]] })
+        val obj = FloatArray(4, { acc.mData!!.values[(offset + acc.mSubOffset[it]).i] })
         // now we reinterpret it according to the type we're reading here
-        when (pInput.mType) {
+        when (input.mType) {
             InputType.Position -> // ignore all position streams except 0 - there can be only one position
-                if (pInput.mIndex == 0) pMesh.mPositions.add(AiVector3D(obj))
+                if (input.mIndex == 0) pMesh.mPositions.add(AiVector3D(obj))
                 else System.err.println("Collada: just one vertex position stream supported")
 
             InputType.Normal -> {
@@ -1443,7 +1438,7 @@ class ColladaParser(pFile: URI) {
                     pMesh.mNormals.add(AiVector3D(0, 1, 0))
                 }
                 // ignore all normal streams except 0 - there can be only one normal
-                if (pInput.mIndex == 0) pMesh.mNormals.add(AiVector3D(obj))
+                if (input.mIndex == 0) pMesh.mNormals.add(AiVector3D(obj))
                 else System.err.println("Collada: just one vertex normal stream supported")
             }
             InputType.Tangent -> {
@@ -1452,7 +1447,7 @@ class ColladaParser(pFile: URI) {
                     pMesh.mTangents.add(AiVector3D(1, 0, 0))
                 }
                 // ignore all tangent streams except 0 - there can be only one tangent
-                if (pInput.mIndex == 0)
+                if (input.mIndex == 0)
                     pMesh.mTangents.add(AiVector3D(obj))
                 else
                     System.err.println("Collada: just one vertex tangent stream supported")
@@ -1463,32 +1458,32 @@ class ColladaParser(pFile: URI) {
                     pMesh.mBitangents.add(AiVector3D(0, 0, 1))
                 }
                 // ignore all bitangent streams except 0 - there can be only one bitangent
-                if (pInput.mIndex == 0) pMesh.mBitangents.add(AiVector3D(obj))
+                if (input.mIndex == 0) pMesh.mBitangents.add(AiVector3D(obj))
                 else System.err.println("Collada: just one vertex bitangent stream supported")
             }
             InputType.Texcoord -> {
                 // up to 4 texture coord sets are fine, ignore the others
-                if (pInput.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+                if (input.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                     // pad to current vertex count if necessary
-//                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[pInput.mIndex].size - 1) {
-//                        pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(0))
+//                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[input.mIndex].size - 1) {
+//                        pMesh.mTexCoords[input.mIndex].add(AiVector3D(0))
 //                    }
 //
-//                    pMesh.mTexCoords[pInput.mIndex].add(AiVector3D(obj))
+//                    pMesh.mTexCoords[input.mIndex].add(AiVector3D(obj))
 //                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
-//                        pMesh.mNumUVComponents[pInput.mIndex] = 3
+//                        pMesh.mNumUVComponents[input.mIndex] = 3
                 } else System.err.println("Collada: too many texture coordinate sets. Skipping.")
             }
             InputType.Color -> {
                 // up to 4 color sets are fine, ignore the others
-                if (pInput.mIndex < AI_MAX_NUMBER_OF_COLOR_SETS) {
+                if (input.mIndex < AI_MAX_NUMBER_OF_COLOR_SETS) {
                     // pad to current vertex count if necessary
-                    repeat(pMesh.mPositions.size - pMesh.mColors[pInput.mIndex].size - 1) {
-                        pMesh.mColors[pInput.mIndex].add(AiColor4D(0, 0, 0, 1))
+                    repeat(pMesh.mPositions.size - pMesh.mColors[input.mIndex].size - 1) {
+                        pMesh.mColors[input.mIndex].add(AiColor4D(0, 0, 0, 1))
                     }
                     val result = AiColor4D(0, 0, 0, 1)
-                    repeat(pInput.mResolved!!.mSize) { result[it] = obj[pInput.mResolved!!.mSubOffset[it]] }
-                    pMesh.mColors[pInput.mIndex].add(result)
+                    repeat(input.resolved!!.size.i) { result[it] = obj[(input.resolved!!.mSubOffset[it]).i] }
+                    pMesh.mColors[input.mIndex].add(result)
                 } else System.err.println("Collada: too many vertex color sets. Skipping.")
             }
         // IT_Invalid and IT_Vertex
@@ -1521,7 +1516,6 @@ class ColladaParser(pFile: URI) {
 
     /** Reads a scene node's contents including children and stores it in the given node    */
     fun readSceneNode(pNode: Node?) {
-        println("readSceneNode in")
         // quit immediately on <bla/> elements
         if (isEmptyElement()) return
         while (mReader.read())
@@ -1597,10 +1591,7 @@ class ColladaParser(pFile: URI) {
                     }
                     else -> skipElement()  // skip everything else for the moment
                 }
-            } else if (event is EndElement) {
-                println("readSceneNode out")
-                break
-            }
+            } else if (event is EndElement) break
     }
 
     /** Reads a node transformation entry of the given type and adds it to the given node's transformation list.    */
@@ -1723,7 +1714,6 @@ class ColladaParser(pFile: URI) {
                 }
                 TransformType.SKEW -> assert(false) // TODO: (thom)
                 TransformType.MATRIX -> res *= Mat4(tf.f)
-                else -> assert(false)
             }
         }
         return res
@@ -1837,4 +1827,8 @@ class ColladaParser(pFile: URI) {
     fun consume() {
         if (!isEmptyElement()) skipElement()
     }
+
+    /** Finds the item in the given library by its reference, throws if not found   */
+    fun <T> resolveLibraryReference(pLibrary: HashMap<String, T>, pURL: String): T =
+            pLibrary[pURL] ?: throw Exception("Unable to resolve library reference \"$pURL\".")
 }

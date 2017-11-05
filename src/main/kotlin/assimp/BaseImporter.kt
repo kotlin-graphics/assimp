@@ -69,7 +69,7 @@ abstract class BaseImporter {
      * <li>the vertex data is stored in a pseudo-indexed "verbose" format. In fact this means that every vertex that is
      *   referenced by a face is unique. Or the other way round: a vertex index may not occur twice in a single
      *   aiMesh.</li>
-     * <li>aiAnimation::mDuration may be -1. Assimp determines the length of the animation automatically in this case as
+     * <li>aiAnimation::duration may be -1. Assimp determines the length of the animation automatically in this case as
      *   the length of the longest animation channel.</li>
      * <li>aiMesh::mBitangents may be NULL if tangents and normals are given. In this case bitangents are computed as the cross product
      *   between normal and tangent.</li>

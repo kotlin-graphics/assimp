@@ -1,15 +1,15 @@
 package assimp.format.collada
 
-import glm_.*
-import assimp.BaseImporter
-import java.net.URI
 import assimp.*
-import assimp.format.logger
+import glm_.*
+import glm_.func.common.max
 import glm_.func.deg
 import glm_.func.rad
-import unsigned.Uint
-import unsigned.ui
 import glm_.mat4x4.Mat4
+import unsigned.Uint
+import unsigned.Ulong
+import unsigned.ui
+import java.net.URI
 
 /**
  * Created by elect on 23/01/2017.
@@ -84,23 +84,56 @@ class ColladaLoader : BaseImporter() {
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
     override fun internReadFile(pFile: URI, pScene: AiScene) {
-
         mFileName = pFile
-
         // parse the input file
         val parser = ColladaParser(pFile)
-
-        if (parser.mRootNode == null)
-            throw Error("Collada: File came out empty. Something is wrong here.")
-
+        if (parser.mRootNode == null) throw Error("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)
-
         // build the node hierarchy from it
         pScene.mRootNode = buildHierarchy(parser, parser.mRootNode!!)
-
         // ... then fill the materials with the now adjusted settings
         fillMaterials(parser)
+        // Apply unitsize scale calculation
+        pScene.mRootNode.mTransformation *= AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
+                0, parser.mUnitSize, 0, 0,
+                0, 0, parser.mUnitSize, 0,
+                0, 0, 0, 1)
+        if (!ignoreUpDirection) {
+            // Convert to Y_UP, if different orientation
+            if (parser.mUpDirection == ColladaParser.UpDirection.X)
+                pScene.mRootNode.mTransformation *= AiMatrix4x4(
+                        0, -1, 0, 0,
+                        1, 0, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1)
+            else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
+                pScene.mRootNode.mTransformation *= AiMatrix4x4(
+                        1, 0, 0, 0,
+                        0, 0, 1, 0,
+                        0, -1, 0, 0,
+                        0, 0, 0, 1)
+        }
+        // store all meshes
+        storeSceneMeshes(pScene)
+        // store all materials
+        storeSceneMaterials(pScene)
+        // store all lights
+        storeSceneLights(pScene)
+        // store all cameras
+        storeSceneCameras(pScene)
+        // store all animations
+        storeAnimations(pScene, parser)
+//
+//
+//        // If no meshes have been loaded, it's probably just an animated skeleton.
+//        if (!pScene->mNumMeshes) {
+//
+//            if (!noSkeletonMesh) {
+//                SkeletonMeshBuilder hero(pScene)
+//            }
+//            pScene->mFlags |= AI_SCENE_FLAGS_INCOMPLETE
+//        }
     }
 
     /** Recursively constructs a scene node for the given parser node and returns it.   */
@@ -118,15 +151,16 @@ class ColladaLoader : BaseImporter() {
 
         // add children. first the *real* ones
         node.mNumChildren = pNode.mChildren.size + instances.size
-        node.mChildren = MutableList(node.mNumChildren, { AiNode() })
+        node.mChildren = ArrayList<AiNode>()
 
-        for (a in 0 until pNode.mChildren.size) {
-            node.mChildren[a] = buildHierarchy(pParser, pNode.mChildren[a])
-            node.mChildren[a].mParent = node
-        }
+        for (a in 0 until pNode.mChildren.size)
+            with(buildHierarchy(pParser, pNode.mChildren[a])) {
+                node.mChildren.add(this)
+                mParent = node
+            }
 
         // ... and finally the resolved node instances
-        for (a in 0 until pNode.mChildren.size) {
+        for (a in 0 until instances.size) {
             node.mChildren[pNode.mChildren.size + a] = buildHierarchy(pParser, instances[a])
             node.mChildren[pNode.mChildren.size + a].mParent = node
         }
@@ -214,8 +248,7 @@ class ColladaLoader : BaseImporter() {
         }
 
         // orthographic cameras not yet supported in Assimp
-        if (srcCamera.mOrtho)
-            println("Collada: Orthographic cameras are not supported.")
+        if (srcCamera.mOrtho) logger.warn { "Collada: Orthographic cameras are not supported." }
 
         // now fill our ai data structure
         val out = AiCamera(mName = pTarget.mName)
@@ -417,8 +450,8 @@ class ColladaLoader : BaseImporter() {
 
                 val targetAccessor = pParser.mAccessorLibrary[c.mMorphTarget]!!
                 val weightAccessor = pParser.mAccessorLibrary[c.mMorphWeight]!!
-                val targetData = pParser.mDataLibrary[targetAccessor.mSource]!!
-                val weightData = pParser.mDataLibrary[weightAccessor.mSource]!!
+                val targetData = pParser.mDataLibrary[targetAccessor.source]!!
+                val weightData = pParser.mDataLibrary[weightAccessor.source]!!
 
                 // take method
                 method = c.mMethod
@@ -438,7 +471,7 @@ class ColladaLoader : BaseImporter() {
                         createMesh(pParser, targetMesh, targetMesh.mSubMeshes[0], null, 0, 0)
                     })
                 }
-                targetWeights.addAll(weightData.mValues)
+                targetWeights.addAll(weightData.values)
             }
         }
         if (targetMeshes.size > 0 && targetWeights.size == targetMeshes.size) {
@@ -459,22 +492,22 @@ class ColladaLoader : BaseImporter() {
         if (pSrcController != null && pSrcController.mType == ControllerType.Skin) {
 
             // refuse if the vertex count does not match
-//      if( pSrcController->mWeightCounts.size() != dstMesh->mNumVertices)
+//      if( pSrcController->weightCounts.size() != dstMesh->mNumVertices)
 //          throw DeadlyImportError( "Joint Controller vertex count does not match mesh vertex count");
 
             // resolve references - joint names
             val jointNamesAcc = pParser.mAccessorLibrary[pSrcController.mJointNameSource]!!
-            val jointNames = pParser.mDataLibrary[jointNamesAcc.mSource]!!
+            val jointNames = pParser.mDataLibrary[jointNamesAcc.source]!!
             // joint offset matrices
             val jointMatrixAcc = pParser.mAccessorLibrary[pSrcController.mJointOffsetMatrixSource]!!
-            val jointMatrices = pParser.mDataLibrary[jointMatrixAcc.mSource]!!
+            val jointMatrices = pParser.mDataLibrary[jointMatrixAcc.source]!!
             // joint vertex_weight name list - should refer to the same list as the joint names above. If not, report and reconsider
             val weightNamesAcc = pParser.mAccessorLibrary[pSrcController.mWeightInputJoints.mAccessor]!!
             if (weightNamesAcc !== jointNamesAcc)
                 throw Error("Temporary implementational laziness. If you read this, please report to the author.")
             // vertex weights
             val weightsAcc = pParser.mAccessorLibrary[pSrcController.mWeightInputWeights.mAccessor]!!
-            val weights = pParser.mDataLibrary[weightsAcc.mSource]!!
+            val weights = pParser.mDataLibrary[weightsAcc.source]!!
 
             if (!jointNames.mIsStringArray || jointMatrices.mIsStringArray || weights.mIsStringArray)
                 throw Error("Data type mismatch while resolving mesh joints")
@@ -487,12 +520,12 @@ class ColladaLoader : BaseImporter() {
             val dstBones = MutableList(numBones, { mutableListOf<AiVertexWeight>() })
 
             // build a temporary array of pointers to the start of each vertex's weights
-            val weightStartPerVertex = ArrayList<Int>()
+            val weightStartPerVertex = ArrayList<Long>()
 
-            var pit = 0
-            pSrcController.mWeightCounts.forEachIndexed { i, a ->
-                weightStartPerVertex[a] = pit
-                pit += pSrcController.mWeightCounts[a]
+            var pit = 0L
+            pSrcController.weightCounts.forEachIndexed { i, a ->
+                weightStartPerVertex[a.i] = pit
+                pit += pSrcController.weightCounts[a.i]
             }
 
             // now for each vertex put the corresponding vertex weights into each bone's weight collection
@@ -502,18 +535,18 @@ class ColladaLoader : BaseImporter() {
                 val orgIndex = pSrcMesh.mFacePosIndices[a]
                 // find the vertex weights for this vertex
                 val iit = weightStartPerVertex[orgIndex]
-                val pairCount = pSrcController.mWeightCounts[orgIndex]
+                val pairCount = pSrcController.weightCounts[orgIndex]
 
                 for (b in 0 until pairCount) {
 
-                    val jointIndex = pSrcController.mWeights[iit].first
-                    val vertexIndex = pSrcController.mWeights[iit].second
+                    val jointIndex = pSrcController.weights[iit.i].first
+                    val vertexIndex = pSrcController.weights[iit.i].second
 
                     val weight = readFloat(weightsAcc, weights, vertexIndex, 0)
 
                     // one day I gonna kill that XSI Collada exporter
                     if (weight > 0f)
-                        dstBones[jointIndex].add(AiVertexWeight(mVertexId = (a - pStartVertex).ui.v, mWeight = weight))
+                        dstBones[jointIndex.i].add(AiVertexWeight(mVertexId = (a - pStartVertex).ui.v, mWeight = weight))
                 }
             }
 
@@ -528,20 +561,21 @@ class ColladaLoader : BaseImporter() {
                 if (dstBones[a].isEmpty())
                     continue
 
+                val aL = a.L
                 // create bone with its weights
-                val bone = AiBone(mName = readString(jointNamesAcc, jointNames, a))
-                bone.mOffsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, a, 0)
-                bone.mOffsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, a, 1)
-                bone.mOffsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, a, 2)
-                bone.mOffsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, a, 3)
-                bone.mOffsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, a, 4)
-                bone.mOffsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, a, 5)
-                bone.mOffsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, a, 6)
-                bone.mOffsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, a, 7)
-                bone.mOffsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, a, 8)
-                bone.mOffsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, a, 9)
-                bone.mOffsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, a, 10)
-                bone.mOffsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, a, 11)
+                val bone = AiBone(mName = readString(jointNamesAcc, jointNames, aL))
+                bone.mOffsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, aL, 0)
+                bone.mOffsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, aL, 1)
+                bone.mOffsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, aL, 2)
+                bone.mOffsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, aL, 3)
+                bone.mOffsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, aL, 4)
+                bone.mOffsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, aL, 5)
+                bone.mOffsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, aL, 6)
+                bone.mOffsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, aL, 7)
+                bone.mOffsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, aL, 8)
+                bone.mOffsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, aL, 9)
+                bone.mOffsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, aL, 10)
+                bone.mOffsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, aL, 11)
                 bone.mNumWeights = dstBones[a].size
                 bone.mWeights = dstBones[a].toList()
 
@@ -733,13 +767,13 @@ class ColladaLoader : BaseImporter() {
         if (effect.mTexDiffuse.mName.isNotEmpty())
             addTexture(mat, pParser, effect, effect.mTexDiffuse, AiTexture.Type.diffuse)
 
-//        if (!effect.mTexBump.mName.empty())
+//        if (!effect.mTexBump.name.empty())
 //            AddTexture(mat, pParser, effect, effect.mTexBump, aiTextureType_NORMALS);
 //
-//        if (!effect.mTexTransparent.mName.empty())
+//        if (!effect.mTexTransparent.name.empty())
 //            AddTexture(mat, pParser, effect, effect.mTexTransparent, aiTextureType_OPACITY);
 //
-//        if (!effect.mTexReflective.mName.empty())
+//        if (!effect.mTexReflective.name.empty())
 //            AddTexture(mat, pParser, effect, effect.mTexReflective, aiTextureType_REFLECTION);
     }
 
@@ -812,18 +846,18 @@ class ColladaLoader : BaseImporter() {
     }
 
     /** Reads a float value from an accessor and its data array.    */
-    fun readFloat(pAccessor: Accessor, pData: Data, pIndex: Int, pOffset: Int): Float {
+    fun readFloat(pAccessor: Accessor, pData: Data, pIndex: Long, pOffset: Long): Float {
         // FIXME: (thom) Test for data type here in every access? For the moment, I leave this to the caller
-        val pos = pAccessor.mStride * pIndex + pAccessor.mOffset + pOffset
-        assert(pos < pData.mValues.size)
-        return pData.mValues[pos]
+        val pos = pAccessor.stride * pIndex + pAccessor.offset + pOffset
+        assert(pos < pData.values.size)
+        return pData.values[pos.i]
     }
 
     /** Reads a string value from an accessor and its data array.   */
-    fun readString(pAccessor: Accessor, pData: Data, pIndex: Int): String {
-        val pos = pAccessor.mStride * pIndex + pAccessor.mOffset
+    fun readString(pAccessor: Accessor, pData: Data, pIndex: Long): String {
+        val pos = pAccessor.stride * pIndex + pAccessor.offset
         assert(pos < pData.mStrings.size)
-        return pData.mStrings[pos]
+        return pData.mStrings[pos.i]
     }
 
     /** Finds a node in the collada scene by the given name */
@@ -851,24 +885,458 @@ class ColladaLoader : BaseImporter() {
     }
 
     /** Finds a proper name for a node derived from the collada-node's properties   */
-    fun findNameForNode(pNode: Node) =
-            // now setup the name of the node. We take the name if not empty, otherwise the collada ID
-            // FIX: Workaround for XSI calling the instanced visual scene 'untitled' by default.
-            if (pNode.mName.isNotEmpty() && pNode.mName != "untitled")
-                pNode.mName
-            else if (pNode.mID.isNotEmpty())
-                pNode.mID
-            else if (pNode.mSID.isNotEmpty())
-                pNode.mSID
-            // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
-            else
-                "\$ColladaAutoName\$_${mNodeNameCounter++}"
+    fun findNameForNode(pNode: Node): String {
+        return when {
+        // now setup the name of the node. We take the name if not empty, otherwise the collada ID
+        // FIX: Workaround for XSI calling the instanced visual scene 'untitled' by default.
+            pNode.mName.isNotEmpty() && pNode.mName != "untitled" -> pNode.mName
+            pNode.mID.isNotEmpty() -> pNode.mID
+            pNode.mSID.isNotEmpty() -> pNode.mSID
+        // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
+            else -> "\$ColladaAutoName\$_${mNodeNameCounter++}"
+        }
+    }
+
+    /** Stores all meshes in the given scene    */
+    fun storeSceneMeshes(pScene: AiScene) {
+        pScene.mNumMeshes = mMeshes.size
+        if (mMeshes.isNotEmpty()) {
+            pScene.mMeshes.addAll(mMeshes)
+            mMeshes.clear()
+        }
+    }
+
+    /** Stores all materials in the given scene */
+    fun storeSceneMaterials(pScene: AiScene) {
+        pScene.mNumMaterials = newMats.size
+        if (newMats.isNotEmpty()) {
+            repeat(newMats.size) { pScene.mMaterials[it] = newMats[it].second }
+            newMats.clear()
+        }
+    }
+
+    /** Stores all lights in the given scene    */
+    fun storeSceneLights(pScene: AiScene) {
+        pScene.mNumLights = mLights.size
+        if (mLights.isNotEmpty()) {
+            pScene.mLights.addAll(mLights)
+            mLights.clear()
+        }
+    }
+
+    /** Stores all cameras in the given scene   */
+    fun storeSceneCameras(pScene: AiScene) {
+        pScene.mNumCameras = mCameras.size
+        if (mCameras.isNotEmpty()) {
+            pScene.mCameras.addAll(mCameras)
+            mCameras.clear()
+        }
+    }
+
+    /** Stores all animations   */
+    fun storeAnimations(scene: AiScene, parser: ColladaParser) {
+        // recursivly collect all animations from the collada scene
+        storeAnimations(scene, parser, parser.mAnims, "")
+
+        // catch special case: many animations with the same length, each affecting only a single node.
+        // we need to unite all those single-node-anims to a proper combined animation
+        for (a in 0 until mAnims.size) {
+            val templateAnim = mAnims[a]
+            if (templateAnim.numChannels == 1) {
+                // search for other single-channel-anims with the same duration
+                val collectedAnimIndices = ArrayList<Int>()
+                for (b in a + 1 until mAnims.size) {
+                    val other = mAnims[b]
+                    if (other.numChannels == 1 && other.duration == templateAnim.duration && other.ticksPerSecond == templateAnim.ticksPerSecond)
+                        collectedAnimIndices.add(b)
+                }
+
+                // if there are other animations which fit the template anim, combine all channels into a single anim
+                if (collectedAnimIndices.isNotEmpty()) {
+                    val combinedAnim = AiAnimation().apply {
+                        name = "combinedAnim_$a"
+                        duration = templateAnim.duration
+                        ticksPerSecond = templateAnim.ticksPerSecond
+                        numChannels = collectedAnimIndices.size + 1
+                        channels = templateAnim.channels    // add the template anim as first channel by moving its aiNodeAnim to the combined animation
+                    }
+                    // combined animation replaces template animation in the anim array
+                    mAnims[a] = combinedAnim
+
+                    // move the memory of all other anims to the combined anim and erase them from the source anims
+                    for (b in 0 until collectedAnimIndices.size) {
+                        val srcAnimation = mAnims[collectedAnimIndices[b]]
+                        combinedAnim.channels[1 + b] = srcAnimation.channels[0]
+                        srcAnimation.channels[0] = null
+                    }
+
+                    // in a second go, delete all the single-channel-anims that we've stripped from their channels
+                    // back to front to preserve indices - you know, removing an element from a vector moves all elements behind the removed one
+                    while (collectedAnimIndices.isNotEmpty()) {
+                        mAnims.removeAt(collectedAnimIndices.last())
+                        collectedAnimIndices.remove(collectedAnimIndices.lastIndex)
+                    }
+                }
+            }
+        }
+
+        // now store all anims in the scene
+        if (mAnims.isNotEmpty()) {
+            scene.mNumAnimations = mAnims.size
+            scene.mAnimations = mAnims
+        }
+        mAnims.clear()
+    }
+
+    /** Constructs the animations for the given source anim */
+    fun storeAnimations(pScene: AiScene, pParser: ColladaParser, pSrcAnim: Animation, pPrefix: String) {
+
+        val animName = if (pPrefix.isEmpty()) pSrcAnim.mName else "${pPrefix}_${pSrcAnim.mName}"
+        // create nested animations, if given
+        for (it in pSrcAnim.mSubAnims)
+            storeAnimations(pScene, pParser, it, animName)
+        // create animation channels, if any
+        if (pSrcAnim.mChannels.isNotEmpty())
+            createAnimation(pScene, pParser, pSrcAnim, animName)
+    }
+
+    /** Constructs the animation for the given source anim  */
+    fun createAnimation(pScene: AiScene, pParser: ColladaParser, pSrcAnim: Animation, pName: String) {
+        // collect a list of animatable nodes
+        val nodes = ArrayList<AiNode>()
+        collectNodes(pScene.mRootNode, nodes)
+
+        val anims = ArrayList<AiNodeAnim>()
+        val morphAnims = ArrayList<AiMeshMorphAnim>()
+
+        for (node in nodes) {
+            // find all the collada anim channels which refer to the current node
+            val entries = ArrayList<ChannelEntry>()
+            val nodeName = node.mName
+
+            // find the collada node corresponding to the aiNode
+            val srcNode = findNode(pParser.mRootNode!!, nodeName) ?: continue
+            //      ai_assert( srcNode != NULL);
+
+            // now check all channels if they affect the current node
+            for (srcChannel in pSrcAnim.mChannels) {
+
+                val entry = ChannelEntry()
+
+                /*  we expect the animation target to be of type "nodeName/transformID.subElement". Ignore all others
+                    find the slash that separates the node name - there should be only one  */
+                val slashPos = srcChannel.mTarget.indexOf('/')
+                if (slashPos == -1) {
+                    val targetPos = srcChannel.mTarget.indexOf(srcNode.mID)
+                    if (targetPos == -1) continue
+
+                    // not node transform, but something else. store as unknown animation channel for now
+                    entry.mChannel = srcChannel
+                    entry.targetId = srcChannel.mTarget.substring(targetPos + pSrcAnim.mName.length)
+                    if (entry.targetId[0] == '-')
+                        entry.targetId = entry.targetId.substring(1)
+                    entries.add(entry)
+                    continue
+                }
+                if (srcChannel.mTarget.indexOf('/', slashPos + 1) != -1) continue
+                val targetID = srcChannel.mTarget.substring(0, slashPos)
+                if (targetID != srcNode.mID) continue
+
+                // find the dot that separates the transformID - there should be only one or zero
+                val dotPos = srcChannel.mTarget.indexOf('.')
+                if (dotPos != -1) {
+                    if (srcChannel.mTarget.indexOf('.', dotPos + 1) != -1) continue
+
+                    entry.mTransformId = srcChannel.mTarget.substring(slashPos + 1, dotPos - 1)
+
+                    val subElement = srcChannel.mTarget.substring(dotPos + 1)
+                    entry.mSubElement = when (subElement) {
+                        "ANGLE" -> 3 // last number in an Axis-Angle-Transform is the angle
+                        "X" -> 0
+                        "Y" -> 1
+                        "Z" -> 2
+                        else -> logger.warn({ "Unknown anim subelement <\"$subElement\">. Ignoring" }).run { 0L }
+                    }
+                } else  // no subelement following, transformId is remaining string
+                    entry.mTransformId = srcChannel.mTarget.substring(slashPos + 1)
+
+                val bracketPos = srcChannel.mTarget.indexOf('(')
+                if (bracketPos != -1) {
+                    entry.mTransformId = srcChannel.mTarget.substring(slashPos + 1, bracketPos - 1)
+                    val subElement = srcChannel.mTarget.substring(bracketPos)
+                    entry.mSubElement = when (subElement) {
+                        "(0)(0)" -> 0
+                        "(1)(0)" -> 1
+                        "(2)(0)" -> 2
+                        "(3)(0)" -> 3
+                        "(0)(1)" -> 4
+                        "(1)(1)" -> 5
+                        "(2)(1)" -> 6
+                        "(3)(1)" -> 7
+                        "(0)(2)" -> 8
+                        "(1)(2)" -> 9
+                        "(2)(2)" -> 10
+                        "(3)(2)" -> 11
+                        "(0)(3)" -> 12
+                        "(1)(3)" -> 13
+                        "(2)(3)" -> 14
+                        "(3)(3)" -> 15
+                        else -> logger.warn { "invalid subElement $subElement" }.run { 0L }
+                    }
+                }
+                // determine which transform step is affected by this channel
+                entry.mTransformIndex = Ulong.MAX_VALUE.L
+                for (a in srcNode.mTransforms.indices)
+                    if (srcNode.mTransforms[a].mID == entry.mTransformId)
+                        entry.mTransformIndex = a.L
+
+                if (entry.mTransformIndex == Ulong.MAX_VALUE.L)
+                    if (entry.mTransformId.indexOf("morph-weights") != -1) {
+                        entry.targetId = entry.mTransformId
+                        entry.mTransformId = ""
+                    } else continue
+
+                entry.mChannel = srcChannel
+                entries.add(entry)
+            }
+
+            // if there's no channel affecting the current node, we skip it
+            if (entries.isEmpty()) continue
+
+            // resolve the data pointers for all anim channels. Find the minimum time while we're at it
+            var startTime = 1e20f
+            var endTime = -1e20f
+            for (e in entries) {
+
+                e.mTimeAccessor = pParser.resolveLibraryReference(pParser.mAccessorLibrary, e.mChannel.mSourceTimes)
+                e.timeData = pParser.resolveLibraryReference(pParser.mDataLibrary, e.mTimeAccessor.source)
+                e.mValueAccessor = pParser.resolveLibraryReference(pParser.mAccessorLibrary, e.mChannel.mSourceValues)
+                e.valueData = pParser.resolveLibraryReference(pParser.mDataLibrary, e.mValueAccessor.source)
+
+                // time count and value count must match
+                if (e.mTimeAccessor.count != e.mValueAccessor.count)
+                    throw Error("Time count / value count mismatch in animation channel \"${e.mChannel.mTarget}\".")
+
+                if (e.mTimeAccessor.count > 0) {
+                    // find bounding times
+                    startTime = glm.min(startTime, readFloat(e.mTimeAccessor, e.timeData, 0, 0))
+                    endTime = glm.max(endTime, readFloat(e.mTimeAccessor, e.timeData, e.mTimeAccessor.count - 1, 0))
+                }
+            }
+
+            val resultTrafos = ArrayList<AiMatrix4x4>()
+            if (entries.isNotEmpty() && entries.first().mTimeAccessor.count > 0) {
+                // create a local transformation chain of the node's transforms
+                val transforms = srcNode.mTransforms
+
+                /*  now for every unique point in time, find or interpolate the key values for that time and apply them
+                    to the transform chain. Then the node's present transformation can be calculated.   */
+                var time = startTime
+                while (true) {
+                    for (e in entries) {
+
+                        // find the keyframe behind the current point in time
+                        var pos = 0L
+                        var postTime = 0f
+                        while (true) {
+                            if (pos >= e.mTimeAccessor.count)
+                                break
+                            postTime = readFloat(e.mTimeAccessor, e.timeData, pos, 0)
+                            if (postTime >= time)
+                                break
+                            ++pos
+                        }
+
+                        pos = glm.min(pos, e.mTimeAccessor.count - 1)
+
+                        // read values from there
+                        val temp = FloatArray(16)
+                        for (c in 0 until e.mValueAccessor.size)
+                            temp[c.i] = readFloat(e.mValueAccessor, e.valueData, pos, c)
+
+                        // if not exactly at the key time, interpolate with previous value set
+                        if (postTime > time && pos > 0) {
+                            val preTime = readFloat(e.mTimeAccessor, e.timeData, pos - 1, 0)
+                            val factor = (time - postTime) / (preTime - postTime)
+
+                            for (c in 0 until e.mValueAccessor.size) {
+                                val v = readFloat(e.mValueAccessor, e.valueData, pos - 1, c)
+                                temp[c.i] += (v - temp[c.i]) * factor
+                            }
+                        }
+                        // Apply values to current transformation
+                        System.arraycopy(temp, 0, transforms[e.mTransformIndex.i].f, e.mSubElement.i, e.mValueAccessor.size.i)
+                    }
+                    // Calculate resulting transformation
+                    val mat = pParser.calculateResultTransform(transforms)
+
+                    // out of laziness: we store the time in matrix.d4
+                    mat.d3 = time
+                    resultTrafos.add(mat)
+
+                    // find next point in time to evaluate. That's the closest frame larger than the current in any channel
+                    var nextTime = 1e20f
+                    for (channelElement in entries) {
+                        // find the next time value larger than the current
+                        var pos = 0L
+                        while (pos < channelElement.mTimeAccessor.count) {
+                            val t = readFloat(channelElement.mTimeAccessor, channelElement.timeData, pos, 0)
+                            if (t > time) {
+                                nextTime = glm.min(nextTime, t)
+                                break
+                            }
+                            ++pos
+                        }
+
+                        /*  https://github.com/assimp/assimp/issues/458.    Sub-sample axis-angle channels if the delta
+                            between two consecutive key-frame angles is >= 180 degrees.                         */
+                        if (transforms[channelElement.mTransformIndex.i].mType == TransformType.ROTATE && channelElement.mSubElement.i == 3
+                                && pos > 0 && pos < channelElement.mTimeAccessor.count) {
+                            val curKeyAngle = readFloat(channelElement.mValueAccessor, channelElement.valueData, pos, 0)
+                            val lastKeyAngle = readFloat(channelElement.mValueAccessor, channelElement.valueData, pos - 1, 0)
+                            val curKeyTime = readFloat(channelElement.mTimeAccessor, channelElement.timeData, pos, 0)
+                            val lastKeyTime = readFloat(channelElement.mTimeAccessor, channelElement.timeData, pos - 1, 0)
+                            val lastEvalAngle = lastKeyAngle + (curKeyAngle - lastKeyAngle) * (time - lastKeyTime) / (curKeyTime - lastKeyTime)
+                            val delta = glm.abs(curKeyAngle - lastEvalAngle)
+                            if (delta >= 180) {
+                                val subSampleCount = glm.floor(delta / 90).i
+                                if (curKeyTime != time) {
+                                    val nextSampleTime = time + (curKeyTime - time) / subSampleCount
+                                    nextTime = glm.min(nextTime, nextSampleTime)
+                                }
+                            }
+                        }
+                    }
+                    // no more keys on any channel after the current time -> we're done
+                    if (nextTime > 1e19) break
+                    // else construct next keyframe at this following time point
+                    time = nextTime
+                }
+            }
+            // there should be some keyframes, but we aren't that fixated on valid input data
+//      ai_assert( resultTrafos.size() > 0);
+
+            // build an animation channel for the given node out of these trafo keys
+            if (resultTrafos.isNotEmpty()) {
+                val dstAnim = AiNodeAnim(
+                        mNodeName = nodeName,
+                        numPositionKeys = resultTrafos.size,
+                        mNumRotationKeys = resultTrafos.size,
+                        mNumScalingKeys = resultTrafos.size,
+                        positionKeys = List(resultTrafos.size, { AiVectorKey() }),
+                        rotationKeys = List(resultTrafos.size, { AiQuatKey() }),
+                        scalingKeys = List(resultTrafos.size, { AiVectorKey() }))
+
+                for (a in 0 until resultTrafos.size) {
+                    val mat = resultTrafos[a]
+                    val time = mat.d3.d // remember? time is stored in mat.d4
+                    mat.d3 = 1f
+
+                    dstAnim.positionKeys[a].time = time
+                    dstAnim.rotationKeys[a].time = time
+                    dstAnim.scalingKeys[a].time = time
+                    mat.decompose(dstAnim.scalingKeys[a].mValue, dstAnim.rotationKeys[a].mValue, dstAnim.positionKeys[a].mValue)
+                }
+                anims.add(dstAnim)
+            } else logger.warn("Collada loader: found empty animation channel, ignored. Please check your exporter.")
+
+            if (entries.isNotEmpty() && entries.first().mTimeAccessor.count > 0L) {
+                val morphChannels = ArrayList<ChannelEntry>()
+                for (e in entries) {
+                    // skip non-transform types
+                    if (e.targetId.isEmpty()) continue
+                    if (e.targetId.contains("morph-weights")) morphChannels.add(e)
+                }
+                if (morphChannels.isNotEmpty()) {
+                    // either 1) morph weight animation count should contain morph target count channels
+                    // or     2) one channel with morph target count arrays
+                    // assume first
+                    val morphAnim = AiMeshMorphAnim().apply { name = nodeName }
+                    val morphTimeValues = ArrayList<MorphTimeValues>()
+                    var morphAnimChannelIndex = 0
+                    for (e in morphChannels) {
+                        val aPos = e.targetId.indexOf('(')
+                        val bPos = e.targetId.indexOf(')')
+                        if (aPos == -1 || bPos == -1) continue // unknown way to specify weight -> ignore this animation
+                        // weight target can be in format Weight_M_N, Weight_N, WeightN, or some other way
+                        // we ignore the name and just assume the channels are in the right order
+                        for (i in 0 until e.timeData.values.size)
+                            insertMorphTimeValue(morphTimeValues, e.timeData.values[i], e.valueData.values[i], morphAnimChannelIndex)
+                        ++morphAnimChannelIndex
+                    }
+                    morphAnim.numKeys = morphTimeValues.size
+                    morphAnim.keys = Array<AiMeshMorphKey>(morphAnim.numKeys, { key ->
+                        AiMeshMorphKey(
+                                numValuesAndWeights = morphChannels.size,
+                                values = IntArray(morphChannels.size, { it }),
+                                weights = DoubleArray(morphChannels.size, { getWeightAtKey(morphTimeValues[key], it).d }),
+                                time = morphTimeValues[key].time.d)
+                    })
+                    morphAnims.add(morphAnim)
+                }
+            }
+        }
+
+        if (anims.isNotEmpty() || morphAnims.isNotEmpty())
+            mAnims.add(AiAnimation(
+                    name = pName,
+                    numChannels = anims.size,
+                    numMorphMeshChannels = morphAnims.size,
+                    duration = 0.0,
+                    ticksPerSecond = 1.0).apply {
+                if (numChannels > 0) channels = anims.filterNotNullTo(ArrayList())
+                if (numMorphMeshChannels > 0) morphMeshChannels = morphAnims
+                anims.forEachIndexed { i, it ->
+                    duration = duration max it.positionKeys[it.numPositionKeys - 1].time
+                    duration = duration max it.rotationKeys[it.numPositionKeys - 1].time
+                    duration = duration max it.scalingKeys[it.numPositionKeys - 1].time
+                }
+                morphAnims.forEach { duration = duration max it.keys[it.numKeys - 1].time }
+            })
+    }
+
+    /** Collects all nodes into the given array */
+    fun collectNodes(pNode: AiNode, poNodes: ArrayList<AiNode>) {
+        poNodes += pNode
+        pNode.mChildren.forEach { collectNodes(it, poNodes) }
+    }
+
+    class MorphTimeValues(var time: Float = 0f, key: Key) {
+        val keys = arrayListOf(key)
+
+        class Key(var weight: Float = 0f, var value: Int = 0)
+    }
+
+    fun insertMorphTimeValue(values: ArrayList<MorphTimeValues>, time: Float, weight: Float, value: Int) {
+        val k = MorphTimeValues.Key(weight, value)
+        if (values.isEmpty() || time < values[0].time) {
+            values.add(0, MorphTimeValues(time, k))
+            return
+        }
+        if (time > values.last().time) {
+            values.add(MorphTimeValues(time, k))
+            return
+        }
+        values.forEachIndexed { i, it ->
+            if (glm.abs(time - it.time) < 1e-6f) {
+                it.keys.add(k)
+                return
+            } else if (time > it.time && time < values[i + 1].time) {
+                values.add(0 + i, MorphTimeValues(time, k))
+                return
+            }
+        }
+        throw Error()   // should not get here
+    }
+
+    /** no value at key found, try to interpolate if present at other keys. if not, return zero
+     *  TODO: interpolation */
+    fun getWeightAtKey(_val: MorphTimeValues, value: Int) = _val.keys.firstOrNull { it.value == value }?.weight ?: 0f
 
     //
-// ColladaLoader.h -----------------------------------------------------------------------------------------------------
-//
+    // ColladaLoader.h -----------------------------------------------------------------------------------------------------
+    //
     class ColladaMeshIndex(
-
             var mMeshID: String = "",
             var mSubMesh: Int = 0,
             var mMaterial: String = "") {

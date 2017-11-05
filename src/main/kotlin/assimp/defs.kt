@@ -1,6 +1,7 @@
 package assimp
 
 import glm_.glm
+import glm_.mat3x3.Mat3
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -25,6 +26,7 @@ typealias AiColor3D = Vec3
 
 typealias AiColor4D = Vec4
 
+typealias AiMatrix3x3 = Mat3
 typealias AiMatrix4x4 = Mat4
 
 typealias AiVector2D = Vec2
