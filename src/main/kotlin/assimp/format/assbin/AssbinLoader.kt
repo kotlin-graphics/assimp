@@ -78,8 +78,8 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AISCENE)
         int(be)    // size
 
-        scene.mFlags = int(be)
-        scene.mNumMeshes = int(be)
+        scene.flags = int(be)
+        scene.numMeshes = int(be)
         scene.mNumMaterials = int(be)
         scene.mNumAnimations = int(be)
         scene.mNumTextures = int(be)
@@ -87,11 +87,11 @@ class AssbinLoader : BaseImporter() {
         scene.mNumCameras = int(be)
 
         // Read node graph
-        scene.mRootNode = AiNode()
-        readNode(scene.mRootNode)
+        scene.rootNode = AiNode()
+        readNode(scene.rootNode)
 
         // Read all meshes
-        for (i in 0 until scene.mNumMeshes)
+        for (i in 0 until scene.numMeshes)
             scene.mMeshes.add(AiMesh().also { readMesh(it) })
 
         // Read materials
@@ -128,17 +128,17 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AINODE)
         int(be)    // size
 
-        node.mName = string()
-        node.mTransformation = mat4()
-        node.mNumChildren = int(be)
-        node.mNumMeshes = int(be)
-        parent?.let { node.mParent = parent }
+        node.name = string()
+        node.transformation = mat4()
+        node.numChildren = int(be)
+        node.numMeshes = int(be)
+        parent?.let { node.parent = parent }
 
-        if (node.mNumMeshes > 0)
-            node.mMeshes = IntArray(node.mNumMeshes, { int(be) })
+        if (node.numMeshes > 0)
+            node.meshes = IntArray(node.numMeshes, { int(be) })
 
-        for (i in 0 until node.mNumChildren)
-            node.mChildren.add(AiNode().also { readNode(it, node) })
+        for (i in 0 until node.numChildren)
+            node.children.add(AiNode().also { readNode(it, node) })
     }
 
     private fun InputStream.readMesh(mesh: AiMesh) {
@@ -224,16 +224,16 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AIBONE)
         int(be)   // size
 
-        b.mName = string()
-        b.mNumWeights = int(be)
-        b.mOffsetMatrix = mat4()
+        b.name = string()
+        b.numWeights = int(be)
+        b.offsetMatrix = mat4()
 
         // for the moment we write dumb min/max values for the bones, too.
         // maybe I'll add a better, hash-like solution later
         if (shortened)
             TODO()  //ReadBounds(stream, b->weights, b->mNumWeights)
         else    // else write as usual
-            b.mWeights = List(b.mNumWeights, { vertexWeight() })
+            b.weights = Array(b.numWeights, { vertexWeight() })
     }
 
     private fun InputStream.readMaterial(mat: AiMaterial) {

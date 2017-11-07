@@ -1,6 +1,5 @@
 package assimp
 
-import assimp.AiPrimitiveType
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import java.util.*
@@ -20,7 +19,7 @@ class ply : io.kotlintest.specs.StringSpec() {
 
             with(Importer().readFile(ply + cube)!!) {
 
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 with(mMeshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 24
@@ -57,7 +56,7 @@ class ply : io.kotlintest.specs.StringSpec() {
 
             with(Importer().readFile(ply + wuson)!!) {
 
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 with(mMeshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 11_196
@@ -104,7 +103,7 @@ class ply : io.kotlintest.specs.StringSpec() {
 
             with(Importer().readFile(ply + pond0)!!) {
 
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 with(mMeshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 70_050

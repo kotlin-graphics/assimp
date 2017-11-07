@@ -122,7 +122,7 @@ class STLImporter : BaseImporter() {
         clrColorDefault put 0.6f
 
         // allocate a single node
-        pScene.mRootNode = AiNode()
+        pScene.rootNode = AiNode()
 
         var bMatClr = false
 
@@ -133,10 +133,10 @@ class STLImporter : BaseImporter() {
         else throw Error("Failed to determine STL storage representation for $pFile.")
 
         // add all created meshes to the single node
-        pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
-        pScene.mRootNode.mMeshes = IntArray(pScene.mNumMeshes)
-        for (i in 0 until pScene.mNumMeshes)
-            pScene.mRootNode.mMeshes[i] = i
+        pScene.rootNode.numMeshes = pScene.numMeshes
+        pScene.rootNode.meshes = IntArray(pScene.numMeshes)
+        for (i in 0 until pScene.numMeshes)
+            pScene.rootNode.meshes[i] = i
 
         /*  create a single default material, using a light white diffuse color for consistency with other geometric
             types (e.g., PLY).  */
@@ -162,7 +162,7 @@ class STLImporter : BaseImporter() {
     fun loadBinaryFile(): Boolean {
 
         // allocate one mesh
-        pScene.mNumMeshes = 1
+        pScene.numMeshes = 1
         pScene.mMeshes.add(AiMesh())
         val pMesh = pScene.mMeshes[0]
         pMesh.mMaterialIndex = 0
@@ -192,7 +192,7 @@ class STLImporter : BaseImporter() {
         var sz = 80
 
         // now read the number of facets
-        pScene.mRootNode.mName = "<STL_BINARY>"
+        pScene.rootNode.name = "<STL_BINARY>"
 
         pMesh.mNumFaces = mBuffer.getInt(sz)
         sz += 4
@@ -280,8 +280,8 @@ class STLImporter : BaseImporter() {
         // setup the name of the node
         if (!buffer[0].isNewLine()) {
             if (words[0].length >= MAXLEN) throw Error("STL: Node name too long")
-            pScene.mRootNode.mName = words[0]
-        } else pScene.mRootNode.mName = "<STL_ASCII>"
+            pScene.rootNode.name = words[0]
+        } else pScene.rootNode.name = "<STL_ASCII>"
 
         var faceVertexCounter = 3
         var i = 0
@@ -359,13 +359,13 @@ class STLImporter : BaseImporter() {
         pMesh.mNormals = normalBuffer.toMutableList()
         normalBuffer.clear()
 
-        pScene.mRootNode.mName = words[0]
+        pScene.rootNode.name = words[0]
 
         // now copy faces
         addFacesToMesh(pMesh)
 
         // now add the loaded meshes
-        pScene.mNumMeshes = meshes.size
+        pScene.numMeshes = meshes.size
         pScene.mMeshes.addAll(meshes)
     }
 

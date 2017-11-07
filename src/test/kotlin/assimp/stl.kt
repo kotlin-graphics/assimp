@@ -20,22 +20,22 @@ class stl : StringSpec() {
 
             val scene = Importer().readFile(stl + triangle)!!
 
-            scene.mFlags shouldBe 0
+            scene.flags shouldBe 0
 
             with(scene) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "testTriangle"
-                    mTransformation shouldBe Mat4()
-                    mParent shouldBe null
-                    mNumChildren shouldBe 0
-//                mChildren shouldBe null
-                    mNumMeshes shouldBe 1
-                    mMeshes[0] shouldBe 0
-                    mMetaData shouldBe null
+                    name shouldBe "testTriangle"
+                    transformation shouldBe Mat4()
+                    parent shouldBe null
+                    numChildren shouldBe 0
+//                children shouldBe null
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 0
+                    metaData shouldBe null
                 }
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 mMeshes.size shouldBe 1
 
                 with(mMeshes[0]) {
@@ -91,22 +91,22 @@ class stl : StringSpec() {
 
             val scene = Importer().readFile(stl + sphereWithHole)!!
 
-            scene.mFlags shouldBe 0
+            scene.flags shouldBe 0
 
             with(scene) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "tinysphere_withhole"
-                    mTransformation shouldBe Mat4()
-                    mParent shouldBe null
-                    mNumChildren shouldBe 0
-//                mChildren shouldBe null
-                    mNumMeshes shouldBe 1
-                    mMeshes[0] shouldBe 0
-                    mMetaData shouldBe null
+                    name shouldBe "tinysphere_withhole"
+                    transformation shouldBe Mat4()
+                    parent shouldBe null
+                    numChildren shouldBe 0
+//                children shouldBe null
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 0
+                    metaData shouldBe null
                 }
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 mMeshes.size shouldBe 1
 
                 with(mMeshes[0]) {
@@ -176,22 +176,22 @@ class stl : StringSpec() {
 
             val scene = Importer().readFile(stl + spiderBinary)!!
 
-            scene.mFlags shouldBe 0
+            scene.flags shouldBe 0
 
             with(scene) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "<STL_BINARY>"
-                    mTransformation shouldBe Mat4()
-                    mParent shouldBe null
-                    mNumChildren shouldBe 0
-//                mChildren shouldBe null
-                    mNumMeshes shouldBe 1
-                    mMeshes[0] shouldBe 0
-                    mMetaData shouldBe null
+                    name shouldBe "<STL_BINARY>"
+                    transformation shouldBe Mat4()
+                    parent shouldBe null
+                    numChildren shouldBe 0
+//                children shouldBe null
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 0
+                    metaData shouldBe null
                 }
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 mMeshes.size shouldBe 1
 
                 with(mMeshes[0]) {

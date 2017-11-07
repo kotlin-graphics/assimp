@@ -83,7 +83,7 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: URI, scene: AiScene) {
         mFileName = pFile
         // parse the input file
         val parser = ColladaParser(pFile)
@@ -91,78 +91,75 @@ class ColladaLoader : BaseImporter() {
         // create the materials first, for the meshes to find
         buildMaterials(parser)
         // build the node hierarchy from it
-        pScene.mRootNode = buildHierarchy(parser, parser.mRootNode!!)
+        scene.rootNode = buildHierarchy(parser, parser.mRootNode!!)
         // ... then fill the materials with the now adjusted settings
         fillMaterials(parser)
         // Apply unitsize scale calculation
-        pScene.mRootNode.mTransformation *= AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
+        scene.rootNode.transformation *= AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
                 0, parser.mUnitSize, 0, 0,
                 0, 0, parser.mUnitSize, 0,
                 0, 0, 0, 1)
         if (!ignoreUpDirection) {
             // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
-                pScene.mRootNode.mTransformation *= AiMatrix4x4(
+                scene.rootNode.transformation *= AiMatrix4x4(
                         0, -1, 0, 0,
                         1, 0, 0, 0,
                         0, 0, 1, 0,
                         0, 0, 0, 1)
             else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
-                pScene.mRootNode.mTransformation *= AiMatrix4x4(
+                scene.rootNode.transformation *= AiMatrix4x4(
                         1, 0, 0, 0,
                         0, 0, 1, 0,
                         0, -1, 0, 0,
                         0, 0, 0, 1)
         }
         // store all meshes
-        storeSceneMeshes(pScene)
+        storeSceneMeshes(scene)
         // store all materials
-        storeSceneMaterials(pScene)
+        storeSceneMaterials(scene)
         // store all lights
-        storeSceneLights(pScene)
+        storeSceneLights(scene)
         // store all cameras
-        storeSceneCameras(pScene)
+        storeSceneCameras(scene)
         // store all animations
-        storeAnimations(pScene, parser)
-//
-//
-//        // If no meshes have been loaded, it's probably just an animated skeleton.
-//        if (!pScene->mNumMeshes) {
-//
-//            if (!noSkeletonMesh) {
-//                SkeletonMeshBuilder hero(pScene)
-//            }
-//            pScene->mFlags |= AI_SCENE_FLAGS_INCOMPLETE
-//        }
+        storeAnimations(scene, parser)
+        // If no meshes have been loaded, it's probably just an animated skeleton.
+        if (scene.numMeshes == 0) {
+            if (!noSkeletonMesh) {
+                val hero = SkeletonMeshBuilder(scene)
+            }
+            scene.flags = scene.flags or AI_SCENE_FLAGS_INCOMPLETE
+        }
     }
 
     /** Recursively constructs a scene node for the given parser node and returns it.   */
     fun buildHierarchy(pParser: ColladaParser, pNode: Node): AiNode {
 
         // create a node for it and find a name for the new node. It's more complicated than you might think
-        val node = AiNode(mName = findNameForNode(pNode))
+        val node = AiNode(name = findNameForNode(pNode))
 
         // calculate the transformation matrix for it
-        node.mTransformation = pParser.calculateResultTransform(pNode.mTransforms)
+        node.transformation = pParser.calculateResultTransform(pNode.mTransforms)
 
         // now resolve node instances
         val instances = ArrayList<Node>()
         resolveNodeInstances(pParser, pNode, instances)
 
         // add children. first the *real* ones
-        node.mNumChildren = pNode.mChildren.size + instances.size
-        node.mChildren = ArrayList<AiNode>()
+        node.numChildren = pNode.mChildren.size + instances.size
+        node.children = ArrayList<AiNode>()
 
         for (a in 0 until pNode.mChildren.size)
             with(buildHierarchy(pParser, pNode.mChildren[a])) {
-                node.mChildren.add(this)
-                mParent = node
+                node.children.add(this)
+                parent = node
             }
 
         // ... and finally the resolved node instances
         for (a in 0 until instances.size) {
-            node.mChildren[pNode.mChildren.size + a] = buildHierarchy(pParser, instances[a])
-            node.mChildren[pNode.mChildren.size + a].mParent = node
+            node.children[pNode.mChildren.size + a] = buildHierarchy(pParser, instances[a])
+            node.children[pNode.mChildren.size + a].parent = node
         }
 
         // construct meshes
@@ -187,7 +184,7 @@ class ColladaLoader : BaseImporter() {
         }
 
         // now fill our ai data structure
-        val out = AiLight(mName = pTarget.mName, mType = srcLight.mType)
+        val out = AiLight(mName = pTarget.name, mType = srcLight.mType)
 
         // collada lights point in -Z by default, rest is specified in node transform
         out.mDirection.put(0f, 0f, -1f)
@@ -251,7 +248,7 @@ class ColladaLoader : BaseImporter() {
         if (srcCamera.mOrtho) logger.warn { "Collada: Orthographic cameras are not supported." }
 
         // now fill our ai data structure
-        val out = AiCamera(mName = pTarget.mName)
+        val out = AiCamera(mName = pTarget.name)
 
         // collada cameras point in -Z by default, rest is specified in node transform
         out.mLookAt.put(0f, 0f, -1f)
@@ -376,9 +373,9 @@ class ColladaLoader : BaseImporter() {
         }
 
         // now place all mesh references we gathered in the target node
-        pTarget.mNumMeshes = newMeshRefs.size
+        pTarget.numMeshes = newMeshRefs.size
         if (newMeshRefs.isNotEmpty())
-            pTarget.mMeshes = newMeshRefs.toIntArray()
+            pTarget.meshes = newMeshRefs.toIntArray()
     }
 
     /** Find mesh from either meshes or morph target meshes */
@@ -563,21 +560,21 @@ class ColladaLoader : BaseImporter() {
 
                 val aL = a.L
                 // create bone with its weights
-                val bone = AiBone(mName = readString(jointNamesAcc, jointNames, aL))
-                bone.mOffsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, aL, 0)
-                bone.mOffsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, aL, 1)
-                bone.mOffsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, aL, 2)
-                bone.mOffsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, aL, 3)
-                bone.mOffsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, aL, 4)
-                bone.mOffsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, aL, 5)
-                bone.mOffsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, aL, 6)
-                bone.mOffsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, aL, 7)
-                bone.mOffsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, aL, 8)
-                bone.mOffsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, aL, 9)
-                bone.mOffsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, aL, 10)
-                bone.mOffsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, aL, 11)
-                bone.mNumWeights = dstBones[a].size
-                bone.mWeights = dstBones[a].toList()
+                val bone = AiBone(name = readString(jointNamesAcc, jointNames, aL))
+                bone.offsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, aL, 0)
+                bone.offsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, aL, 1)
+                bone.offsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, aL, 2)
+                bone.offsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, aL, 3)
+                bone.offsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, aL, 4)
+                bone.offsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, aL, 5)
+                bone.offsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, aL, 6)
+                bone.offsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, aL, 7)
+                bone.offsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, aL, 8)
+                bone.offsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, aL, 9)
+                bone.offsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, aL, 10)
+                bone.offsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, aL, 11)
+                bone.numWeights = dstBones[a].size
+                bone.weights = dstBones[a].toTypedArray()
 
                 // apply bind shape matrix to offset matrix
                 val bindShapeMatrix = Mat4()
@@ -597,18 +594,18 @@ class ColladaLoader : BaseImporter() {
                 bindShapeMatrix.d1 = pSrcController.mBindShapeMatrix[13]
                 bindShapeMatrix.d2 = pSrcController.mBindShapeMatrix[14]
                 bindShapeMatrix.d3 = pSrcController.mBindShapeMatrix[15]
-                bone.mOffsetMatrix *= bindShapeMatrix
+                bone.offsetMatrix *= bindShapeMatrix
 
                 // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.
                 // Therefore I added a little name replacement here: I search for the bone's node by either name, ID or SID, and replace the bone's name by the
                 // node's name so that the user can use the standard find-by-name method to associate nodes with bones.
-                val bnode = findNode(pParser.mRootNode!!, bone.mName) ?: findNodeBySID(pParser.mRootNode!!, bone.mName)
+                val bnode = findNode(pParser.mRootNode!!, bone.name) ?: findNodeBySID(pParser.mRootNode!!, bone.name)
 
                 // assign the name that we would have assigned for the source node
                 if (bnode != null)
-                    bone.mName = findNameForNode(bnode)
+                    bone.name = findNameForNode(bnode)
                 else
-                    println("ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.mName}\".")
+                    println("ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.name}\".")
 
                 // and insert bone
                 dstMesh.mBones.add(bone)
@@ -899,7 +896,7 @@ class ColladaLoader : BaseImporter() {
 
     /** Stores all meshes in the given scene    */
     fun storeSceneMeshes(pScene: AiScene) {
-        pScene.mNumMeshes = mMeshes.size
+        pScene.numMeshes = mMeshes.size
         if (mMeshes.isNotEmpty()) {
             pScene.mMeshes.addAll(mMeshes)
             mMeshes.clear()
@@ -1004,7 +1001,7 @@ class ColladaLoader : BaseImporter() {
     fun createAnimation(pScene: AiScene, pParser: ColladaParser, pSrcAnim: Animation, pName: String) {
         // collect a list of animatable nodes
         val nodes = ArrayList<AiNode>()
-        collectNodes(pScene.mRootNode, nodes)
+        collectNodes(pScene.rootNode, nodes)
 
         val anims = ArrayList<AiNodeAnim>()
         val morphAnims = ArrayList<AiMeshMorphAnim>()
@@ -1012,7 +1009,7 @@ class ColladaLoader : BaseImporter() {
         for (node in nodes) {
             // find all the collada anim channels which refer to the current node
             val entries = ArrayList<ChannelEntry>()
-            val nodeName = node.mName
+            val nodeName = node.name
 
             // find the collada node corresponding to the aiNode
             val srcNode = findNode(pParser.mRootNode!!, nodeName) ?: continue
@@ -1298,7 +1295,7 @@ class ColladaLoader : BaseImporter() {
     /** Collects all nodes into the given array */
     fun collectNodes(pNode: AiNode, poNodes: ArrayList<AiNode>) {
         poNodes += pNode
-        pNode.mChildren.forEach { collectNodes(it, poNodes) }
+        pNode.children.forEach { collectNodes(it, poNodes) }
     }
 
     class MorphTimeValues(var time: Float = 0f, key: Key) {

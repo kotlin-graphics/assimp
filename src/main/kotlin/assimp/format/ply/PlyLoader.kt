@@ -141,13 +141,13 @@ class PlyLoader : BaseImporter() {
         pScene.mMaterials.addAll(avMaterials)
 
         // fill the mesh list
-        pScene.mNumMeshes = avMeshes.size
+        pScene.numMeshes = avMeshes.size
         pScene.mMeshes.addAll(avMeshes)
 
         // generate a simple node structure
-        pScene.mRootNode = AiNode()
-        pScene.mRootNode.mNumMeshes = pScene.mNumMeshes
-        pScene.mRootNode.mMeshes = IntArray(pScene.mRootNode.mNumMeshes, { it })
+        pScene.rootNode = AiNode()
+        pScene.rootNode.numMeshes = pScene.numMeshes
+        pScene.rootNode.meshes = IntArray(pScene.rootNode.numMeshes, { it })
     }
 
     /** Try to extract vertices from the PLY DOM.     */

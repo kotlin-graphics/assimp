@@ -66,7 +66,7 @@ import glm_.mat4x4.Mat4
  *      matrix cur
  *      if (is-animated(nd))
  *         cur = eval-animation(nd)
- *      else cur = nd->mTransformation;
+ *      else cur = nd->transformation;
  *      cmt = mult-matrices( cmt, cur )
  *    end for
  *

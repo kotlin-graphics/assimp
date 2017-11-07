@@ -1,7 +1,8 @@
 package assimp
 
+import glm_.mat4x4.Mat4
+import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
-import assimp.Importer
 import uno.kotlin.uri
 
 /**
@@ -17,10 +18,29 @@ class collada : StringSpec() {
         val cameras = "cameras.dae"
         cameras {
 
-            with(Importer().readFile((collada + cameras).uri)) {
+            with(Importer().readFile((collada + cameras).uri)!!) {
 
-//                mNumMeshes shouldBe 1
-//                with(mMeshes[0]) {
+                flags shouldBe 1
+                with(rootNode) {
+                    name shouldBe "Scene"
+                    transformation shouldBe Mat4(
+                            1f, 0f, 0f, 0f,
+                            0f, 0f, 1f, 0f,
+                            0f, -1f, 0f, 0f,
+                            0f, 0f, 0f, 1f)
+                    parent shouldBe null
+                    numChildren shouldBe 3
+                    with(children[0]) {
+                        name shouldBe "Camera"
+//                        transformation shouldBe Mat4(
+//                                7.54979013e-08f, 0f, 1f, 10f,
+//                                0f, 1f, 0f, 0f,
+//                                -1f, 0f, 7.54979013e-08f, 0f,
+//                                0f, 0f, 0f, 1f)
+                    }
+                }
+//                numMeshes shouldBe 1
+//                with(meshes[0]) {
 //                    mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
 //                    mNumVertices shouldBe 24
 //                    mNumFaces shouldBe 6

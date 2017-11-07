@@ -76,17 +76,17 @@ data class AiVertexWeight(
  */
 data class AiBone(
         //! The name of the bone.
-        var mName: String = "",
+        var name: String = "",
 
         //! The number of vertices affected by this bone
         //! The maximum value for this member is #AI_MAX_BONE_WEIGHTS.
-        var mNumWeights: Int = 0,
+        var numWeights: Int = 0,
 
         //! The vertices affected by this bone
-        var mWeights: List<assimp.AiVertexWeight> = listOf(),
+        var weights: Array<AiVertexWeight> = arrayOf(),
 
         //! Matrix that transforms from mesh space to bone space in bind pose
-        var mOffsetMatrix: AiMatrix4x4 = AiMatrix4x4()
+        var offsetMatrix: AiMatrix4x4 = AiMatrix4x4()
 ) {
     //! Copy constructor
 //    aiBone(const aiBone& other) TODO check if in data
@@ -164,7 +164,7 @@ enum class AiMorphingMethod(val i: Int) {
  * @note The mPositions member is usually not optional. However, vertex positions *could* be missing if the
  * #AI_SCENE_FLAGS_INCOMPLETE flag is set in
  * @code
- * aiScene::mFlags
+ * aiScene::flags
  * @endcode */
 open class AiMesh(
 
@@ -242,7 +242,7 @@ open class AiMesh(
          * Each face refers to a number of vertices by their indices.
          * This array is always present in a mesh, its size is given in mNumFaces.
          * If the #AI_SCENE_FLAGS_NON_VERBOSE_FORMAT is NOT set each face references an unique set of vertices.         */
-        var mFaces: MutableList<assimp.AiFace> = ArrayList(),
+        var mFaces: MutableList<AiFace> = ArrayList(),
 
         /** The number of bones this mesh contains.
          * Can be 0, in which case the mBones array is NULL.
@@ -251,7 +251,7 @@ open class AiMesh(
 
         /** The bones of this mesh.
          * A bone consists of a name by which it can be found in the frame hierarchy and a set of vertex weights.         */
-        var mBones: ArrayList<assimp.AiBone> = ArrayList(),
+        var mBones: ArrayList<AiBone> = ArrayList(),
 
         /** The material used by this mesh.
          * A mesh uses only a single material. If an imported model uses multiple materials, the import splits up the
@@ -273,7 +273,7 @@ open class AiMesh(
         /** Attachment meshes for this mesh, for vertex-based animation.
          *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions, normals).
          *  Note! Currently only works with Collada loader.*/
-        var mAnimMeshes: ArrayList<assimp.AiMesh> = arrayListOf(),
+        var mAnimMeshes: ArrayList<AiMesh> = arrayListOf(),
 
         /** Method of morphing when animeshes are specified. */
         var mMethod: Int = 0    // TODO to enum AiMorphingMethod?

@@ -1,6 +1,5 @@
 package assimp
 
-import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
@@ -24,20 +23,20 @@ class obj : StringSpec() {
 //            with(Importer().readFile(obj + dragon)!!) {
 //
 //                println()
-////                with(mRootNode) {
+////                with(rootNode) {
 ////
 ////                    name shouldBe "nanosuit.obj"
-////                    mTransformation shouldBe Mat4()
-////                    mNumChildren shouldBe 7
+////                    transformation shouldBe Mat4()
+////                    numChildren shouldBe 7
 ////
 ////                    val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
 ////
-////                    (0 until mNumChildren).map {
-////                        mChildren[it].name shouldBe names[it]
-////                        mChildren[it].mMeshes!![0] shouldBe it
+////                    (0 until numChildren).map {
+////                        children[it].name shouldBe names[it]
+////                        children[it].meshes!![0] shouldBe it
 ////                    }
 ////
-////                    mNumMeshes shouldBe 0
+////                    numMeshes shouldBe 0
 ////                }
 //            }
 //        }
@@ -48,20 +47,20 @@ class obj : StringSpec() {
 
             with(Importer().readFile(obj + nanosuit)!!) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "nanosuit.obj"
-                    mTransformation shouldBe Mat4()
-                    mNumChildren shouldBe 7
+                    name shouldBe "nanosuit.obj"
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 7
 
                     val names = listOf("Visor", "Legs", "hands", "Lights", "Arms", "Helmet", "Body")
 
-                    (0 until mNumChildren).map {
-                        mChildren[it].mName shouldBe names[it]
-                        mChildren[it].mMeshes[0] shouldBe it
+                    (0 until numChildren).map {
+                        children[it].name shouldBe names[it]
+                        children[it].meshes[0] shouldBe it
                     }
 
-                    mNumMeshes shouldBe 0
+                    numMeshes shouldBe 0
                 }
 
                 with(mMeshes[0]) {
@@ -476,23 +475,23 @@ class obj : StringSpec() {
 
             with(Importer().readFile(obj + spider)!!) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "spider.obj"
-                    mTransformation shouldBe Mat4()
-                    mNumChildren shouldBe 19
+                    name shouldBe "spider.obj"
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 19
 
                     val names = listOf("HLeib01", "OK", "Bein1Li", "Bein1Re", "Bein2Li", "Bein2Re", "Bein3Re", "Bein3Li", "Bein4Re",
                             "Bein4Li", "Zahn", "klZahn", "Kopf", "Brust", "Kopf2", "Zahn2", "klZahn2", "Auge", "Duplicate05")
 
-                    (0 until mNumChildren).map {
-                        mChildren[it].mName shouldBe names[it]
-                        mChildren[it].mMeshes[0] shouldBe it
+                    (0 until numChildren).map {
+                        children[it].name shouldBe names[it]
+                        children[it].meshes[0] shouldBe it
                     }
 
-                    mNumMeshes shouldBe 0
+                    numMeshes shouldBe 0
                 }
-                mNumMeshes shouldBe 19
+                numMeshes shouldBe 19
 
                 with(mMeshes[0]) {
 
@@ -672,23 +671,23 @@ class obj : StringSpec() {
 
             with(Importer().readFile(obj + box)!!) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "box.obj"
-                    mTransformation shouldBe Mat4()
-                    mNumChildren shouldBe 1
+                    name shouldBe "box.obj"
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 1
 
-                    with(mChildren[0]) {
+                    with(children[0]) {
 
-                        mName shouldBe "1"
-                        mTransformation shouldBe Mat4()
-                        mNumChildren shouldBe 0
-                        mNumMeshes shouldBe 1
-                        mMeshes[0] shouldBe 0
+                        name shouldBe "1"
+                        transformation shouldBe Mat4()
+                        numChildren shouldBe 0
+                        numMeshes shouldBe 1
+                        meshes[0] shouldBe 0
                     }
-                    mNumMeshes shouldBe 0
+                    numMeshes shouldBe 0
                 }
-                mNumMeshes shouldBe 1
+                numMeshes shouldBe 1
                 with(mMeshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 24
@@ -729,28 +728,28 @@ class obj : StringSpec() {
 
             with(Importer().readFile(obj + concavePolygon)!!) {
 
-                with(mRootNode) {
+                with(rootNode) {
 
-                    mName shouldBe "concave_polygon.obj"
-                    mTransformation shouldBe Mat4()
-                    mNumChildren shouldBe 2
+                    name shouldBe "concave_polygon.obj"
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 2
 
-                    with(mChildren[0]) {
+                    with(children[0]) {
 
-                        mName shouldBe "concave_test.obj"
-                        mTransformation shouldBe Mat4()
-                        mParent === mRootNode
-                        mNumChildren shouldBe 0
-                        mNumMeshes shouldBe 0
+                        name shouldBe "concave_test.obj"
+                        transformation shouldBe Mat4()
+                        parent === rootNode
+                        numChildren shouldBe 0
+                        numMeshes shouldBe 0
                     }
-                    with(mChildren[1]) {
+                    with(children[1]) {
 
-                        mName shouldBe "default"
-                        mTransformation shouldBe Mat4()
-                        mParent === mRootNode
-                        mNumChildren shouldBe 0
-                        mNumMeshes shouldBe 1
-                        mMeshes[0] shouldBe 0
+                        name shouldBe "default"
+                        transformation shouldBe Mat4()
+                        parent === rootNode
+                        numChildren shouldBe 0
+                        numMeshes shouldBe 1
+                        meshes[0] shouldBe 0
                     }
                 }
                 with(mMeshes[0]) {

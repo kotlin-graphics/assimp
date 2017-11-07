@@ -39,38 +39,50 @@ data class AiNode(
          * necessity because sometimes the source hierarchy format is simply not compatible). Their names are surrounded
          * by @verbatim <> @endverbatim e.g.
          *  @verbatim<DummyRootNode> @endverbatim.         */
-        var mName: String = "",
+        var name: String = "",
 
         /** The transformation relative to the node's parent. */
-        var mTransformation: Mat4 = Mat4(),
+        var transformation: Mat4 = Mat4(),
 
         /** Parent node. NULL if this node is the root node. */
-        var mParent: AiNode? = null,
+        var parent: AiNode? = null,
 
         /** The number of child nodes of this node. */
-        var mNumChildren: Int = 0,
+        var numChildren: Int = 0,
 
-        /** The child nodes of this node. NULL if mNumChildren is 0. */
-        var mChildren: MutableList<AiNode> = ArrayList(),
+        /** The child nodes of this node. NULL if numChildren is 0. */
+        var children: ArrayList<AiNode> = ArrayList(),
 
         /** The number of meshes of this node. */
-        var mNumMeshes: Int = 0,
+        var numMeshes: Int = 0,
 
         /** The meshes of this node. Each entry is an index into the mesh list of the #aiScene.     */
-        var mMeshes: IntArray = intArrayOf(),
+        var meshes: IntArray = intArrayOf(),
 
         /** Metadata associated with this node or NULL if there is no metadata.
          *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
          *  @endlink page for more information on every source file format. Importers that don't document any metadata
          *  don't write any.         */
-        var mMetaData: MutableList<AiMetadata>? = null
+        var metaData: ArrayList<AiMetadata>? = null
 ) {
 
 //    fun finNode(name: String): AiNode? {
 //        if(name == name) return this
-//        mChildren.forEach {
+//        children.forEach {
 //            val p = it.finNode(name)
 //        } ?: null
+//    }
+
+//    infix fun put(other: AiNode) {
+//        name = other.name
+//        transformation put other.transformation
+//        parent = other.parent
+//        numChildren = other.numChildren
+//        children.clear()
+//        children.addAll(other.children)
+//        numMeshes = other.numMeshes
+//        meshes = other.meshes.clone()
+//        metaData = other.metaData   // TODO copy?
 //    }
 }
 
@@ -131,20 +143,20 @@ class AiScene {
 
     /** Any combination of the AI_SCENE_FLAGS_XXX flags. By default this value is 0, no flags are set. Most
      * applications will want to reject all scenes with the AI_SCENE_FLAGS_INCOMPLETE bit set.         */
-    var mFlags = 0
+    var flags = 0
 
     /** The root node of the hierarchy.
      *
      * There will always be at least the root node if the import was successful (and no special flags have been set).
      * Presence of further nodes depends on the format and content of the imported file.         */
-    lateinit var mRootNode: AiNode
+    lateinit var rootNode: AiNode
 
     /** The number of meshes in the scene. */
-    var mNumMeshes = 0
+    var numMeshes = 0
 
     /** The array of meshes.
      *
-     * Use the indices given in the aiNode structure to access this array. The array is mNumMeshes in size. If the
+     * Use the indices given in the aiNode structure to access this array. The array is numMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
     var mMeshes = ArrayList<AiMesh>()
 

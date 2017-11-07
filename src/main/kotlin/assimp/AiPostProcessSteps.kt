@@ -140,7 +140,7 @@ enum class AiPostProcessSteps(@JvmField val i: Int) {
      *      The import fails. #Importer::GetErrorString() or #aiGetErrorString() carry the error message around.</li>
      * <li>Warning: There are some minor issues (e.g. 1000000 animation keyframes with the same time), but further
      *      postprocessing and use of the data structure is still safe. Warning details are written to the log file,
-     *      <tt>#AI_SCENE_FLAGS_VALIDATION_WARNING</tt> is set in #aiScene::mFlags</li>
+     *      <tt>#AI_SCENE_FLAGS_VALIDATION_WARNING</tt> is set in #aiScene::flags</li>
      * </ul>
      *
      * This post-processing step is not time-consuming. Its use is not compulsory, but recommended.     */

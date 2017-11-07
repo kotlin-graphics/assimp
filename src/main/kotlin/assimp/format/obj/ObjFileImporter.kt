@@ -59,20 +59,20 @@ class ObjFileImporter : BaseImporter() {
     fun createDataFromImport(pModel: Model, pScene: AiScene) {
 
         // Create the root node of the scene
-        pScene.mRootNode = AiNode()
+        pScene.rootNode = AiNode()
         if (pModel.m_ModelName.isNotEmpty())
         // Set the name of the scene
-            pScene.mRootNode.mName = pModel.m_ModelName
+            pScene.rootNode.name = pModel.m_ModelName
         // This is a fatal error, so break down the application
         else throw Error("pModel.m_ModelName is empty")
 
         // Create nodes for the whole scene
         val meshArray = ArrayList<AiMesh>()
         for (index in 0 until pModel.m_Objects.size)
-            createNodes(pModel, pModel.m_Objects[index], pScene.mRootNode, pScene, meshArray)
+            createNodes(pModel, pModel.m_Objects[index], pScene.rootNode, pScene, meshArray)
 
         // Create mesh pointer buffer for this scene
-        if (pScene.mNumMeshes > 0)
+        if (pScene.numMeshes > 0)
             pScene.mMeshes.addAll(meshArray)
 
         // Create all materials
@@ -89,7 +89,7 @@ class ObjFileImporter : BaseImporter() {
         val oldMeshSize = meshArray.size
         val pNode = AiNode()
 
-        pNode.mName = pObject.m_strObjName
+        pNode.name = pObject.m_strObjName
 
         // store the parent
         appendChildToParentNode(pParent, pNode)
@@ -104,21 +104,21 @@ class ObjFileImporter : BaseImporter() {
         if (pObject.m_SubObjects.isNotEmpty()) {
 
             val numChilds = pObject.m_SubObjects.size
-            pNode.mNumChildren = numChilds
-            pNode.mChildren = mutableListOf()
-            pNode.mNumMeshes = 1
-            pNode.mMeshes = IntArray(1)
+            pNode.numChildren = numChilds
+            pNode.children = arrayListOf()
+            pNode.numMeshes = 1
+            pNode.meshes = IntArray(1)
         }
 
         // Set mesh instances into scene- and node-instances
         val meshSizeDiff = meshArray.size - oldMeshSize
         if (meshSizeDiff > 0) {
-            pNode.mMeshes = IntArray(meshSizeDiff)
-            pNode.mNumMeshes = meshSizeDiff
+            pNode.meshes = IntArray(meshSizeDiff)
+            pNode.numMeshes = meshSizeDiff
             var index = 0
             for (i in oldMeshSize until meshArray.size) {
-                pNode.mMeshes[index] = pScene.mNumMeshes
-                pScene.mNumMeshes++
+                pNode.meshes[index] = pScene.numMeshes
+                pScene.numMeshes++
                 index++
             }
         }
@@ -130,10 +130,10 @@ class ObjFileImporter : BaseImporter() {
     fun appendChildToParentNode(pParent: AiNode, pChild: AiNode) {
 
         // Assign parent to child
-        pChild.mParent = pParent
+        pChild.parent = pParent
 
-        pParent.mNumChildren++
-        pParent.mChildren.add(pChild)
+        pParent.numChildren++
+        pParent.children.add(pChild)
     }
 
     /**  Create topology data   */

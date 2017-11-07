@@ -15,7 +15,7 @@ class assbin : StringSpec() {
 //
 //            val scene = Importer().readFile(assbin + anims_with_full_rotations_between_keys)!!
 //            println()
-////            scene.mFlags shouldBe 0
+////            scene.flags shouldBe 0
 //        }
 //
         val boblampclean = "ogldev/boblampclean.assbin"

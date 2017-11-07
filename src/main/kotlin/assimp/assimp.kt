@@ -1,6 +1,7 @@
 package assimp
 
 import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import mu.KotlinLogging
 
 val logger = KotlinLogging.logger {}
@@ -40,3 +41,9 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
     // and generate the rotation quaternion from it
     pRotation put m.toQuat()
 }
+
+/** Transformation of a vector by a 4x4 matrix */
+operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
+        a0 * vector.x + a1 * vector.y + a2 * vector.z + a3,
+        b0 * vector.x + b1 * vector.y + b2 * vector.z + b3,
+        c0 * vector.x + c1 * vector.y + c2 * vector.z + c3)
