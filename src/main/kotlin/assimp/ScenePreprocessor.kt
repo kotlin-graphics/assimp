@@ -34,46 +34,46 @@ object ScenePreprocessor {
         scene.mAnimations.forEach { it.process() }
 
         // Generate a default material if none was specified
-        if (scene.mNumMaterials == 0 && scene.numMeshes > 0) {
-            scene.mMaterials = ArrayList(2) // TODO useless
+        if (scene.numMaterials == 0 && scene.numMeshes > 0) {
+            scene.materials = ArrayList(2) // TODO useless
 
             val helper = AiMaterial()
 
-            // TODO scene.mMaterials
+            // TODO scene.materials
         }
     }
 
     fun AiMesh.process() {
 
-        // If aiMesh::mNumUVComponents is *not* set assign the default value of 2
         // TODO change -> for in mTextureCoords
         mTextureCoords.forEach {
+            // If aiMesh::mNumUVComponents is *not* set assign the default value of 2
             for (i in 0 until it.size)
                 if (it[i].isEmpty())
                     it[i] = FloatArray(2)
 
             /*  Ensure unsued components are zeroed. This will make 1D texture channels work as if they were 2D channels..
                 just in case an application doesn't handle this case    */
-            if (it[0].size == 2)
-                for (uv in it)
-                    uv[2] = 0f
-            else if (it[0].size == 1)
-                for (uv in it) {
-                    uv[2] = 0f
-                    uv[1] = 0f
-                }
-            else if (it[0].size == 3) {
-                // Really 3D coordinates? Check whether the third coordinate is != 0 for at least one element
-                var coord3d = false
-                for (uv in it)
-                    if (uv[2] != 0f)
-                        coord3d = true
-                if (!coord3d) {
-                    logger.warn { "ScenePreprocessor: UVs are declared to be 3D but they're obviously not. Reverting to 2D." }
-                    for (i in 0 until it.size)
-                        it[i] = FloatArray(2)
-                }
-            }
+//            if (it[0].size == 2)
+//                for (uv in it)
+//                    uv[2] = 0f
+//            else if (it[0].size == 1)
+//                for (uv in it) {
+//                    uv[2] = 0f
+//                    uv[1] = 0f
+//                }
+//            else if (it[0].size == 3) {
+//                // Really 3D coordinates? Check whether the third coordinate is != 0 for at least one element
+//                var coord3d = false
+//                for (uv in it)
+//                    if (uv[2] != 0f)
+//                        coord3d = true
+//                if (!coord3d) {
+//                    logger.warn { "ScenePreprocessor: UVs are declared to be 3D but they're obviously not. Reverting to 2D." }
+//                    for (i in 0 until it.size)
+//                        it[i] = FloatArray(2)
+//                }
+//            }
         }
 
         // If the information which primitive types are there in the mesh is currently not available, compute it.

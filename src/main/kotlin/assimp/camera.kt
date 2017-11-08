@@ -90,14 +90,14 @@ class AiCamera (
      *  This node specifies the position of the camera in the scene
      *  hierarchy and can be animated.
      */
-    var mName:String = "",
+    var name:String = "",
 
         /** Position of the camera relative to the coordinate space
      *  defined by the corresponding node.
      *
      *  The default value is 0|0|0.
      */
-    var mPosition: AiVector3D = AiVector3D(),
+    var position: AiVector3D = AiVector3D(),
 
 
         /** 'Up' - vector of the camera coordinate system relative to
@@ -108,7 +108,7 @@ class AiCamera (
      *  The default value is 0|1|0. The vector
      *  may be normalized, but it needn't.
      */
-    var mUp: AiVector3D = AiVector3D(0, 1, 0),
+    var up: AiVector3D = AiVector3D(0, 1, 0),
 
 
         /** 'LookAt' - vector of the camera coordinate system relative to
@@ -118,7 +118,7 @@ class AiCamera (
      *  The default value is 0|0|1. The vector
      *  may be normalized, but it needn't.
      */
-    var mLookAt: AiVector3D = AiVector3D(0, 0, 1),
+    var lookAt: AiVector3D = AiVector3D(0, 0, 1),
 
 
         /** Half horizontal field of view angle, in radians.
@@ -127,14 +127,14 @@ class AiCamera (
      *  line of the screen and the left or right border.
      *  The default value is 1/4PI.
      */
-    var mHorizontalFOV:Float = .25f * Math.PI.f, // TODO glm
+    var horizontalFOV:Float = .25f * Math.PI.f, // TODO glm
 
         /** Distance of the near clipping plane from the camera.
      *
      * The value may not be 0.f (for arithmetic reasons to prevent
      * a division through zero). The default value is 0.1f.
      */
-    var mClipPlaneNear:Float = .1f,
+    var clipPlaneNear:Float = .1f,
 
         /** Distance of the far clipping plane from the camera.
      *
@@ -144,7 +144,7 @@ class AiCamera (
      * large (between 1000-10000 should be ok) to avoid floating-point
      * inaccuracies which could lead to z-fighting.
      */
-    var mClipPlaneFar:Float = 1_000f,
+    var clipPlaneFar:Float = 1_000f,
 
 
         /** Screen aspect ratio.
@@ -154,7 +154,7 @@ class AiCamera (
      * 0 if the aspect ratio is not defined in the source file.
      * 0 is also the default value.
      */
-    var mAspect:Float = 0f) {
+    var aspect:Float = 0f) {
 
     /** @brief Get a *right-handed* camera matrix from me
      *  @param out Camera matrix to be filled
@@ -164,16 +164,16 @@ class AiCamera (
         /** todo: test ... should work, but i'm not absolutely sure */
 
         /** We don't know whether these vectors are already normalized ...*/
-        val zaxis = AiVector3D(mLookAt)
+        val zaxis = AiVector3D(lookAt)
 //        zaxis.Normalize(); TODO
-        val yaxis = AiVector3D(mUp)
+        val yaxis = AiVector3D(up)
 //        yaxis.Normalize();
-        val xaxis = AiVector3D(mUp) // ^ mLookAt;
+        val xaxis = AiVector3D(up) // ^ lookAt;
 //        xaxis.Normalize();
 
-//        mat.a3 = -(xaxis * mPosition) // TODO
-//        out.b4 = -(yaxis * mPosition);
-//        out.c4 = -(zaxis * mPosition);
+//        mat.a3 = -(xaxis * position) // TODO
+//        out.b4 = -(yaxis * position);
+//        out.c4 = -(zaxis * position);
 //
 //        out.a1 = xaxis.x;
 //        out.a2 = xaxis.y;

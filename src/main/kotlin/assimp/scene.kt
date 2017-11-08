@@ -158,13 +158,13 @@ class AiScene {
     var meshes = ArrayList<AiMesh>()
 
     /** The number of materials in the scene. */
-    var mNumMaterials = 0
+    var numMaterials = 0
 
     /** The array of materials.
      *
-     * Use the index given in each aiMesh structure to access this array. The array is mNumMaterials in size. If the
+     * Use the index given in each aiMesh structure to access this array. The array is numMaterials in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var mMaterials = ArrayList<AiMaterial>()
+    var materials = ArrayList<AiMaterial>()
 
     /** The number of animations in the scene. */
     var mNumAnimations = 0
@@ -195,14 +195,14 @@ class AiScene {
     var mLights = ArrayList<AiLight>()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
-    var mNumCameras = 0
+    var numCameras = 0
 
     /** The array of cameras.
      *
      * All cameras imported from the given file are listed here.
-     * The array is mNumCameras in size. The first camera in the array (if existing) is the default camera view into
+     * The array is numCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
-    var mCameras = ArrayList<AiCamera>()
+    var cameras = ArrayList<AiCamera>()
 
     /** Check whether the scene contains meshes
      *  Unless no special scene flags are set this will always be true. */
@@ -210,7 +210,7 @@ class AiScene {
 
     /** Check whether the scene contains materials
      *  Unless no special scene flags are set this will always be true. */
-    fun hasMaterials() = mMaterials.isNotEmpty()
+    fun hasMaterials() = materials.isNotEmpty()
 
     /** Check whether the scene contains lights */
     fun hasLights() = mLights.isNotEmpty()
@@ -219,7 +219,7 @@ class AiScene {
     fun hasTextures() = mTextures.isNotEmpty()
 
     /** Check whether the scene contains cameras    */
-    fun hasCameras() = mCameras.isNotEmpty()
+    fun hasCameras() = cameras.isNotEmpty()
 
     /** Check whether the scene contains animations */
     fun hasAnimations() = mAnimations.isNotEmpty()

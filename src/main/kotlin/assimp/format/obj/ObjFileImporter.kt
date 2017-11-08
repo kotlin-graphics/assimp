@@ -325,7 +325,7 @@ class ObjFileImporter : BaseImporter() {
     fun createMaterials(pModel: Model, pScene: AiScene) {
 
         val numMaterials = pModel.m_MaterialLib.size
-        pScene.mNumMaterials = 0
+        pScene.numMaterials = 0
         if (pModel.m_MaterialLib.isEmpty()) {
             System.err.println("OBJ: no materials specified")
             return
@@ -397,18 +397,18 @@ class ObjFileImporter : BaseImporter() {
             }
 
             // Store material property info in material array in scene
-            pScene.mMaterials.add(mat)
-            pScene.mNumMaterials++
+            pScene.materials.add(mat)
+            pScene.numMaterials++
         }
 
         // Test number of created materials.
-        assert(pScene.mNumMaterials == numMaterials)
+        assert(pScene.numMaterials == numMaterials)
     }
 
     /**  Load textures   */
     fun loadTextures(scene: AiScene) {
 
-        scene.mMaterials.forEach { mtl ->
+        scene.materials.forEach { mtl ->
 
             mtl.textures.forEach { tex ->
                 // TODO handle file null?

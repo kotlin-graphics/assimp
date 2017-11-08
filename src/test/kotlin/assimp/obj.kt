@@ -250,7 +250,7 @@ class obj : StringSpec() {
                     mName shouldBe "Body"
                 }
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     name shouldBe "DefaultMaterial"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -267,7 +267,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[1]) {
+                with(materials[1]) {
 
                     name shouldBe "Arm"
                     shadingModel shouldBe AiShadingMode.phong
@@ -301,7 +301,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[2]) {
+                with(materials[2]) {
 
                     name shouldBe "Body"
                     shadingModel shouldBe AiShadingMode.phong
@@ -335,7 +335,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[3]) {
+                with(materials[3]) {
 
                     name shouldBe "Glass"
                     shadingModel shouldBe AiShadingMode.phong
@@ -365,7 +365,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[4]) {
+                with(materials[4]) {
 
                     name shouldBe "Hand"
                     shadingModel shouldBe AiShadingMode.phong
@@ -399,7 +399,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[5]) {
+                with(materials[5]) {
 
                     name shouldBe "Helmet"
                     shadingModel shouldBe AiShadingMode.phong
@@ -433,7 +433,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[6]) {
+                with(materials[6]) {
 
                     name shouldBe "Leg"
                     shadingModel shouldBe AiShadingMode.phong
@@ -567,7 +567,7 @@ class obj : StringSpec() {
                     mName shouldBe "Duplicate05"
                 }
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     name shouldBe "DefaultMaterial"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -582,7 +582,7 @@ class obj : StringSpec() {
                         refracti shouldBe 1f
                     }
                 }
-                with(mMaterials[1]) {
+                with(materials[1]) {
 
                     name shouldBe "Skin"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -598,7 +598,7 @@ class obj : StringSpec() {
                     }
                     textures[0].file shouldBe ".\\wal67ar_small.jpg"
                 }
-                with(mMaterials[2]) {
+                with(materials[2]) {
 
                     name shouldBe "Brusttex"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -614,7 +614,7 @@ class obj : StringSpec() {
                     }
                     textures[0].file shouldBe ".\\wal69ar_small.jpg"
                 }
-                with(mMaterials[3]) {
+                with(materials[3]) {
 
                     name shouldBe "HLeibTex"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -630,7 +630,7 @@ class obj : StringSpec() {
                     }
                     textures[0].file shouldBe ".\\SpiderTex.jpg"
                 }
-                with(mMaterials[4]) {
+                with(materials[4]) {
 
                     name shouldBe "BeinTex"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -646,7 +646,7 @@ class obj : StringSpec() {
                     }
                     textures[0].file shouldBe ".\\drkwood2.jpg"
                 }
-                with(mMaterials[5]) {
+                with(materials[5]) {
 
                     name shouldBe "Augentex"
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -706,7 +706,7 @@ class obj : StringSpec() {
                         it shouldBe mutableListOf(i++, i++, i++, i++)
                     }
                 }
-                with(mMaterials[0]) {
+                with(materials[0]) {
                     name shouldBe AI_DEFAULT_MATERIAL_NAME
                     shadingModel shouldBe AiShadingMode.gouraud
                     with(color!!) {
@@ -775,9 +775,9 @@ class obj : StringSpec() {
 
                     mName shouldBe "default"
                 }
-                mNumMaterials shouldBe 2
+                numMaterials shouldBe 2
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     name shouldBe "DefaultMaterial"
 
@@ -795,7 +795,7 @@ class obj : StringSpec() {
                     }
                 }
 
-                with(mMaterials[1]) {
+                with(materials[1]) {
 
                     name shouldBe "test"
 

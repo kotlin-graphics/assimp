@@ -84,9 +84,9 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
             root.numMeshes = 1
             root.meshes = IntArray(1)
             // create a dummy material for the mesh
-            if (scene.mNumMaterials == 0){
-                scene.mNumMaterials = 1
-                scene.mMaterials = arrayListOf(createMaterial())
+            if (scene.numMaterials == 0){
+                scene.numMaterials = 1
+                scene.materials = arrayListOf(createMaterial())
             }
         }
     }

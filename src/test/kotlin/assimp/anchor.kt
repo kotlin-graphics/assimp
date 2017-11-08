@@ -6,3 +6,5 @@ package assimp
 
 val models = "models"
 val modelsNonBsd = "/models-nonbsd"
+
+val collada = models + "/Collada/"

@@ -153,8 +153,8 @@ class STLImporter : BaseImporter() {
                 ambient = AiColor3D(1f)
         )
 
-        pScene.mNumMaterials = 1
-        pScene.mMaterials.add(pcMat)
+        pScene.numMaterials = 1
+        pScene.materials.add(pcMat)
     }
 
     // ------------------------------------------------------------------------------------------------

@@ -137,8 +137,8 @@ class PlyLoader : BaseImporter() {
         if (avMeshes.isEmpty()) throw Error("Invalid .ply file: Unable to extract mesh data ")
 
         // now generate the output scene object. Fill the material list
-        pScene.mNumMaterials = avMaterials.size
-        pScene.mMaterials.addAll(avMaterials)
+        pScene.numMaterials = avMaterials.size
+        pScene.materials.addAll(avMaterials)
 
         // fill the mesh list
         pScene.numMeshes = avMeshes.size

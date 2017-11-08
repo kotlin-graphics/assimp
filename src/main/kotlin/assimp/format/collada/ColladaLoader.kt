@@ -248,32 +248,32 @@ class ColladaLoader : BaseImporter() {
         if (srcCamera.mOrtho) logger.warn { "Collada: Orthographic cameras are not supported." }
 
         // now fill our ai data structure
-        val out = AiCamera(mName = pTarget.name)
+        val out = AiCamera(name = pTarget.name)
 
         // collada cameras point in -Z by default, rest is specified in node transform
-        out.mLookAt.put(0f, 0f, -1f)
+        out.lookAt.put(0f, 0f, -1f)
 
         // near/far z is already ok
-        out.mClipPlaneFar = srcCamera.mZFar
-        out.mClipPlaneNear = srcCamera.mZNear
+        out.clipPlaneFar = srcCamera.mZFar
+        out.clipPlaneNear = srcCamera.mZNear
 
         // ... but for the rest some values are optional and we need to compute the others in any combination.
         if (srcCamera.mAspect != 10e10f)
-            out.mAspect = srcCamera.mAspect
+            out.aspect = srcCamera.mAspect
 
         with(glm) {
             if (srcCamera.mHorFov != 10e10f) {
-                out.mHorizontalFOV = srcCamera.mHorFov
+                out.horizontalFOV = srcCamera.mHorFov
 
                 if (srcCamera.mVerFov != 10e10f && srcCamera.mAspect == 10e10f)
-                    out.mAspect = tan(srcCamera.mHorFov.rad) / tan(srcCamera.mVerFov.rad)
+                    out.aspect = tan(srcCamera.mHorFov.rad) / tan(srcCamera.mVerFov.rad)
             } else if (srcCamera.mAspect != 10e10f && srcCamera.mVerFov != 10e10f) {
-                out.mHorizontalFOV = 2f * atan(srcCamera.mAspect * tan(srcCamera.mVerFov.rad * .5f)).deg
+                out.horizontalFOV = 2f * atan(srcCamera.mAspect * tan(srcCamera.mVerFov.rad * .5f)).deg
             }
         }
 
         // Collada uses degrees, we use radians
-        out.mHorizontalFOV = out.mHorizontalFOV.rad
+        out.horizontalFOV = out.horizontalFOV.rad
 
         // add to camera list
         mCameras.add(out)
@@ -905,9 +905,9 @@ class ColladaLoader : BaseImporter() {
 
     /** Stores all materials in the given scene */
     fun storeSceneMaterials(pScene: AiScene) {
-        pScene.mNumMaterials = newMats.size
+        pScene.numMaterials = newMats.size
         if (newMats.isNotEmpty()) {
-            repeat(newMats.size) { pScene.mMaterials[it] = newMats[it].second }
+            repeat(newMats.size) { pScene.materials[it] = newMats[it].second }
             newMats.clear()
         }
     }
@@ -923,9 +923,9 @@ class ColladaLoader : BaseImporter() {
 
     /** Stores all cameras in the given scene   */
     fun storeSceneCameras(pScene: AiScene) {
-        pScene.mNumCameras = mCameras.size
+        pScene.numCameras = mCameras.size
         if (mCameras.isNotEmpty()) {
-            pScene.mCameras.addAll(mCameras)
+            pScene.cameras.addAll(mCameras)
             mCameras.clear()
         }
     }

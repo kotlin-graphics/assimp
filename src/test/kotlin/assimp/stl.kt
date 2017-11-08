@@ -71,9 +71,9 @@ class stl : StringSpec() {
                     mNumAnimMeshes shouldBe 0
                 }
 
-                mNumMaterials shouldBe 1
+                numMaterials shouldBe 1
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     with(color!!) {
 
@@ -156,9 +156,9 @@ class stl : StringSpec() {
                     mNumAnimMeshes shouldBe 0
                 }
 
-                mNumMaterials shouldBe 1
+                numMaterials shouldBe 1
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     with(color!!) {
 
@@ -241,9 +241,9 @@ class stl : StringSpec() {
                     mNumAnimMeshes shouldBe 0
                 }
 
-                mNumMaterials shouldBe 1
+                numMaterials shouldBe 1
 
-                with(mMaterials[0]) {
+                with(materials[0]) {
 
                     with(color!!) {
 

@@ -39,7 +39,7 @@ class ply : io.kotlintest.specs.StringSpec() {
                     mFaces[4] shouldBe mutableListOf(16, 17, 18, 19)
                     mFaces[5] shouldBe mutableListOf(20, 21, 22, 23)
                 }
-                with(mMaterials[0]) {
+                with(materials[0]) {
                     shadingModel shouldBe AiShadingMode.gouraud
                     with(color!!) {
                         ambient shouldBe Vec3(.05f)
@@ -86,7 +86,7 @@ class ply : io.kotlintest.specs.StringSpec() {
                     mFaces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
                     mFaces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
                 }
-                with(mMaterials[0]) {
+                with(materials[0]) {
                     shadingModel shouldBe AiShadingMode.gouraud
                     with(color!!) {
                         ambient shouldBe Vec3(.05f)
@@ -133,7 +133,7 @@ class ply : io.kotlintest.specs.StringSpec() {
 //                    mFaces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
 //                    mFaces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
                 }
-//                with(mMaterials[0]) {
+//                with(materials[0]) {
 //                    shadingModel shouldBe AiShadingMode.gouraud
 //                    with(color!!) {
 //                        ambient shouldBe Vec3(.05f)

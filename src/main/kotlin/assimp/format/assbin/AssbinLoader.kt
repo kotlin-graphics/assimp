@@ -80,11 +80,11 @@ class AssbinLoader : BaseImporter() {
 
         scene.flags = int(be)
         scene.numMeshes = int(be)
-        scene.mNumMaterials = int(be)
+        scene.numMaterials = int(be)
         scene.mNumAnimations = int(be)
         scene.mNumTextures = int(be)
         scene.mNumLights = int(be)
-        scene.mNumCameras = int(be)
+        scene.numCameras = int(be)
 
         // Read node graph
         scene.rootNode = AiNode()
@@ -95,8 +95,8 @@ class AssbinLoader : BaseImporter() {
             scene.meshes.add(AiMesh().also { readMesh(it) })
 
         // Read materials
-        for (i in 0 until scene.mNumMaterials)
-            scene.mMaterials.add(AiMaterial().also { readMaterial(it) })
+        for (i in 0 until scene.numMaterials)
+            scene.materials.add(AiMaterial().also { readMaterial(it) })
 
         // Read all animations
         for (i in 0 until scene.mNumAnimations)
@@ -119,8 +119,8 @@ class AssbinLoader : BaseImporter() {
             scene.mLights = Array(scene.mNumLights, { AiLight().also { readLight(it) } }).toCollection(ArrayList())
 
         // Read cameras
-        for (i in 0 until scene.mNumCameras)
-            scene.mCameras = Array(scene.mNumCameras, { AiCamera().also { readCamera(it) } }).toCollection(ArrayList())
+        for (i in 0 until scene.numCameras)
+            scene.cameras = Array(scene.numCameras, { AiCamera().also { readCamera(it) } }).toCollection(ArrayList())
     }
 
     private fun InputStream.readNode(node: AiNode, parent: AiNode? = null) {
@@ -428,14 +428,14 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AICAMERA)
         int(be)   // size
 
-        cam.mName = string()
-        cam.mPosition = AiVector3D(this, be)
-        cam.mLookAt = AiVector3D(this, be)
-        cam.mUp = AiVector3D(this, be)
-        cam.mHorizontalFOV = float(be)
-        cam.mClipPlaneNear = float(be)
-        cam.mClipPlaneFar = float(be)
-        cam.mAspect = float(be)
+        cam.name = string()
+        cam.position = AiVector3D(this, be)
+        cam.lookAt = AiVector3D(this, be)
+        cam.up = AiVector3D(this, be)
+        cam.horizontalFOV = float(be)
+        cam.clipPlaneNear = float(be)
+        cam.clipPlaneFar = float(be)
+        cam.aspect = float(be)
     }
 
     private val ASSBIN_HEADER_LENGTH = 512
