@@ -142,7 +142,7 @@ class PlyLoader : BaseImporter() {
 
         // fill the mesh list
         pScene.numMeshes = avMeshes.size
-        pScene.mMeshes.addAll(avMeshes)
+        pScene.meshes.addAll(avMeshes)
 
         // generate a simple node structure
         pScene.rootNode = AiNode()

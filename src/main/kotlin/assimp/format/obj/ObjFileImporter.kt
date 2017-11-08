@@ -73,7 +73,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Create mesh pointer buffer for this scene
         if (pScene.numMeshes > 0)
-            pScene.mMeshes.addAll(meshArray)
+            pScene.meshes.addAll(meshArray)
 
         // Create all materials
         createMaterials(pModel, pScene)

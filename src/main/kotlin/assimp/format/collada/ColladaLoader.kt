@@ -898,7 +898,7 @@ class ColladaLoader : BaseImporter() {
     fun storeSceneMeshes(pScene: AiScene) {
         pScene.numMeshes = mMeshes.size
         if (mMeshes.isNotEmpty()) {
-            pScene.mMeshes.addAll(mMeshes)
+            pScene.meshes.addAll(mMeshes)
             mMeshes.clear()
         }
     }
@@ -1216,10 +1216,10 @@ class ColladaLoader : BaseImporter() {
             // build an animation channel for the given node out of these trafo keys
             if (resultTrafos.isNotEmpty()) {
                 val dstAnim = AiNodeAnim(
-                        mNodeName = nodeName,
+                        nodeName = nodeName,
                         numPositionKeys = resultTrafos.size,
-                        mNumRotationKeys = resultTrafos.size,
-                        mNumScalingKeys = resultTrafos.size,
+                        numRotationKeys = resultTrafos.size,
+                        numScalingKeys = resultTrafos.size,
                         positionKeys = List(resultTrafos.size, { AiVectorKey() }),
                         rotationKeys = List(resultTrafos.size, { AiQuatKey() }),
                         scalingKeys = List(resultTrafos.size, { AiVectorKey() }))

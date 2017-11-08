@@ -1,5 +1,8 @@
 package assimp
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Created by elect on 18/11/2016.
  */
@@ -10,16 +13,17 @@ package assimp
  *  The step computes data that needn't necessarily be provided by the importer, such as aiMesh::mPrimitiveTypes.
  */
 // ----------------------------------------------------------------------------------
-class ScenePreprocessor(
-        protected val scene: AiScene
-) {
+object ScenePreprocessor {
+    /** Scene we're currently working on    */
+    lateinit var scene: AiScene
 
+    /** Preprocess the current scene     */
     fun processScene() {
 
         // scene cant be null
 
         // Process all meshes
-        scene.mMeshes.forEach { it.process() }
+        scene.meshes.forEach { it.process() }
 
         // - nothing to do for nodes for the moment
         // - nothing to do for textures for the moment
@@ -27,10 +31,10 @@ class ScenePreprocessor(
         // - nothing to do for cameras for the moment
 
         // Process all animations
-//        scene.mAnimations.forEach { it.process() }
+        scene.mAnimations.forEach { it.process() }
 
         // Generate a default material if none was specified
-        if(scene.mNumMaterials == 0 && scene.numMeshes > 0) {
+        if (scene.mNumMaterials == 0 && scene.numMeshes > 0) {
             scene.mMaterials = ArrayList(2) // TODO useless
 
             val helper = AiMaterial()
@@ -43,41 +47,106 @@ class ScenePreprocessor(
 
         // If aiMesh::mNumUVComponents is *not* set assign the default value of 2
         // TODO change -> for in mTextureCoords
-//        for (i in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
-//            if (mTextureCoords[i].isEmpty())
-//                mNumUVComponents[i] = 0
-//            else {
-//                if (mNumUVComponents[i] == 0)
-//                    mNumUVComponents[i] = 2
-//
-//                // Ensure unsued components are zeroed. This will make 1D texture channels work as if they were 2D
-//                // channels .. just in case an application doesn't handle this case
-//                // TODO
-//            }
-//        }
+        mTextureCoords.forEach {
+            for (i in 0 until it.size)
+                if (it[i].isEmpty())
+                    it[i] = FloatArray(2)
+
+            /*  Ensure unsued components are zeroed. This will make 1D texture channels work as if they were 2D channels..
+                just in case an application doesn't handle this case    */
+            if (it[0].size == 2)
+                for (uv in it)
+                    uv[2] = 0f
+            else if (it[0].size == 1)
+                for (uv in it) {
+                    uv[2] = 0f
+                    uv[1] = 0f
+                }
+            else if (it[0].size == 3) {
+                // Really 3D coordinates? Check whether the third coordinate is != 0 for at least one element
+                var coord3d = false
+                for (uv in it)
+                    if (uv[2] != 0f)
+                        coord3d = true
+                if (!coord3d) {
+                    logger.warn { "ScenePreprocessor: UVs are declared to be 3D but they're obviously not. Reverting to 2D." }
+                    for (i in 0 until it.size)
+                        it[i] = FloatArray(2)
+                }
+            }
+        }
 
         // If the information which primitive types are there in the mesh is currently not available, compute it.
-        if (mPrimitiveTypes == 0) {
-            mFaces.forEach {
-                when (it.size) {
-                    3 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.TRIANGLE
-                    2 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.LINE
-                    1 -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.POINT
-                    else -> mPrimitiveTypes = mPrimitiveTypes or AiPrimitiveType.POLYGON
-                }
+        if (mPrimitiveTypes == 0) mFaces.forEach {
+            mPrimitiveTypes = when (it.size) {
+                3 -> mPrimitiveTypes or AiPrimitiveType.TRIANGLE
+                2 -> mPrimitiveTypes or AiPrimitiveType.LINE
+                1 -> mPrimitiveTypes or AiPrimitiveType.POINT
+                else -> mPrimitiveTypes or AiPrimitiveType.POLYGON
             }
         }
 
         // If tangents and normals are given but no bitangents compute them
         if (mTangents.isNotEmpty() && mNormals.isNotEmpty() && mBitangents.isEmpty()) {
-
-            mBitangents = java.util.ArrayList(mNumVertices)
-//            for (i in 0..mNumVertices - 1)
-//TODO                mesh.mBitangents!![i] = mesh.mNormals!![i] crossProduct mesh.mTangents!![i]
+            mBitangents = ArrayList(mNumVertices)
+            for (i in 0 until mNumVertices)
+                mBitangents[i] = mNormals[i] cross mTangents[i]
         }
     }
 
-//    fun AiAnimation.process() {
-//
-//    }
+    fun AiAnimation.process() {
+        var first = 10e10
+        var last = -10e10
+        channels.forEach { channel ->
+            //  If the exact duration of the animation is not given compute it now.
+            if (duration == -1.0) {
+                channel!!.positionKeys.forEach {
+                    // Position keys
+                    first = min(first, it.time)
+                    last = max(last, it.time)
+                }
+                channel.scalingKeys.forEach {
+                    // Scaling keys
+                    first = min(first, it.time)
+                    last = max(last, it.time)
+                }
+                channel.rotationKeys.forEach {
+                    // Rotation keys
+                    first = min(first, it.time)
+                    last = max(last, it.time)
+                }
+            }
+            /*  Check whether the animation channel has no rotation or position tracks. In this case we generate a dummy
+             *  track from the information we have in the transformation matrix of the corresponding node.  */
+            if (channel!!.numRotationKeys == 0 || channel.numPositionKeys == 0 || channel.numScalingKeys == 0)
+            // Find the node that belongs to this animation
+                scene.rootNode.findNode(channel.nodeName)?.let {
+                    // ValidateDS will complain later if 'node' is NULL
+                    // Decompose the transformation matrix of the node
+                    val scaling = AiVector3D()
+                    val position = AiVector3D()
+                    val rotation = AiQuaternion()
+                    it.transformation.decompose(scaling, rotation, position)
+                    if (channel.numRotationKeys == 0) { // No rotation keys? Generate a dummy track
+                        channel.numRotationKeys = 1
+                        channel.rotationKeys = listOf(AiQuatKey(0.0, rotation))
+                        logger.debug { "ScenePreprocessor: Dummy rotation track has been generated" }
+                    }
+                    if (channel.numScalingKeys == 0) { // No scaling keys? Generate a dummy track
+                        channel.numScalingKeys = 1
+                        channel.scalingKeys = listOf(AiVectorKey(0.0, scaling))
+                        logger.debug { "ScenePreprocessor: Dummy scaling track has been generated" }
+                    }
+                    if (channel.numPositionKeys == 0) { // No position keys? Generate a dummy track
+                        channel.numPositionKeys = 1
+                        channel.positionKeys = listOf(AiVectorKey(0.0, position))
+                        logger.debug { "ScenePreprocessor: Dummy position track has been generated" }
+                    }
+                }
+        }
+        if (duration == -1.0) {
+            logger.debug { "ScenePreprocessor: Setting animation duration" }
+            duration = last - min(first, 0.0)
+        }
+    }
 }

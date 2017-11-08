@@ -36,9 +36,9 @@ class stl : StringSpec() {
                     metaData shouldBe null
                 }
                 numMeshes shouldBe 1
-                mMeshes.size shouldBe 1
+                meshes.size shouldBe 1
 
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
@@ -107,9 +107,9 @@ class stl : StringSpec() {
                     metaData shouldBe null
                 }
                 numMeshes shouldBe 1
-                mMeshes.size shouldBe 1
+                meshes.size shouldBe 1
 
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
@@ -192,9 +192,9 @@ class stl : StringSpec() {
                     metaData shouldBe null
                 }
                 numMeshes shouldBe 1
-                mMeshes.size shouldBe 1
+                meshes.size shouldBe 1
 
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 

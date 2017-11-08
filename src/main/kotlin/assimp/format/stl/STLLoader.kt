@@ -163,8 +163,8 @@ class STLImporter : BaseImporter() {
 
         // allocate one mesh
         pScene.numMeshes = 1
-        pScene.mMeshes.add(AiMesh())
-        val pMesh = pScene.mMeshes[0]
+        pScene.meshes.add(AiMesh())
+        val pMesh = pScene.meshes[0]
         pMesh.mMaterialIndex = 0
 
         // skip the first 80 bytes
@@ -366,7 +366,7 @@ class STLImporter : BaseImporter() {
 
         // now add the loaded meshes
         pScene.numMeshes = meshes.size
-        pScene.mMeshes.addAll(meshes)
+        pScene.meshes.addAll(meshes)
     }
 
     fun addFacesToMesh(pMesh: AiMesh) = repeat(pMesh.mNumFaces) {

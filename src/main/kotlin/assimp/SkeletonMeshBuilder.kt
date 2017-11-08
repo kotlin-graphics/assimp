@@ -65,15 +65,21 @@ class SkeletonMeshBuilder
  */
 constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false) {
 
+    /** space to assemble the mesh data: points */
+    val vertices = ArrayList<AiVector3D>()
+    val faces = ArrayList<Face>()
+    /** bones */
+    val bones = ArrayList<AiBone>()
+
     init {
         // nothing to do if there's mesh data already present at the scene
-        if (!(scene.numMeshes <= 0 && scene.rootNode != null)) {
+        if (scene.numMeshes == 0 && scene.rootNode != null) {
             val root = root ?: scene.rootNode
             // build some faces around each node
             createGeometry(root)
             // create a mesh to hold all the generated faces
             scene.numMeshes = 1
-            scene.mMeshes = arrayListOf(createMesh())
+            scene.meshes = arrayListOf(createMesh())
             // and install it at the root node
             root.numMeshes = 1
             root.meshes = IntArray(1)
@@ -206,21 +212,17 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
 
         // add faces
         mesh.mNumFaces = faces.size
-        mesh.mFaces = MutableList(mesh.mNumFaces, { MutableList<Int>(3, { 0 }) })
-        for (a in 0 until mesh.mNumFaces) {
-            val inface = faces[a]
-            val outface = mesh.mFaces[a]
-            inface.indices.toCollection(outface)
-
+        mesh.mFaces = MutableList(mesh.mNumFaces, { f -> MutableList(3, { faces[f].indices[it] }) })
+        faces.forEach {
             // Compute per-face normals ... we don't want the bones to be smoothed ... they're built to visualize
             // the skeleton, so it's good if there's a visual difference to the rest of the geometry
-            val nor = (vertices[inface.indices[2]] - vertices[inface.indices[0]]) cross
-                    (vertices[inface.indices[1]] - vertices[inface.indices[0]])
+            val nor = (vertices[it.indices[2]] - vertices[it.indices[0]]) cross
+                    (vertices[it.indices[1]] - vertices[it.indices[0]])
 
             if (nor.length() < 1e-5) /* ensure that FindInvalidData won't remove us ...*/
                 nor.put(1f, 0f, 0f)
 
-            for (n in 0..2) mesh.mNormals[inface.indices[n]] put nor
+            for (n in 0..2) mesh.mNormals[it.indices[n]] put nor
         }
         // add the bones
         mesh.mNumBones = bones.size
@@ -235,24 +237,17 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
         name = "SkeletonMaterial"   // Name
         twoSided = true // Prevent backface culling
     }
-
-    /** space to assemble the mesh data: points */
-    val vertices = ArrayList<AiVector3D>()
-
     /** faces */
     class Face {
+
         val indices: IntArray
 
         constructor() {
             indices = IntArray((3))
         }
-
         constructor(p0: Int, p1: Int, p2: Int) {
             indices = intArrayOf(p0, p1, p2)
         }
-    }
 
-    val faces = ArrayList<Face>()
-    /** bones */
-    val bones = ArrayList<AiBone>()
+    }
 }

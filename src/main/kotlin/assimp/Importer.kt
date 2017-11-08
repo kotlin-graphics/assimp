@@ -1,5 +1,6 @@
 package assimp
 
+import assimp.AiPostProcessSteps as Pps
 import uno.kotlin.uri
 import java.io.FileNotFoundException
 import java.net.URI
@@ -61,7 +62,7 @@ class Importer(
 
     fun readFile(context: Class<*>, _pFile: String, pFlags: Int = 0) = readFile(context.classLoader.getResource(_pFile).toURI(), pFlags)
 
-    fun readFile(_pFile: URI, pFlags: Int = 0): AiScene? {
+    fun readFile(_pFile: URI, flags: Int = 0): AiScene? {
 
         // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         //TODO if (pimpl.mScene != null) FreeScene()
@@ -82,10 +83,115 @@ class Importer(
         // If successful, apply all active post processing steps to the imported data
         if (pimpl.mScene != null) {
 
-            ScenePreprocessor(pimpl.mScene!!).processScene()
+            ScenePreprocessor.scene = pimpl.mScene!!
+            ScenePreprocessor.processScene()
+
+            // Ensure that the validation process won't be called twice
+            applyPostProcessing(flags wo Pps.ValidateDataStructure)
         }
 
         return pimpl.mScene
+    }
+
+    /** Apply post-processing to the currently bound scene  */
+    fun applyPostProcessing(flags: Int): AiScene? {
+        // Return immediately if no scene is active
+        if (pimpl.mScene == null) return null
+        // If no flags are given, return the current scene with no further action
+        if (flags == 0) return pimpl.mScene
+        // In debug builds: run basic flag validation
+        assert(validateFlags(flags))
+        logger.info { "Entering post processing pipeline" }
+
+        if (!ASSIMP_BUILD_NO_VALIDATEDS_PROCESS)
+        /*  The ValidateDS process plays an exceptional role. It isn't contained in the global list of post-processing
+            steps, so we need to call it manually.         */
+            if (flags has Pps.ValidateDataStructure) {
+//                ValidateDSProcess ds;
+//                ds.ExecuteOnScene(this);
+//                if (!pimpl->mScene) {
+//                    return NULL;
+//                }
+            }
+
+//        #ifdef ASSIMP_BUILD_DEBUG
+//                if (pimpl->bExtraVerbose)
+//        {
+//            #ifdef ASSIMP_BUILD_NO_VALIDATEDS_PROCESS
+//                DefaultLogger::get()->error("Verbose Import is not available due to build settings");
+//            #endif  // no validation
+//            flags | = aiProcess_ValidateDataStructure;
+//        }
+//        #else
+//        if (pimpl->bExtraVerbose) {
+//            DefaultLogger::get()->warn("Not a debug build, ignoring extra verbose setting");
+//        }
+//        #endif // ! DEBUG
+//
+//        std::unique_ptr<Profiler> profiler (GetPropertyInteger(AI_CONFIG_GLOB_MEASURE_TIME, 0)?new Profiler():NULL);
+//        for (unsigned int a = 0; a < pimpl->mPostProcessingSteps.size(); a++)   {
+//
+//            BaseProcess * process = pimpl->mPostProcessingSteps[a];
+//            pimpl->mProgressHandler->UpdatePostProcess(static_cast<int>(a), static_cast<int>(pimpl->mPostProcessingSteps.size()));
+//            if (process->IsActive(pFlags)) {
+//
+//            if (profiler) { profiler ->
+//                BeginRegion("postprocess");
+//            }
+//
+//            process->ExecuteOnScene (this);
+//
+//            if (profiler) { profiler ->
+//                EndRegion("postprocess");
+//            }
+//        }
+//            if (!pimpl->mScene) {
+//            break;
+//        }
+//            #ifdef ASSIMP_BUILD_DEBUG
+//
+//            #ifdef ASSIMP_BUILD_NO_VALIDATEDS_PROCESS
+//                continue;
+//            #endif  // no validation
+//
+//            // If the extra verbose mode is active, execute the ValidateDataStructureStep again - after each step
+//            if (pimpl->bExtraVerbose)   {
+//            DefaultLogger::get()->debug("Verbose Import: revalidating data structures");
+//
+//            ValidateDSProcess ds;
+//            ds.ExecuteOnScene(this);
+//            if (!pimpl->mScene) {
+//            DefaultLogger::get()->error("Verbose Import: failed to revalidate data structures");
+//            break;
+//        }
+//        }
+//            #endif // ! DEBUG
+//        }
+//        pimpl->mProgressHandler->UpdatePostProcess(static_cast<int>(pimpl->mPostProcessingSteps.size()), static_cast<int>(pimpl->mPostProcessingSteps.size()));
+//
+//        // update private scene flags
+//        if (pimpl->mScene)
+//        ScenePriv(pimpl->mScene)->mPPStepsApplied | = pFlags;
+//
+//        // clear any data allocated by post-process steps
+//        pimpl->mPPShared->Clean();
+//        DefaultLogger::get()->info("Leaving post processing pipeline");
+//
+//        ASSIMP_END_EXCEPTION_REGION(const aiScene *);
+        return pimpl.mScene
+    }
+
+    /** Validate post process step flags    */
+    fun validateFlags(flags: Int) = when {
+        flags has Pps.GenSmoothNormals && flags has Pps.GenNormals -> {
+            logger.error { "#aiProcess_GenSmoothNormals and #aiProcess_GenNormals are incompatible" }
+            false
+        }
+        flags has Pps.OptimizeGraph && flags has Pps.PreTransformVertices -> {
+            logger.error { "#aiProcess_OptimizeGraph and #aiProcess_PreTransformVertices are incompatible" }
+            false
+        }
+        else -> true
     }
 }
 

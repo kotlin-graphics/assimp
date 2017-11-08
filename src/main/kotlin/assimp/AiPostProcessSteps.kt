@@ -396,3 +396,6 @@ enum class AiPostProcessSteps(@JvmField val i: Int) {
      */
     TargetRealtime_MaxQuality(TargetRealtime_Quality.i or FindInstances.i or ValidateDataStructure.i or OptimizeMeshes.i)
 }
+
+infix fun Int.has(b: AiPostProcessSteps) = and(b.i) != 0
+infix fun Int.wo(b: AiPostProcessSteps) = and(b.i.inv())

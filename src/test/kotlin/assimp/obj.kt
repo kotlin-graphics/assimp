@@ -63,7 +63,7 @@ class obj : StringSpec() {
                     numMeshes shouldBe 0
                 }
 
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 156
@@ -92,7 +92,7 @@ class obj : StringSpec() {
                     mName shouldBe "Visor"
                 }
 
-                with(mMeshes[1]) {
+                with(meshes[1]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 15222
@@ -121,7 +121,7 @@ class obj : StringSpec() {
                     mName shouldBe "Legs"
                 }
 
-                with(mMeshes[2]) {
+                with(meshes[2]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 19350
@@ -150,7 +150,7 @@ class obj : StringSpec() {
                     mName shouldBe "hands"
                 }
 
-                with(mMeshes[3]) {
+                with(meshes[3]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 78
@@ -175,7 +175,7 @@ class obj : StringSpec() {
                     mName shouldBe "Lights"
                 }
 
-                with(mMeshes[4]) {
+                with(meshes[4]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 6804
@@ -200,7 +200,7 @@ class obj : StringSpec() {
                     mName shouldBe "Arms"
                 }
 
-                with(mMeshes[5]) {
+                with(meshes[5]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 7248
@@ -225,7 +225,7 @@ class obj : StringSpec() {
                     mName shouldBe "Helmet"
                 }
 
-                with(mMeshes[6]) {
+                with(meshes[6]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 8316
@@ -493,7 +493,7 @@ class obj : StringSpec() {
                 }
                 numMeshes shouldBe 19
 
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 240
@@ -518,7 +518,7 @@ class obj : StringSpec() {
 
                     mName shouldBe "HLeib01"
                 }
-                with(mMeshes[1]) {
+                with(meshes[1]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 180
@@ -542,7 +542,7 @@ class obj : StringSpec() {
 
                     mName shouldBe "OK"
                 }
-                with(mMeshes[18]) {
+                with(meshes[18]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 114
@@ -688,7 +688,7 @@ class obj : StringSpec() {
                     numMeshes shouldBe 0
                 }
                 numMeshes shouldBe 1
-                with(mMeshes[0]) {
+                with(meshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 24
                     mNumFaces shouldBe 6
@@ -752,7 +752,7 @@ class obj : StringSpec() {
                         meshes[0] shouldBe 0
                     }
                 }
-                with(mMeshes[0]) {
+                with(meshes[0]) {
 
                     mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 66

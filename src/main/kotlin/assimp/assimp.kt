@@ -47,3 +47,6 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
         a0 * vector.x + a1 * vector.y + a2 * vector.z + a3,
         b0 * vector.x + b1 * vector.y + b2 * vector.z + b3,
         c0 * vector.x + c1 * vector.y + c2 * vector.z + c3)
+
+
+var ASSIMP_BUILD_NO_VALIDATEDS_PROCESS = false

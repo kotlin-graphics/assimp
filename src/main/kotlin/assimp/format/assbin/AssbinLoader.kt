@@ -92,7 +92,7 @@ class AssbinLoader : BaseImporter() {
 
         // Read all meshes
         for (i in 0 until scene.numMeshes)
-            scene.mMeshes.add(AiMesh().also { readMesh(it) })
+            scene.meshes.add(AiMesh().also { readMesh(it) })
 
         // Read materials
         for (i in 0 until scene.mNumMaterials)
@@ -373,10 +373,10 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AINODEANIM)
         int(be)   // size
 
-        nd.mNodeName = string()
+        nd.nodeName = string()
         nd.numPositionKeys = int(be)
-        nd.mNumRotationKeys = int(be)
-        nd.mNumScalingKeys = int(be)
+        nd.numRotationKeys = int(be)
+        nd.numScalingKeys = int(be)
         nd.mPreState = AiAnimBehaviour.of(int(be))
         nd.mPostState = AiAnimBehaviour.of(int(be))
 
@@ -386,17 +386,17 @@ class AssbinLoader : BaseImporter() {
             else    // else write as usual
                 nd.positionKeys = List(nd.numPositionKeys, { vectorKey() })
 
-        if (nd.mNumRotationKeys > 0)
+        if (nd.numRotationKeys > 0)
             if (shortened)
-                TODO()//ReadBounds(stream, nd->rotationKeys, nd->mNumRotationKeys)
+                TODO()//ReadBounds(stream, nd->rotationKeys, nd->numRotationKeys)
             else    // else write as usual
-                nd.rotationKeys = List(nd.mNumRotationKeys, { quatKey() })
+                nd.rotationKeys = List(nd.numRotationKeys, { quatKey() })
 
-        if (nd.mNumScalingKeys > 0)
+        if (nd.numScalingKeys > 0)
             if (shortened)
-                TODO()//ReadBounds(stream, nd->scalingKeys, nd->mNumScalingKeys)
+                TODO()//ReadBounds(stream, nd->scalingKeys, nd->numScalingKeys)
             else    // else write as usual
-                nd.scalingKeys = List(nd.mNumScalingKeys, { vectorKey() })
+                nd.scalingKeys = List(nd.numScalingKeys, { vectorKey() })
     }
 
     private fun InputStream.readLight(l: AiLight) {

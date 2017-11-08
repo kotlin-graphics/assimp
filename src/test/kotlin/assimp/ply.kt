@@ -20,7 +20,7 @@ class ply : io.kotlintest.specs.StringSpec() {
             with(Importer().readFile(ply + cube)!!) {
 
                 numMeshes shouldBe 1
-                with(mMeshes[0]) {
+                with(meshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                     mNumVertices shouldBe 24
                     mNumFaces shouldBe 6
@@ -57,7 +57,7 @@ class ply : io.kotlintest.specs.StringSpec() {
             with(Importer().readFile(ply + wuson)!!) {
 
                 numMeshes shouldBe 1
-                with(mMeshes[0]) {
+                with(meshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 11_196
                     mNumFaces shouldBe 3732
@@ -104,7 +104,7 @@ class ply : io.kotlintest.specs.StringSpec() {
             with(Importer().readFile(ply + pond0)!!) {
 
                 numMeshes shouldBe 1
-                with(mMeshes[0]) {
+                with(meshes[0]) {
                     mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                     mNumVertices shouldBe 70_050
                     mNumFaces shouldBe 23_350

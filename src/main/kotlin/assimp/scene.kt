@@ -1,7 +1,6 @@
 package assimp
 
 import glm_.mat4x4.Mat4
-import java.nio.ByteBuffer
 
 /**
  * Created by elect on 13/11/2016.
@@ -66,12 +65,10 @@ data class AiNode(
         var metaData: ArrayList<AiMetadata>? = null
 ) {
 
-//    fun finNode(name: String): AiNode? {
-//        if(name == name) return this
-//        children.forEach {
-//            val p = it.finNode(name)
-//        } ?: null
-//    }
+    fun findNode(name: String): AiNode? {
+        if(this.name == name) return this
+        return children.firstOrNull { it.findNode(name) != null }
+    }
 
 //    infix fun put(other: AiNode) {
 //        name = other.name
@@ -158,7 +155,7 @@ class AiScene {
      *
      * Use the indices given in the aiNode structure to access this array. The array is numMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var mMeshes = ArrayList<AiMesh>()
+    var meshes = ArrayList<AiMesh>()
 
     /** The number of materials in the scene. */
     var mNumMaterials = 0
@@ -209,7 +206,7 @@ class AiScene {
 
     /** Check whether the scene contains meshes
      *  Unless no special scene flags are set this will always be true. */
-    fun hasMeshes() = mMeshes.isNotEmpty()
+    fun hasMeshes() = meshes.isNotEmpty()
 
     /** Check whether the scene contains materials
      *  Unless no special scene flags are set this will always be true. */

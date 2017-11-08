@@ -131,7 +131,7 @@ enum class AiAnimBehaviour(val i: Int) {
 class AiNodeAnim(
         /** The name of the node affected by this animation. The node
          *  must exist and it must be unique.*/
-        var mNodeName: String = "",
+        var nodeName: String = "",
 
         /** The number of position keys */
         var numPositionKeys: Int = 0,
@@ -144,21 +144,21 @@ class AiNodeAnim(
         var positionKeys: List<AiVectorKey> = ArrayList(),
 
         /** The number of rotation keys */
-        var mNumRotationKeys: Int = 0,
+        var numRotationKeys: Int = 0,
 
         /** The rotation keys of this animation channel. Rotations are
          *  given as quaternions,  which are 4D vectors. The array is
-         *  mNumRotationKeys in size.
+         *  numRotationKeys in size.
          *
          * If there are rotation keys, there will also be at least one
          * scaling and one position key. */
         var rotationKeys: List<AiQuatKey> = ArrayList(),
 
         /** The number of scaling keys */
-        var mNumScalingKeys: Int = 0,
+        var numScalingKeys: Int = 0,
 
         /** The scaling keys of this animation channel. Scalings are
-         *  specified as 3D vector. The array is mNumScalingKeys in size.
+         *  specified as 3D vector. The array is numScalingKeys in size.
          *
          * If there are scaling keys, there will also be at least one
          * position and one rotation key.*/
