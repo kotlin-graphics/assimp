@@ -881,17 +881,14 @@ class ColladaLoader : BaseImporter() {
         return null
     }
 
-    /** Finds a proper name for a node derived from the collada-node's properties   */
-    fun findNameForNode(pNode: Node): String {
-        return when {
-        // now setup the name of the node. We take the name if not empty, otherwise the collada ID
-        // FIX: Workaround for XSI calling the instanced visual scene 'untitled' by default.
-            pNode.mName.isNotEmpty() && pNode.mName != "untitled" -> pNode.mName
-            pNode.mID.isNotEmpty() -> pNode.mID
-            pNode.mSID.isNotEmpty() -> pNode.mSID
-        // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
-            else -> "\$ColladaAutoName\$_${mNodeNameCounter++}"
-        }
+    /** Finds a proper unique name for a node derived from the collada-node's properties.
+     *  The name must be unique for proper node-bone association.   */
+    fun findNameForNode(pNode: Node) = when {
+    /*  Now setup the name of the assimp node. The collada name might not be unique, so we use the collada ID.  */
+        pNode.mID.isNotEmpty() -> pNode.mID
+        pNode.mSID.isNotEmpty() -> pNode.mSID
+    // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
+        else -> "\$ColladaAutoName\$_${mNodeNameCounter++}"
     }
 
     /** Stores all meshes in the given scene    */
@@ -907,7 +904,9 @@ class ColladaLoader : BaseImporter() {
     fun storeSceneMaterials(pScene: AiScene) {
         pScene.numMaterials = newMats.size
         if (newMats.isNotEmpty()) {
-            repeat(newMats.size) { pScene.materials[it] = newMats[it].second }
+            pScene.materials.clear()
+            for (i in 0 until newMats.size)
+                pScene.materials.add(newMats[i].second)
             newMats.clear()
         }
     }

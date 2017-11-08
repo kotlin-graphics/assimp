@@ -1,6 +1,7 @@
 package assimp.format.collada
 
 import assimp.*
+import assimp.format.collada.PrimitiveType as Pt
 import glm_.*
 import glm_.mat4x4.Mat4
 import java.io.File
@@ -45,7 +46,7 @@ class ColladaParser(pFile: URI) {
     /** Filename, for a verbose error message */
     var mFileName = pFile
     /** XML reader, member for everyday use */
-    val mReader: XMLEventReader
+    val reader: XMLEventReader
     lateinit var event: XMLEvent
     lateinit var element: StartElement
     lateinit var endElement: EndElement
@@ -114,7 +115,7 @@ class ColladaParser(pFile: URI) {
         // generate a XML reader for it
         val factory = XMLInputFactory.newInstance()
 
-        mReader = factory.createXMLEventReader(FileReader(file))
+        reader = factory.createXMLEventReader(FileReader(file))
 
         // start reading
         readContents()
@@ -129,7 +130,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the contents of the file  */
     fun readContents() {
 
-        while (mReader.read())
+        while (reader.read())
 
 //            if(event.isAttribute)   println("attribute")
 //            if(event.isCharacters)   println("characters ${event.asCharacters()}")
@@ -170,7 +171,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads the structure of the file */
     fun readStructure() {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)  // beginning of elements
                 when (element.name_) {
                     "asset" -> readAssetInfo()
@@ -195,7 +196,7 @@ class ColladaParser(pFile: URI) {
     /** Reads asset informations such as coordinate system informations and legal blah  */
     fun readAssetInfo() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             when (event) {
                 is StartElement -> when (element.name_) {
                     "unit" -> {
@@ -222,13 +223,13 @@ class ColladaParser(pFile: URI) {
     /** Reads the animation clips   */
     fun readAnimationClipLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "animation_clip") {
                     // optional name given as an attribute
                     val animName = element["name"] ?: element["id"] ?: "animation_${mAnimationClipLibrary.size}"
                     val clip = Pair(animName, ArrayList<String>())
-                    while (mReader.read())
+                    while (reader.read())
                         if (event is StartElement)
                             if (element.name_ == "instance_animation")
                                 element["url"]?.let { url ->
@@ -267,7 +268,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the animation library */
     fun readAnimationLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "animation")
                 // delegate the reading. Depending on the inner elements it will be a container or a anim channel
@@ -288,7 +289,7 @@ class ColladaParser(pFile: URI) {
         var anim: Animation? = null     // this is the anim container in case we're a container
         val animName = element["name"] ?: element["id"] ?: "animation"  // optional name given as an attribute
         val animID = element["id"]
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "animation" -> {    // we have subanimations
@@ -337,14 +338,14 @@ class ColladaParser(pFile: URI) {
                 pParent!!.mSubAnims.add(anim)
             }
             anim.mChannels.addAll(channels.values)
-            animID?.let { mAnimationLibrary[animID] = anim!! }
+            animID?.let { mAnimationLibrary[animID] = anim }
 //            }
         }
     }
 
     /** Reads an animation sampler into the given anim channel  */
     fun readAnimationSampler(pChannel: AnimationChannel) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "input") {
                     val semantic = element["semantic"]!!
@@ -369,7 +370,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the skeleton controller library   */
     fun readControllerLibrary() {
         if (isEmptyElement()) return
-        while ((mReader.read()))
+        while ((reader.read()))
             if (event is StartElement)
                 if (element.name_ == "controller") {
                     // read ID. Ask the spec if it's necessary or optional... you might be surprised.
@@ -389,7 +390,7 @@ class ColladaParser(pFile: URI) {
         // initial values
         pController.mType = ControllerType.Skin
         pController.mMethod = MorphMethod.Normalized
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                 // two types of controllers: "skin" and "morph". Only the first one is relevant, we skip the other
@@ -412,7 +413,7 @@ class ColladaParser(pFile: URI) {
                     "joints" -> readControllerJoints(pController)
                     "vertex_weights" -> readControllerWeights(pController)
                     "targets" -> {
-                        while (mReader.read())
+                        while (reader.read())
                             if (event is StartElement) {
                                 if (element.name_ == "input") {
                                     val semantics = element["semantic"]!!
@@ -437,7 +438,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads the joint definitions for the given controller    */
     fun readControllerJoints(pController: Controller) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
             // Input channels for joint data. Two possible semantics: "JOINT" and "INV_BIND_MATRIX"
                 if (element.name_ == "input") {
@@ -464,7 +465,7 @@ class ColladaParser(pFile: URI) {
     fun readControllerWeights(controller: Controller) {
         val vertexCount = element["count"]!!.i  // read vertex count from attributes and resize the array accordingly
         controller.weightCounts = LongArray(vertexCount)
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                 // Input channels for weight data. Two possible semantics: "JOINT" and "WEIGHT"
@@ -513,7 +514,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the image library contents    */
     fun readImageLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "image") {
                     // read ID. Another entry which is "optional" by design but obligatory in reality
@@ -529,7 +530,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads an image entry into the given image   */
     fun readImage(pImage: Image) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
             // Need to run different code paths here, depending on the Collada XSD version
                 if (element.name_ == "image") skipElement()
@@ -546,14 +547,14 @@ class ColladaParser(pFile: URI) {
                             could confuse the loader if they're not skipped.
                             But in Kotlin we don't need ^^  */
 //                        element["array_index"]?.i.let {
-//                            if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
+//                            if (attrib != -1 && reader->getAttributeValueAsInt(attrib) > 0) {
 //                            DefaultLogger::get()->warn("Collada: Ignoring texture array index");
 //                            continue;
 //                        }
 //                        }
 //
 //                        attrib = TestAttribute("mip_index");
-//                        if (attrib != -1 && mReader->getAttributeValueAsInt(attrib) > 0) {
+//                        if (attrib != -1 && reader->getAttributeValueAsInt(attrib) > 0) {
 //                            DefaultLogger::get()->warn("Collada: Ignoring MIP map layer");
 //                            continue;
 //                        }
@@ -580,7 +581,7 @@ class ColladaParser(pFile: URI) {
     fun readMaterialLibrary() {
         if (isEmptyElement()) return
         val names = mutableMapOf<String, Int>()
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "material") {
                     // read ID. By now you probably know my opinion about this "specification"
@@ -607,7 +608,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the light library */
     fun readLightLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read()) {
+        while (reader.read()) {
             if (event is StartElement) {
                 if (element.name_ == "light") {
                     // read ID. By now you probably know my opinion about this "specification"
@@ -626,7 +627,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the camera library    */
     fun readCameraLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "camera") {
                     // read ID. By now you probably know my opinion about this "specification"
@@ -645,7 +646,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads a material entry into the given material  */
     fun readMaterial(pMaterial: Material) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "material" -> skipElement()
@@ -667,7 +668,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads a light entry into the given light    */
     fun readLight(pLight: Light) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement) {
                 when (element.name_) {
                     "light" -> skipElement()
@@ -735,7 +736,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads a camera entry into the given light   */
     fun readCamera(pCamera: Camera) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "camera" -> skipElement()
@@ -767,7 +768,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the effect library    */
     fun readEffectLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "effect") {
                     // read ID. Do I have to repeat my ranting about "optional" attributes?
@@ -783,19 +784,19 @@ class ColladaParser(pFile: URI) {
 
     /** Reads an effect entry into the given effect */
     fun readEffect(pEffect: Effect) {
-        while (mReader.read())  // for the moment we don't support any other type of effect.
+        while (reader.read())  // for the moment we don't support any other type of effect.
             if (event is StartElement)
                 if (element.name_ == "profile_COMMON") readEffectProfileCommon(pEffect)
                 else skipElement()
             else if (event is EndElement) {
-                if (endElement.name_ == "effect") throw Exception("Expected end of <effect> element.")
+                if (endElement.name_ != "effect") throw Exception("Expected end of <effect> element.")
                 break
             }
     }
 
     /** Reads an COMMON effect profile  */
     fun readEffectProfileCommon(pEffect: Effect) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "newparam" -> {
@@ -858,7 +859,7 @@ class ColladaParser(pFile: URI) {
     /** Read texture wrapping + UV transform settings from a profile==Maya chunk    */
     fun readSamplerProperties(oSampler: Sampler) {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                 // MAYA extensions
@@ -935,7 +936,7 @@ class ColladaParser(pFile: URI) {
     fun readEffectColor(pColor: AiColor4D, pSampler: Sampler) {
         if (isEmptyElement()) return
         val curElem = element.name_ // Save current element name
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "color" -> {
@@ -968,7 +969,7 @@ class ColladaParser(pFile: URI) {
     /** Reads an effect entry containing a float    */
     fun readEffectFloat(pFloat: Float): Float {
         var result = pFloat
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "float") {
                     result = getTextContent().words[0].f    // text content contains a single floats
@@ -980,7 +981,7 @@ class ColladaParser(pFile: URI) {
 
     /** Reads an effect parameter specification of any kind */
     fun readEffectParam(pParam: EffectParam) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "surface" -> {
@@ -1018,7 +1019,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the geometry library contents */
     fun readGeometryLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "geometry") {
                     // read ID. Another entry which is "optional" by design but obligatory in reality
@@ -1040,7 +1041,7 @@ class ColladaParser(pFile: URI) {
     /** Reads a geometry from the geometry library. */
     fun readGeometry(pMesh: Mesh) {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "mesh") readMesh(pMesh) // read on from there
                 else skipElement()   // ignore the rest
@@ -1053,7 +1054,7 @@ class ColladaParser(pFile: URI) {
     /** Reads a mesh from the geometry library  */
     fun readMesh(pMesh: Mesh) {
         if (isEmptyElement()) return
-        w@ while (mReader.read())
+        w@ while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "source" -> readSource()    // we have professionals dealing with this
@@ -1073,7 +1074,7 @@ class ColladaParser(pFile: URI) {
     /** Reads a source element  */
     fun readSource() {
         val sourceID = element["id"]!!
-        w@ while (mReader.read())
+        w@ while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "float_array", "IDREF_array", "Name_array" -> readDataArray()
@@ -1131,7 +1132,7 @@ class ColladaParser(pFile: URI) {
             this.source = source.removePrefix("#")
         } // ignore the leading '#'
         val acc = mAccessorLibrary[pID]!!
-        while (mReader.read())  // and read the components
+        while (reader.read())  // and read the components
             if (event is StartElement)
                 if (element.name_ == "param") {
                     // read data param
@@ -1181,7 +1182,7 @@ class ColladaParser(pFile: URI) {
         /*  extract the ID of the <vertices> element. Not that we care, but to catch strange referencing schemes
             we should warn about         */
         pMesh.mVertexID = element["id"]!!
-        while (mReader.read())  // a number of <input> elements
+        while (reader.read())  // a number of <input> elements
             if (event is StartElement)
                 if (element.name_ == "input") readInputChannel(pMesh.mPerVertexData)
                 else throw Exception("Unexpected sub element <${element.name_}> in tag <vertices>")
@@ -1204,19 +1205,19 @@ class ColladaParser(pFile: URI) {
         // distinguish between polys and triangles
         val elementName = element.name_
         val primType = when (elementName) {
-            "lines" -> PrimitiveType.Lines
-            "linestrips" -> PrimitiveType.LineStrip
-            "polygons" -> PrimitiveType.Polygon
-            "polylist" -> PrimitiveType.Polylist
-            "triangles" -> PrimitiveType.Triangles
-            "trifans" -> PrimitiveType.TriFans
-            "tristrips" -> PrimitiveType.TriStrips
-            else -> PrimitiveType.Invalid
+            "lines" -> Pt.Lines
+            "linestrips" -> Pt.LineStrip
+            "polygons" -> Pt.Polygon
+            "polylist" -> Pt.Polylist
+            "triangles" -> Pt.Triangles
+            "trifans" -> Pt.TriFans
+            "tristrips" -> Pt.TriStrips
+            else -> Pt.Invalid
         }
-        assert(primType != PrimitiveType.Invalid)
+        assert(primType != Pt.Invalid)
         /*  also a number of <input> elements, but in addition a <p> primitive collection and probably index counts
             for all primitives         */
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "input" -> readInputChannel(perIndexData)
@@ -1243,11 +1244,11 @@ class ColladaParser(pFile: URI) {
                 if (endElement.name_ != elementName) throw Exception("Expected end of <$elementName> element.")
                 break
             }
-        //TODO ASSIMP_BUILD_DEBUG?
-        if (primType != PrimitiveType.TriFans && primType != PrimitiveType.TriStrips && primType != PrimitiveType.Lines)
-        /*  this is ONLY to workaround a bug in SketchUp 15.3.331 where it writes the wrong 'count' when it writes out
-            the 'lines'.         */
-            assert(actualPrimitives == numPrimitives)
+        if (ASSIMP_BUILD_DEBUG)
+            if (primType != Pt.TriFans && primType != Pt.TriStrips && primType != Pt.LineStrip && primType != Pt.Lines)
+            /*  this is ONLY to workaround a bug in SketchUp 15.3.331 where it writes the wrong 'count' when it writes out
+                the 'lines'.         */
+                assert(actualPrimitives == numPrimitives)
         // only when we're done reading all <p> tags (and thus know the final vertex count) can we commit the submesh
         subgroup.mNumFaces = actualPrimitives
         pMesh.mSubMeshes.add(subgroup)
@@ -1280,7 +1281,7 @@ class ColladaParser(pFile: URI) {
     }
 
     /** Reads a <p> primitive index list and assembles the mesh data into the given mesh    */
-    fun readPrimitives(pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>, pPrimType: PrimitiveType): Int {
+    fun readPrimitives(pMesh: Mesh, pPerIndexChannels: ArrayList<InputChannel>, pNumPrimitives: Int, pVCount: ArrayList<Int>, pPrimType: Pt): Int {
         var numPrimitives = pNumPrimitives
         // determine number of indices coming per vertex find the offset index for all per-vertex channels
         var numOffsets = 1
@@ -1291,9 +1292,9 @@ class ColladaParser(pFile: URI) {
         }
         // determine the expected number of indices
         val expectedPointCount = when (pPrimType) {
-            PrimitiveType.Polylist -> pVCount.sum()
-            PrimitiveType.Lines -> 2 * numPrimitives
-            PrimitiveType.Triangles -> 3 * numPrimitives
+            Pt.Polylist -> pVCount.sum()
+            Pt.Lines -> 2 * numPrimitives
+            Pt.Triangles -> 3 * numPrimitives
             else -> 0   // other primitive types don't state the index count upfront... we need to guess
         }
         // and read all indices into a temporary array
@@ -1302,7 +1303,7 @@ class ColladaParser(pFile: URI) {
             indices.addAll(getTextContent().words.map { it.i })
         // complain if the index count doesn't fit
         if (expectedPointCount > 0 && indices.size != expectedPointCount * numOffsets)
-            if (pPrimType == PrimitiveType.Lines) {
+            if (pPrimType == Pt.Lines) {
                 // HACK: We just fix this number since SketchUp 15.3.331 writes the wrong 'count' for 'lines'
                 System.out.println("Expected different index count in <p> element, ${indices.size} instead of ${expectedPointCount * numOffsets}.")
                 numPrimitives = (indices.size / numOffsets) / 2
@@ -1334,39 +1335,48 @@ class ColladaParser(pFile: URI) {
                 acc.mData = mDataLibrary[acc.source]
         }
         // For continued primitives, the given count does not come all in one <p>, but only one primitive per <p>
-        if (pPrimType == PrimitiveType.TriFans || pPrimType == PrimitiveType.Polygon)
+        if (pPrimType == Pt.TriFans || pPrimType == Pt.Polygon)
             numPrimitives = 1
         // For continued primitives, the given count is actually the number of <p>'s inside the parent tag
-        if (pPrimType == PrimitiveType.TriStrips) {
+        if (pPrimType == Pt.TriStrips) {
             val numberOfVertices = indices.size / numOffsets
             numPrimitives = numberOfVertices - 2
+        }
+        if (pPrimType == Pt.LineStrip) {
+            val numberOfVertices = indices.size / numOffsets
+            numPrimitives = numberOfVertices - 1
         }
         var polylistStartVertex = 0
         for (currentPrimitive in 0 until numPrimitives) {
             // determine number of points for this primitive
             val numPoints: Int
             when (pPrimType) {
-                PrimitiveType.Lines -> {
+                Pt.Lines -> {
                     numPoints = 2
                     for (currentVertex in 0 until numPoints)
                         copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
                 }
-                PrimitiveType.Triangles -> {
+                Pt.LineStrip -> {
+                    numPoints = 2
+                    for (currentVertex in 0 until numPoints)
+                        copyVertex(currentVertex, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
+                }
+                Pt.Triangles -> {
                     numPoints = 3
                     for (currentVertex in 0 until numPoints)
                         copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
                 }
-                PrimitiveType.TriStrips -> {
+                Pt.TriStrips -> {
                     numPoints = 3
                     readPrimTriStrips(numOffsets, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
                 }
-                PrimitiveType.Polylist -> {
+                Pt.Polylist -> {
                     numPoints = pVCount[currentPrimitive]
                     for (currentVertex in 0 until numPoints)
                         copyVertex(polylistStartVertex + currentVertex, numOffsets, 1, perVertexOffset, pMesh, pPerIndexChannels, 0, indices)
                     polylistStartVertex += numPoints
                 }
-                PrimitiveType.TriFans, PrimitiveType.Polygon -> {
+                Pt.TriFans, Pt.Polygon -> {
                     numPoints = indices.size / numOffsets
                     for (currentVertex in 0 until numPoints)
                         copyVertex(currentVertex, numOffsets, numPoints, perVertexOffset, pMesh, pPerIndexChannels, currentPrimitive, indices)
@@ -1494,7 +1504,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the library of node hierarchies and scene parts   */
     fun readSceneLibrary() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement) {
                 // a visual scene - generate root node under its ID and let ReadNode() do the recursive work
                 if (element.name_ == "visual_scene") {
@@ -1518,7 +1528,7 @@ class ColladaParser(pFile: URI) {
     fun readSceneNode(pNode: Node?) {
         // quit immediately on <bla/> elements
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement) {
                 if (element.name_ == "node") {
                     val child = Node()
@@ -1614,7 +1624,7 @@ class ColladaParser(pFile: URI) {
 
     /** Processes bind_vertex_input and bind elements   */
     fun readMaterialVertexInputBinding(tbl: SemanticMappingTable) {
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 when (element.name_) {
                     "bind_vertex_input" -> {
@@ -1640,7 +1650,7 @@ class ColladaParser(pFile: URI) {
         val instance = MeshInstance(mMeshOrController = url.substring(1))   // skipping the leading #
         if (!isEmptyElement()) {
             // read material associations. Ignore additional elements in between
-            while (mReader.read())
+            while (reader.read())
                 if (event is StartElement) {
                     if (element.name_ == "instance_material") {
                         // read ID of the geometry subgroup and the target material
@@ -1664,7 +1674,7 @@ class ColladaParser(pFile: URI) {
     /** Reads the collada scene */
     fun readScene() {
         if (isEmptyElement()) return
-        while (mReader.read())
+        while (reader.read())
             if (event is StartElement)
                 if (element.name_ == "instance_visual_scene") {
                     // should be the first and only occurrence
@@ -1747,16 +1757,19 @@ class ColladaParser(pFile: URI) {
         // present node should be the beginning of an element
         if (!event.isStartElement || isEmptyElement()) return null
         // read contents of the element
-        if (!mReader.peek().isCharacters) return null
-        mReader.read()
-        // skip leading whitespace
-        return event.asCharacters().data.trimStart()
+        if (!reader.read() || !event.isCharacters) return null
+        return StringBuilder(event.asCharacters().data).apply {
+            while (reader.peek().isCharacters) {
+                reader.read()
+                append(event.asCharacters().data)
+            }
+        }.toString().trimStart()    // skip leading whitespace
     }
 
     /** Returns if an element is an empty element, like <foo /> */
     fun isEmptyElement() = when {
-        mReader.peek().isEndElement && element.name_ == mReader.peek().asEndElement().name_ -> {
-            mReader.nextEvent()
+        reader.peek().isEndElement && element.name_ == reader.peek().asEndElement().name_ -> {
+            reader.nextEvent()
             true
         }
         else -> false
@@ -1772,7 +1785,7 @@ class ColladaParser(pFile: URI) {
 
     /** Skips all data until the end node of the given element  */
     fun skipElement(pElement: String) {
-        while (mReader.read())
+        while (reader.read())
             if (event is EndElement && endElement.name_ == pElement)
                 break
     }
@@ -1780,9 +1793,9 @@ class ColladaParser(pFile: URI) {
     /** Tests for an opening element of the given name, throws an exception if not found    */
     fun testOpening(pName: String) {
         // read element start
-        if (!mReader.read()) throw Exception("Unexpected end of file while beginning of <$pName> element.")
+        if (!reader.read()) throw Exception("Unexpected end of file while beginning of <$pName> element.")
         // whitespace in front is ok, just read again if found
-        if (event is Characters && !mReader.read())
+        if (event is Characters && !reader.read())
             throw Exception("Unexpected end of file while reading beginning of <$pName> element.")
         if (event !is StartElement || element.name_ != pName)
             throw Exception("Expected start of <$pName> element.")
@@ -1793,9 +1806,9 @@ class ColladaParser(pFile: URI) {
         // check if we're already on the closing tag and return right away
         if (event.isEndElement && endElement.name_ == pName) return
         // if not, read some more
-        if (!mReader.read()) throw Exception("Unexpected end of file while reading end of <$pName> element.")
+        if (!reader.read()) throw Exception("Unexpected end of file while reading end of <$pName> element.")
         // whitespace in front is ok, just read again if found
-        if (event is Characters && !mReader.read())
+        if (event is Characters && !reader.read())
             throw Exception("Unexpected end of file while reading end of <$pName> element.")
         // but this has the be the closing tag, or we're lost
         if (event !is EndElement || endElement.name_ != pName) throw Exception("Expected end of <$pName> element.")

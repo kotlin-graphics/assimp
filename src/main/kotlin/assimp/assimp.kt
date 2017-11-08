@@ -50,3 +50,5 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
 
 
 var ASSIMP_BUILD_NO_VALIDATEDS_PROCESS = false
+
+var ASSIMP_BUILD_DEBUG = true
