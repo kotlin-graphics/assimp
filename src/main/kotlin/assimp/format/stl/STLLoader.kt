@@ -194,19 +194,19 @@ class STLImporter : BaseImporter() {
         // now read the number of facets
         pScene.rootNode.name = "<STL_BINARY>"
 
-        pMesh.mNumFaces = mBuffer.getInt(sz)
+        pMesh.numFaces = mBuffer.getInt(sz)
         sz += 4
 
-        if (fileSize < 84 + pMesh.mNumFaces * 50) throw Error("STL: file is too small to hold all facets")
+        if (fileSize < 84 + pMesh.numFaces * 50) throw Error("STL: file is too small to hold all facets")
 
-        if (pMesh.mNumFaces == 0) throw Error("STL: file is empty. There are no facets defined")
+        if (pMesh.numFaces == 0) throw Error("STL: file is empty. There are no facets defined")
 
-        pMesh.mNumVertices = pMesh.mNumFaces * 3
+        pMesh.numVertices = pMesh.numFaces * 3
 
-        pMesh.mVertices = ArrayList<AiVector3D>()
+        pMesh.vertices = ArrayList<AiVector3D>()
         pMesh.mNormals = ArrayList<AiVector3D>()
 
-        for (i in 0 until pMesh.mNumFaces) {
+        for (i in 0 until pMesh.numFaces) {
 
             // NOTE: Blender sometimes writes empty normals ... this is not our fault ... the RemoveInvalidData helper
             // step should fix that
@@ -214,7 +214,7 @@ class STLImporter : BaseImporter() {
             sz += AiVector3D.size
             repeat(3) {
                 pMesh.mNormals.add(AiVector3D(vn))
-                pMesh.mVertices.add(AiVector3D(mBuffer, sz))
+                pMesh.vertices.add(AiVector3D(mBuffer, sz))
                 sz += AiVector3D.size
             }
 
@@ -226,7 +226,7 @@ class STLImporter : BaseImporter() {
                 // seems we need to take the color
                 if (pMesh.mColors[0] == null) {
 
-                    pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D(clrColorDefault) }).toMutableList()
+                    pMesh.mColors[0] = Array(pMesh.numVertices, { AiColor4D(clrColorDefault) }).toMutableList()
 
                     println("STL: Mesh has vertex colors")
                 }
@@ -341,20 +341,20 @@ class STLImporter : BaseImporter() {
         }
 
         if (positionBuffer.isEmpty()) {
-            pMesh.mNumFaces = 0
+            pMesh.numFaces = 0
             throw Error("STL: ASCII file is empty or invalid; no data loaded")
         }
         if (positionBuffer.size % 3 != 0) {
-            pMesh.mNumFaces = 0
+            pMesh.numFaces = 0
             throw Error("STL: Invalid number of vertices")
         }
         if (normalBuffer.size != positionBuffer.size) {
-            pMesh.mNumFaces = 0
+            pMesh.numFaces = 0
             throw Error("Normal buffer size does not match position buffer size")
         }
-        pMesh.mNumFaces = positionBuffer.size / 3
-        pMesh.mNumVertices = positionBuffer.size
-        pMesh.mVertices.addAll(positionBuffer)
+        pMesh.numFaces = positionBuffer.size / 3
+        pMesh.numVertices = positionBuffer.size
+        pMesh.vertices.addAll(positionBuffer)
         positionBuffer.clear()
         pMesh.mNormals = normalBuffer.toMutableList()
         normalBuffer.clear()
@@ -369,7 +369,7 @@ class STLImporter : BaseImporter() {
         pScene.meshes.addAll(meshes)
     }
 
-    fun addFacesToMesh(pMesh: AiMesh) = repeat(pMesh.mNumFaces) {
-        pMesh.mFaces.add(mutableListOf(it * 3, it * 3 + 1, it * 3 + 2))
+    fun addFacesToMesh(pMesh: AiMesh) = repeat(pMesh.numFaces) {
+        pMesh.faces.add(mutableListOf(it * 3, it * 3 + 1, it * 3 + 2))
     }
 }

@@ -96,7 +96,7 @@ class ObjFileImporter : BaseImporter() {
 
         for (meshId in pObject.m_Meshes) {
             val pMesh = createTopology(pModel, pObject, meshId)
-            if (pMesh != null && pMesh.mNumFaces > 0)
+            if (pMesh != null && pMesh.numFaces > 0)
                 meshArray.add(pMesh)
         }
 
@@ -145,21 +145,21 @@ class ObjFileImporter : BaseImporter() {
         if (pObjMesh.m_Faces.isEmpty()) return null
 
         val pMesh = AiMesh()
-        if (pObjMesh.m_name.isNotEmpty()) pMesh.mName = pObjMesh.m_name
+        if (pObjMesh.m_name.isNotEmpty()) pMesh.name = pObjMesh.m_name
 
         pObjMesh.m_Faces.forEach {
             when (it.m_PrimitiveType) {
                 AiPrimitiveType.LINE -> {
-                    pMesh.mNumFaces += it.m_vertices.size - 1
-                    pMesh.mPrimitiveTypes = pMesh.mPrimitiveTypes or AiPrimitiveType.LINE
+                    pMesh.numFaces += it.m_vertices.size - 1
+                    pMesh.primitiveTypes = pMesh.primitiveTypes or AiPrimitiveType.LINE
                 }
                 AiPrimitiveType.POINT -> {
-                    pMesh.mNumFaces += it.m_vertices.size
-                    pMesh.mPrimitiveTypes = pMesh.mPrimitiveTypes or AiPrimitiveType.POINT
+                    pMesh.numFaces += it.m_vertices.size
+                    pMesh.primitiveTypes = pMesh.primitiveTypes or AiPrimitiveType.POINT
                 }
                 else -> {
-                    pMesh.mNumFaces++
-                    pMesh.mPrimitiveTypes = pMesh.mPrimitiveTypes or
+                    pMesh.numFaces++
+                    pMesh.primitiveTypes = pMesh.primitiveTypes or
                             if (it.m_vertices.size > 3) AiPrimitiveType.POLYGON
                             else AiPrimitiveType.TRIANGLE
                 }
@@ -167,7 +167,7 @@ class ObjFileImporter : BaseImporter() {
         }
 
         var uiIdxCount = 0
-        if (pMesh.mNumFaces > 0) {
+        if (pMesh.numFaces > 0) {
 
             val faces = ArrayList<AiFace>()
 
@@ -198,7 +198,7 @@ class ObjFileImporter : BaseImporter() {
                 }
                 faces.add(face)
             }
-            pMesh.mFaces = faces
+            pMesh.faces = faces
         }
 
         // Create mesh vertices
@@ -218,25 +218,25 @@ class ObjFileImporter : BaseImporter() {
         if (pObjMesh.m_uiNumIndices < 1) return
 
         // Copy vertices of this mesh instance
-        pMesh.mNumVertices = numIndices
-        if (pMesh.mNumVertices == 0)
+        pMesh.numVertices = numIndices
+        if (pMesh.numVertices == 0)
             throw Error("OBJ: no vertices")
-        else if (pMesh.mNumVertices > AI_MAX_ALLOC(AiVector3D.size))
+        else if (pMesh.numVertices > AI_MAX_ALLOC(AiVector3D.size))
             throw Error("OBJ: Too many vertices, would run out of memory")
 
-        pMesh.mVertices = MutableList(pMesh.mNumVertices, { AiVector3D() })
+        pMesh.vertices = MutableList(pMesh.numVertices, { AiVector3D() })
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
-            pMesh.mNormals = Array(pMesh.mNumVertices, { AiVector3D() }).toMutableList()
+            pMesh.mNormals = Array(pMesh.numVertices, { AiVector3D() }).toMutableList()
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
-            pMesh.mColors[0] = Array(pMesh.mNumVertices, { AiColor4D() }).toMutableList()
+            pMesh.mColors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
-            pMesh.mTextureCoords.add(MutableList(pMesh.mNumVertices, { floatArrayOf(0f, 0f) }))
+            pMesh.mTextureCoords.add(MutableList(pMesh.numVertices, { floatArrayOf(0f, 0f) }))
 
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
@@ -251,7 +251,7 @@ class ObjFileImporter : BaseImporter() {
 
                 if (vertex >= pModel.m_Vertices.size) throw Error("OBJ: vertex index out of range")
 
-                pMesh.mVertices[newIndex] put pModel.m_Vertices[vertex]
+                pMesh.vertices[newIndex] put pModel.m_Vertices[vertex]
 
                 // Copy all normals
                 if (pModel.m_Normals.isNotEmpty() && vertexIndex in pSourceFace.m_normals.indices) {
@@ -277,11 +277,11 @@ class ObjFileImporter : BaseImporter() {
                     pMesh.mTextureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
                 }
 
-                if (pMesh.mNumVertices <= newIndex)
+                if (pMesh.numVertices <= newIndex)
                     throw Error("OBJ: bad vertex index")
 
                 // Get destination face
-                val pDestFace = pMesh.mFaces[outIndex]
+                val pDestFace = pMesh.faces[outIndex]
 
                 val last = (vertexIndex == pSourceFace.m_vertices.size - 1)
                 if (pSourceFace.m_PrimitiveType != AiPrimitiveType.LINE || !last) {
@@ -302,7 +302,7 @@ class ObjFileImporter : BaseImporter() {
 
                         if (vertex != 0) {
                             if (!last) {
-                                pMesh.mVertices[newIndex + 1] = pMesh.mVertices[newIndex]
+                                pMesh.vertices[newIndex + 1] = pMesh.vertices[newIndex]
                                 if (pSourceFace.m_normals.isNotEmpty() && pModel.m_Normals.isNotEmpty())
                                     pMesh.mNormals[newIndex + 1] = pMesh.mNormals[newIndex]
 
@@ -311,7 +311,7 @@ class ObjFileImporter : BaseImporter() {
                                         pMesh.mTextureCoords[i][newIndex + 1] = pMesh.mTextureCoords[i][newIndex]
                                 ++newIndex
                             }
-                            pMesh.mFaces[pMesh.mFaces.indexOf(pDestFace) - 1][1] = newIndex
+                            pMesh.faces[pMesh.faces.indexOf(pDestFace) - 1][1] = newIndex
                         }
                     }
                     else -> if (last) outIndex++

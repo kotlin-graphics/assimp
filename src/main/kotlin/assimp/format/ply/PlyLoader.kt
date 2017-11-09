@@ -739,17 +739,17 @@ class PlyLoader : BaseImporter() {
                 val p_pcOut = AiMesh()
                 p_pcOut.mMaterialIndex = p
 
-                p_pcOut.mNumFaces = aiSplit[p].size
-                p_pcOut.mFaces = MutableList(aiSplit[p].size, { ArrayList<Int>() })
+                p_pcOut.numFaces = aiSplit[p].size
+                p_pcOut.faces = MutableList(aiSplit[p].size, { ArrayList<Int>() })
 
                 // at first we need to determine the size of the output vector array
                 iNum = (0 until aiSplit[p].size).sumBy { avFaces[aiSplit[p][it]].mIndices.size }
 
-                p_pcOut.mNumVertices = iNum
+                p_pcOut.numVertices = iNum
                 if (iNum == 0)   // nothing to do
                     return  // cleanup
 
-                p_pcOut.mVertices = MutableList(iNum, { AiVector3D() })
+                p_pcOut.vertices = MutableList(iNum, { AiVector3D() })
 
                 if (avColors.isNotEmpty())
                     p_pcOut.mColors[0] = ArrayList()
@@ -763,18 +763,18 @@ class PlyLoader : BaseImporter() {
                 var iVertex = 0
                 for (i in 0 until aiSplit[p].size) {
 
-                    p_pcOut.mFaces[iNum] = MutableList(avFaces[i].mIndices.size, { 0 })
+                    p_pcOut.faces[iNum] = MutableList(avFaces[i].mIndices.size, { 0 })
 
                     // build an unique set of vertices/colors for this face
-                    for (q in 0 until p_pcOut.mFaces[iNum].size) {
+                    for (q in 0 until p_pcOut.faces[iNum].size) {
 
-                        p_pcOut.mFaces[iNum][q] = iVertex
+                        p_pcOut.faces[iNum][q] = iVertex
                         val idx = avFaces[i].mIndices[q]
                         if (idx >= avPositions.size)
                         // out of border
                             continue
 
-                        p_pcOut.mVertices[iVertex] put avPositions[idx]
+                        p_pcOut.vertices[iVertex] put avPositions[idx]
 
                         if (avColors.isNotEmpty())
                             p_pcOut.mColors[0][iVertex] put avColors[idx]

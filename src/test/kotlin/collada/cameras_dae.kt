@@ -76,7 +76,7 @@ class cameras_dae : StringSpec() {
 
                 numMeshes shouldBe 1
                 with(meshes[0]) {
-                    mPrimitiveTypes shouldBe 4
+                    primitiveTypes shouldBe 4
                 }
 
                 numMaterials shouldBe 1

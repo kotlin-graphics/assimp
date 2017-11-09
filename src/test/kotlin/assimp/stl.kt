@@ -40,13 +40,13 @@ class stl : StringSpec() {
 
                 with(meshes[0]) {
 
-                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
-                    mNumVertices shouldBe 3
+                    numVertices shouldBe 3
 
-                    mVertices[0] shouldBe Vec3(1, 1, 0)
-                    mVertices[1] shouldBe Vec3(-1, 1, 0)
-                    mVertices[2] shouldBe Vec3(0, -1, 0)
+                    vertices[0] shouldBe Vec3(1, 1, 0)
+                    vertices[1] shouldBe Vec3(-1, 1, 0)
+                    vertices[2] shouldBe Vec3(0, -1, 0)
 
                     mNormals[0] shouldBe Vec3(0, 0, 1)
                     mNormals[1] shouldBe Vec3(0, 0, 1)
@@ -59,14 +59,14 @@ class stl : StringSpec() {
 
                     mTextureCoords.all { it.isEmpty() } shouldBe true
 
-                    mFaces.size shouldBe 1
-                    mFaces[0].size shouldBe 3
+                    faces.size shouldBe 1
+                    faces[0].size shouldBe 3
                     var p = 0
-                    mFaces[0].all { it == p++ } shouldBe true
+                    faces[0].all { it == p++ } shouldBe true
 
                     mNumBones shouldBe 0
 
-                    mName shouldBe ""
+                    name shouldBe ""
 
                     mNumAnimMeshes shouldBe 0
                 }
@@ -111,20 +111,20 @@ class stl : StringSpec() {
 
                 with(meshes[0]) {
 
-                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
-                    mNumVertices shouldBe 855
+                    numVertices shouldBe 855
 
-                    mVertices[0] shouldBe Vec3(1.50000000, 1.50000000, 0.000000000)
-                    mVertices[100] shouldBe Vec3(0.439339995, 1.50000000, 0.439339995)
-                    mVertices[200] shouldBe Vec3(0.144960001, 1.97835, 1.06982)
-                    mVertices[300] shouldBe Vec3(0.379390001, 0.602360010, 1.06585002)
-                    mVertices[400] shouldBe Vec3(1.50000000, 0.000000000, 1.50000000)
-                    mVertices[500] shouldBe Vec3(0.144960001, 1.97835, 1.93018)
-                    mVertices[600] shouldBe Vec3(1.08111000, 2.70614004, 2.28725004)
-                    mVertices[700] shouldBe Vec3(1.50000000, 0.439339995, 2.56065989)
-                    mVertices[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
-                    mVertices[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
+                    vertices[0] shouldBe Vec3(1.50000000, 1.50000000, 0.000000000)
+                    vertices[100] shouldBe Vec3(0.439339995, 1.50000000, 0.439339995)
+                    vertices[200] shouldBe Vec3(0.144960001, 1.97835, 1.06982)
+                    vertices[300] shouldBe Vec3(0.379390001, 0.602360010, 1.06585002)
+                    vertices[400] shouldBe Vec3(1.50000000, 0.000000000, 1.50000000)
+                    vertices[500] shouldBe Vec3(0.144960001, 1.97835, 1.93018)
+                    vertices[600] shouldBe Vec3(1.08111000, 2.70614004, 2.28725004)
+                    vertices[700] shouldBe Vec3(1.50000000, 0.439339995, 2.56065989)
+                    vertices[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
+                    vertices[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
 
                     mNormals[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
                     mNormals[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
@@ -144,14 +144,14 @@ class stl : StringSpec() {
 
                     mTextureCoords.all { it.isEmpty() } shouldBe true
 
-                    mFaces.size shouldBe 285
-                    mFaces.all { it.size == 3 } shouldBe true
+                    faces.size shouldBe 285
+                    faces.all { it.size == 3 } shouldBe true
                     var p = 0
-                    mFaces[0].all { it == p++ } shouldBe true
+                    faces[0].all { it == p++ } shouldBe true
 
                     mNumBones shouldBe 0
 
-                    mName shouldBe ""
+                    name shouldBe ""
 
                     mNumAnimMeshes shouldBe 0
                 }
@@ -196,20 +196,20 @@ class stl : StringSpec() {
 
                 with(meshes[0]) {
 
-                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
 
-                    mNumVertices shouldBe 4104
+                    numVertices shouldBe 4104
 
-                    mVertices[0] shouldBe Vec3(0.907127976, 0.646165013, 0.795193374)
-                    mVertices[500] shouldBe Vec3(-2.70630598, -3.77559018, -1.13675642)
-                    mVertices[1000] shouldBe Vec3(-2.83839631, 2.59127927, -1.22905695)
-                    mVertices[1500] shouldBe Vec3(-0.870797396, 2.30535197, 0.676904559)
-                    mVertices[2000] shouldBe Vec3(0.164021820, -1.73031521, 1.32070541)
-                    mVertices[2500] shouldBe Vec3(0.796747267, -1.43064785, 1.25715435)
-                    mVertices[3000] shouldBe Vec3(-1.71063125, 0.356572717, 0.689150035)
-                    mVertices[3500] shouldBe Vec3(-1.77611852, -0.319954246, 0.903541803)
-                    mVertices[4000] shouldBe Vec3(-1.74193895, -0.297622085, 0.848268032)
-                    mVertices[4103] shouldBe Vec3(-1.86195970, -0.243324131, 0.762536407)
+                    vertices[0] shouldBe Vec3(0.907127976, 0.646165013, 0.795193374)
+                    vertices[500] shouldBe Vec3(-2.70630598, -3.77559018, -1.13675642)
+                    vertices[1000] shouldBe Vec3(-2.83839631, 2.59127927, -1.22905695)
+                    vertices[1500] shouldBe Vec3(-0.870797396, 2.30535197, 0.676904559)
+                    vertices[2000] shouldBe Vec3(0.164021820, -1.73031521, 1.32070541)
+                    vertices[2500] shouldBe Vec3(0.796747267, -1.43064785, 1.25715435)
+                    vertices[3000] shouldBe Vec3(-1.71063125, 0.356572717, 0.689150035)
+                    vertices[3500] shouldBe Vec3(-1.77611852, -0.319954246, 0.903541803)
+                    vertices[4000] shouldBe Vec3(-1.74193895, -0.297622085, 0.848268032)
+                    vertices[4103] shouldBe Vec3(-1.86195970, -0.243324131, 0.762536407)
 
                     mNormals[0] shouldBe Vec3(0.468281955, -0.863497794, -0.187306240)
                     mNormals[500] shouldBe Vec3(0.622135758, 0.587329984, -0.517678082)
@@ -229,14 +229,14 @@ class stl : StringSpec() {
 
                     mTextureCoords.all { it.isEmpty() } shouldBe true
 
-                    mFaces.size shouldBe 1368
-                    mFaces.all { it.size == 3 } shouldBe true
+                    faces.size shouldBe 1368
+                    faces.all { it.size == 3 } shouldBe true
                     var p = 0
-                    mFaces[0].all { it == p++ } shouldBe true
+                    faces[0].all { it == p++ } shouldBe true
 
                     mNumBones shouldBe 0
 
-                    mName shouldBe ""
+                    name shouldBe ""
 
                     mNumAnimMeshes shouldBe 0
                 }

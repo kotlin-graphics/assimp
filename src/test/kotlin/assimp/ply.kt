@@ -21,23 +21,23 @@ class ply : io.kotlintest.specs.StringSpec() {
 
                 numMeshes shouldBe 1
                 with(meshes[0]) {
-                    mPrimitiveTypes shouldBe AiPrimitiveType.POLYGON.i
-                    mNumVertices shouldBe 24
-                    mNumFaces shouldBe 6
+                    primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
+                    numVertices shouldBe 24
+                    numFaces shouldBe 6
 
-                    mVertices[0] shouldBe Vec3(0f)
-                    mVertices[5] shouldBe Vec3(1f)
-                    mVertices[10] shouldBe Vec3(1f, 0f, 1f)
-                    mVertices[15] shouldBe Vec3(0f, 1f, 1f)
-                    mVertices[20] shouldBe Vec3(0f, 1f, 0f)
-                    mVertices[23] shouldBe Vec3(0f)
+                    vertices[0] shouldBe Vec3(0f)
+                    vertices[5] shouldBe Vec3(1f)
+                    vertices[10] shouldBe Vec3(1f, 0f, 1f)
+                    vertices[15] shouldBe Vec3(0f, 1f, 1f)
+                    vertices[20] shouldBe Vec3(0f, 1f, 0f)
+                    vertices[23] shouldBe Vec3(0f)
 
-                    mFaces[0] shouldBe mutableListOf(0, 1, 2, 3)
-                    mFaces[1] shouldBe mutableListOf(4, 5, 6, 7)
-                    mFaces[2] shouldBe mutableListOf(8, 9, 10, 11)
-                    mFaces[3] shouldBe mutableListOf(12, 13, 14, 15)
-                    mFaces[4] shouldBe mutableListOf(16, 17, 18, 19)
-                    mFaces[5] shouldBe mutableListOf(20, 21, 22, 23)
+                    faces[0] shouldBe mutableListOf(0, 1, 2, 3)
+                    faces[1] shouldBe mutableListOf(4, 5, 6, 7)
+                    faces[2] shouldBe mutableListOf(8, 9, 10, 11)
+                    faces[3] shouldBe mutableListOf(12, 13, 14, 15)
+                    faces[4] shouldBe mutableListOf(16, 17, 18, 19)
+                    faces[5] shouldBe mutableListOf(20, 21, 22, 23)
                 }
                 with(materials[0]) {
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -58,15 +58,15 @@ class ply : io.kotlintest.specs.StringSpec() {
 
                 numMeshes shouldBe 1
                 with(meshes[0]) {
-                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
-                    mNumVertices shouldBe 11_196
-                    mNumFaces shouldBe 3732
+                    primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    numVertices shouldBe 11_196
+                    numFaces shouldBe 3732
 
-                    mVertices[0] shouldBe Vec3(0.163313001f, 0.540615022f, -0.268687993f)
-                    mVertices[3_000] shouldBe Vec3(0.0515949987f, 0.703427017f, 0.678973973f)
-                    mVertices[6_000] shouldBe Vec3(-0.163461000f, 1.03988898f, -1.39270401f)
-                    mVertices[9_000] shouldBe Vec3(-0.348796010f, 1.29999999e-05f, -0.704774022f)
-                    mVertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
+                    vertices[0] shouldBe Vec3(0.163313001f, 0.540615022f, -0.268687993f)
+                    vertices[3_000] shouldBe Vec3(0.0515949987f, 0.703427017f, 0.678973973f)
+                    vertices[6_000] shouldBe Vec3(-0.163461000f, 1.03988898f, -1.39270401f)
+                    vertices[9_000] shouldBe Vec3(-0.348796010f, 1.29999999e-05f, -0.704774022f)
+                    vertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
 
                     mNormals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
                     mNormals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
@@ -80,11 +80,11 @@ class ply : io.kotlintest.specs.StringSpec() {
                     Arrays.equals(mTextureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
                     Arrays.equals(mTextureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
 
-                    mFaces[0] shouldBe mutableListOf(0, 1, 2)
-                    mFaces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)
-                    mFaces[2_000] shouldBe mutableListOf(6_000, 6_001, 6_002)
-                    mFaces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
-                    mFaces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
+                    faces[0] shouldBe mutableListOf(0, 1, 2)
+                    faces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)
+                    faces[2_000] shouldBe mutableListOf(6_000, 6_001, 6_002)
+                    faces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
+                    faces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
                 }
                 with(materials[0]) {
                     shadingModel shouldBe AiShadingMode.gouraud
@@ -105,15 +105,15 @@ class ply : io.kotlintest.specs.StringSpec() {
 
                 numMeshes shouldBe 1
                 with(meshes[0]) {
-                    mPrimitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
-                    mNumVertices shouldBe 70_050
-                    mNumFaces shouldBe 23_350
+                    primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                    numVertices shouldBe 70_050
+                    numFaces shouldBe 23_350
 
-//                    mVertices[0] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
-//                    mVertices[35_000] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
-//                    mVertices[70_000] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
-//                    mVertices[105_000] shouldBe Vec3(0.000000000f, y=0.000000000 z=0.000000000 })
-//                    mVertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
+//                    vertices[0] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
+//                    vertices[35_000] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
+//                    vertices[70_000] shouldBe Vec3(1.17750001f, 0.875235021f, -1.23556006f)
+//                    vertices[105_000] shouldBe Vec3(0.000000000f, y=0.000000000 z=0.000000000 })
+//                    vertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
 //
 //                    mNormals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
 //                    mNormals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
@@ -127,11 +127,11 @@ class ply : io.kotlintest.specs.StringSpec() {
 //                    Arrays.equals(mTextureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
 //                    Arrays.equals(mTextureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
 //
-//                    mFaces[0] shouldBe mutableListOf(0, 1, 2)
-//                    mFaces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)
-//                    mFaces[2_000] shouldBe mutableListOf(6_000, 6_001, 6_002)
-//                    mFaces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
-//                    mFaces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
+//                    faces[0] shouldBe mutableListOf(0, 1, 2)
+//                    faces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)
+//                    faces[2_000] shouldBe mutableListOf(6_000, 6_001, 6_002)
+//                    faces[3_000] shouldBe mutableListOf(9_000, 9_001, 9_002)
+//                    faces[3_731] shouldBe mutableListOf(11_193, 11_194, 11_195)
                 }
 //                with(materials[0]) {
 //                    shadingModel shouldBe AiShadingMode.gouraud

@@ -205,14 +205,14 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
 
         val mesh = AiMesh()
         // add points
-        mesh.mNumVertices = vertices.size
-        mesh.mVertices = MutableList(mesh.mNumVertices, { vertices[it] })
+        mesh.numVertices = vertices.size
+        mesh.vertices = MutableList(mesh.numVertices, { vertices[it] })
 
-        mesh.mNormals = MutableList(mesh.mNumVertices, { AiVector3D() })
+        mesh.mNormals = MutableList(mesh.numVertices, { AiVector3D() })
 
         // add faces
-        mesh.mNumFaces = faces.size
-        mesh.mFaces = MutableList(mesh.mNumFaces, { f -> MutableList(3, { faces[f].indices[it] }) })
+        mesh.numFaces = faces.size
+        mesh.faces = MutableList(mesh.numFaces, { f -> MutableList(3, { faces[f].indices[it] }) })
         faces.forEach {
             // Compute per-face normals ... we don't want the bones to be smoothed ... they're built to visualize
             // the skeleton, so it's good if there's a visual difference to the rest of the geometry

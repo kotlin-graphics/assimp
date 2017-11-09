@@ -10,7 +10,7 @@ import kotlin.math.min
 // ----------------------------------------------------------------------------------
 /** ScenePreprocessor: Preprocess a scene before any post-processing steps are executed.
  *
- *  The step computes data that needn't necessarily be provided by the importer, such as aiMesh::mPrimitiveTypes.
+ *  The step computes data that needn't necessarily be provided by the importer, such as aiMesh::primitiveTypes.
  */
 // ----------------------------------------------------------------------------------
 object ScenePreprocessor {
@@ -77,19 +77,19 @@ object ScenePreprocessor {
         }
 
         // If the information which primitive types are there in the mesh is currently not available, compute it.
-        if (mPrimitiveTypes == 0) mFaces.forEach {
-            mPrimitiveTypes = when (it.size) {
-                3 -> mPrimitiveTypes or AiPrimitiveType.TRIANGLE
-                2 -> mPrimitiveTypes or AiPrimitiveType.LINE
-                1 -> mPrimitiveTypes or AiPrimitiveType.POINT
-                else -> mPrimitiveTypes or AiPrimitiveType.POLYGON
+        if (primitiveTypes == 0) faces.forEach {
+            primitiveTypes = when (it.size) {
+                3 -> primitiveTypes or AiPrimitiveType.TRIANGLE
+                2 -> primitiveTypes or AiPrimitiveType.LINE
+                1 -> primitiveTypes or AiPrimitiveType.POINT
+                else -> primitiveTypes or AiPrimitiveType.POLYGON
             }
         }
 
         // If tangents and normals are given but no bitangents compute them
         if (mTangents.isNotEmpty() && mNormals.isNotEmpty() && mBitangents.isEmpty()) {
-            mBitangents = ArrayList(mNumVertices)
-            for (i in 0 until mNumVertices)
+            mBitangents = ArrayList(numVertices)
+            for (i in 0 until numVertices)
                 mBitangents[i] = mNormals[i] cross mTangents[i]
         }
     }

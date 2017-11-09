@@ -363,12 +363,12 @@ class ColladaLoader : BaseImporter() {
                 newMeshRefs.add(mMeshes.size)
                 mMeshIndexByID[index] = mMeshes.size
                 mMeshes.add(dstMesh)
-                vertexStart += dstMesh.mNumVertices; faceStart += submesh.mNumFaces
+                vertexStart += dstMesh.numVertices; faceStart += submesh.mNumFaces
 
                 // assign the material index
                 dstMesh.mMaterialIndex = matIdx
-                if (dstMesh.mName.isEmpty())
-                    dstMesh.mName = mid.mMeshOrController
+                if (dstMesh.name.isEmpty())
+                    dstMesh.name = mid.mMeshOrController
             }
         }
 
@@ -379,19 +379,19 @@ class ColladaLoader : BaseImporter() {
     }
 
     /** Find mesh from either meshes or morph target meshes */
-    fun findMesh(meshid: String) = mMeshes.firstOrNull { it.mName == meshid } ?: mTargetMeshes.firstOrNull { it.mName == meshid }
+    fun findMesh(meshid: String) = mMeshes.firstOrNull { it.name == meshid } ?: mTargetMeshes.firstOrNull { it.name == meshid }
 
     /** Creates a mesh for the given ColladaMesh face subset and returns the newly created mesh */
     fun createMesh(pParser: ColladaParser, pSrcMesh: Mesh, pSubMesh: SubMesh, pSrcController: Controller?, pStartVertex: Int, pStartFace: Int): AiMesh {
 
-        val dstMesh = AiMesh(mName = pSrcMesh.mName)
+        val dstMesh = AiMesh(name = pSrcMesh.mName)
 
         // count the vertices addressed by its faces
         val numVertices = pSrcMesh.mFaceSize.filterIndexed { i, value -> i in pStartFace until (pStartFace + pSubMesh.mNumFaces) }.sum()
 
         // copy positions
-        dstMesh.mNumVertices = numVertices
-        dstMesh.mVertices = pSrcMesh.mPositions.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+        dstMesh.numVertices = numVertices
+        dstMesh.vertices = pSrcMesh.mPositions.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
 
         // normals, if given. HACK: (thom) Due to the glorious Collada spec we never know if we have the same number of normals as there are positions. So we
         // also ignore any vertex attribute if it has a different count
@@ -426,10 +426,10 @@ class ColladaLoader : BaseImporter() {
 
         // create faces. Due to the fact that each face uses unique vertices, we can simply count up on each vertex
         var vertex = 0
-        dstMesh.mNumFaces = pSubMesh.mNumFaces
-        for (a in 0 until dstMesh.mNumFaces) {
+        dstMesh.numFaces = pSubMesh.mNumFaces
+        for (a in 0 until dstMesh.numFaces) {
             val s = pSrcMesh.mFaceSize[pStartFace + a]
-            dstMesh.mFaces.add(
+            dstMesh.faces.add(
                     MutableList(s, { vertex++ })
             )
         }
@@ -489,7 +489,7 @@ class ColladaLoader : BaseImporter() {
         if (pSrcController != null && pSrcController.mType == ControllerType.Skin) {
 
             // refuse if the vertex count does not match
-//      if( pSrcController->weightCounts.size() != dstMesh->mNumVertices)
+//      if( pSrcController->weightCounts.size() != dstMesh->numVertices)
 //          throw DeadlyImportError( "Joint Controller vertex count does not match mesh vertex count");
 
             // resolve references - joint names

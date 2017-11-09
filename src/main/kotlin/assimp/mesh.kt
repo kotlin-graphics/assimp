@@ -36,7 +36,7 @@ const val AI_MAX_NUMBER_OF_TEXTURECOORDS = 0x8
  * If mNumIndices is 3, we call the face 'triangle', for mNumIndices > 3
  * it's called 'polygon' (hey, that's just a definition!).
  * <br>
- * aiMesh::mPrimitiveTypes can be queried to quickly examine which types of primitive are actually present in a mesh.
+ * aiMesh::primitiveTypes can be queried to quickly examine which types of primitive are actually present in a mesh.
  * The #aiProcess_SortByPType flag executes a special post-processing algorithm which splits meshes with *different*
  * primitive types mixed up (e.g. lines and triangles) in several 'clean' submeshes. Furthermore there is a
  * configuration option ( #AI_CONFIG_PP_SBP_REMOVE) to force #aiProcess_SortByPType to remove specific kinds of
@@ -171,25 +171,25 @@ open class AiMesh(
         /** Bitwise combination of the members of the #aiPrimitiveType enum.
          * This specifies which types of primitives are present in the mesh.
          * The "SortByPrimitiveType"-Step can be used to make sure the output meshes consist of one primitive Type each.         */
-        var mPrimitiveTypes: Int = 0,
+        var primitiveTypes: Int = 0,
 
         /** The number of vertices in this mesh.
          * This is also the size of all of the per-vertex data arrays.
          * The maximum value for this member is #AI_MAX_VERTICES.         */
-        var mNumVertices: Int = 0,
+        var numVertices: Int = 0,
 
         /** The number of primitives (triangles, polygons, lines) in this  mesh.
-         * This is also the size of the mFaces array.
+         * This is also the size of the faces array.
          * The maximum value for this member is #AI_MAX_FACES.         */
-        var mNumFaces: Int = 0,
+        var numFaces: Int = 0,
 
         /** Vertex positions.
-         * This array is always present in a mesh. The array is mNumVertices in size.         */
-        var mVertices: MutableList<AiVector3D> = ArrayList(),
+         * This array is always present in a mesh. The array is numVertices in size.         */
+        var vertices: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex normals.
          * The array contains normalized vectors, NULL if not present.
-         * The array is mNumVertices in size. Normals are undefined for point and line primitives. A mesh consisting of
+         * The array is numVertices in size. Normals are undefined for point and line primitives. A mesh consisting of
          * points and lines only may not have normal vectors. Meshes with mixed primitive types (i.e. lines and
          * triangles) may have normals, but the normals for vertices that are only referenced by point or line
          * primitives are undefined and set to QNaN (WARN: qNaN compares to inequal to *everything*, even to qNaN
@@ -206,7 +206,7 @@ open class AiMesh(
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive X texture axis. The array contains normalized
-         * vectors, NULL if not present. The array is mNumVertices in size. A mesh consisting of points and lines only
+         * vectors, NULL if not present. The array is numVertices in size. A mesh consisting of points and lines only
          * may not have normal vectors. Meshes with mixed primitive types (i.e. lines and triangles) may have normals,
          * but the normals for vertices that are only referenced by point or line primitives are undefined and set to
          * qNaN.  See the #mNormals member for a detailed discussion of qNaNs.
@@ -215,18 +215,18 @@ open class AiMesh(
 
         /** Vertex bitangents.
          * The bitangent of a vertex points in the direction of the positive Y texture axis. The array contains
-         * normalized vectors, NULL if not present. The array is mNumVertices in size.
+         * normalized vectors, NULL if not present. The array is numVertices in size.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
         var mBitangents: MutableList<AiVector3D> = mutableListOf(),
 
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
-         * array is mNumVertices in size if present.         */
+         * array is numVertices in size if present.         */
         var mColors: MutableList<MutableList<AiColor4D>> = mutableListOf(),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
-         * mNumVertices in size. mNumUVComponents is not used.
+         * numVertices in size. mNumUVComponents is not used.
          * This is the order:
          * [texture coordinate id][vertex][texture coordinate components]*/
         var mTextureCoords: MutableList<MutableList<FloatArray>> = mutableListOf(),
@@ -240,9 +240,9 @@ open class AiMesh(
 
         /** The faces the mesh is constructed from.
          * Each face refers to a number of vertices by their indices.
-         * This array is always present in a mesh, its size is given in mNumFaces.
+         * This array is always present in a mesh, its size is given in numFaces.
          * If the #AI_SCENE_FLAGS_NON_VERBOSE_FORMAT is NOT set each face references an unique set of vertices.         */
-        var mFaces: MutableList<AiFace> = ArrayList(),
+        var faces: MutableList<AiFace> = ArrayList(),
 
         /** The number of bones this mesh contains.
          * Can be 0, in which case the mBones array is NULL.
@@ -265,7 +265,7 @@ open class AiMesh(
          *   - importers tend to split meshes up to meet the one-material-per-mesh requirement. Assigning the same
          *      (dummy) name to each of the result meshes aids the caller at recovering the original mesh partitioning.
          *   - Vertex animations refer to meshes by their names.         **/
-        var mName: String = "",
+        var name: String = "",
 
         /** The number of attachment meshes. Note! Currently only works with Collada loader. */
         var mNumAnimMeshes: Int = 0,
@@ -280,20 +280,20 @@ open class AiMesh(
 ) {
     //! Check whether the mesh contains positions. Provided no special
     //! scene flags are set, this will always be true
-    fun hasPositions() = mNumVertices > 0
+    fun hasPositions() = numVertices > 0
 
     //! Check whether the mesh contains faces. If no special scene flags
     //! are set this should always return true
-    fun hasFaces() = mNumFaces > 0
+    fun hasFaces() = numFaces > 0
 
     //! Check whether the mesh contains normal vectors
-    fun hasNormals() = mNormals.isNotEmpty() && mNumVertices > 0
+    fun hasNormals() = mNormals.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains tangent and bitangent vectors
     //! It is not possible that it contains tangents and no bitangents
     //! (or the other way round). The existence of one of them
     //! implies that the second is there, too.
-    fun hasTangentsAndBitangents() = mTangents.isNotEmpty() && mBitangents.isNotEmpty() && mNumVertices > 0
+    fun hasTangentsAndBitangents() = mTangents.isNotEmpty() && mBitangents.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains a vertex color set
     //! \param pIndex Index of the vertex color set
@@ -301,7 +301,7 @@ open class AiMesh(
             if (pIndex >= assimp.AI_MAX_NUMBER_OF_COLOR_SETS)
                 false
             else
-                mColors[pIndex] != null && mNumVertices > 0
+                mColors[pIndex] != null && numVertices > 0
 
     //! Check whether the mesh contains a texture coordinate set
     //! \param pIndex Index of the texture coordinates set
@@ -309,7 +309,7 @@ open class AiMesh(
             if (pIndex >= assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS)
                 false
             else
-                mTextureCoords[pIndex].isNotEmpty() && mNumVertices > 0
+                mTextureCoords[pIndex].isNotEmpty() && numVertices > 0
 
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {

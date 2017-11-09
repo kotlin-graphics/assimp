@@ -146,9 +146,9 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AIMESH)
         int(be)    // size
 
-        mesh.mPrimitiveTypes = int(be)
-        mesh.mNumVertices = int(be)
-        mesh.mNumFaces = int(be)
+        mesh.primitiveTypes = int(be)
+        mesh.numVertices = int(be)
+        mesh.numFaces = int(be)
         mesh.mNumBones = int(be)
         mesh.mMaterialIndex = int(be)
 
@@ -157,23 +157,23 @@ class AssbinLoader : BaseImporter() {
 
         if (c has ASSBIN_MESH_HAS_POSITIONS)
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mVertices, mesh->mNumVertices)
+                TODO()//ReadBounds(stream, mesh->vertices, mesh->numVertices)
             else    // else write as usual
-                mesh.mVertices = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
+                mesh.vertices = MutableList(mesh.numVertices, { AiVector3D(this, be) })
 
         if (c has ASSBIN_MESH_HAS_NORMALS)
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mNormals, mesh->mNumVertices)
+                TODO()//ReadBounds(stream, mesh->mNormals, mesh->numVertices)
             else    // else write as usual
-                mesh.mNormals = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
+                mesh.mNormals = MutableList(mesh.numVertices, { AiVector3D(this, be) })
 
         if (c has ASSBIN_MESH_HAS_TANGENTS_AND_BITANGENTS) {
             if (shortened) {
-                TODO()//ReadBounds(stream, mesh->mTangents, mesh->mNumVertices)
-                //ReadBounds(stream, mesh->mBitangents, mesh->mNumVertices)
+                TODO()//ReadBounds(stream, mesh->mTangents, mesh->numVertices)
+                //ReadBounds(stream, mesh->mBitangents, mesh->numVertices)
             } else {   // else write as usual
-                mesh.mTangents = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
-                mesh.mBitangents = MutableList(mesh.mNumVertices, { AiVector3D(this, be) })
+                mesh.mTangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
+                mesh.mBitangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
             }
         }
         for (n in 0 until AI_MAX_NUMBER_OF_COLOR_SETS) {
@@ -181,9 +181,9 @@ class AssbinLoader : BaseImporter() {
                 break
 
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mColors[n], mesh->mNumVertices)
+                TODO()//ReadBounds(stream, mesh->mColors[n], mesh->numVertices)
             else    // else write as usual
-                mesh.mColors.add(MutableList(mesh.mNumVertices, { AiColor4D(this) }))
+                mesh.mColors.add(MutableList(mesh.numVertices, { AiColor4D(this) }))
         }
         for (n in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
             if (c hasnt ASSBIN_MESH_HAS_TEXCOORD(n))
@@ -193,9 +193,9 @@ class AssbinLoader : BaseImporter() {
             val mNumUVComponents = int(be)
 
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mTextureCoords[n], mesh->mNumVertices)
+                TODO()//ReadBounds(stream, mesh->mTextureCoords[n], mesh->numVertices)
             else    // else write as usual
-                mesh.mTextureCoords.add(MutableList(mesh.mNumVertices, {
+                mesh.mTextureCoords.add(MutableList(mesh.numVertices, {
                     val uv = AiVector3D(this, be)
                     (0 until mNumUVComponents).map { uv[it] }.toFloatArray()
                 }))
@@ -208,10 +208,10 @@ class AssbinLoader : BaseImporter() {
             int(be)
         else  // else write as usual
         // if there are less than 2^16 vertices, we can simply use 16 bit integers ...
-            mesh.mFaces = MutableList(mesh.mNumFaces, {
+            mesh.faces = MutableList(mesh.numFaces, {
                 assert(AI_MAX_FACE_INDICES <= 0xffff, { "AI_MAX_FACE_INDICES <= 0xffff" })
                 val mNumIndices = short(be)
-                MutableList(mNumIndices.i, { if (mesh.mNumVertices < (1 shl 16)) short(be) else int(be) })
+                MutableList(mNumIndices.i, { if (mesh.numVertices < (1 shl 16)) short(be) else int(be) })
             })
 
         // write bones
