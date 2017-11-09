@@ -99,7 +99,7 @@ class ColladaLoader : BaseImporter() {
                 0, parser.mUnitSize, 0, 0,
                 0, 0, parser.mUnitSize, 0,
                 0, 0, 0, 1)
-        if (!ignoreUpDirection) {
+        if (!ignoreUpDirection)
             // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
                 scene.rootNode.transformation *= AiMatrix4x4(
@@ -113,7 +113,7 @@ class ColladaLoader : BaseImporter() {
                         0, 0, 1, 0,
                         0, -1, 0, 0,
                         0, 0, 0, 1)
-        }
+
         // store all meshes
         storeSceneMeshes(scene)
         // store all materials
@@ -324,7 +324,7 @@ class ColladaLoader : BaseImporter() {
                 if (table != null)
                     meshMaterial = table.mMatName
                 else {
-                    System.out.println("Collada: No material specified for subgroup <${submesh.mMaterial}> in geometry <${mid.mMeshOrController}>.")
+                    logger.warn { "Collada: No material specified for subgroup <${submesh.mMaterial}> in geometry <${mid.mMeshOrController}>." }
                     if (mid.mMaterials.isNotEmpty())
                         meshMaterial = mid.mMaterials.values.first().mMatName
                 }

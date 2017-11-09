@@ -242,7 +242,7 @@ class ColladaParser(pFile: URI) {
                                 throw Exception("Expected end of <animation_clip> element.")
                             break
                         }
-                    if (clip.second.size > 0) mAnimationClipLibrary.add(clip)
+                    if (clip.second.isNotEmpty()) mAnimationClipLibrary.add(clip)
                 } else skipElement()   // ignore the rest
             else if (event is EndElement) {
                 if (endElement.name_ != "library_animation_clips")
@@ -253,16 +253,18 @@ class ColladaParser(pFile: URI) {
 
     /** Re-build animations from animation clip library, if present, otherwise combine single-channel animations    */
     fun postProcessRootAnimations() {
-        if (mAnimationClipLibrary.size > 0) {
+        if (mAnimationClipLibrary.isNotEmpty()) {
             val temp = Animation()
             mAnimationClipLibrary.forEach {
                 val clip = Animation(mName = it.first)
                 temp.mSubAnims.add(clip)
-                it.second.forEach { mAnimationLibrary[it]?.collectChannelsRecursively(clip.mChannels) }
+                it.second.forEach { animationID ->
+                    mAnimationLibrary[animationID]?.collectChannelsRecursively(clip.mChannels)
+                }
             }
             mAnims = temp
-            temp.mSubAnims.clear()  // Ensure no double deletes.
-        } else mAnims.combineSingleChannelAnimations()
+        } else
+            mAnims.combineSingleChannelAnimations()
     }
 
     /** Reads the animation library */

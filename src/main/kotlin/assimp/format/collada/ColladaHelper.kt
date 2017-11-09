@@ -440,24 +440,15 @@ class Animation(
     }
 
     /** Combine all single-channel animations' channel into the same (parent) animation channel list. */
-    fun combineSingleChannelAnimations() {
-        combineSingleChannelAnimationsRecursively(this)
-    }
+    fun combineSingleChannelAnimations() = combineSingleChannelAnimationsRecursively(this)
 
-    fun combineSingleChannelAnimationsRecursively(pParent: Animation) {
-
-        val iterator = mSubAnims.iterator()
-
+    fun combineSingleChannelAnimationsRecursively(parent: Animation) {
+        val iterator = parent.mSubAnims.iterator()
         while (iterator.hasNext()) {
-
             val anim = iterator.next()
-
             combineSingleChannelAnimationsRecursively(anim)
-
             if (anim.mChannels.size == 1) {
-
-                pParent.mChannels.add(anim.mChannels[0])
-
+                parent.mChannels.add(anim.mChannels[0])
                 iterator.remove()
             }
         }
