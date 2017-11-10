@@ -100,7 +100,7 @@ class ColladaLoader : BaseImporter() {
                 0, 0, parser.mUnitSize, 0,
                 0, 0, 0, 1)
         if (!ignoreUpDirection)
-            // Convert to Y_UP, if different orientation
+        // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
                 scene.rootNode.transformation *= AiMatrix4x4(
                         0, -1, 0, 0,
@@ -179,7 +179,7 @@ class ColladaLoader : BaseImporter() {
 
         // find the referred light
         val srcLight = pParser.mLightLibrary[it.mLight] ?: run {
-            println("Collada: Unable to find light for ID \"${it.mLight}\". Skipping.")
+            logger.warn { "Collada: Unable to find light for ID \"${it.mLight}\". Skipping." }
             return
         }
 
@@ -240,7 +240,7 @@ class ColladaLoader : BaseImporter() {
 
         // find the referred light
         val srcCamera = pParser.mCameraLibrary[it.mCamera] ?: run {
-            println("Collada: Unable to find camera for ID \"${it.mCamera}\". Skipping.")
+            logger.warn { "Collada: Unable to find camera for ID \"${it.mCamera}\". Skipping." }
             return
         }
 
@@ -301,7 +301,7 @@ class ColladaLoader : BaseImporter() {
                 }
 
                 if (srcMesh == null) {
-                    System.out.println("Collada: Unable to find geometry for ID \"${mid.mMeshOrController}\". Skipping.")
+                    logger.warn { "Collada: Unable to find geometry for ID \"${mid.mMeshOrController}\". Skipping." }
                     return
                 }
             }
@@ -558,43 +558,16 @@ class ColladaLoader : BaseImporter() {
                 if (dstBones[a].isEmpty())
                     continue
 
-                val aL = a.L
                 // create bone with its weights
-                val bone = AiBone(name = readString(jointNamesAcc, jointNames, aL))
-                bone.offsetMatrix.a0 = readFloat(jointMatrixAcc, jointMatrices, aL, 0)
-                bone.offsetMatrix.a1 = readFloat(jointMatrixAcc, jointMatrices, aL, 1)
-                bone.offsetMatrix.a2 = readFloat(jointMatrixAcc, jointMatrices, aL, 2)
-                bone.offsetMatrix.a3 = readFloat(jointMatrixAcc, jointMatrices, aL, 3)
-                bone.offsetMatrix.b0 = readFloat(jointMatrixAcc, jointMatrices, aL, 4)
-                bone.offsetMatrix.b1 = readFloat(jointMatrixAcc, jointMatrices, aL, 5)
-                bone.offsetMatrix.b2 = readFloat(jointMatrixAcc, jointMatrices, aL, 6)
-                bone.offsetMatrix.b3 = readFloat(jointMatrixAcc, jointMatrices, aL, 7)
-                bone.offsetMatrix.c0 = readFloat(jointMatrixAcc, jointMatrices, aL, 8)
-                bone.offsetMatrix.c1 = readFloat(jointMatrixAcc, jointMatrices, aL, 9)
-                bone.offsetMatrix.c2 = readFloat(jointMatrixAcc, jointMatrices, aL, 10)
-                bone.offsetMatrix.c3 = readFloat(jointMatrixAcc, jointMatrices, aL, 11)
-                bone.numWeights = dstBones[a].size
-                bone.weights = dstBones[a].toTypedArray()
-
-                // apply bind shape matrix to offset matrix
-                val bindShapeMatrix = Mat4()
-                bindShapeMatrix.a0 = pSrcController.mBindShapeMatrix[0]
-                bindShapeMatrix.a1 = pSrcController.mBindShapeMatrix[1]
-                bindShapeMatrix.a2 = pSrcController.mBindShapeMatrix[2]
-                bindShapeMatrix.a3 = pSrcController.mBindShapeMatrix[3]
-                bindShapeMatrix.b0 = pSrcController.mBindShapeMatrix[4]
-                bindShapeMatrix.b1 = pSrcController.mBindShapeMatrix[5]
-                bindShapeMatrix.b2 = pSrcController.mBindShapeMatrix[6]
-                bindShapeMatrix.b3 = pSrcController.mBindShapeMatrix[7]
-                bindShapeMatrix.c0 = pSrcController.mBindShapeMatrix[8]
-                bindShapeMatrix.c1 = pSrcController.mBindShapeMatrix[9]
-                bindShapeMatrix.c2 = pSrcController.mBindShapeMatrix[10]
-                bindShapeMatrix.c3 = pSrcController.mBindShapeMatrix[11]
-                bindShapeMatrix.d0 = pSrcController.mBindShapeMatrix[12]
-                bindShapeMatrix.d1 = pSrcController.mBindShapeMatrix[13]
-                bindShapeMatrix.d2 = pSrcController.mBindShapeMatrix[14]
-                bindShapeMatrix.d3 = pSrcController.mBindShapeMatrix[15]
-                bone.offsetMatrix *= bindShapeMatrix
+                val bone = AiBone(name = readString(jointNamesAcc, jointNames, a.L))
+                with(bone) {
+                    for (i in 0..11)
+                        offsetMatrix[i % 4, i / 4] = readFloat(jointMatrixAcc, jointMatrices, a.L, i.L)
+                    numWeights = dstBones[a].size
+                    this.weights = dstBones[a].toTypedArray()
+                    // apply bind shape matrix to offset matrix
+                    offsetMatrix *= Mat4(pSrcController.mBindShapeMatrix, true)
+                }
 
                 // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.
                 // Therefore I added a little name replacement here: I search for the bone's node by either name, ID or SID, and replace the bone's name by the
@@ -602,16 +575,13 @@ class ColladaLoader : BaseImporter() {
                 val bnode = findNode(pParser.mRootNode!!, bone.name) ?: findNodeBySID(pParser.mRootNode!!, bone.name)
 
                 // assign the name that we would have assigned for the source node
-                if (bnode != null)
-                    bone.name = findNameForNode(bnode)
-                else
-                    println("ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.name}\".")
+                if (bnode != null) bone.name = findNameForNode(bnode)
+                else logger.warn { "ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.name}\"." }
 
                 // and insert bone
                 dstMesh.mBones.add(bone)
             }
         }
-
         return dstMesh
     }
 
@@ -630,7 +600,7 @@ class ColladaLoader : BaseImporter() {
                     nd = findNode(pParser.mRootNode!!, it.mNode)
 
                 if (nd == null)
-                    System.err.println("Collada: Unable to resolve reference to instanced node ${it.mNode}")
+                    logger.error { "Collada: Unable to resolve reference to instanced node ${it.mNode}" }
                 else
                     resolved.add(nd)    //  attach this node to the list of children
             }
@@ -638,8 +608,7 @@ class ColladaLoader : BaseImporter() {
     /** Resolve UV channels */
     fun applyVertexToEffectSemanticMapping(sampler: Sampler, table: SemanticMappingTable) = table.mMap[sampler.mUVChannel]?.let {
         if (it.mType != InputType.Texcoord)
-            System.err.println("Collada: Unexpected effect input mapping")
-
+            logger.error { "Collada: Unexpected effect input mapping" }
         sampler.mUVId = it.mSet
     }
 
@@ -679,7 +648,7 @@ class ColladaLoader : BaseImporter() {
                     sampler.mUVId
                 else
                     sampler.mUVChannel.firstOrNull(Char::isNumeric)?.let {
-                        println("Collada: unable to determine UV channel for texture")
+                        logger.warn { "Collada: unable to determine UV channel for texture" }
                         0
                     }
 
@@ -703,7 +672,7 @@ class ColladaLoader : BaseImporter() {
                         ShadeType.Blinn -> AiShadingMode.blinn
                         ShadeType.Phong -> AiShadingMode.phong
                         else -> {
-                            println("Collada: Unrecognized shading mode, using gouraud shading")
+                            logger.warn { "Collada: Unrecognized shading mode, using gouraud shading" }
                             AiShadingMode.gouraud
                         }
                     }
@@ -807,11 +776,11 @@ class ColladaLoader : BaseImporter() {
 
         // find the image referred by this name in the image library of the scene
         val image = pParser.mImageLibrary[name] ?: run {
-            logger.error { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
-
+            // missing texture should not stop the conversion
+//            logger.error { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
+            logger.warn { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
             //set default texture file name
-            result = "$name.jpg"
-            return result
+            return "$name.jpg" // result
         }
 
         // if this is an embedded texture image setup an aiTexture for it
@@ -823,7 +792,7 @@ class ColladaLoader : BaseImporter() {
 
             // setup format hint
             if (image.mEmbeddedFormat.length > 3)
-                println("Collada: texture format hint is too long, truncating to 3 characters")
+                logger.warn { "Collada: texture format hint is too long, truncating to 3 characters" }
 
             tex.achFormatHint = image.mEmbeddedFormat.substring(0, 4)
 
@@ -1077,7 +1046,7 @@ class ColladaLoader : BaseImporter() {
                         "(1)(3)" -> 13
                         "(2)(3)" -> 14
                         "(3)(3)" -> 15
-                        else -> logger.warn { "invalid subElement $subElement" }.run { 0L }
+                        else -> 0L
                     }
                 }
                 // determine which transform step is affected by this channel

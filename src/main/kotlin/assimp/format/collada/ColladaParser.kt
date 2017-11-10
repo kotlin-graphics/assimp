@@ -1,7 +1,6 @@
 package assimp.format.collada
 
 import assimp.*
-import assimp.format.collada.PrimitiveType as Pt
 import glm_.*
 import glm_.mat4x4.Mat4
 import java.io.File
@@ -15,6 +14,7 @@ import javax.xml.stream.events.EndElement
 import javax.xml.stream.events.StartElement
 import javax.xml.stream.events.XMLEvent
 import kotlin.collections.set
+import assimp.format.collada.PrimitiveType as Pt
 
 
 /**
@@ -547,19 +547,19 @@ class ColladaParser(pFile: URI) {
                     } else if (mFormat == FormatVersion._1_5_n) {
                         /*  make sure we skip over mip and array initializations, which we don't support, but which
                             could confuse the loader if they're not skipped.
-                            But in Kotlin we don't need ^^  */
-//                        element["array_index"]?.i.let {
-//                            if (attrib != -1 && reader->getAttributeValueAsInt(attrib) > 0) {
-//                            DefaultLogger::get()->warn("Collada: Ignoring texture array index");
-//                            continue;
-//                        }
-//                        }
-//
-//                        attrib = TestAttribute("mip_index");
-//                        if (attrib != -1 && reader->getAttributeValueAsInt(attrib) > 0) {
-//                            DefaultLogger::get()->warn("Collada: Ignoring MIP map layer");
-//                            continue;
-//                        }
+                            But in Kotlin we don't need ^^ TODO check  */
+                        element["array_index"]?.let {
+                            if (it.i > 0) {
+                                logger.warn { "Collada: Ignoring texture array index" }
+//                                continue
+                            }
+                        }
+                        element["mip_index"]?.let {
+                            if (it.i > 0) {
+                                logger.warn{"Collada: Ignoring MIP map layer"}
+//                                continue
+                            }
+                        }
                         // TODO: correctly jump over cube and volume maps?
                     }
                 } else if (mFormat == FormatVersion._1_5_n) {
@@ -1703,11 +1703,7 @@ class ColladaParser(pFile: URI) {
                     val up = AiVector3D(tf.f, 6).normalize()
                     val dir = (dstPos - pos).normalize()
                     val right = (dir cross up).normalize()
-                    res *= Mat4(
-                            right.x, up.x, -dir.x, pos.x,
-                            right.y, up.y, -dir.y, pos.y,
-                            right.z, up.z, -dir.z, pos.z,
-                            0, 0, 0, 1)
+                    res *= Mat4(right, 0f, up, 0f, -dir, 0f, pos, 1f)
                 }
                 TransformType.ROTATE -> {
                     val angle = tf.f[3] * glm.PIf / 180f
@@ -1716,14 +1712,7 @@ class ColladaParser(pFile: URI) {
                     res *= rot
                 }
                 TransformType.TRANSLATE -> res *= glm.translate(Mat4(), AiVector3D(tf.f))
-                TransformType.SCALE -> {
-                    val scale = Mat4(
-                            tf.f[0], 0f, 0f, 0f,
-                            0f, tf.f[1], 0f, 0f,
-                            0f, 0f, tf.f[2], 0f,
-                            0f, 0f, 0f, 1f)
-                    res *= scale
-                }
+                TransformType.SCALE -> res *= Mat4(tf.f[0], tf.f[1], tf.f[2])
                 TransformType.SKEW -> assert(false) // TODO: (thom)
                 TransformType.MATRIX -> res *= Mat4(tf.f)
             }
