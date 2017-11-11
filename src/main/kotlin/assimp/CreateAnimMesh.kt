@@ -19,10 +19,10 @@ internal fun aiCreateAnimMesh(mesh: AiMesh): AiAnimMesh {
         animesh.mColors[i] = mesh.mColors[i].toMutableList()
     }
 
-    for (a in 0 until mesh.mTextureCoords.size) {
-        animesh.mTextureCoords.add(mutableListOf())
-        for (b in 0 until mesh.mTextureCoords[a].size) {
-            animesh.mTextureCoords[a][b] = mesh.mTextureCoords[a][b].clone()
+    for (a in 0 until mesh.textureCoords.size) {
+        animesh.textureCoords.add(mutableListOf())
+        for (b in 0 until mesh.textureCoords[a].size) {
+            animesh.textureCoords[a][b] = mesh.textureCoords[a][b].clone()
         }
     }
     return animesh

@@ -204,7 +204,7 @@ class STLImporter : BaseImporter() {
         pMesh.numVertices = pMesh.numFaces * 3
 
         pMesh.vertices = ArrayList<AiVector3D>()
-        pMesh.mNormals = ArrayList<AiVector3D>()
+        pMesh.normals = ArrayList<AiVector3D>()
 
         for (i in 0 until pMesh.numFaces) {
 
@@ -213,7 +213,7 @@ class STLImporter : BaseImporter() {
             val vn = AiVector3D(mBuffer, sz)
             sz += AiVector3D.size
             repeat(3) {
-                pMesh.mNormals.add(AiVector3D(vn))
+                pMesh.normals.add(AiVector3D(vn))
                 pMesh.vertices.add(AiVector3D(mBuffer, sz))
                 sz += AiVector3D.size
             }
@@ -356,7 +356,7 @@ class STLImporter : BaseImporter() {
         pMesh.numVertices = positionBuffer.size
         pMesh.vertices.addAll(positionBuffer)
         positionBuffer.clear()
-        pMesh.mNormals = normalBuffer.toMutableList()
+        pMesh.normals = normalBuffer.toMutableList()
         normalBuffer.clear()
 
         pScene.rootNode.name = words[0]

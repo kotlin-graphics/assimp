@@ -228,7 +228,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
-            pMesh.mNormals = Array(pMesh.numVertices, { AiVector3D() }).toMutableList()
+            pMesh.normals = Array(pMesh.numVertices, { AiVector3D() }).toMutableList()
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
@@ -236,7 +236,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
-            pMesh.mTextureCoords.add(MutableList(pMesh.numVertices, { floatArrayOf(0f, 0f) }))
+            pMesh.textureCoords.add(MutableList(pMesh.numVertices, { floatArrayOf(0f, 0f) }))
 
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
@@ -258,7 +258,7 @@ class ObjFileImporter : BaseImporter() {
                     val normal = pSourceFace.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
                         throw Error("OBJ: vertex normal index out of range")
-                    pMesh.mNormals[newIndex] put pModel.m_Normals[normal]
+                    pMesh.normals[newIndex] put pModel.m_Normals[normal]
                 }
 
                 // Copy all vertex colors
@@ -274,7 +274,7 @@ class ObjFileImporter : BaseImporter() {
                     if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ: texture coordinate index out of range")
 
                     val coord3d = pModel.m_TextureCoord[tex]
-                    pMesh.mTextureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
+                    pMesh.textureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
                 }
 
                 if (pMesh.numVertices <= newIndex)
@@ -304,11 +304,11 @@ class ObjFileImporter : BaseImporter() {
                             if (!last) {
                                 pMesh.vertices[newIndex + 1] = pMesh.vertices[newIndex]
                                 if (pSourceFace.m_normals.isNotEmpty() && pModel.m_Normals.isNotEmpty())
-                                    pMesh.mNormals[newIndex + 1] = pMesh.mNormals[newIndex]
+                                    pMesh.normals[newIndex + 1] = pMesh.normals[newIndex]
 
                                 if (pModel.m_TextureCoord.isNotEmpty())
                                     for (i in 0 until pMesh.getNumUVChannels())
-                                        pMesh.mTextureCoords[i][newIndex + 1] = pMesh.mTextureCoords[i][newIndex]
+                                        pMesh.textureCoords[i][newIndex + 1] = pMesh.textureCoords[i][newIndex]
                                 ++newIndex
                             }
                             pMesh.faces[pMesh.faces.indexOf(pDestFace) - 1][1] = newIndex

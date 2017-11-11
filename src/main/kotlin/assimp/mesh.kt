@@ -202,14 +202,14 @@ open class AiMesh(
          * artithmetics). Use stuff like @c fpclassify instead.
          * @note Normal vectors computed by Assimp are always unit-length.
          * However, this needn't apply for normals that have been taken directly from the model file.         */
-        var mNormals: MutableList<AiVector3D> = ArrayList(),
+        var normals: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex tangents.
          * The tangent of a vertex points in the direction of the positive X texture axis. The array contains normalized
          * vectors, NULL if not present. The array is numVertices in size. A mesh consisting of points and lines only
          * may not have normal vectors. Meshes with mixed primitive types (i.e. lines and triangles) may have normals,
          * but the normals for vertices that are only referenced by point or line primitives are undefined and set to
-         * qNaN.  See the #mNormals member for a detailed discussion of qNaNs.
+         * qNaN.  See the #normals member for a detailed discussion of qNaNs.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
         var mTangents: MutableList<AiVector3D> = ArrayList(),
 
@@ -229,11 +229,11 @@ open class AiMesh(
          * numVertices in size. mNumUVComponents is not used.
          * This is the order:
          * [texture coordinate id][vertex][texture coordinate components]*/
-        var mTextureCoords: MutableList<MutableList<FloatArray>> = mutableListOf(),
+        var textureCoords: MutableList<MutableList<FloatArray>> = mutableListOf(),
 
         /** Specifies the number of components for a given UV channel.
          * Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given
-         * channel n, the component p.z of mTextureCoords[n][p] is set to 0.0f.
+         * channel n, the component p.z of textureCoords[n][p] is set to 0.0f.
          * If the value is 1 for a given channel, p.y is set to 0.0f, too.
          * @note 4D coords are not supported         */
         //var mNumUVComponents: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS),
@@ -287,7 +287,7 @@ open class AiMesh(
     fun hasFaces() = numFaces > 0
 
     //! Check whether the mesh contains normal vectors
-    fun hasNormals() = mNormals.isNotEmpty() && numVertices > 0
+    fun hasNormals() = normals.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains tangent and bitangent vectors
     //! It is not possible that it contains tangents and no bitangents
@@ -309,12 +309,12 @@ open class AiMesh(
             if (pIndex >= assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS)
                 false
             else
-                mTextureCoords[pIndex].isNotEmpty() && numVertices > 0
+                textureCoords[pIndex].isNotEmpty() && numVertices > 0
 
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {
         var n = 0
-        while (n < assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS && mTextureCoords[n].isNotEmpty()) ++n
+        while (n < assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS && textureCoords[n].isNotEmpty()) ++n
         return n
     }
 

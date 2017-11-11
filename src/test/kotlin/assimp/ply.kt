@@ -68,17 +68,17 @@ class ply : io.kotlintest.specs.StringSpec() {
                     vertices[9_000] shouldBe Vec3(-0.348796010f, 1.29999999e-05f, -0.704774022f)
                     vertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
 
-                    mNormals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
-                    mNormals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
-                    mNormals[6_000] shouldBe Vec3(-0.705595016f, 0.0227199998f, -0.708250999f)
-                    mNormals[9_000] shouldBe Vec3(-0.997608006f, 0.0688209981f, -0.00645099999f)
-                    mNormals[11_195] shouldBe Vec3(0.0657600015f, -0.889011025f, 0.453139007f)
+                    normals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
+                    normals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
+                    normals[6_000] shouldBe Vec3(-0.705595016f, 0.0227199998f, -0.708250999f)
+                    normals[9_000] shouldBe Vec3(-0.997608006f, 0.0688209981f, -0.00645099999f)
+                    normals[11_195] shouldBe Vec3(0.0657600015f, -0.889011025f, 0.453139007f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.681180000f, 0.275678009f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][3_000], floatArrayOf(0.646326005f, 0.366248012f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][6_000], floatArrayOf(0.454632014f, 0.379783005f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.681180000f, 0.275678009f)) shouldBe true
+                    Arrays.equals(textureCoords[0][3_000], floatArrayOf(0.646326005f, 0.366248012f)) shouldBe true
+                    Arrays.equals(textureCoords[0][6_000], floatArrayOf(0.454632014f, 0.379783005f)) shouldBe true
+                    Arrays.equals(textureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
+                    Arrays.equals(textureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
 
                     faces[0] shouldBe mutableListOf(0, 1, 2)
                     faces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)
@@ -115,17 +115,17 @@ class ply : io.kotlintest.specs.StringSpec() {
 //                    vertices[105_000] shouldBe Vec3(0.000000000f, y=0.000000000 z=0.000000000 })
 //                    vertices[11_195] shouldBe Vec3(-0.338613003f, 1.06906497f, -1.14677405f)
 //
-//                    mNormals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
-//                    mNormals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
-//                    mNormals[6_000] shouldBe Vec3(-0.705595016f, 0.0227199998f, -0.708250999f)
-//                    mNormals[9_000] shouldBe Vec3(-0.997608006f, 0.0688209981f, -0.00645099999f)
-//                    mNormals[11_195] shouldBe Vec3(0.0657600015f, -0.889011025f, 0.453139007f)
+//                    normals[0] shouldBe Vec3(0.241918996f, -0.961129010f, 0.133063003f)
+//                    normals[3_000] shouldBe Vec3(-0.876681030f, -0.469485015f, 0.104950003f)
+//                    normals[6_000] shouldBe Vec3(-0.705595016f, 0.0227199998f, -0.708250999f)
+//                    normals[9_000] shouldBe Vec3(-0.997608006f, 0.0688209981f, -0.00645099999f)
+//                    normals[11_195] shouldBe Vec3(0.0657600015f, -0.889011025f, 0.453139007f)
 //
-//                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.681180000f, 0.275678009f)) shouldBe true
-//                    Arrays.equals(mTextureCoords[0][3_000], floatArrayOf(0.646326005f, 0.366248012f)) shouldBe true
-//                    Arrays.equals(mTextureCoords[0][6_000], floatArrayOf(0.454632014f, 0.379783005f)) shouldBe true
-//                    Arrays.equals(mTextureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
-//                    Arrays.equals(mTextureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
+//                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.681180000f, 0.275678009f)) shouldBe true
+//                    Arrays.equals(textureCoords[0][3_000], floatArrayOf(0.646326005f, 0.366248012f)) shouldBe true
+//                    Arrays.equals(textureCoords[0][6_000], floatArrayOf(0.454632014f, 0.379783005f)) shouldBe true
+//                    Arrays.equals(textureCoords[0][9_000], floatArrayOf(0.587324023f, 0.309864014f)) shouldBe true
+//                    Arrays.equals(textureCoords[0][11_195], floatArrayOf(0.470634013f, 0.297468990f)) shouldBe true
 //
 //                    faces[0] shouldBe mutableListOf(0, 1, 2)
 //                    faces[1_000] shouldBe mutableListOf(3_000, 3_001, 3_002)

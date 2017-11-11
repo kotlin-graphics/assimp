@@ -2,7 +2,9 @@ package assimp.format.collada
 
 import assimp.*
 import glm_.*
+import glm_.func.rad
 import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import java.io.File
 import java.io.FileReader
 import java.net.URI
@@ -556,7 +558,7 @@ class ColladaParser(pFile: URI) {
                         }
                         element["mip_index"]?.let {
                             if (it.i > 0) {
-                                logger.warn{"Collada: Ignoring MIP map layer"}
+                                logger.warn { "Collada: Ignoring MIP map layer" }
 //                                continue
                             }
                         }
@@ -1432,8 +1434,7 @@ class ColladaParser(pFile: URI) {
         // ignore vertex referrer - we handle them that separate
         if (input.mType == InputType.Vertex) return
         val acc = input.resolved!!
-        if (pLocalIndex >= acc.count)
-            throw Exception("Invalid data index ($pLocalIndex/${acc.count}) in primitive specification")
+        if (pLocalIndex >= acc.count) throw Exception("Invalid data index ($pLocalIndex/${acc.count}) in primitive specification")
         // get a pointer to the start of the data object referred to by the accessor and the local index
         val offset = acc.offset + pLocalIndex * acc.stride
         // assemble according to the accessors component sub-offset list. We don't care, yet, what kind of object exactly we're extracting here
@@ -1442,61 +1443,53 @@ class ColladaParser(pFile: URI) {
         when (input.mType) {
             InputType.Position -> // ignore all position streams except 0 - there can be only one position
                 if (input.mIndex == 0) pMesh.mPositions.add(AiVector3D(obj))
-                else System.err.println("Collada: just one vertex position stream supported")
-
+                else logger.error { "Collada: just one vertex position stream supported" }
             InputType.Normal -> {
                 // pad to current vertex count if necessary
-                repeat(pMesh.mPositions.size - pMesh.mNormals.size - 1) {
+                while (pMesh.mNormals.size < pMesh.mPositions.size - 1)
                     pMesh.mNormals.add(AiVector3D(0, 1, 0))
-                }
                 // ignore all normal streams except 0 - there can be only one normal
                 if (input.mIndex == 0) pMesh.mNormals.add(AiVector3D(obj))
-                else System.err.println("Collada: just one vertex normal stream supported")
+                else logger.error { "Collada: just one vertex normal stream supported" }
             }
             InputType.Tangent -> {
                 // pad to current vertex count if necessary
-                repeat(pMesh.mPositions.size - pMesh.mTangents.size - 1) {
+                while (pMesh.mTangents.size < pMesh.mPositions.size - 1)
                     pMesh.mTangents.add(AiVector3D(1, 0, 0))
-                }
                 // ignore all tangent streams except 0 - there can be only one tangent
-                if (input.mIndex == 0)
-                    pMesh.mTangents.add(AiVector3D(obj))
-                else
-                    System.err.println("Collada: just one vertex tangent stream supported")
+                if (input.mIndex == 0) pMesh.mTangents.add(AiVector3D(obj))
+                else logger.error { "Collada: just one vertex tangent stream supported" }
             }
             InputType.Bitangent -> {
                 // pad to current vertex count if necessary
-                repeat(pMesh.mPositions.size - pMesh.mBitangents.size - 1) {
+                while (pMesh.mBitangents.size < pMesh.mPositions.size - 1)
                     pMesh.mBitangents.add(AiVector3D(0, 0, 1))
-                }
                 // ignore all bitangent streams except 0 - there can be only one bitangent
                 if (input.mIndex == 0) pMesh.mBitangents.add(AiVector3D(obj))
-                else System.err.println("Collada: just one vertex bitangent stream supported")
+                else logger.error { "Collada: just one vertex bitangent stream supported" }
             }
             InputType.Texcoord -> {
                 // up to 4 texture coord sets are fine, ignore the others
                 if (input.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                     // pad to current vertex count if necessary
-//                    repeat(pMesh.mPositions.size - pMesh.mTexCoords[input.mIndex].size - 1) {
-//                        pMesh.mTexCoords[input.mIndex].add(AiVector3D(0))
-//                    }
-//
-//                    pMesh.mTexCoords[input.mIndex].add(AiVector3D(obj))
-//                    if (0 != acc.mSubOffset[2] || 0 != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
-//                        pMesh.mNumUVComponents[input.mIndex] = 3
-                } else System.err.println("Collada: too many texture coordinate sets. Skipping.")
+                    while(input.mIndex >= pMesh.mTexCoords.size) pMesh.mTexCoords.add(arrayListOf())
+                    if (0L != acc.mSubOffset[2] || 0L != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
+                        pMesh.mNumUVComponents[input.mIndex] = 3
+                    while (pMesh.mTexCoords[input.mIndex].size < pMesh.mPositions.size - 1)
+                        pMesh.mTexCoords[input.mIndex].add(FloatArray(pMesh.mNumUVComponents[input.mIndex]))
+                    pMesh.mTexCoords[input.mIndex].add(FloatArray(pMesh.mNumUVComponents[input.mIndex], { obj[it] }))
+                } else logger.error { "Collada: too many texture coordinate sets. Skipping." }
             }
             InputType.Color -> {
                 // up to 4 color sets are fine, ignore the others
                 if (input.mIndex < AI_MAX_NUMBER_OF_COLOR_SETS) {
                     // pad to current vertex count if necessary
-                    repeat(pMesh.mPositions.size - pMesh.mColors[input.mIndex].size - 1) {
+                    while (pMesh.mColors[input.mIndex].size < pMesh.mPositions.size - 1)
                         pMesh.mColors[input.mIndex].add(AiColor4D(0, 0, 0, 1))
-                    }
                     val result = AiColor4D(0, 0, 0, 1)
-                    repeat(input.resolved!!.size.i) { result[it] = obj[(input.resolved!!.mSubOffset[it]).i] }
+                    for (i in 0 until input.resolved!!.size.i) result[i] = obj[(input.resolved!!.mSubOffset[i]).i]
                     pMesh.mColors[input.mIndex].add(result)
-                } else System.err.println("Collada: too many vertex color sets. Skipping.")
+                } else logger.error { "Collada: too many vertex color sets. Skipping." }
             }
         // IT_Invalid and IT_Vertex
             else -> throw Error("shouldn't ever get here")
@@ -1706,9 +1699,10 @@ class ColladaParser(pFile: URI) {
                     res *= Mat4(right, 0f, up, 0f, -dir, 0f, pos, 1f)
                 }
                 TransformType.ROTATE -> {
-                    val angle = tf.f[3] * glm.PIf / 180f
+                    val angle = tf.f[3].rad
                     val axis = AiVector3D(tf.f)
-                    val rot = glm.rotate(Mat4(), angle, axis)
+                    val rot = if (angle == 0f && axis == Vec3()) Mat4() else glm.rotate(Mat4(), angle, axis) // TODO move check to glm?
+//                    val rot = glm.rotate(Mat4(), angle, axis)
                     res *= rot
                 }
                 TransformType.TRANSLATE -> res *= glm.translate(Mat4(), AiVector3D(tf.f))

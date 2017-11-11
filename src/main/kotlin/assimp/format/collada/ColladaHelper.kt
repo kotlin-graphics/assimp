@@ -226,10 +226,10 @@ class Mesh(
         var mNormals: ArrayList<AiVector3D> = arrayListOf(),
         var mTangents: ArrayList<AiVector3D> = arrayListOf(),
         var mBitangents: ArrayList<AiVector3D> = arrayListOf(),
-        var mTexCoords: Array<ArrayList<FloatArray>> = arrayOf(),
+        var mTexCoords: ArrayList<ArrayList<FloatArray>> = arrayListOf(),
         var mColors: Array<ArrayList<AiColor4D>> = arrayOf(),
 
-        var mNumUVComponents: IntArray = intArrayOf(),
+        var mNumUVComponents: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS, { 2 }),
 
         // Faces. Stored are only the number of vertices for each face. 1 == point, 2 == line, 3 == triangle, 4+ == poly
         var mFaceSize: ArrayList<Int> = arrayListOf(),

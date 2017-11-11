@@ -45,8 +45,8 @@ object ScenePreprocessor {
 
     fun AiMesh.process() {
 
-        // TODO change -> for in mTextureCoords
-        mTextureCoords.forEach {
+        // TODO change -> for in textureCoords
+        textureCoords.forEach {
             // If aiMesh::mNumUVComponents is *not* set assign the default value of 2
             for (i in 0 until it.size)
                 if (it[i].isEmpty())
@@ -87,10 +87,10 @@ object ScenePreprocessor {
         }
 
         // If tangents and normals are given but no bitangents compute them
-        if (mTangents.isNotEmpty() && mNormals.isNotEmpty() && mBitangents.isEmpty()) {
+        if (mTangents.isNotEmpty() && normals.isNotEmpty() && mBitangents.isEmpty()) {
             mBitangents = ArrayList(numVertices)
             for (i in 0 until numVertices)
-                mBitangents[i] = mNormals[i] cross mTangents[i]
+                mBitangents[i] = normals[i] cross mTangents[i]
         }
     }
 

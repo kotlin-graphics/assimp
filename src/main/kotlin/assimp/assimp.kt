@@ -44,9 +44,9 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
 
 /** Transformation of a vector by a 4x4 matrix */
 operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
-        a0 * vector.x + a1 * vector.y + a2 * vector.z + a3,
-        b0 * vector.x + b1 * vector.y + b2 * vector.z + b3,
-        c0 * vector.x + c1 * vector.y + c2 * vector.z + c3)
+        a0 * vector.x + b0 * vector.y + c0 * vector.z + d0,
+        a1 * vector.x + b1 * vector.y + c1 * vector.z + d1,
+        a2 * vector.x + b2 * vector.y + c2 * vector.z + d2)
 
 
 var ASSIMP_BUILD_NO_VALIDATEDS_PROCESS = false

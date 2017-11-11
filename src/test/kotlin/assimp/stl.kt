@@ -48,16 +48,16 @@ class stl : StringSpec() {
                     vertices[1] shouldBe Vec3(-1, 1, 0)
                     vertices[2] shouldBe Vec3(0, -1, 0)
 
-                    mNormals[0] shouldBe Vec3(0, 0, 1)
-                    mNormals[1] shouldBe Vec3(0, 0, 1)
-                    mNormals[2] shouldBe Vec3(0, 0, 1)
+                    normals[0] shouldBe Vec3(0, 0, 1)
+                    normals[1] shouldBe Vec3(0, 0, 1)
+                    normals[2] shouldBe Vec3(0, 0, 1)
 
                     mTangents.isEmpty() shouldBe true
                     mBitangents.isEmpty() shouldBe true
 
                     mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.all { it.isEmpty() } shouldBe true
+                    textureCoords.all { it.isEmpty() } shouldBe true
 
                     faces.size shouldBe 1
                     faces[0].size shouldBe 3
@@ -126,23 +126,23 @@ class stl : StringSpec() {
                     vertices[800] shouldBe Vec3(1.93018, 1.02165, 2.85504)
                     vertices[854] shouldBe Vec3(1.50000000, 1.88823, 2.94888997)
 
-                    mNormals[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
-                    mNormals[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
-                    mNormals[200] shouldBe Vec3(-0.870000005, 0.200000003, -0.449999988)
-                    mNormals[300] shouldBe Vec3(-0.660000026, -0.730000019, -0.180000007)
-                    mNormals[400] shouldBe Vec3(-0.129999995, -0.980000019, -0.129999995)
-                    mNormals[500] shouldBe Vec3(-0.920000017, 0.379999995, 0.119999997)
-                    mNormals[600] shouldBe Vec3(-0.159999996, 0.899999976, 0.419999987)
-                    mNormals[700] shouldBe Vec3(-0.180000007, -0.730000019, 0.660000026)
-                    mNormals[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
-                    mNormals[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
+                    normals[0] shouldBe Vec3(-0.129999995, -0.129999995, -0.980000019)
+                    normals[100] shouldBe Vec3(-0.689999998, 0.209999993, -0.689999998)
+                    normals[200] shouldBe Vec3(-0.870000005, 0.200000003, -0.449999988)
+                    normals[300] shouldBe Vec3(-0.660000026, -0.730000019, -0.180000007)
+                    normals[400] shouldBe Vec3(-0.129999995, -0.980000019, -0.129999995)
+                    normals[500] shouldBe Vec3(-0.920000017, 0.379999995, 0.119999997)
+                    normals[600] shouldBe Vec3(-0.159999996, 0.899999976, 0.419999987)
+                    normals[700] shouldBe Vec3(-0.180000007, -0.730000019, 0.660000026)
+                    normals[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
+                    normals[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
 
                     mTangents.isEmpty() shouldBe true
                     mBitangents.isEmpty() shouldBe true
 
                     mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.all { it.isEmpty() } shouldBe true
+                    textureCoords.all { it.isEmpty() } shouldBe true
 
                     faces.size shouldBe 285
                     faces.all { it.size == 3 } shouldBe true
@@ -211,23 +211,23 @@ class stl : StringSpec() {
                     vertices[4000] shouldBe Vec3(-1.74193895, -0.297622085, 0.848268032)
                     vertices[4103] shouldBe Vec3(-1.86195970, -0.243324131, 0.762536407)
 
-                    mNormals[0] shouldBe Vec3(0.468281955, -0.863497794, -0.187306240)
-                    mNormals[500] shouldBe Vec3(0.622135758, 0.587329984, -0.517678082)
-                    mNormals[1000] shouldBe Vec3(-0.836838484, -0.476067126, 0.270298779)
-                    mNormals[1500] shouldBe Vec3(0.413947791, 0.814008772, 0.407476395)
-                    mNormals[2000] shouldBe Vec3(0.521721005, 0.567762673, -0.636751771)
-                    mNormals[2500] shouldBe Vec3(-0.567528188, -0.492581815, -0.659753680)
-                    mNormals[3000] shouldBe Vec3(0.676752925, -0.386138558, -0.626819372)
-                    mNormals[3500] shouldBe Vec3(0.380660713, 0.715228200, -0.586128056)
-                    mNormals[4000] shouldBe Vec3(0.147421882, 0.461364329, -0.874877036)
-                    mNormals[4103] shouldBe Vec3(0.780922532, 0.308308363, 0.543236554)
+                    normals[0] shouldBe Vec3(0.468281955, -0.863497794, -0.187306240)
+                    normals[500] shouldBe Vec3(0.622135758, 0.587329984, -0.517678082)
+                    normals[1000] shouldBe Vec3(-0.836838484, -0.476067126, 0.270298779)
+                    normals[1500] shouldBe Vec3(0.413947791, 0.814008772, 0.407476395)
+                    normals[2000] shouldBe Vec3(0.521721005, 0.567762673, -0.636751771)
+                    normals[2500] shouldBe Vec3(-0.567528188, -0.492581815, -0.659753680)
+                    normals[3000] shouldBe Vec3(0.676752925, -0.386138558, -0.626819372)
+                    normals[3500] shouldBe Vec3(0.380660713, 0.715228200, -0.586128056)
+                    normals[4000] shouldBe Vec3(0.147421882, 0.461364329, -0.874877036)
+                    normals[4103] shouldBe Vec3(0.780922532, 0.308308363, 0.543236554)
 
                     mTangents.isEmpty() shouldBe true
                     mBitangents.isEmpty() shouldBe true
 
                     mColors.all { it.isEmpty() } shouldBe true
 
-                    mTextureCoords.all { it.isEmpty() } shouldBe true
+                    textureCoords.all { it.isEmpty() } shouldBe true
 
                     faces.size shouldBe 1368
                     faces.all { it.size == 3 } shouldBe true

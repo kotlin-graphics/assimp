@@ -208,7 +208,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
         mesh.numVertices = vertices.size
         mesh.vertices = MutableList(mesh.numVertices, { vertices[it] })
 
-        mesh.mNormals = MutableList(mesh.numVertices, { AiVector3D() })
+        mesh.normals = MutableList(mesh.numVertices, { AiVector3D() })
 
         // add faces
         mesh.numFaces = faces.size
@@ -222,7 +222,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
             if (nor.length() < 1e-5) /* ensure that FindInvalidData won't remove us ...*/
                 nor.put(1f, 0f, 0f)
 
-            for (n in 0..2) mesh.mNormals[it.indices[n]] put nor
+            for (n in 0..2) mesh.normals[it.indices[n]] put nor
         }
         // add the bones
         mesh.mNumBones = bones.size

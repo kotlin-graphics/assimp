@@ -73,15 +73,15 @@ class obj : StringSpec() {
                     vertices[77] shouldBe Vec3(x = 0.00970300008f, y = 14.3252335f, z = 0.651058972)
                     vertices[numVertices - 1] shouldBe Vec3(x = -0.300857008f, y = 14.0575409f, z = 0.507779002f)
 
-                    mNormals[0] shouldBe Vec3(x = 0.496899992f, y = -0.240799993f, z = 0.833700001)
-                    mNormals[77] shouldBe Vec3(x = 0.108800001f, y = -0.159199998f, z = 0.981199980f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = -0.496399999f, y = -0.241899997f, z = 0.833700001f)
+                    normals[0] shouldBe Vec3(x = 0.496899992f, y = -0.240799993f, z = 0.833700001)
+                    normals[77] shouldBe Vec3(x = 0.108800001f, y = -0.159199998f, z = 0.981199980f)
+                    normals[numVertices - 1] shouldBe Vec3(x = -0.496399999f, y = -0.241899997f, z = 0.833700001f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][77], floatArrayOf(0.0595699996f, 0.754760981f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
+                    Arrays.equals(textureCoords[0][77], floatArrayOf(0.0595699996f, 0.754760981f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.439940989f, 0.453613013f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[25] shouldBe listOf(75, 76, 77)
@@ -102,15 +102,15 @@ class obj : StringSpec() {
                     vertices[7610] shouldBe Vec3(x = -0.425206006f, y = 6.15252495f, z = 0.327194005f)
                     vertices[numVertices - 1] shouldBe Vec3(x = 0.602433026f, y = 7.82357216f, z = -1.3782050f)
 
-                    mNormals[0] shouldBe Vec3(x = -0.710300028f, y = 0.137300000f, z = 0.690400004)
-                    mNormals[7610] shouldBe Vec3(x = 0.849799991f, y = -0.326099992f, z = 0.414099991f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = 0.0302000009f, y = -0.153899997f, z = -0.987600029f)
+                    normals[0] shouldBe Vec3(x = -0.710300028f, y = 0.137300000f, z = 0.690400004)
+                    normals[7610] shouldBe Vec3(x = 0.849799991f, y = -0.326099992f, z = 0.414099991f)
+                    normals[numVertices - 1] shouldBe Vec3(x = 0.0302000009f, y = -0.153899997f, z = -0.987600029f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.283690989f, 0.568114996f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][7610], floatArrayOf(1.9658200f, 0.282715f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.373046994f, 0.152344003f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.283690989f, 0.568114996f)) shouldBe true
+                    Arrays.equals(textureCoords[0][7610], floatArrayOf(1.9658200f, 0.282715f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.373046994f, 0.152344003f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[2536] shouldBe listOf(7608, 7609, 7610)
@@ -131,15 +131,15 @@ class obj : StringSpec() {
                     vertices[9675] shouldBe Vec3(x = 3.56796789f, y = 7.70999908f, z = 1.54873502f)
                     vertices[numVertices - 1] shouldBe Vec3(x = 3.46042705f, y = 7.47475290f, z = 1.01681304f)
 
-                    mNormals[0] shouldBe Vec3(x = -0.408199996f, y = -0.825800002f, z = -0.389200002f)
-                    mNormals[9675] shouldBe Vec3(x = 0.930800021f, y = -0.305799991f, z = 0.200299993f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = 0.365900010f, y = 0.658500016f, z = -0.657599986f)
+                    normals[0] shouldBe Vec3(x = -0.408199996f, y = -0.825800002f, z = -0.389200002f)
+                    normals[9675] shouldBe Vec3(x = 0.930800021f, y = -0.305799991f, z = 0.200299993f)
+                    normals[numVertices - 1] shouldBe Vec3(x = 0.365900010f, y = 0.658500016f, z = -0.657599986f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.948729992f, 0.610351980f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][9675], floatArrayOf(0.949218988f, 0.799315989f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.321045011f, 0.451660007f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.948729992f, 0.610351980f)) shouldBe true
+                    Arrays.equals(textureCoords[0][9675], floatArrayOf(0.949218988f, 0.799315989f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.321045011f, 0.451660007f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[2536] shouldBe listOf(7608, 7609, 7610)
@@ -159,13 +159,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = 0.519383013f, y = 14.0981007f, z = 0.399747014f)
                     vertices[numVertices - 1] shouldBe Vec3(x = -0.454726994f, y = 14.0737648f, z = 0.435452998f)
 
-                    mNormals[0] shouldBe Vec3(x = 0.663699985f, y = -0.158099994f, z = 0.731100023)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = -0.663699985f, y = -0.158099994f, z = 0.731100023f)
+                    normals[0] shouldBe Vec3(x = 0.663699985f, y = -0.158099994f, z = 0.731100023)
+                    normals[numVertices - 1] shouldBe Vec3(x = -0.663699985f, y = -0.158099994f, z = 0.731100023f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.470214993f, 0.796020985f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.148314998f, 0.648193002f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.470214993f, 0.796020985f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.148314998f, 0.648193002f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(75, 76, 77)
@@ -184,13 +184,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = 3.65801501f, y = 9.13363171f, z = 1.10836804f)
                     vertices[numVertices - 1] shouldBe Vec3(x = 3.06237602f, y = 10.2043982f, z = -0.735961020f)
 
-                    mNormals[0] shouldBe Vec3(x = -0.949199975f, y = -0.0269000009f, z = -0.313499987f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = 0.365000010f, y = -0.602299988f, z = -0.709900022f)
+                    normals[0] shouldBe Vec3(x = -0.949199975f, y = -0.0269000009f, z = -0.313499987f)
+                    normals[numVertices - 1] shouldBe Vec3(x = 0.365000010f, y = -0.602299988f, z = -0.709900022f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.451171994f, 0.0678709969f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.772948980f, 0.980515003f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.451171994f, 0.0678709969f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.772948980f, 0.980515003f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(6801, 6802, 6803)
@@ -209,13 +209,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = 0.169514000f, y = 13.7492905f, z = 0.552182019f)
                     vertices[numVertices - 1] shouldBe Vec3(x = 0.564511001f, y = 14.9660711f, z = 0.226483002)
 
-                    mNormals[0] shouldBe Vec3(x = 0.738699973f, y = -0.110500000f, z = 0.664900005f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = 0.956200004f, y = -0.109999999f, z = 0.271400005f)
+                    normals[0] shouldBe Vec3(x = 0.738699973f, y = -0.110500000f, z = 0.664900005f)
+                    normals[numVertices - 1] shouldBe Vec3(x = 0.956200004f, y = -0.109999999f, z = 0.271400005f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.153198004f, 0.172362998f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.491210997f, 0.944916010f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.153198004f, 0.172362998f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.491210997f, 0.944916010f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(7245, 7246, 7247)
@@ -234,13 +234,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = 1.41331196f, y = 11.7699909f, z = -1.45877004f)
                     vertices[numVertices - 1] shouldBe Vec3(x = -0.137869999f, y = 13.8385210f, z = -1.14200103f)
 
-                    mNormals[0] shouldBe Vec3(x = 0.990599990f, y = 0.0780000016f, z = -0.112599999f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = 0.610899985f, y = 0.394199997f, z = -0.686600029f)
+                    normals[0] shouldBe Vec3(x = 0.990599990f, y = 0.0780000016f, z = -0.112599999f)
+                    normals[numVertices - 1] shouldBe Vec3(x = 0.610899985f, y = 0.394199997f, z = -0.686600029f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.819335997f, 0.985771000f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.0746460035f, 0.579346001f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.819335997f, 0.985771000f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.0746460035f, 0.579346001f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(8313, 8314, 8315)
@@ -502,14 +502,14 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = 1.160379, y = 4.512684, z = 6.449167)
                     vertices[numVertices - 1] shouldBe Vec3(x = -4.421391, y = -3.605049, z = -20.462471)
 
-                    mNormals[0] shouldBe Vec3(-0.537588000, -0.0717979968, 0.840146005)
-                    mNormals[numVertices - 1] shouldBe Vec3(-0.728103995, -0.400941998, -0.555975974)
+                    normals[0] shouldBe Vec3(-0.537588000, -0.0717979968, 0.840146005)
+                    normals[numVertices - 1] shouldBe Vec3(-0.728103995, -0.400941998, -0.555975974)
 
                     // TODO check for kotlintest 2.0 array check
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.186192f, 0.222718f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.103881f, 0.697021f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.186192f, 0.222718f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.103881f, 0.697021f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(237, 238, 239)
@@ -527,13 +527,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = -41.8566132f, y = -0.754845977f, z = 9.43077183f)
                     vertices[numVertices - 1] shouldBe Vec3(x = -49.7138367f, y = -2.98359, z = -21.4211159f)
 
-                    mNormals[0] shouldBe Vec3(x = -0.236278996f, y = 0.0291850008f, z = 0.971247017f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = -0.862017989f, y = 0.0830229968f, z = -0.500032008f)
+                    normals[0] shouldBe Vec3(x = -0.236278996f, y = 0.0291850008f, z = 0.971247017f)
+                    normals[numVertices - 1] shouldBe Vec3(x = -0.862017989f, y = 0.0830229968f, z = -0.500032008f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(-0.0658710003f, -0.410016000f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(-0.318565995f, 1.05051804f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(-0.0658710003f, -0.410016000f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(-0.318565995f, 1.05051804f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(177, 178, 179)
@@ -551,13 +551,13 @@ class obj : StringSpec() {
                     vertices[0] shouldBe Vec3(x = -59.4670486f, y = 18.1400757f, z = -17.1943588)
                     vertices[numVertices - 1] shouldBe Vec3(x = -62.2673569f, y = 15.2776031f, z = -14.7453232f)
 
-                    mNormals[0] shouldBe Vec3(x = 0.0751359984f, y = 0.741809011f, z = -0.666388988f)
-                    mNormals[numVertices - 1] shouldBe Vec3(x = -0.776385009f, y = -0.629855990f, z = 0.0225169994f)
+                    normals[0] shouldBe Vec3(x = 0.0751359984f, y = 0.741809011f, z = -0.666388988f)
+                    normals[numVertices - 1] shouldBe Vec3(x = -0.776385009f, y = -0.629855990f, z = 0.0225169994f)
 
-                    Arrays.equals(mTextureCoords[0][0], floatArrayOf(0.899282992f, 0.970311999f)) shouldBe true
-                    Arrays.equals(mTextureCoords[0][numVertices - 1], floatArrayOf(0.372330993f, 0.198948994f)) shouldBe true
+                    Arrays.equals(textureCoords[0][0], floatArrayOf(0.899282992f, 0.970311999f)) shouldBe true
+                    Arrays.equals(textureCoords[0][numVertices - 1], floatArrayOf(0.372330993f, 0.198948994f)) shouldBe true
 
-                    mTextureCoords[0][0].size shouldBe 2
+                    textureCoords[0][0].size shouldBe 2
 
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(111, 112, 113)
@@ -767,7 +767,7 @@ class obj : StringSpec() {
                     vertices[60] shouldBe Vec3(-1.14600003, 1.91386, 2.83613992)
                     vertices[65] shouldBe Vec3(-1.14600003, 2.40000010, 3.0905)
 
-                    mNormals.forEach { it shouldBe Vec3(1, 0, -0.0) }
+                    normals.forEach { it shouldBe Vec3(1, 0, -0.0) }
                     var i = 0
                     faces[0].forEach { it shouldBe i++ }
 

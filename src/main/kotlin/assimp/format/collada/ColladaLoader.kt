@@ -103,15 +103,15 @@ class ColladaLoader : BaseImporter() {
         // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
                 scene.rootNode.transformation *= AiMatrix4x4(
-                        0, -1, 0, 0,
-                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        -1, 0, 0, 0,
                         0, 0, 1, 0,
                         0, 0, 0, 1)
             else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
                 scene.rootNode.transformation *= AiMatrix4x4(
                         1, 0, 0, 0,
-                        0, 0, 1, 0,
-                        0, -1, 0, 0,
+                        0, 0, -1, 0,
+                        0, +1, 0, 0,
                         0, 0, 0, 1)
 
         // store all meshes
@@ -126,9 +126,7 @@ class ColladaLoader : BaseImporter() {
         storeAnimations(scene, parser)
         // If no meshes have been loaded, it's probably just an animated skeleton.
         if (scene.numMeshes == 0) {
-            if (!noSkeletonMesh) {
-                val hero = SkeletonMeshBuilder(scene)
-            }
+            if (!noSkeletonMesh) SkeletonMeshBuilder(scene)
             scene.flags = scene.flags or AI_SCENE_FLAGS_INCOMPLETE
         }
     }
@@ -396,7 +394,7 @@ class ColladaLoader : BaseImporter() {
         // normals, if given. HACK: (thom) Due to the glorious Collada spec we never know if we have the same number of normals as there are positions. So we
         // also ignore any vertex attribute if it has a different count
         if (pSrcMesh.mNormals.size >= pStartVertex + numVertices)
-            dstMesh.mNormals = pSrcMesh.mNormals.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.normals = pSrcMesh.mNormals.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
 
         // tangents, if given.
         if (pSrcMesh.mTangents.size >= pStartVertex + numVertices)
@@ -408,11 +406,11 @@ class ColladaLoader : BaseImporter() {
 
         // same for texturecoords, as many as we have empty slots are not allowed, need to pack and adjust UV indexes accordingly
         for (texNumber in 0 until pSrcMesh.mTexCoords.size) {
-            dstMesh.mTextureCoords.add(mutableListOf())
+            dstMesh.textureCoords.add(mutableListOf())
             if (pSrcMesh.mTexCoords[texNumber].size >= pStartVertex + numVertices) {
-                dstMesh.mTextureCoords[texNumber] = mutableListOf()
+                dstMesh.textureCoords[texNumber] = mutableListOf()
                 for (v in 0 until numVertices)
-                    dstMesh.mTextureCoords[texNumber].add(pSrcMesh.mTexCoords[texNumber][pStartVertex + v])
+                    dstMesh.textureCoords[texNumber].add(pSrcMesh.mTexCoords[texNumber][pStartVertex + v])
             }
         }
 

@@ -24,8 +24,8 @@ class cameras_dae : StringSpec() {
                     name shouldBe "Scene"
                     transformation shouldBe Mat4(
                             1f, 0f, 0f, 0f,
-                            0f, 0f, 1f, 0f,
-                            0f, -1f, 0f, 0f,
+                            0f, 0f, -1f, 0f,
+                            0f, 1f, 0f, 0f,
                             0f, 0f, 0f, 1f)
                     parent shouldBe null
                     numChildren shouldBe 3

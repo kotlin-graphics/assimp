@@ -163,9 +163,9 @@ class AssbinLoader : BaseImporter() {
 
         if (c has ASSBIN_MESH_HAS_NORMALS)
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mNormals, mesh->numVertices)
+                TODO()//ReadBounds(stream, mesh->normals, mesh->numVertices)
             else    // else write as usual
-                mesh.mNormals = MutableList(mesh.numVertices, { AiVector3D(this, be) })
+                mesh.normals = MutableList(mesh.numVertices, { AiVector3D(this, be) })
 
         if (c has ASSBIN_MESH_HAS_TANGENTS_AND_BITANGENTS) {
             if (shortened) {
@@ -193,9 +193,9 @@ class AssbinLoader : BaseImporter() {
             val mNumUVComponents = int(be)
 
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mTextureCoords[n], mesh->numVertices)
+                TODO()//ReadBounds(stream, mesh->textureCoords[n], mesh->numVertices)
             else    // else write as usual
-                mesh.mTextureCoords.add(MutableList(mesh.numVertices, {
+                mesh.textureCoords.add(MutableList(mesh.numVertices, {
                     val uv = AiVector3D(this, be)
                     (0 until mNumUVComponents).map { uv[it] }.toFloatArray()
                 }))

@@ -754,9 +754,9 @@ class PlyLoader : BaseImporter() {
                 if (avColors.isNotEmpty())
                     p_pcOut.mColors[0] = ArrayList()
                 if (avTexCoords.isNotEmpty())
-                    p_pcOut.mTextureCoords = mutableListOf(MutableList(iNum, { floatArrayOf(0f, 0f) }))
+                    p_pcOut.textureCoords = mutableListOf(MutableList(iNum, { floatArrayOf(0f, 0f) }))
                 if (avNormals.isNotEmpty())
-                    p_pcOut.mNormals = MutableList(iNum, { AiVector3D() })
+                    p_pcOut.normals = MutableList(iNum, { AiVector3D() })
 
                 // add all faces
                 iNum = 0
@@ -781,11 +781,11 @@ class PlyLoader : BaseImporter() {
 
                         if (avTexCoords.isNotEmpty()) {
                             val vec = avTexCoords[idx]
-                            p_pcOut.mTextureCoords[0][iVertex] = floatArrayOf(vec.x, vec.y)
+                            p_pcOut.textureCoords[0][iVertex] = floatArrayOf(vec.x, vec.y)
                         }
 
                         if (avNormals.isNotEmpty())
-                            p_pcOut.mNormals[iVertex] put avNormals[idx]
+                            p_pcOut.normals[iVertex] put avNormals[idx]
 
                         iVertex++
                     }
