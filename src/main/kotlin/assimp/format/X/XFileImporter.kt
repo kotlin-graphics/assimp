@@ -37,7 +37,7 @@ class XFileImporter : BaseImporter() {
         if (fileSize < 16) throw Error("XFile is too small.")
 
         val bytes = file.readBytes()
-        mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i.bytes[i].toChar() })) //Assuming every byte is a char.
+        mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i -> bytes[i].toChar() })) //Assuming every byte is a char.
         // parse the file into a temporary representation
         val parser = XFileParser(mBuffer)
 
@@ -73,7 +73,7 @@ class XFileImporter : BaseImporter() {
             CreateMeshes(pScene, pScene.rootNode, pData.mGlobalMeshes)
         }
 
-        if (!pScene.rootNode) {
+        if (pScene.rootNode == null) {
             throw Error("No root node")
         }
 
@@ -108,127 +108,119 @@ class XFileImporter : BaseImporter() {
         }
     }
 
-    fun CreateAnimations(pScene : AiScene, pData : Scene) {
-        var newAnims : MutableList<AiAnimation> = mutableListOf();
+    fun CreateAnimations(pScene: AiScene, pData: Scene) {
+        var newAnims: MutableList<AiAnimation> = mutableListOf()
 
-        for(a in 0..pData.mAnims.size()-1)
-        {
-            var anim = pData.mAnims[a];
+        for (a in 0..pData.mAnims.size() - 1) {
+            var anim = pData.mAnims[a]
             // some exporters mock me with empty animation tags.
-            if( anim.mAnims.size() == 0)
-            continue;
+            if (anim.mAnims.size() == 0)
+                continue
 
             // create a new animation to hold the data
-            var nanim = AiAnimation();
-            newAnims.push_back( nanim);
-            nanim.name = if(anim.mName == null) "" else anim.mName!!;
+            var nanim = AiAnimation()
+            newAnims.push_back(nanim)
+            nanim.name = if (anim.mName == null) "" else anim.mName!!
             // duration will be determined by the maximum length
-            nanim.duration = 0.0;
-            nanim.ticksPerSecond = pData.mAnimTicksPerSecond.toDouble();
-            nanim.numChannels = anim.mAnims.size();
-            nanim.channels = ArrayList<AiNodeAnim?>(nanim.numChannels);
+            nanim.duration = 0.0
+            nanim.ticksPerSecond = pData.mAnimTicksPerSecond.toDouble()
+            nanim.numChannels = anim.mAnims.size()
+            nanim.channels = ArrayList<AiNodeAnim?>(0).reserve(nanim.numChannels, {AiNodeAnim()})
 
-            for(b in 0..anim.mAnims.size())
-            {
-                var bone = anim.mAnims[b];
-                var nbone = AiNodeAnim();
-                nbone.nodeName=if( bone.mBoneName==null) "" else bone.mBoneName!!;
-                nanim.channels[b] = nbone;
+            for (b in 0..anim.mAnims.size()) {
+                var bone = anim.mAnims[b]
+                var nbone = AiNodeAnim()
+                nbone.nodeName = if (bone.mBoneName == null) "" else bone.mBoneName!!
+                nanim.channels[b] = nbone
 
                 // keyframes are given as combined transformation matrix keys
-                if( bone.mTrafoKeys.size() > 0)
-                {
-                    nbone.numPositionKeys = bone.mTrafoKeys.size();
-                    nbone.positionKeys = ArrayList<AiVectorKey>(nbone.numPositionKeys);
-                    nbone.numRotationKeys = bone.mTrafoKeys.size();
-                    nbone.rotationKeys = ArrayList<AiQuatKey>(nbone.numRotationKeys);
-                    nbone.numScalingKeys = bone.mTrafoKeys.size();
-                    nbone.scalingKeys = ArrayList<AiVectorKey>(nbone.numScalingKeys);
+                if (bone.mTrafoKeys.size() > 0) {
+                    nbone.numPositionKeys = bone.mTrafoKeys.size()
+                    nbone.positionKeys = ArrayList<AiVectorKey>(0).reserve(nbone.numPositionKeys, {AiVectorKey()})
+                    nbone.numRotationKeys = bone.mTrafoKeys.size()
+                    nbone.rotationKeys = ArrayList<AiQuatKey>(0).reserve(nbone.numRotationKeys, {AiQuatKey()})
+                    nbone.numScalingKeys = bone.mTrafoKeys.size()
+                    nbone.scalingKeys = ArrayList<AiVectorKey>(0).reserve(nbone.numScalingKeys, {AiVectorKey()})
 
-                    for(c in 0 until bone.mTrafoKeys.size())
-                    {
+                    for (c in 0 until bone.mTrafoKeys.size()) {
                         // deconstruct each matrix into separate position, rotation and scaling
-                        var time : Double = bone.mTrafoKeys[c].mTime;
-                        var trafo = bone.mTrafoKeys[c].mMatrix;
+                        var time: Double = bone.mTrafoKeys[c].mTime
+                        var trafo = bone.mTrafoKeys[c].mMatrix
 
                         // extract position
-                        var pos = AiVector3D( trafo.a3, trafo.b3, trafo.c3);
+                        var pos = AiVector3D(trafo.a3, trafo.b3, trafo.c3)
 
-                        nbone.positionKeys[c].time = time;
-                        nbone.positionKeys[c].mValue = pos;
+                        nbone.positionKeys[c].time = time
+                        nbone.positionKeys[c].mValue = pos
 
                         // extract scaling
-                        var scale = AiVector3D();
-                        scale.x = AiVector3D( trafo.a0, trafo.b0, trafo.c0).length();
-                        scale.y = AiVector3D( trafo.a1, trafo.b1, trafo.c1).length();
-                        scale.z = AiVector3D( trafo.a2, trafo.b2, trafo.c2).length();
-                        nbone.scalingKeys[c].time = time;
-                        nbone.scalingKeys[c].mValue = scale;
+                        var scale = AiVector3D()
+                        scale.x = AiVector3D(trafo.a0, trafo.b0, trafo.c0).length()
+                        scale.y = AiVector3D(trafo.a1, trafo.b1, trafo.c1).length()
+                        scale.z = AiVector3D(trafo.a2, trafo.b2, trafo.c2).length()
+                        nbone.scalingKeys[c].time = time
+                        nbone.scalingKeys[c].mValue = scale
 
                         // reconstruct rotation matrix without scaling
                         var rotmat = AiMatrix3x3(
                                 trafo.a0 / scale.x, trafo.a1 / scale.y, trafo.a2 / scale.z,
-                        trafo.b0 / scale.x, trafo.b1 / scale.y, trafo.b2 / scale.z,
-                        trafo.c0 / scale.x, trafo.c1 / scale.y, trafo.c2 / scale.z);
+                                trafo.b0 / scale.x, trafo.b1 / scale.y, trafo.b2 / scale.z,
+                                trafo.c0 / scale.x, trafo.c1 / scale.y, trafo.c2 / scale.z)
 
                         // and convert it into a quaternion
-                        nbone.rotationKeys[c].time = time;
-                        nbone.rotationKeys[c].mValue = rotmat.toQuat();
+                        nbone.rotationKeys[c].time = time
+                        nbone.rotationKeys[c].mValue = rotmat.toQuat()
                     }
 
                     // longest lasting key sequence determines duration
-                    nanim.duration = Math.max( nanim.duration, bone.mTrafoKeys.back().mTime);
-                } else
-                {
+                    nanim.duration = Math.max(nanim.duration, bone.mTrafoKeys.back().mTime)
+                } else {
                     // separate key sequences for position, rotation, scaling
-                    nbone.numPositionKeys = bone.mPosKeys.size();
-                    nbone.positionKeys = ArrayList<AiVectorKey>(nbone.numPositionKeys);
-                    for(c  in 0..nbone.numPositionKeys-1)
-                    {
-                        var pos = bone.mPosKeys[c].mValue;
+                    nbone.numPositionKeys = bone.mPosKeys.size()
+                    nbone.positionKeys = ArrayList<AiVectorKey>(0).reserve(nbone.numPositionKeys, {AiVectorKey()})
+                    for (c in 0..nbone.numPositionKeys - 1) {
+                        var pos = bone.mPosKeys[c].mValue
 
-                        nbone.positionKeys[c].time = bone.mPosKeys[c].time;
-                        nbone.positionKeys[c].mValue = pos;
+                        nbone.positionKeys[c].time = bone.mPosKeys[c].time
+                        nbone.positionKeys[c].mValue = pos
                     }
 
                     // rotation
-                    nbone.numRotationKeys = bone.mRotKeys.size();
-                    nbone.rotationKeys = ArrayList<AiQuatKey>(nbone.numRotationKeys);
-                    for(c in 0..nbone.numRotationKeys-1)
-                    {
-                        var rotmat : AiMatrix3x3 = bone.mRotKeys[c].mValue.toMat3();
+                    nbone.numRotationKeys = bone.mRotKeys.size()
+                    nbone.rotationKeys = ArrayList<AiQuatKey>(0).reserve(nbone.numRotationKeys, {AiQuatKey()})
+                    for (c in 0..nbone.numRotationKeys - 1) {
+                        var rotmat: AiMatrix3x3 = bone.mRotKeys[c].mValue.toMat3()
 
-                        nbone.rotationKeys[c].time = bone.mRotKeys[c].time;
-                        nbone.rotationKeys[c].mValue = rotmat.toQuat();
-                        nbone.rotationKeys[c].mValue.w = nbone.rotationKeys[c].mValue.w*-1.0f; // needs quat inversion
+                        nbone.rotationKeys[c].time = bone.mRotKeys[c].time
+                        nbone.rotationKeys[c].mValue = rotmat.toQuat()
+                        nbone.rotationKeys[c].mValue.w = nbone.rotationKeys[c].mValue.w * -1.0f // needs quat inversion
                     }
 
                     // scaling
-                    nbone.numScalingKeys = bone.mScaleKeys.size();
-                    nbone.scalingKeys = ArrayList<AiVectorKey>(nbone.numScalingKeys);
-                    for(c in 0..nbone.numScalingKeys-1) {
-                        nbone.scalingKeys[c] = (bone.mScaleKeys[c])
+                    nbone.numScalingKeys = bone.mScaleKeys.size()
+                    nbone.scalingKeys = ArrayList<AiVectorKey>(MutableList<AiVectorKey>(nbone.numScalingKeys, { c -> bone.mScaleKeys[c] }))
+                    for (c in 0..nbone.numScalingKeys - 1) {
+                        // nbone.scalingKeys[c] = bone.mScaleKeys[c]
                     }
 
                     // longest lasting key sequence determines duration
-                    if( bone.mPosKeys.size() > 0)
-                    nanim.duration = Math.max( nanim.duration, bone.mPosKeys.back().time);
-                    if( bone.mRotKeys.size() > 0)
-                    nanim.duration = Math.max( nanim.duration, bone.mRotKeys.back().time);
-                    if( bone.mScaleKeys.size() > 0)
-                    nanim.duration = Math.max( nanim.duration, bone.mScaleKeys.back().time);
+                    if (bone.mPosKeys.size() > 0)
+                        nanim.duration = Math.max(nanim.duration, bone.mPosKeys.back().time)
+                    if (bone.mRotKeys.size() > 0)
+                        nanim.duration = Math.max(nanim.duration, bone.mRotKeys.back().time)
+                    if (bone.mScaleKeys.size() > 0)
+                        nanim.duration = Math.max(nanim.duration, bone.mScaleKeys.back().time)
                 }
             }
         }
 
         // store all converted animations in the scene
-        if( newAnims.size() > 0)
-            {
-                pScene.mNumAnimations = newAnims.size();
-                pScene.mAnimations = ArrayList<AiAnimation>(pScene.mNumAnimations);
-                for(a in 0..newAnims.size()-1)
-                    pScene.mAnimations[a] = newAnims[a];
-            }
+        if (newAnims.size() > 0) {
+            pScene.mNumAnimations = newAnims.size()
+            pScene.mAnimations = ArrayList<AiAnimation>(pScene.mNumAnimations)
+            for (a in 0..newAnims.size() - 1)
+                pScene.mAnimations[a] = newAnims[a]
+        }
     }
 
     fun ConvertMaterials(pScene: AiScene, pMaterials: MutableList<Material>) {
@@ -308,16 +300,16 @@ class XFileImporter : BaseImporter() {
             } else {
                 // Otherwise ... try to search for typical strings in the
                 // texture's file name like 'bump' or 'diffuse'
-                var iHM = 0;
-                var iNM = 0;
-                var iDM = 0;
-                var iSM = 0;
-                var iAM = 0;
+                var iHM = 0
+                var iNM = 0
+                var iDM = 0
+                var iSM = 0
+                var iAM = 0
                 var iEM = 0
                 for (b in 0..oldMat.mTextures.size() - 1) {
                     var otex = oldMat.mTextures[b]
                     var sz = otex.mName
-                    if (sz == null || sz!!.length() == 0) continue
+                    if (sz == null || sz.length() == 0) continue
 
 
                     // find the file name
@@ -344,18 +336,18 @@ class XFileImporter : BaseImporter() {
 
                     // bump map
                     if (-1 != sz.indexOf("bump", s) || -1 != sz.indexOf("height", s)) {
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.height, uvwsrc = iHM++))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.height, uvwsrc = iHM++))
                     } else if (otex.mIsNormalMap || -1 != sz.indexOf("normal", s) || -1 != sz.indexOf("nm", s)) {
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.normals, uvwsrc = (iNM++)))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.normals, uvwsrc = (iNM++)))
                     } else if (-1 != sz.indexOf("spec", s) || -1 != sz.indexOf("glanz", s)) {
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.specular, uvwsrc = (iSM++)))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.specular, uvwsrc = (iSM++)))
                     } else if (-1 != sz.indexOf("ambi", s) || -1 != sz.indexOf("env", s)) {
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.ambient, uvwsrc = (iAM++)))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.ambient, uvwsrc = (iAM++)))
                     } else if (-1 != sz.indexOf("emissive", s) || -1 != sz.indexOf("self", s)) {
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.emissive, uvwsrc = (iEM++)))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.emissive, uvwsrc = (iEM++)))
                     } else {
                         // Assume it is a diffuse texture
-                        mat.textures.add(AiMaterial.Texture(file = tex, type=AiTexture.Type.diffuse, uvwsrc = (iDM++)))
+                        mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.diffuse, uvwsrc = (iDM++)))
                     }
                 }
             }
@@ -366,215 +358,196 @@ class XFileImporter : BaseImporter() {
         }
     }
 
-    fun CreateNodes(pScene : AiScene, pParent: AiNode, pNode : Node) : AiNode {
+    fun CreateNodes(pScene: AiScene, pParent: AiNode, pNode: Node): AiNode {
 //        if(pNode==null)
 //            return null;
 
         // create node
-        var node = AiNode();
-        node.name = pNode.mName;
+        var node = AiNode()
+        node.name = pNode.mName
         node.parent = pParent
 
-        node.transformation = pNode.mTrafoMatrix;
+        node.transformation = pNode.mTrafoMatrix
 
         // convert meshes from the source node
-        CreateMeshes( pScene, node, pNode.mMeshes);
+        CreateMeshes(pScene, node, pNode.mMeshes)
 
         // handle childs
-        if( pNode.mChildren.size() > 0)
-        {
-            node.numChildren = pNode.mChildren.size();
-            node.children = ArrayList<AiNode>(node.numChildren);
+        if (pNode.mChildren.size() > 0) {
+            node.numChildren = pNode.mChildren.size()
+            node.children = ArrayList<AiNode>(node.numChildren)
 
-            for(a in 0..pNode.mChildren.size()-1)
-                node.children[a] = CreateNodes( pScene, node, pNode.mChildren[a]);
+            for (a in 0..pNode.mChildren.size() - 1)
+                node.children[a] = CreateNodes(pScene, node, pNode.mChildren[a])
         }
 
-        return node;
+        return node
     }
 
-    fun CreateMeshes(pScene : AiScene, pNode : AiNode, pMeshes : MutableList<Mesh>) {
+    fun CreateMeshes(pScene: AiScene, pNode: AiNode, pMeshes: MutableList<Mesh>) {
         if (pMeshes.isEmpty()) {
-            return;
+            return
         }
 
         // create a mesh for each mesh-material combination in the source node
-        var meshes : MutableList<AiMesh> = mutableListOf();
-        for(a in 0..pMeshes.size()-1)
-        {
-            var sourceMesh = pMeshes[a];
+        var meshes: MutableList<AiMesh> = mutableListOf()
+        for (a in 0..pMeshes.size() - 1) {
+            var sourceMesh = pMeshes[a]
             // first convert its materials so that we can find them with their index afterwards
-            ConvertMaterials( pScene, sourceMesh.mMaterials);
+            ConvertMaterials(pScene, sourceMesh.mMaterials)
 
-            var numMaterials = Math.max(sourceMesh.mMaterials.size(), 1);
-            for( b in 0..numMaterials)
-            {
+            var numMaterials = Math.max(sourceMesh.mMaterials.size(), 1)
+            for (b in 0..numMaterials) {
                 // collect the faces belonging to this material
-                var faces : MutableList<Int> = mutableListOf();
-                var numVertices = 0;
-                if( sourceMesh.mFaceMaterials.size() > 0)
-                {
+                var faces: MutableList<Int> = mutableListOf()
+                var numVertices = 0
+                if (sourceMesh.mFaceMaterials.size() > 0) {
                     // if there is a per-face material defined, select the faces with the corresponding material
-                    for(c in 0..sourceMesh.mFaceMaterials.size()-1)
-                    {
-                        if( sourceMesh.mFaceMaterials[c] == b)
-                        {
-                            faces.push_back( c);
-                            numVertices += sourceMesh.mPosFaces[c].mIndices.size();
+                    for (c in 0..sourceMesh.mFaceMaterials.size() - 1) {
+                        if (sourceMesh.mFaceMaterials[c] == b) {
+                            faces.push_back(c)
+                            numVertices += sourceMesh.mPosFaces[c].mIndices.size()
                         }
                     }
-                } else
-                {
+                } else {
                     // if there is no per-face material, place everything into one mesh
-                    for( c in 0..sourceMesh.mPosFaces.size()-1)
-                    {
-                        faces.push_back( c);
-                        numVertices += sourceMesh.mPosFaces[c].mIndices.size();
+                    for (c in 0..sourceMesh.mPosFaces.size() - 1) {
+                        faces.push_back(c)
+                        numVertices += sourceMesh.mPosFaces[c].mIndices.size()
                     }
                 }
 
                 // no faces/vertices using this material? strange...
-                if( numVertices == 0)
-                    continue;
+                if (numVertices == 0)
+                    continue
 
                 // create a submesh using this material
-                var mesh = AiMesh();
-                meshes.push_back( mesh);
+                var mesh = AiMesh()
+                meshes.push_back(mesh)
 
                 // find the material in the scene's material list. Either own material
                 // or referenced material, it should already have a valid index
-                if( sourceMesh.mFaceMaterials.size() > 0)
-                {
-                    mesh.mMaterialIndex = (sourceMesh.mMaterials[b].sceneIndex);
-                } else
-                {
-                    mesh.mMaterialIndex = 0;
+                if (sourceMesh.mFaceMaterials.size() > 0) {
+                    mesh.mMaterialIndex = (sourceMesh.mMaterials[b].sceneIndex)
+                } else {
+                    mesh.mMaterialIndex = 0
                 }
 
                 // Create properly sized data arrays in the mesh. We store unique vertices per face,
                 // as specified
-                mesh.numVertices = numVertices;
-                mesh.vertices = MutableList<AiVector3D>(numVertices, {AiVector3D()});
-                mesh.numFaces = faces.size();
-                mesh.faces = MutableList<AiFace>(mesh.numFaces, { mutableListOf()});
+                mesh.numVertices = numVertices
+                mesh.vertices = MutableList<AiVector3D>(numVertices, { AiVector3D() })
+                mesh.numFaces = faces.size()
+                mesh.faces = MutableList<AiFace>(mesh.numFaces, { mutableListOf() })
 
                 // name
-                mesh.name=(sourceMesh.mName);
+                mesh.name = (sourceMesh.mName)
 
                 // normals?
-                if( sourceMesh.mNormals.size() > 0)
-                mesh.normals = MutableList<AiVector3D>(numVertices, {AiVector3D()});
+                if (sourceMesh.mNormals.size() > 0)
+                    mesh.normals = MutableList<AiVector3D>(numVertices, { AiVector3D() })
                 // texture coords
-                for(c in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS-1)
-                {
-                    if( sourceMesh.mTexCoords[c].size() > 0)
-                        mesh.textureCoords[c] = MutableList<FloatArray>(numVertices, {FloatArray(0)}); //0?
+                for (c in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS - 1) {
+                    if (sourceMesh.mTexCoords[c].size() > 0)
+                        mesh.textureCoords[c] = MutableList<FloatArray>(numVertices, { FloatArray(0) }) //0?
                 }
                 // vertex colors
-                for(c in 0..AI_MAX_NUMBER_OF_COLOR_SETS-1)
-                {
-                    if( sourceMesh.mColors[c].size() > 0)
-                        mesh.mColors[c] = MutableList<AiColor4D>(numVertices, {AiColor4D()});
+                for (c in 0..AI_MAX_NUMBER_OF_COLOR_SETS - 1) {
+                    if (sourceMesh.mColors[c].size() > 0)
+                        mesh.mColors[c] = MutableList<AiColor4D>(numVertices, { AiColor4D() })
                 }
 
                 // now collect the vertex data of all data streams present in the imported mesh
-                var newIndex = 0;
-                var orgPoints : MutableList<Int> = mutableListOf(); // from which original point each new vertex stems
-                orgPoints.resize( numVertices, {0});
+                var newIndex = 0
+                var orgPoints: MutableList<Int> = mutableListOf() // from which original point each new vertex stems
+                orgPoints.resize(numVertices, { 0 })
 
-                for( c in 0..faces.size()-1)
-                {
-                    var f = faces[c]; // index of the source face
-                    var pf = sourceMesh.mPosFaces[f]; // position source face
+                for (c in 0..faces.size() - 1) {
+                    var f = faces[c] // index of the source face
+                    var pf = sourceMesh.mPosFaces[f] // position source face
 
                     // create face. either triangle or triangle fan depending on the index count
-                    var df = mesh.faces[c]; // destination face
+                    var df = mesh.faces[c] // destination face
                     //df.numIndices = pf.mIndices.size(); //3
-                    df = MutableList<Int>(pf.mIndices.size(), {0});
+                    df = MutableList<Int>(pf.mIndices.size(), { 0 })
 
                     // collect vertex data for indices of this face
-                    for( d in 0..df.size()-1)
-                    {
-                        df[d] = newIndex;
-                        orgPoints[newIndex] = pf.mIndices[d];
+                    for (d in 0..df.size() - 1) {
+                        df[d] = newIndex
+                        orgPoints[newIndex] = pf.mIndices[d]
 
                         // Position
-                        mesh.vertices[newIndex] = sourceMesh.mPositions[pf.mIndices[d]];
+                        mesh.vertices[newIndex] = sourceMesh.mPositions[pf.mIndices[d]]
                         // Normal, if present
-                        if( mesh.hasNormals())
-                        mesh.normals[newIndex] = sourceMesh.mNormals[sourceMesh.mNormFaces[f].mIndices[d]];
+                        if (mesh.hasNormals())
+                            mesh.normals[newIndex] = sourceMesh.mNormals[sourceMesh.mNormFaces[f].mIndices[d]]
 
                         // texture coord sets
-                        for(e in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS)
-                        {
-                            if( mesh.hasTextureCoords( e))
-                            {
-                                var tex = sourceMesh.mTexCoords[e][pf.mIndices[d]];
-                                mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f-tex.y, 0.0f).toFloatArray();
+                        for (e in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+                            if (mesh.hasTextureCoords(e)) {
+                                var tex = sourceMesh.mTexCoords[e][pf.mIndices[d]]
+                                mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f - tex.y, 0.0f).toFloatArray()
                             }
                         }
                         // vertex color sets
-                        for(e in 0..AI_MAX_NUMBER_OF_COLOR_SETS-1)
-                        if( mesh.hasVertexColors( e))
-                        mesh.mColors[e][newIndex] = sourceMesh.mColors[e][pf.mIndices[d]];
+                        for (e in 0..AI_MAX_NUMBER_OF_COLOR_SETS - 1)
+                            if (mesh.hasVertexColors(e))
+                                mesh.mColors[e][newIndex] = sourceMesh.mColors[e][pf.mIndices[d]]
 
-                        newIndex++;
+                        newIndex++
                     }
                 }
 
                 // there should be as much new vertices as we calculated before
-                assert( newIndex == numVertices);
+                assert(newIndex == numVertices)
 
                 // convert all bones of the source mesh which influence vertices in this newly created mesh
-                var bones = sourceMesh.mBones;
-                var newBones : MutableList<AiBone> = mutableListOf();
-                for(c in 0..bones.size()-1)
-                {
-                    var obone = bones[c];
+                var bones = sourceMesh.mBones
+                var newBones: MutableList<AiBone> = mutableListOf()
+                for (c in 0..bones.size() - 1) {
+                    var obone = bones[c]
                     // set up a vertex-linear array of the weights for quick searching if a bone influences a vertex
-                    var oldWeights = mutableListOf( sourceMesh.mPositions.size().a, 0.0.a);
-                    for(d in 0..obone.mWeights.size()-1)
-                        oldWeights[obone.mWeights[d].mVertex] = obone.mWeights[d].mWeight;
+                    var oldWeights = mutableListOf(sourceMesh.mPositions.size().a, 0.0.a)
+                    for (d in 0..obone.mWeights.size() - 1)
+                        oldWeights[obone.mWeights[d].mVertex] = obone.mWeights[d].mWeight
 
                     // collect all vertex weights that influence a vertex in the new mesh
-                    var newWeights : ArrayList<AiVertexWeight> = arrayListOf();
-                    newWeights.reserve( numVertices); //TODO: Unnecessary?
-                    for(d in 0..orgPoints.size()-1)
-                    {
+                    var newWeights: ArrayList<AiVertexWeight> = arrayListOf()
+                    newWeights.reserve(numVertices) //TODO: Unnecessary?
+                    for (d in 0..orgPoints.size() - 1) {
                         // does the new vertex stem from an old vertex which was influenced by this bone?
-                        var w = oldWeights[orgPoints[d]];
-                        if( w > 0.0.a)
-                            newWeights.push_back( AiVertexWeight( d, w));
+                        var w = oldWeights[orgPoints[d]]
+                        if (w > 0.0.a)
+                            newWeights.push_back(AiVertexWeight(d, w))
                     }
 
                     // if the bone has no weights in the newly created mesh, ignore it
-                    if( newWeights.size() == 0)
-                        continue;
+                    if (newWeights.size() == 0)
+                        continue
 
                     // create
-                    var nbone = AiBone();
-                    newBones.push_back( nbone);
+                    var nbone = AiBone()
+                    newBones.push_back(nbone)
                     // copy name and matrix
-                    nbone.name=( if(obone.mName==null) "" else obone.mName!!);
-                    nbone.offsetMatrix = obone.mOffsetMatrix;
-                    nbone.numWeights = newWeights.size();
-                    nbone.weights = Array<AiVertexWeight>(nbone.numWeights, {AiVertexWeight()});
-                    for( d in 0..newWeights.size()-1)
-                        nbone.weights[d] = newWeights[d];
+                    nbone.name = (if (obone.mName == null) "" else obone.mName!!)
+                    nbone.offsetMatrix = obone.mOffsetMatrix
+                    nbone.numWeights = newWeights.size()
+                    nbone.weights = Array<AiVertexWeight>(nbone.numWeights, { AiVertexWeight() })
+                    for (d in 0..newWeights.size() - 1)
+                        nbone.weights[d] = newWeights[d]
                 }
 
                 // store the bones in the mesh
-                mesh.mNumBones = newBones.size();
-                if( newBones.size() > 0)
-                    {
-                        mesh.mBones = ArrayList<AiBone>(mesh.mNumBones);
-                        mesh.mBones.addAll(newBones)
-                    }
+                mesh.mNumBones = newBones.size()
+                if (newBones.size() > 0) {
+                    mesh.mBones = ArrayList<AiBone>(mesh.mNumBones)
+                    mesh.mBones.addAll(newBones)
+                }
             }
         }
 
         // reallocate scene mesh array to be large enough
-        var prevArray = pScene.meshes;
+        var prevArray = pScene.meshes
         pScene.meshes.reserve(pScene.numMeshes + meshes.size())
 //        pScene.mMeshes = ArrayList<AiMesh>(pScene.mNumMeshes + meshes.size());
 //        if( prevArray!=null)
@@ -585,15 +558,14 @@ class XFileImporter : BaseImporter() {
         //}
 
         // allocate mesh index array in the node
-        pNode.numMeshes = meshes.size();
-        pNode.meshes = IntArray(pNode.numMeshes);
+        pNode.numMeshes = meshes.size()
+        pNode.meshes = IntArray(pNode.numMeshes)
 
         // store all meshes in the mesh library of the scene and store their indices in the node
-        for(a in 0..meshes.size())
-        {
-            pScene.meshes[pScene.numMeshes] = meshes[a];
-            pNode.meshes[a] = pScene.numMeshes;
-            pScene.numMeshes++;
+        for (a in 0..meshes.size()) {
+            pScene.meshes[pScene.numMeshes] = meshes[a]
+            pNode.meshes[a] = pScene.numMeshes
+            pScene.numMeshes++
         }
     }
 

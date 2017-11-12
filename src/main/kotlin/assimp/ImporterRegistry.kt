@@ -1,5 +1,6 @@
 package assimp
 
+import assimp.format.X.XFileImporter
 import assimp.format.assbin.AssbinLoader
 import assimp.format.collada.ColladaLoader
 import assimp.format.obj.ObjFileImporter
@@ -86,6 +87,9 @@ fun getImporterInstanceList(): MutableList<BaseImporter> {
 
     if(!assimp.ASSIMP_BUILD_NO_ASSBIN_IMPORTER)
         res.add(AssbinLoader())
+
+    if(!assimp.ASSIMP_BUILD_NO_X_IMPORTER)
+        res.add(XFileImporter())
 
     return res
 }

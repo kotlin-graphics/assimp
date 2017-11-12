@@ -79,6 +79,14 @@ fun <T> MutableList<T>.back() = last()
 
 fun <T> ArrayList<T>.reserve(newsize : Int) = ensureCapacity(newsize)
 
+fun <T> ArrayList<T>.reserve(newsize: Int, init: () -> T) : ArrayList<T> {
+    if (newsize - size > 0) {
+        for (a in size..newsize - 1)
+            add(init())
+    }
+	return this
+}
+
 fun isspace(char: Char): Boolean {
 	return char.isWhitespace()
 }
@@ -118,6 +126,10 @@ fun isdigit(c: Char): Boolean {
 fun String.length() = length
 
 fun warn(s: String) {
+
+}
+
+fun debug(s : String) {
 
 }
 
