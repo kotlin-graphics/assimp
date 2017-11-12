@@ -2,7 +2,7 @@ package assimp.format.X
 
 import assimp.ai_real
 
-val Number.a get() = toFloat()
+val Number.a : ai_real get() = toFloat()
 
 val AI_FAST_ATOF_RELAVANT_DECIMALS : Int = 15
 

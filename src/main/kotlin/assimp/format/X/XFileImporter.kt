@@ -29,7 +29,7 @@ class XFileImporter : BaseImporter() {
     override fun internReadFile(pFile: URI, pScene: AiScene) {
         // Read file into memory
         var file = File(pFile)
-        if (!file.canRead()) throw FileSystemException("Failed to open file \$pFile.")
+        if (!file.canRead()) throw FileSystemException(file, null, "Failed to open file \$pFile.")
 
         // Get the file-size and validate it, throwing an exception when fails
         val fileSize = file.length()
@@ -101,11 +101,134 @@ class XFileImporter : BaseImporter() {
 
             clr = AiColor3D(0.5f, 0.5f, 0.5f)
             mat.color!!.diffuse = clr
-            mat.shininess = specExp
+            mat.shininess = specExp.toFloat()
 
             pScene.materials = arrayListOf(AiMaterial())
             pScene.materials[0] = mat
         }
+    }
+
+    fun CreateAnimations(pScene : AiScene, pData : Scene) {
+        var newAnims : MutableList<AiAnimation> = mutableListOf();
+
+        for(a in 0..pData.mAnims.size()-1)
+        {
+            var anim = pData.mAnims[a];
+            // some exporters mock me with empty animation tags.
+            if( anim.mAnims.size() == 0)
+            continue;
+
+            // create a new animation to hold the data
+            var nanim = AiAnimation();
+            newAnims.push_back( nanim);
+            nanim.name = if(anim.mName == null) "" else anim.mName!!;
+            // duration will be determined by the maximum length
+            nanim.duration = 0.0;
+            nanim.ticksPerSecond = pData.mAnimTicksPerSecond.toDouble();
+            nanim.numChannels = anim.mAnims.size();
+            nanim.channels = ArrayList<AiNodeAnim?>(nanim.numChannels);
+
+            for(b in 0..anim.mAnims.size())
+            {
+                var bone = anim.mAnims[b];
+                var nbone = AiNodeAnim();
+                nbone.nodeName=if( bone.mBoneName==null) "" else bone.mBoneName!!;
+                nanim.channels[b] = nbone;
+
+                // keyframes are given as combined transformation matrix keys
+                if( bone.mTrafoKeys.size() > 0)
+                {
+                    nbone.numPositionKeys = bone.mTrafoKeys.size();
+                    nbone.positionKeys = ArrayList<AiVectorKey>(nbone.numPositionKeys);
+                    nbone.numRotationKeys = bone.mTrafoKeys.size();
+                    nbone.rotationKeys = ArrayList<AiQuatKey>(nbone.numRotationKeys);
+                    nbone.numScalingKeys = bone.mTrafoKeys.size();
+                    nbone.scalingKeys = ArrayList<AiVectorKey>(nbone.numScalingKeys);
+
+                    for(c in 0 until bone.mTrafoKeys.size())
+                    {
+                        // deconstruct each matrix into separate position, rotation and scaling
+                        var time : Double = bone.mTrafoKeys[c].mTime;
+                        var trafo = bone.mTrafoKeys[c].mMatrix;
+
+                        // extract position
+                        var pos = AiVector3D( trafo.a3, trafo.b3, trafo.c3);
+
+                        nbone.positionKeys[c].time = time;
+                        nbone.positionKeys[c].mValue = pos;
+
+                        // extract scaling
+                        var scale = AiVector3D();
+                        scale.x = AiVector3D( trafo.a0, trafo.b0, trafo.c0).length();
+                        scale.y = AiVector3D( trafo.a1, trafo.b1, trafo.c1).length();
+                        scale.z = AiVector3D( trafo.a2, trafo.b2, trafo.c2).length();
+                        nbone.scalingKeys[c].time = time;
+                        nbone.scalingKeys[c].mValue = scale;
+
+                        // reconstruct rotation matrix without scaling
+                        var rotmat = AiMatrix3x3(
+                                trafo.a0 / scale.x, trafo.a1 / scale.y, trafo.a2 / scale.z,
+                        trafo.b0 / scale.x, trafo.b1 / scale.y, trafo.b2 / scale.z,
+                        trafo.c0 / scale.x, trafo.c1 / scale.y, trafo.c2 / scale.z);
+
+                        // and convert it into a quaternion
+                        nbone.rotationKeys[c].time = time;
+                        nbone.rotationKeys[c].mValue = rotmat.toQuat();
+                    }
+
+                    // longest lasting key sequence determines duration
+                    nanim.duration = Math.max( nanim.duration, bone.mTrafoKeys.back().mTime);
+                } else
+                {
+                    // separate key sequences for position, rotation, scaling
+                    nbone.numPositionKeys = bone.mPosKeys.size();
+                    nbone.positionKeys = ArrayList<AiVectorKey>(nbone.numPositionKeys);
+                    for(c  in 0..nbone.numPositionKeys-1)
+                    {
+                        var pos = bone.mPosKeys[c].mValue;
+
+                        nbone.positionKeys[c].time = bone.mPosKeys[c].time;
+                        nbone.positionKeys[c].mValue = pos;
+                    }
+
+                    // rotation
+                    nbone.numRotationKeys = bone.mRotKeys.size();
+                    nbone.rotationKeys = ArrayList<AiQuatKey>(nbone.numRotationKeys);
+                    for(c in 0..nbone.numRotationKeys-1)
+                    {
+                        var rotmat : AiMatrix3x3 = bone.mRotKeys[c].mValue.toMat3();
+
+                        nbone.rotationKeys[c].time = bone.mRotKeys[c].time;
+                        nbone.rotationKeys[c].mValue = rotmat.toQuat();
+                        nbone.rotationKeys[c].mValue.w = nbone.rotationKeys[c].mValue.w*-1.0f; // needs quat inversion
+                    }
+
+                    // scaling
+                    nbone.numScalingKeys = bone.mScaleKeys.size();
+                    nbone.scalingKeys = ArrayList<AiVectorKey>(nbone.numScalingKeys);
+                    for(c in 0..nbone.numScalingKeys-1) {
+                        nbone.scalingKeys[c] = (bone.mScaleKeys[c])
+                    }
+
+                    // longest lasting key sequence determines duration
+                    if( bone.mPosKeys.size() > 0)
+                    nanim.duration = Math.max( nanim.duration, bone.mPosKeys.back().time);
+                    if( bone.mRotKeys.size() > 0)
+                    nanim.duration = Math.max( nanim.duration, bone.mRotKeys.back().time);
+                    if( bone.mScaleKeys.size() > 0)
+                    nanim.duration = Math.max( nanim.duration, bone.mScaleKeys.back().time);
+                }
+            }
+        }
+
+        // store all converted animations in the scene
+        if( newAnims.size() > 0)
+            {
+                pScene.mNumAnimations = newAnims.size();
+                pScene.mAnimations = ArrayList<AiAnimation>(pScene.mNumAnimations);
+                for(a in 0..newAnims.size()-1)
+                    pScene.mAnimations[a] = newAnims[a];
+            }
     }
 
     fun ConvertMaterials(pScene: AiScene, pMaterials: MutableList<Material>) {
