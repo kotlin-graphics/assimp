@@ -27,7 +27,7 @@ class AssbinLoader : BaseImporter() {
     override fun canRead(pFile: URI, checkSig: Boolean) =
             File(pFile).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
 
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: URI, scene: AiScene) {
 
         pFile.toURL().openStream().use {
 
@@ -62,12 +62,12 @@ class AssbinLoader : BaseImporter() {
 //
 //            MemoryIOStream io (uncompressedData, uncompressedSize)
 //
-//            ReadBinaryScene(& io, pScene)
+//            ReadBinaryScene(& io, scene)
 //
 //            delete[] uncompressedData
 //            delete[] compressedData
 
-            } else it.readScene(pScene)
+            } else it.readScene(scene)
 
         }
     }
@@ -81,7 +81,7 @@ class AssbinLoader : BaseImporter() {
         scene.flags = int(be)
         scene.numMeshes = int(be)
         scene.numMaterials = int(be)
-        scene.mNumAnimations = int(be)
+        scene.numAnimations = int(be)
         scene.mNumTextures = int(be)
         scene.mNumLights = int(be)
         scene.numCameras = int(be)
@@ -99,8 +99,8 @@ class AssbinLoader : BaseImporter() {
             scene.materials.add(AiMaterial().also { readMaterial(it) })
 
         // Read all animations
-        for (i in 0 until scene.mNumAnimations)
-            scene.mAnimations.add(AiAnimation().also { readAnimation(it) })
+        for (i in 0 until scene.numAnimations)
+            scene.animations.add(AiAnimation().also { readAnimation(it) })
 
         // Read all textures
         for (i in 0 until scene.mNumTextures)
@@ -150,7 +150,7 @@ class AssbinLoader : BaseImporter() {
         mesh.numVertices = int(be)
         mesh.numFaces = int(be)
         mesh.mNumBones = int(be)
-        mesh.mMaterialIndex = int(be)
+        mesh.materialIndex = int(be)
 
         // first of all, write bits for all existent vertex components
         val c = int(be)
@@ -377,8 +377,8 @@ class AssbinLoader : BaseImporter() {
         nd.numPositionKeys = int(be)
         nd.numRotationKeys = int(be)
         nd.numScalingKeys = int(be)
-        nd.mPreState = AiAnimBehaviour.of(int(be))
-        nd.mPostState = AiAnimBehaviour.of(int(be))
+        nd.preState = AiAnimBehaviour.of(int(be))
+        nd.postState = AiAnimBehaviour.of(int(be))
 
         if (nd.numPositionKeys > 0)
             if (shortened)

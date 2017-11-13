@@ -87,7 +87,7 @@ class obj : StringSpec() {
                     faces[25] shouldBe listOf(75, 76, 77)
                     faces[numFaces - 1] shouldBe listOf(153, 154, 155)
 
-                    mMaterialIndex shouldBe 3
+                    materialIndex shouldBe 3
 
                     name shouldBe "Visor"
                 }
@@ -116,7 +116,7 @@ class obj : StringSpec() {
                     faces[2536] shouldBe listOf(7608, 7609, 7610)
                     faces[numFaces - 1] shouldBe listOf(15219, 15220, 15221)
 
-                    mMaterialIndex shouldBe 6
+                    materialIndex shouldBe 6
 
                     name shouldBe "Legs"
                 }
@@ -145,7 +145,7 @@ class obj : StringSpec() {
                     faces[2536] shouldBe listOf(7608, 7609, 7610)
                     faces[numFaces - 1] shouldBe listOf(19347, 19348, 19349)
 
-                    mMaterialIndex shouldBe 4
+                    materialIndex shouldBe 4
 
                     name shouldBe "hands"
                 }
@@ -170,7 +170,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(75, 76, 77)
 
-                    mMaterialIndex shouldBe 3
+                    materialIndex shouldBe 3
 
                     name shouldBe "Lights"
                 }
@@ -195,7 +195,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(6801, 6802, 6803)
 
-                    mMaterialIndex shouldBe 1
+                    materialIndex shouldBe 1
 
                     name shouldBe "Arms"
                 }
@@ -220,7 +220,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(7245, 7246, 7247)
 
-                    mMaterialIndex shouldBe 5
+                    materialIndex shouldBe 5
 
                     name shouldBe "Helmet"
                 }
@@ -245,7 +245,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(8313, 8314, 8315)
 
-                    mMaterialIndex shouldBe 2
+                    materialIndex shouldBe 2
 
                     name shouldBe "Body"
                 }
@@ -514,7 +514,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(237, 238, 239)
 
-                    mMaterialIndex shouldBe 3
+                    materialIndex shouldBe 3
 
                     name shouldBe "HLeib01"
                 }
@@ -538,7 +538,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(177, 178, 179)
 
-                    mMaterialIndex shouldBe 1
+                    materialIndex shouldBe 1
 
                     name shouldBe "OK"
                 }
@@ -562,7 +562,7 @@ class obj : StringSpec() {
                     faces[0] shouldBe listOf(0, 1, 2)
                     faces[numFaces - 1] shouldBe listOf(111, 112, 113)
 
-                    mMaterialIndex shouldBe 5
+                    materialIndex shouldBe 5
 
                     name shouldBe "Duplicate05"
                 }
@@ -771,7 +771,7 @@ class obj : StringSpec() {
                     var i = 0
                     faces[0].forEach { it shouldBe i++ }
 
-                    mMaterialIndex shouldBe 1
+                    materialIndex shouldBe 1
 
                     name shouldBe "default"
                 }

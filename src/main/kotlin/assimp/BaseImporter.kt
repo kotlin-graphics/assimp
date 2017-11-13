@@ -86,13 +86,13 @@ abstract class BaseImporter {
      * This won't be checked (except by the validation step): Assimp will crash if one of the conditions is not met!
      *
      * @param pFile Path of the file to be imported.
-     * @param pScene The scene object to hold the imported data.
+     * @param scene The scene object to hold the imported data.
      * NULL is not a valid parameter.
      * @param pIOHandler The IO handler to use for any file access.
      * NULL is not a valid parameter. */
     protected abstract fun internReadFile(
             pFile: URI,
-            pScene: AiScene)
+            scene: AiScene)
 
     // ------------------------------------------------------------------------------------------------
     fun searchFileHeaderForToken(pFile: String, tokens: List<String>): Boolean {

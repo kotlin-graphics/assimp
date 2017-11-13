@@ -102,7 +102,7 @@ class STLImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: URI, scene: AiScene) {
 
         val file = File(pFile)
 
@@ -115,14 +115,14 @@ class STLImporter : BaseImporter() {
         val fileChannel = RandomAccessFile(file, "r").channel
         val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
 
-        this.pScene = pScene
+        this.pScene = scene
         this.mBuffer = mBuffer2
 
         // the default vertex color is light gray.
         clrColorDefault put 0.6f
 
         // allocate a single node
-        pScene.rootNode = AiNode()
+        scene.rootNode = AiNode()
 
         var bMatClr = false
 
@@ -133,10 +133,10 @@ class STLImporter : BaseImporter() {
         else throw Error("Failed to determine STL storage representation for $pFile.")
 
         // add all created meshes to the single node
-        pScene.rootNode.numMeshes = pScene.numMeshes
-        pScene.rootNode.meshes = IntArray(pScene.numMeshes)
-        for (i in 0 until pScene.numMeshes)
-            pScene.rootNode.meshes[i] = i
+        scene.rootNode.numMeshes = scene.numMeshes
+        scene.rootNode.meshes = IntArray(scene.numMeshes)
+        for (i in 0 until scene.numMeshes)
+            scene.rootNode.meshes[i] = i
 
         /*  create a single default material, using a light white diffuse color for consistency with other geometric
             types (e.g., PLY).  */
@@ -153,8 +153,8 @@ class STLImporter : BaseImporter() {
                 ambient = AiColor3D(1f)
         )
 
-        pScene.numMaterials = 1
-        pScene.materials.add(pcMat)
+        scene.numMaterials = 1
+        scene.materials.add(pcMat)
     }
 
     // ------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ class STLImporter : BaseImporter() {
         pScene.numMeshes = 1
         pScene.meshes.add(AiMesh())
         val pMesh = pScene.meshes[0]
-        pMesh.mMaterialIndex = 0
+        pMesh.materialIndex = 0
 
         // skip the first 80 bytes
         if (fileSize < 84) throw Error("STL: file is too small for the header")
@@ -269,7 +269,7 @@ class STLImporter : BaseImporter() {
         var buffer = String(bytes)
 
         val pMesh = AiMesh()
-        pMesh.mMaterialIndex = 0
+        pMesh.materialIndex = 0
         meshes.add(pMesh)
 
         buffer = buffer.removePrefix("solid")    // skip the "solid"

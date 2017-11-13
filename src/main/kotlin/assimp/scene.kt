@@ -167,13 +167,13 @@ class AiScene {
     var materials = ArrayList<AiMaterial>()
 
     /** The number of animations in the scene. */
-    var mNumAnimations = 0
+    var numAnimations = 0
 
     /** The array of animations.
      *
      * All animations imported from the given file are listed here.
-     * The array is mNumAnimations in size.         */
-    var mAnimations = ArrayList<AiAnimation>()
+     * The array is numAnimations in size.         */
+    var animations = ArrayList<AiAnimation>()
 
     /** The number of textures embedded into the file */
     var mNumTextures = 0
@@ -222,5 +222,5 @@ class AiScene {
     fun hasCameras() = cameras.isNotEmpty()
 
     /** Check whether the scene contains animations */
-    fun hasAnimations() = mAnimations.isNotEmpty()
+    fun hasAnimations() = animations.isNotEmpty()
 }

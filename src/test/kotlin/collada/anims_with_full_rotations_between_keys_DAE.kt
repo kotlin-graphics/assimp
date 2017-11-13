@@ -1,13 +1,14 @@
 package collada
 
+import assimp.AiAnimBehaviour
 import assimp.Importer
 import assimp.collada
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
 import uno.kotlin.uri
-import java.util.*
 
 /**
  * Created by elect on 24/01/2017.
@@ -138,7 +139,159 @@ class anims_with_full_rotations_between_keys_DAE : StringSpec() {
                     name shouldBe "Box001Mesh"
                 }
 
-                // for further test, follow this issue, https://github.com/assimp/assimp/issues/1561
+                // for further mesh test, follow this issue, https://github.com/assimp/assimp/issues/1561
+
+                numMaterials shouldBe 1
+
+                with(materials[0]) {
+                    color!!.diffuse shouldBe Vec3(0.600000024f)
+                    name shouldBe "DefaultMaterial"
+                }
+
+                numAnimations shouldBe 1
+
+                with(animations[0]) {
+
+                    name shouldBe ""
+                    duration shouldBe 11.966667175292969
+                    ticksPerSecond shouldBe 1.0
+                    numChannels shouldBe 64
+
+                    with(channels[0]!!) {
+                        nodeName shouldBe "Box001"
+                        numPositionKeys shouldBe 5
+                        with(positionKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3()
+                        }
+                        numRotationKeys shouldBe 5
+                        with(rotationKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Quat(1f, 0f, 0f, 2.38497613e-08f)
+                        }
+                        with(rotationKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Quat(2.90066708e-07f, 0f, 0f, 1f)
+                        }
+                        with(rotationKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Quat(1f, 0f, 0f, 3.49691106e-07f)
+                        }
+                        numScalingKeys shouldBe 5
+                        with(scalingKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3(1f)
+                        }
+                        preState shouldBe AiAnimBehaviour.DEFAULT
+                        postState shouldBe AiAnimBehaviour.DEFAULT
+                    }
+
+                    with(channels[31]!!) {
+                        nodeName shouldBe "Box032"
+                        numPositionKeys shouldBe 5
+                        with(positionKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3()
+                        }
+                        numRotationKeys shouldBe 5
+                        with(rotationKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Quat(1f, 0f, 0f, 2.38497613e-08f)
+                        }
+                        with(rotationKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Quat(2.90066708e-07f, 0f, 0f, 1f)
+                        }
+                        with(rotationKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Quat(1f, 0f, 0f, 3.49691106e-07f)
+                        }
+                        numScalingKeys shouldBe 5
+                        with(scalingKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3(1f)
+                        }
+                        preState shouldBe AiAnimBehaviour.DEFAULT
+                        postState shouldBe AiAnimBehaviour.DEFAULT
+                    }
+
+                    with(channels[63]!!) {
+                        nodeName shouldBe "Box064"
+                        numPositionKeys shouldBe 5
+                        with(positionKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3()
+                        }
+                        with(positionKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3()
+                        }
+                        numRotationKeys shouldBe 5
+                        with(rotationKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Quat(1f, 0f, 0f, 2.38497613e-08f)
+                        }
+                        with(rotationKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Quat(2.90066708e-07f, 0f, 0f, 1f)
+                        }
+                        with(rotationKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Quat(1f, 0f, 0f, 3.49691106e-07f)
+                        }
+                        numScalingKeys shouldBe 5
+                        with(scalingKeys[0]) {
+                            time shouldBe 0.033332999795675278
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[2]) {
+                            time shouldBe 6.0
+                            value shouldBe Vec3(1f)
+                        }
+                        with(scalingKeys[4]) {
+                            time shouldBe 11.966667175292969
+                            value shouldBe Vec3(1f)
+                        }
+                        preState shouldBe AiAnimBehaviour.DEFAULT
+                        postState shouldBe AiAnimBehaviour.DEFAULT
+                    }
+                }
             }
         }
     }

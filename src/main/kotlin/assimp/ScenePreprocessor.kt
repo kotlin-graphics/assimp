@@ -31,15 +31,20 @@ object ScenePreprocessor {
         // - nothing to do for cameras for the moment
 
         // Process all animations
-        scene.mAnimations.forEach { it.process() }
+        scene.animations.forEach { it.process() }
 
         // Generate a default material if none was specified
         if (scene.numMaterials == 0 && scene.numMeshes > 0) {
-            scene.materials = ArrayList(2) // TODO useless
+            scene.materials.add(AiMaterial().apply {
+                color = AiMaterial.Color().apply { diffuse = AiColor3D(0.6f) }
+                // setup the default name to make this material identifiable
+                name = AI_DEFAULT_MATERIAL_NAME
+            })
+            logger.debug{"ScenePreprocessor: Adding default material '$AI_DEFAULT_MATERIAL_NAME'"}
 
-            val helper = AiMaterial()
+            scene.meshes.forEach { it.materialIndex = scene.numMaterials }
 
-            // TODO scene.materials
+            scene.numMaterials++
         }
     }
 

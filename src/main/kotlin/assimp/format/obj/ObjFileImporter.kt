@@ -37,7 +37,7 @@ class ObjFileImporter : BaseImporter() {
     private lateinit var file: File
 
     /** Obj-file import implementation  */
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: URI, scene: AiScene) {
 
         // Read file into memory
         file = File(pFile)
@@ -52,7 +52,7 @@ class ObjFileImporter : BaseImporter() {
         val parser = ObjFileParser(file)
 
         // And create the proper return structures out of it
-        createDataFromImport(parser.m_pModel, pScene)
+        createDataFromImport(parser.m_pModel, scene)
     }
 
     /**  Create the data from parsed obj-file   */
@@ -172,7 +172,7 @@ class ObjFileImporter : BaseImporter() {
             val faces = ArrayList<AiFace>()
 
             if (pObjMesh.m_uiMaterialIndex != Mesh.NoMaterial)
-                pMesh.mMaterialIndex = pObjMesh.m_uiMaterialIndex
+                pMesh.materialIndex = pObjMesh.m_uiMaterialIndex
 
             var outIndex = 0
 
