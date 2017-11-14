@@ -24,8 +24,8 @@ class MakeLeftHandedProcess {
             ProcessMaterial(pScene.materials[a])
 
         // transform all animation channels as well
-        for (a in 0 until pScene.mNumAnimations) {
-            var anim = pScene.mAnimations[a]
+        for (a in 0 until pScene.numAnimations) {
+            var anim = pScene.animations[a]
             for (b in 0 until anim.numChannels) {
                 var nodeAnim = anim.channels[b]
                 if(nodeAnim!=null) ProcessAnimation(nodeAnim)
@@ -102,7 +102,7 @@ class MakeLeftHandedProcess {
     fun ProcessAnimation(pAnim : AiNodeAnim) {
         // position keys
         for(a in 0 until pAnim.numPositionKeys)
-        pAnim.positionKeys[a].mValue.z *= -1.0f
+        pAnim.positionKeys[a].value.z *= -1.0f
 
         // rotation keys
         for(a in 0 until pAnim.numRotationKeys)
@@ -114,8 +114,8 @@ class MakeLeftHandedProcess {
             aiQuaternion rotquat( rotmat);
             pAnim.mRotationKeys[a].mValue = rotquat;
             */
-            pAnim.rotationKeys[a].mValue.x *= -1.0f
-            pAnim.rotationKeys[a].mValue.y *= -1.0f
+            pAnim.rotationKeys[a].value.x *= -1.0f
+            pAnim.rotationKeys[a].value.y *= -1.0f
         }
     }
 

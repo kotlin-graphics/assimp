@@ -579,10 +579,10 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
                     var key = AiQuatKey()
                     key.time = time.toDouble()
-                    key.mValue.w = ReadFloat()
-                    key.mValue.x = ReadFloat()
-                    key.mValue.y = ReadFloat()
-                    key.mValue.z = ReadFloat()
+                    key.value.w = ReadFloat()
+                    key.value.x = ReadFloat()
+                    key.value.y = ReadFloat()
+                    key.value.z = ReadFloat()
                     pAnimBone.mRotKeys.push_back(key)
 
                     CheckForSemicolon()
@@ -597,7 +597,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
                     var key = AiVectorKey()
                     key.time = time.toDouble()
-                    key.mValue = ReadVector3()
+                    key.value = ReadVector3()
 
                     if (keyType == 2)
                         pAnimBone.mPosKeys.push_back(key)

@@ -151,7 +151,7 @@ class XFileImporter : BaseImporter() {
                         var pos = AiVector3D(trafo.a3, trafo.b3, trafo.c3)
 
                         nbone.positionKeys[c].time = time
-                        nbone.positionKeys[c].mValue = pos
+                        nbone.positionKeys[c].value = pos
 
                         // extract scaling
                         var scale = AiVector3D()
@@ -159,7 +159,7 @@ class XFileImporter : BaseImporter() {
                         scale.y = AiVector3D(trafo.a1, trafo.b1, trafo.c1).length()
                         scale.z = AiVector3D(trafo.a2, trafo.b2, trafo.c2).length()
                         nbone.scalingKeys[c].time = time
-                        nbone.scalingKeys[c].mValue = scale
+                        nbone.scalingKeys[c].value = scale
 
                         // reconstruct rotation matrix without scaling
                         var rotmat = AiMatrix3x3(
@@ -169,7 +169,7 @@ class XFileImporter : BaseImporter() {
 
                         // and convert it into a quaternion
                         nbone.rotationKeys[c].time = time
-                        nbone.rotationKeys[c].mValue = rotmat.toQuat()
+                        nbone.rotationKeys[c].value = rotmat.toQuat()
                     }
 
                     // longest lasting key sequence determines duration
@@ -179,21 +179,21 @@ class XFileImporter : BaseImporter() {
                     nbone.numPositionKeys = bone.mPosKeys.size()
                     nbone.positionKeys = ArrayList<AiVectorKey>(0).reserve(nbone.numPositionKeys, {AiVectorKey()})
                     for (c in 0..nbone.numPositionKeys - 1) {
-                        var pos = bone.mPosKeys[c].mValue
+                        var pos = bone.mPosKeys[c].value
 
                         nbone.positionKeys[c].time = bone.mPosKeys[c].time
-                        nbone.positionKeys[c].mValue = pos
+                        nbone.positionKeys[c].value = pos
                     }
 
                     // rotation
                     nbone.numRotationKeys = bone.mRotKeys.size()
                     nbone.rotationKeys = ArrayList<AiQuatKey>(0).reserve(nbone.numRotationKeys, {AiQuatKey()})
                     for (c in 0..nbone.numRotationKeys - 1) {
-                        var rotmat: AiMatrix3x3 = bone.mRotKeys[c].mValue.toMat3()
+                        var rotmat: AiMatrix3x3 = bone.mRotKeys[c].value.toMat3()
 
                         nbone.rotationKeys[c].time = bone.mRotKeys[c].time
-                        nbone.rotationKeys[c].mValue = rotmat.toQuat()
-                        nbone.rotationKeys[c].mValue.w = nbone.rotationKeys[c].mValue.w * -1.0f // needs quat inversion
+                        nbone.rotationKeys[c].value = rotmat.toQuat()
+                        nbone.rotationKeys[c].value.w = nbone.rotationKeys[c].value.w * -1.0f // needs quat inversion
                     }
 
                     // scaling
@@ -216,10 +216,10 @@ class XFileImporter : BaseImporter() {
 
         // store all converted animations in the scene
         if (newAnims.size() > 0) {
-            pScene.mNumAnimations = newAnims.size()
-            pScene.mAnimations = ArrayList<AiAnimation>(pScene.mNumAnimations)
+            pScene.numAnimations = newAnims.size()
+            pScene.animations = ArrayList<AiAnimation>(pScene.numAnimations)
             for (a in 0..newAnims.size() - 1)
-                pScene.mAnimations[a] = newAnims[a]
+                pScene.animations[a] = newAnims[a]
         }
     }
 
@@ -428,9 +428,9 @@ class XFileImporter : BaseImporter() {
                 // find the material in the scene's material list. Either own material
                 // or referenced material, it should already have a valid index
                 if (sourceMesh.mFaceMaterials.size() > 0) {
-                    mesh.mMaterialIndex = (sourceMesh.mMaterials[b].sceneIndex)
+                    mesh.materialIndex = (sourceMesh.mMaterials[b].sceneIndex)
                 } else {
-                    mesh.mMaterialIndex = 0
+                    mesh.materialIndex = 0
                 }
 
                 // Create properly sized data arrays in the mesh. We store unique vertices per face,
