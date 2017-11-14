@@ -42,7 +42,7 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: URI, scene: AiScene) {
 
         val file = File(pFile)
 
@@ -137,17 +137,17 @@ class PlyLoader : BaseImporter() {
         if (avMeshes.isEmpty()) throw Error("Invalid .ply file: Unable to extract mesh data ")
 
         // now generate the output scene object. Fill the material list
-        pScene.numMaterials = avMaterials.size
-        pScene.materials.addAll(avMaterials)
+        scene.numMaterials = avMaterials.size
+        scene.materials.addAll(avMaterials)
 
         // fill the mesh list
-        pScene.numMeshes = avMeshes.size
-        pScene.meshes.addAll(avMeshes)
+        scene.numMeshes = avMeshes.size
+        scene.meshes.addAll(avMeshes)
 
         // generate a simple node structure
-        pScene.rootNode = AiNode()
-        pScene.rootNode.numMeshes = pScene.numMeshes
-        pScene.rootNode.meshes = IntArray(pScene.rootNode.numMeshes, { it })
+        scene.rootNode = AiNode()
+        scene.rootNode.numMeshes = scene.numMeshes
+        scene.rootNode.meshes = IntArray(scene.rootNode.numMeshes, { it })
     }
 
     /** Try to extract vertices from the PLY DOM.     */
@@ -737,7 +737,7 @@ class PlyLoader : BaseImporter() {
 
                 // allocate the mesh object
                 val p_pcOut = AiMesh()
-                p_pcOut.mMaterialIndex = p
+                p_pcOut.materialIndex = p
 
                 p_pcOut.numFaces = aiSplit[p].size
                 p_pcOut.faces = MutableList(aiSplit[p].size, { ArrayList<Int>() })

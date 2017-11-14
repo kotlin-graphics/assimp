@@ -228,7 +228,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
         mesh.mNumBones = bones.size
         mesh.mBones = bones
         // default
-        mesh.mMaterialIndex = 0
+        mesh.materialIndex = 0
         return mesh
     }
 

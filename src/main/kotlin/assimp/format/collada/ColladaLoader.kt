@@ -364,7 +364,7 @@ class ColladaLoader : BaseImporter() {
                 vertexStart += dstMesh.numVertices; faceStart += submesh.mNumFaces
 
                 // assign the material index
-                dstMesh.mMaterialIndex = matIdx
+                dstMesh.materialIndex = matIdx
                 if (dstMesh.name.isEmpty())
                     dstMesh.name = mid.mMeshOrController
             }
@@ -945,22 +945,22 @@ class ColladaLoader : BaseImporter() {
 
         // now store all anims in the scene
         if (mAnims.isNotEmpty()) {
-            scene.mNumAnimations = mAnims.size
-            scene.mAnimations = mAnims
+            scene.numAnimations = mAnims.size
+            scene.animations.addAll(mAnims)
         }
         mAnims.clear()
     }
 
     /** Constructs the animations for the given source anim */
-    fun storeAnimations(pScene: AiScene, pParser: ColladaParser, pSrcAnim: Animation, pPrefix: String) {
+    fun storeAnimations(scene: AiScene, parser: ColladaParser, srcAnim: Animation, prefix: String) {
 
-        val animName = if (pPrefix.isEmpty()) pSrcAnim.mName else "${pPrefix}_${pSrcAnim.mName}"
+        val animName = if (prefix.isEmpty()) srcAnim.mName else "${prefix}_${srcAnim.mName}"
         // create nested animations, if given
-        for (it in pSrcAnim.mSubAnims)
-            storeAnimations(pScene, pParser, it, animName)
+        for (it in srcAnim.mSubAnims)
+            storeAnimations(scene, parser, it, animName)
         // create animation channels, if any
-        if (pSrcAnim.mChannels.isNotEmpty())
-            createAnimation(pScene, pParser, pSrcAnim, animName)
+        if (srcAnim.mChannels.isNotEmpty())
+            createAnimation(scene, parser, srcAnim, animName)
     }
 
     /** Constructs the animation for the given source anim  */
@@ -1010,7 +1010,7 @@ class ColladaLoader : BaseImporter() {
                 if (dotPos != -1) {
                     if (srcChannel.mTarget.indexOf('.', dotPos + 1) != -1) continue
 
-                    entry.mTransformId = srcChannel.mTarget.substring(slashPos + 1, dotPos - 1)
+                    entry.mTransformId = srcChannel.mTarget.substring(slashPos + 1, dotPos)
 
                     val subElement = srcChannel.mTarget.substring(dotPos + 1)
                     entry.mSubElement = when (subElement) {
@@ -1102,11 +1102,9 @@ class ColladaLoader : BaseImporter() {
                         var pos = 0L
                         var postTime = 0f
                         while (true) {
-                            if (pos >= e.mTimeAccessor.count)
-                                break
+                            if (pos >= e.mTimeAccessor.count) break
                             postTime = readFloat(e.mTimeAccessor, e.timeData, pos, 0)
-                            if (postTime >= time)
-                                break
+                            if (postTime >= time) break
                             ++pos
                         }
 
@@ -1198,7 +1196,7 @@ class ColladaLoader : BaseImporter() {
                     dstAnim.positionKeys[a].time = time
                     dstAnim.rotationKeys[a].time = time
                     dstAnim.scalingKeys[a].time = time
-                    mat.decompose(dstAnim.scalingKeys[a].mValue, dstAnim.rotationKeys[a].mValue, dstAnim.positionKeys[a].mValue)
+                    mat.decompose(dstAnim.scalingKeys[a].value, dstAnim.rotationKeys[a].value, dstAnim.positionKeys[a].value)
                 }
                 anims.add(dstAnim)
             } else logger.warn("Collada loader: found empty animation channel, ignored. Please check your exporter.")

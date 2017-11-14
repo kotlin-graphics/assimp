@@ -53,7 +53,7 @@ class AiVectorKey(
         var time: Double = 0.0,
 
         /** The value of this key */
-        var mValue: AiVector3D = AiVector3D())
+        var value: AiVector3D = AiVector3D())
 
 // ---------------------------------------------------------------------------
 /** A time-value pair specifying a rotation for the given time.
@@ -63,7 +63,7 @@ class AiQuatKey(
         var time: Double = 0.0,
 
         /** The value of this key */
-        var mValue: AiQuaternion = AiQuaternion())
+        var value: AiQuaternion = AiQuaternion())
 
 // ---------------------------------------------------------------------------
 /** Binds a anim mesh to a specific point in time. */
@@ -89,8 +89,8 @@ class AiMeshMorphKey(
 
 // ---------------------------------------------------------------------------
 /** Defines how an animation channel behaves outside the defined time
- *  range. This corresponds to aiNodeAnim::mPreState and
- *  aiNodeAnim::mPostState.*/
+ *  range. This corresponds to aiNodeAnim::preState and
+ *  aiNodeAnim::postState.*/
 enum class AiAnimBehaviour(val i: Int) {
     /** The value from the default node transformation is taken*/
     DEFAULT(0x0),
@@ -169,14 +169,14 @@ class AiNodeAnim(
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is used).*/
-        var mPreState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT,
+        var preState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT,
 
         /** Defines how the animation behaves after the last
          *  key was processed.
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is taken).*/
-        var mPostState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT)
+        var postState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT)
 
 // ---------------------------------------------------------------------------
 /** Describes vertex-based animations for a single mesh or a group of

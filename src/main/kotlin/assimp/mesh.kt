@@ -256,7 +256,7 @@ open class AiMesh(
         /** The material used by this mesh.
          * A mesh uses only a single material. If an imported model uses multiple materials, the import splits up the
          * mesh. Use this value as index into the scene's material list.         */
-        var mMaterialIndex: Int = 0,
+        var materialIndex: Int = 0,
 
         /** Name of the mesh. Meshes can be named, but this is not a requirement and leaving this field empty is totally
          * fine.
