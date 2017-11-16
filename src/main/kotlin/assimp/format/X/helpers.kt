@@ -126,11 +126,11 @@ fun isdigit(c: Char): Boolean {
 fun String.length() = length
 
 fun warn(s: String) {
-
+	println(s)
 }
 
 fun debug(s : String) {
-
+	println(s)
 }
 
 

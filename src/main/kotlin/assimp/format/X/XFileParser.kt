@@ -62,10 +62,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
         } else ThrowException("Unsupported xfile format '" + (P + 8)[0..3] + "'")
 
         // float size
-        mBinaryFloatSize = (P[12] - 48).toInt() * 1000
-        +(P[13] - 48).toInt() * 100
-        +(P[14] - 48).toInt() * 10
-        +(P[15] - 48).toInt()
+        mBinaryFloatSize = ((P[12] - 48).toInt() * 1000)+((P[13] - 48).toInt() * 100)        +((P[14] - 48).toInt() * 10)        +((P[15] - 48).toInt())
 
         if (mBinaryFloatSize != 32 && mBinaryFloatSize != 64)
             ThrowException("Unknown float size " + mBinaryFloatSize + " specified in xfile header.")
@@ -75,7 +72,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
         P += 16
 
-        if (compressed) {
+        if (compressed || mIsBinaryFormat) {
             ThrowException("Binary format is currently unsupported")
         } else {
             ReadUntilEndOfLine()
@@ -98,8 +95,10 @@ class XFileParser(pBuffer: Pointer<Char>) {
             if (objectName.length() == 0)
                 break
 
+            println("objectName: " + objectName)
+
             // parse specific object
-            if (objectName == "template")
+            if (objectName.equals("template"))
                 ParseDataObjectTemplate()
             else if (objectName == "Frame")
                 ParseDataObjectFrame(null)
@@ -662,9 +661,9 @@ class XFileParser(pBuffer: Pointer<Char>) {
         while (running) {
             var t = GetNextToken()
             if (t.length() == 0)
-                ThrowException("Unexpected end of file while parsing unknown segment.")
+                ThrowException("Unexpected end of file while parsing unknown segment: " + t)
 
-            if (t == "{")
+            if (t.equals("{"))
                 break
         }
 
@@ -705,7 +704,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
         var token = GetNextToken()
         if (token != "," && token != ";")
-            ThrowException("Separator character (';' or ',') expected.")
+            ThrowException("Separator character (';' or ',') expected: " + token)
     }
 
     fun TestForSeparator() {
@@ -745,10 +744,10 @@ class XFileParser(pBuffer: Pointer<Char>) {
                 // either keep token delimiters when already holding a token, or return if first valid char
                 if (P.value == ';' || P.value == '}' || P.value == '{' || P.value == ',') {
                     if (s.length == 0)
-                        s.append(P++, 1)
+                        s.append(P.value); P++
                     break // stop for delimiter
                 }
-                s.append(P++, 1)
+                s.append(P.value); P++
             }
         }
         return s.toString()
