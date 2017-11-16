@@ -9,6 +9,20 @@ class xfile : StringSpec() {
     val x = models + "/X/"
 
     init {
+
+        val mozd02x = "mozd02.X"
+
+        mozd02x {
+            with(Importer().readFile(x + mozd02x)!!) {
+                with(rootNode) {
+                    println(rootNode.name)
+                    println(children.size)
+                    rootNode.children.forEach({e -> println(e.name)})
+                }
+            }
+        }
+
+
         val testwuson = "Testwuson.X"
 
         testwuson {

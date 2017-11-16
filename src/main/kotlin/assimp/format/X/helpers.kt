@@ -37,11 +37,11 @@ class Pointer<T>(var datas: Array<T>, var pointer: Int = 0) {
 	}
 
 	operator fun get(index: Int): T {
-		return datas[index]
+		return datas[pointer+index]
 	}
 
 	operator fun set(index: Int, value: T) {
-		datas[index] = value
+		datas[pointer+index] = value
 	}
 
 	fun subset(range: IntRange): MutableList<T> {

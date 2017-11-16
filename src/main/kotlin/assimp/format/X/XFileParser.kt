@@ -228,8 +228,8 @@ class XFileParser(pBuffer: Pointer<Char>) {
             pMesh.mPositions.set(a, ReadVector3())
 
         var numPosFaces: Int = ReadInt()
-        pMesh.mPosFaces.resize(numVertices, { Face() })
-        for (a in IntRange(0, numPosFaces - 1)) {
+        pMesh.mPosFaces.resize(numPosFaces, { Face() })
+        for (a in 0 until numPosFaces) {
             var numIndices: Int = ReadInt()
             var face: Face = pMesh.mPosFaces.get(a)
             for (b in IntRange(0, numIndices - 1)) {
