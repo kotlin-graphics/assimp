@@ -54,12 +54,11 @@ fun fast_atoreal_move(_c : Pointer<Char>, out : Pointer<ai_real>, check_comma : 
         return c;
     }
 
-    if (!(c[0] >= '0' && c[0] <= '9') &&
-        !((c[0] == '.' || (check_comma && c[0] == ',')) && c[1] >= '0' && c[1] <= '9'))
+    if ((!(c[0] >= '0' && c[0] <= '9')) && (!((c[0] == '.' || (check_comma && c[0] == ','))) && c[1] >= '0' && c[1] <= '9'))
     {
         throw RuntimeException("Cannot parse string "+
                                     "as real number: does not start with digit "+
-                                    "or decimal point followed by digit.");
+                                    "or decimal point followed by digit: " + c[0..1]);
     }
 
     if (c.value != '.' && (! check_comma || c[0] != ','))

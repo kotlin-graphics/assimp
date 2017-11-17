@@ -95,7 +95,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
             if (objectName.length() == 0)
                 break
 
-            println("objectName: " + objectName)
+            //println("objectName: " + objectName)
 
             // parse specific object
             if (objectName.equals("template"))
@@ -509,17 +509,15 @@ class XFileParser(pBuffer: Pointer<Char>) {
         while (running) {
             var objectName = GetNextToken()
             if (objectName.length() == 0)
-                ThrowException("Unexpected end of file while parsing animation set.")
-            else
-                if (objectName == "}")
-                    break // animation set finished
-                else
-                    if (objectName == "Animation")
-                        ParseDataObjectAnimation(anim)
-                    else {
-                        warn("Unknown data object in animation set in x file")
-                        ParseUnknownDataObject()
-                    }
+                ThrowException("Unexpected end of file while parsing animation set: pointer =" + P.pointer + " total length =" + P.datas.size)
+            else if (objectName == "}")
+                break // animation set finished
+            else if (objectName == "Animation")
+                ParseDataObjectAnimation(anim)
+            else {
+                warn("Unknown data object in animation set in x file")
+                ParseUnknownDataObject()
+            }
         }
     }
 

@@ -111,7 +111,7 @@ class XFileImporter : BaseImporter() {
     fun CreateAnimations(pScene: AiScene, pData: Scene) {
         var newAnims: MutableList<AiAnimation> = mutableListOf()
 
-        for (a in 0..pData.mAnims.size() - 1) {
+        for (a in 0 until pData.mAnims.size()) {
             var anim = pData.mAnims[a]
             // some exporters mock me with empty animation tags.
             if (anim.mAnims.size() == 0)
@@ -127,7 +127,7 @@ class XFileImporter : BaseImporter() {
             nanim.numChannels = anim.mAnims.size()
             nanim.channels = ArrayList<AiNodeAnim?>(0).reserve(nanim.numChannels, {AiNodeAnim()})
 
-            for (b in 0..anim.mAnims.size()) {
+            for (b in 0 until anim.mAnims.size()) {
                 var bone = anim.mAnims[b]
                 var nbone = AiNodeAnim()
                 nbone.nodeName = if (bone.mBoneName == null) "" else bone.mBoneName!!
@@ -178,7 +178,7 @@ class XFileImporter : BaseImporter() {
                     // separate key sequences for position, rotation, scaling
                     nbone.numPositionKeys = bone.mPosKeys.size()
                     nbone.positionKeys = ArrayList<AiVectorKey>(0).reserve(nbone.numPositionKeys, {AiVectorKey()})
-                    for (c in 0..nbone.numPositionKeys - 1) {
+                    for (c in 0 until nbone.numPositionKeys) {
                         var pos = bone.mPosKeys[c].value
 
                         nbone.positionKeys[c].time = bone.mPosKeys[c].time
@@ -188,7 +188,7 @@ class XFileImporter : BaseImporter() {
                     // rotation
                     nbone.numRotationKeys = bone.mRotKeys.size()
                     nbone.rotationKeys = ArrayList<AiQuatKey>(0).reserve(nbone.numRotationKeys, {AiQuatKey()})
-                    for (c in 0..nbone.numRotationKeys - 1) {
+                    for (c in 0 until nbone.numRotationKeys) {
                         var rotmat: AiMatrix3x3 = bone.mRotKeys[c].value.toMat3()
 
                         nbone.rotationKeys[c].time = bone.mRotKeys[c].time
@@ -199,7 +199,7 @@ class XFileImporter : BaseImporter() {
                     // scaling
                     nbone.numScalingKeys = bone.mScaleKeys.size()
                     nbone.scalingKeys = ArrayList<AiVectorKey>(MutableList<AiVectorKey>(nbone.numScalingKeys, { c -> bone.mScaleKeys[c] }))
-                    for (c in 0..nbone.numScalingKeys - 1) {
+                    for (c in 0 until nbone.numScalingKeys) {
                         // nbone.scalingKeys[c] = bone.mScaleKeys[c]
                     }
 
@@ -217,8 +217,8 @@ class XFileImporter : BaseImporter() {
         // store all converted animations in the scene
         if (newAnims.size() > 0) {
             pScene.numAnimations = newAnims.size()
-            pScene.animations = ArrayList<AiAnimation>(pScene.numAnimations)
-            for (a in 0..newAnims.size() - 1)
+            pScene.animations = ArrayList<AiAnimation>(MutableList(pScene.numAnimations, {AiAnimation()}))
+            for (a in 0 until newAnims.size())
                 pScene.animations[a] = newAnims[a]
         }
     }
@@ -226,7 +226,7 @@ class XFileImporter : BaseImporter() {
     fun ConvertMaterials(pScene: AiScene, pMaterials: MutableList<Material>) {
         // count the non-referrer materials in the array
         var numNewMaterials = 0
-        for (a in 0..pMaterials.size() - 1)
+        for (a in 0 until pMaterials.size())
             if (!pMaterials[a].mIsReference)
                 numNewMaterials++
 
@@ -243,11 +243,11 @@ class XFileImporter : BaseImporter() {
         }
 
         // convert all the materials given in the array
-        for (a in 0..pMaterials.size() - 1) {
+        for (a in 0 until pMaterials.size()) {
             var oldMat = pMaterials[a]
             if (oldMat.mIsReference) {
                 // find the material it refers to by name, and store its index
-                for (a in 0..pScene.numMaterials - 1) {
+                for (a in 0 until pScene.numMaterials) {
                     var name: String
                     name = pScene.materials[a].name!!
                     if ((name == oldMat.mName)) {
@@ -306,7 +306,7 @@ class XFileImporter : BaseImporter() {
                 var iSM = 0
                 var iAM = 0
                 var iEM = 0
-                for (b in 0..oldMat.mTextures.size() - 1) {
+                for (b in 0 until oldMat.mTextures.size()) {
                     var otex = oldMat.mTextures[b]
                     var sz = otex.mName
                     if (sz == null || sz.length() == 0) continue
@@ -352,7 +352,7 @@ class XFileImporter : BaseImporter() {
                 }
             }
 
-            pScene.materials[pScene.numMaterials] = mat
+            pScene.materials.add(mat)
             oldMat.sceneIndex = pScene.numMaterials
             pScene.numMaterials++
         }
@@ -375,9 +375,9 @@ class XFileImporter : BaseImporter() {
         // handle childs
         if (pNode.mChildren.size() > 0) {
             node.numChildren = pNode.mChildren.size()
-            node.children = ArrayList<AiNode>(node.numChildren)
+            node.children = ArrayList<AiNode>(MutableList(node.numChildren, {AiNode()}))
 
-            for (a in 0..pNode.mChildren.size() - 1)
+            for (a in 0 until pNode.mChildren.size())
                 node.children[a] = CreateNodes(pScene, node, pNode.mChildren[a])
         }
 
@@ -391,19 +391,19 @@ class XFileImporter : BaseImporter() {
 
         // create a mesh for each mesh-material combination in the source node
         var meshes: MutableList<AiMesh> = mutableListOf()
-        for (a in 0..pMeshes.size() - 1) {
+        for (a in 0 until pMeshes.size()) {
             var sourceMesh = pMeshes[a]
             // first convert its materials so that we can find them with their index afterwards
             ConvertMaterials(pScene, sourceMesh.mMaterials)
 
             var numMaterials = Math.max(sourceMesh.mMaterials.size(), 1)
-            for (b in 0..numMaterials) {
+            for (b in 0 until numMaterials) {
                 // collect the faces belonging to this material
                 var faces: MutableList<Int> = mutableListOf()
                 var numVertices = 0
                 if (sourceMesh.mFaceMaterials.size() > 0) {
                     // if there is a per-face material defined, select the faces with the corresponding material
-                    for (c in 0..sourceMesh.mFaceMaterials.size() - 1) {
+                    for (c in 0 until sourceMesh.mFaceMaterials.size()) {
                         if (sourceMesh.mFaceMaterials[c] == b) {
                             faces.push_back(c)
                             numVertices += sourceMesh.mPosFaces[c].mIndices.size()
@@ -411,7 +411,7 @@ class XFileImporter : BaseImporter() {
                     }
                 } else {
                     // if there is no per-face material, place everything into one mesh
-                    for (c in 0..sourceMesh.mPosFaces.size() - 1) {
+                    for (c in 0 until sourceMesh.mPosFaces.size()) {
                         faces.push_back(c)
                         numVertices += sourceMesh.mPosFaces[c].mIndices.size()
                     }
@@ -447,14 +447,14 @@ class XFileImporter : BaseImporter() {
                 if (sourceMesh.mNormals.size() > 0)
                     mesh.normals = MutableList<AiVector3D>(numVertices, { AiVector3D() })
                 // texture coords
-                for (c in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS - 1) {
-                    if (sourceMesh.mTexCoords[c].size() > 0)
-                        mesh.textureCoords[c] = MutableList<FloatArray>(numVertices, { FloatArray(0) }) //0?
+                for (c in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+                    if (c < sourceMesh.mTexCoords.size && sourceMesh.mTexCoords[c].size() > 0)
+                        mesh.textureCoords.add(MutableList(numVertices, { floatArrayOf(0f, 0f) }))
                 }
                 // vertex colors
-                for (c in 0..AI_MAX_NUMBER_OF_COLOR_SETS - 1) {
-                    if (sourceMesh.mColors[c].size() > 0)
-                        mesh.mColors[c] = MutableList<AiColor4D>(numVertices, { AiColor4D() })
+                for (c in 0 until AI_MAX_NUMBER_OF_COLOR_SETS) {
+                    if (c < sourceMesh.mColors.size && sourceMesh.mColors[c].size() > 0)
+                        mesh.mColors.add(MutableList<AiColor4D>(numVertices, { AiColor4D() }))
                 }
 
                 // now collect the vertex data of all data streams present in the imported mesh
@@ -462,7 +462,7 @@ class XFileImporter : BaseImporter() {
                 var orgPoints: MutableList<Int> = mutableListOf() // from which original point each new vertex stems
                 orgPoints.resize(numVertices, { 0 })
 
-                for (c in 0..faces.size() - 1) {
+                for (c in 0 until faces.size()) {
                     var f = faces[c] // index of the source face
                     var pf = sourceMesh.mPosFaces[f] // position source face
 
@@ -472,7 +472,7 @@ class XFileImporter : BaseImporter() {
                     df = MutableList<Int>(pf.mIndices.size(), { 0 })
 
                     // collect vertex data for indices of this face
-                    for (d in 0..df.size() - 1) {
+                    for (d in 0 until df.size()) {
                         df[d] = newIndex
                         orgPoints[newIndex] = pf.mIndices[d]
 
@@ -483,15 +483,15 @@ class XFileImporter : BaseImporter() {
                             mesh.normals[newIndex] = sourceMesh.mNormals[sourceMesh.mNormFaces[f].mIndices[d]]
 
                         // texture coord sets
-                        for (e in 0..AI_MAX_NUMBER_OF_TEXTURECOORDS) {
-                            if (mesh.hasTextureCoords(e)) {
+                        for (e in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+                            if (e < mesh.textureCoords.size && mesh.hasTextureCoords(e)) {
                                 var tex = sourceMesh.mTexCoords[e][pf.mIndices[d]]
                                 mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f - tex.y, 0.0f).toFloatArray()
                             }
                         }
                         // vertex color sets
-                        for (e in 0..AI_MAX_NUMBER_OF_COLOR_SETS - 1)
-                            if (mesh.hasVertexColors(e))
+                        for (e in 0 until AI_MAX_NUMBER_OF_COLOR_SETS)
+                            if (e < mesh.mColors.size && mesh.hasVertexColors(e))
                                 mesh.mColors[e][newIndex] = sourceMesh.mColors[e][pf.mIndices[d]]
 
                         newIndex++
@@ -504,17 +504,17 @@ class XFileImporter : BaseImporter() {
                 // convert all bones of the source mesh which influence vertices in this newly created mesh
                 var bones = sourceMesh.mBones
                 var newBones: MutableList<AiBone> = mutableListOf()
-                for (c in 0..bones.size() - 1) {
+                for (c in 0 until bones.size()) {
                     var obone = bones[c]
                     // set up a vertex-linear array of the weights for quick searching if a bone influences a vertex
-                    var oldWeights = mutableListOf(sourceMesh.mPositions.size().a, 0.0.a)
-                    for (d in 0..obone.mWeights.size() - 1)
+                    var oldWeights = MutableList(sourceMesh.mPositions.size(), {0.0.a})
+                    for (d in 0 until obone.mWeights.size())
                         oldWeights[obone.mWeights[d].mVertex] = obone.mWeights[d].mWeight
 
                     // collect all vertex weights that influence a vertex in the new mesh
                     var newWeights: ArrayList<AiVertexWeight> = arrayListOf()
                     newWeights.reserve(numVertices) //TODO: Unnecessary?
-                    for (d in 0..orgPoints.size() - 1) {
+                    for (d in 0 until orgPoints.size()) {
                         // does the new vertex stem from an old vertex which was influenced by this bone?
                         var w = oldWeights[orgPoints[d]]
                         if (w > 0.0.a)
@@ -533,7 +533,7 @@ class XFileImporter : BaseImporter() {
                     nbone.offsetMatrix = obone.mOffsetMatrix
                     nbone.numWeights = newWeights.size()
                     nbone.weights = Array<AiVertexWeight>(nbone.numWeights, { AiVertexWeight() })
-                    for (d in 0..newWeights.size() - 1)
+                    for (d in 0 until newWeights.size())
                         nbone.weights[d] = newWeights[d]
                 }
 
@@ -548,7 +548,7 @@ class XFileImporter : BaseImporter() {
 
         // reallocate scene mesh array to be large enough
         var prevArray = pScene.meshes
-        pScene.meshes.reserve(pScene.numMeshes + meshes.size())
+        pScene.meshes.reserve(pScene.numMeshes + meshes.size(), {AiMesh()})
 //        pScene.mMeshes = ArrayList<AiMesh>(pScene.mNumMeshes + meshes.size());
 //        if( prevArray!=null)
 //        {
@@ -562,7 +562,7 @@ class XFileImporter : BaseImporter() {
         pNode.meshes = IntArray(pNode.numMeshes)
 
         // store all meshes in the mesh library of the scene and store their indices in the node
-        for (a in 0..meshes.size()) {
+        for (a in 0 until meshes.size()) {
             pScene.meshes[pScene.numMeshes] = meshes[a]
             pNode.meshes[a] = pScene.numMeshes
             pScene.numMeshes++
