@@ -225,8 +225,8 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
             for (n in 0..2) mesh.normals[it.indices[n]] put nor
         }
         // add the bones
-        mesh.mNumBones = bones.size
-        mesh.mBones = bones
+        mesh.numBones = bones.size
+        mesh.bones = bones
         // default
         mesh.materialIndex = 0
         return mesh

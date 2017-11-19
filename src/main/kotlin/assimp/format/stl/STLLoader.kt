@@ -18,14 +18,12 @@ import java.util.*
 
 class STLImporter : BaseImporter() {
 
+    override val info = AiImporterDesc(
+            name = "Stereolithography (STL) Importer",
+            flags = AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportBinaryFlavour,
+            fileExtensions = listOf("stl"))
+
     companion object {
-
-        val desc = AiImporterDesc(
-                mName = "Stereolithography (STL) Importer",
-                mFlags = AiImporterFlags.SupportTextFlavour or AiImporterFlags.SupportBinaryFlavour,
-                mFileExtensions = "stl"
-        )
-
 
         // A valid binary STL buffer should consist of the following elements, in order:
         // 1) 80 byte header
@@ -224,13 +222,13 @@ class STLImporter : BaseImporter() {
             if ((color and (1 shl 15)) != 0.s) {
 
                 // seems we need to take the color
-                if (pMesh.mColors[0] == null) {
+                if (pMesh.colors[0] == null) {
 
-                    pMesh.mColors[0] = Array(pMesh.numVertices, { AiColor4D(clrColorDefault) }).toMutableList()
+                    pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D(clrColorDefault) }).toMutableList()
 
                     println("STL: Mesh has vertex colors")
                 }
-                val clr = pMesh.mColors[0]!![i * 3]
+                val clr = pMesh.colors[0]!![i * 3]
                 clr.a = 1f
                 val invVal = 1f / 31
                 if (bIsMaterialise) {    // this is reversed
@@ -244,16 +242,16 @@ class STLImporter : BaseImporter() {
                     clr.r = ((color and (0x31 shl 10)) ushr 10) * invVal
                 }
                 // assign the color to all vertices of the face
-                val a = pMesh.mColors[i + 1]
-                pMesh.mColors[i + 1].forEach { it put clr }
-                pMesh.mColors[i + 2].forEach { it put clr }
+                val a = pMesh.colors[i + 1]
+                pMesh.colors[i + 1].forEach { it put clr }
+                pMesh.colors[i + 2].forEach { it put clr }
             }
         }
         // now copy faces
         addFacesToMesh(pMesh);
 
         // use the color as diffuse material color
-        return bIsMaterialise && pMesh.mColors[0] == null
+        return bIsMaterialise && pMesh.colors[0] == null
     }
 
     // ------------------------------------------------------------------------------------------------

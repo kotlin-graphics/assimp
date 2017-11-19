@@ -10,26 +10,22 @@ import java.net.URI
 
 class AssbinLoader : BaseImporter() {
 
-    companion object {
-
-        val desc = AiImporterDesc(
-                mName = ".assbin Importer",
-                mComments = "Gargaj / Conspiracy",
-                mFlags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportCompressedFlavour,
-                mFileExtensions = "assbin"
-        )
-    }
+    override val info = AiImporterDesc(
+                name = ".assbin Importer",
+                comments = "Gargaj / Conspiracy",
+                flags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportCompressedFlavour,
+                fileExtensions = listOf("assbin"))
 
     var shortened = false
     var compressed = false
     private val be = false // big endian TODO glm global?
 
-    override fun canRead(pFile: URI, checkSig: Boolean) =
-            File(pFile).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
+    override fun canRead(file: URI, checkSig: Boolean) =
+            File(file).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
 
-    override fun internReadFile(pFile: URI, scene: AiScene) {
+    override fun internReadFile(file: URI, scene: AiScene) {
 
-        pFile.toURL().openStream().use {
+        file.toURL().openStream().use {
 
             it.skip(44) // signature
 
@@ -82,8 +78,8 @@ class AssbinLoader : BaseImporter() {
         scene.numMeshes = int(be)
         scene.numMaterials = int(be)
         scene.numAnimations = int(be)
-        scene.mNumTextures = int(be)
-        scene.mNumLights = int(be)
+        scene.numTextures = int(be)
+        scene.numLights = int(be)
         scene.numCameras = int(be)
 
         // Read node graph
@@ -103,20 +99,20 @@ class AssbinLoader : BaseImporter() {
             scene.animations.add(AiAnimation().also { readAnimation(it) })
 
         // Read all textures
-        for (i in 0 until scene.mNumTextures)
+        for (i in 0 until scene.numTextures)
             readTexture()
-//            scene.mTextures["$i"] = gli.Texture(AiAnimation().also { readAnimation(it) })
-//        if (scene.mNumTextures > 0) {
-//            scene.mTextures = new aiTexture *[scene->mNumTextures]
-//            for (unsigned int i = 0; i < scene->mNumTextures;++i) {
-//                scene.mTextures[i] = new aiTexture ()
-//                ReadBinaryTexture(stream, scene->mTextures[i])
+//            scene.textures["$i"] = gli.Texture(AiAnimation().also { readAnimation(it) })
+//        if (scene.numTextures > 0) {
+//            scene.textures = new aiTexture *[scene->numTextures]
+//            for (unsigned int i = 0; i < scene->numTextures;++i) {
+//                scene.textures[i] = new aiTexture ()
+//                ReadBinaryTexture(stream, scene->textures[i])
 //            }
 //        }
 
         // Read lights
-        for (i in 0 until scene.mNumLights)
-            scene.mLights = Array(scene.mNumLights, { AiLight().also { readLight(it) } }).toCollection(ArrayList())
+        for (i in 0 until scene.numLights)
+            scene.lights = Array(scene.numLights, { AiLight().also { readLight(it) } }).toCollection(ArrayList())
 
         // Read cameras
         for (i in 0 until scene.numCameras)
@@ -149,7 +145,7 @@ class AssbinLoader : BaseImporter() {
         mesh.primitiveTypes = int(be)
         mesh.numVertices = int(be)
         mesh.numFaces = int(be)
-        mesh.mNumBones = int(be)
+        mesh.numBones = int(be)
         mesh.materialIndex = int(be)
 
         // first of all, write bits for all existent vertex components
@@ -169,11 +165,11 @@ class AssbinLoader : BaseImporter() {
 
         if (c has ASSBIN_MESH_HAS_TANGENTS_AND_BITANGENTS) {
             if (shortened) {
-                TODO()//ReadBounds(stream, mesh->mTangents, mesh->numVertices)
-                //ReadBounds(stream, mesh->mBitangents, mesh->numVertices)
+                TODO()//ReadBounds(stream, mesh->tangents, mesh->numVertices)
+                //ReadBounds(stream, mesh->bitangents, mesh->numVertices)
             } else {   // else write as usual
-                mesh.mTangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
-                mesh.mBitangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
+                mesh.tangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
+                mesh.bitangents = MutableList(mesh.numVertices, { AiVector3D(this, be) })
             }
         }
         for (n in 0 until AI_MAX_NUMBER_OF_COLOR_SETS) {
@@ -181,9 +177,9 @@ class AssbinLoader : BaseImporter() {
                 break
 
             if (shortened)
-                TODO()//ReadBounds(stream, mesh->mColors[n], mesh->numVertices)
+                TODO()//ReadBounds(stream, mesh->colors[n], mesh->numVertices)
             else    // else write as usual
-                mesh.mColors.add(MutableList(mesh.numVertices, { AiColor4D(this) }))
+                mesh.colors.add(MutableList(mesh.numVertices, { AiColor4D(this) }))
         }
         for (n in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
             if (c hasnt ASSBIN_MESH_HAS_TEXCOORD(n))
@@ -215,8 +211,8 @@ class AssbinLoader : BaseImporter() {
             })
 
         // write bones
-        for (i in 0 until mesh.mNumBones)
-            mesh.mBones.add(AiBone().also { readBone(it) })
+        for (i in 0 until mesh.numBones)
+            mesh.bones.add(AiBone().also { readBone(it) })
     }
 
     private fun InputStream.readBone(b: AiBone) {
@@ -341,16 +337,16 @@ class AssbinLoader : BaseImporter() {
         int()   // size
 
         val tex = AiTexture()
-        tex.mWidth = int(be)
-        tex.mWidth = int(be)
+        tex.width = int(be)
+        tex.width = int(be)
         tex.achFormatHint = string(4)
 
         if (!shortened)
             tex.pcData =
-                    if (tex.mHeight == 0)
-                        ByteArray(tex.mWidth, { byte() })
+                    if (tex.height == 0)
+                        ByteArray(tex.width, { byte() })
                     else
-                        ByteArray(tex.mWidth * tex.mHeight * 4, { byte() })
+                        ByteArray(tex.width * tex.height * 4, { byte() })
 
         // TODO
     }
@@ -405,21 +401,21 @@ class AssbinLoader : BaseImporter() {
         int(be)   // size
 
         l.mName = string()
-        l.mType = AiLightSourceType.of(int(be))
+        l.type = AiLightSourceType.of(int(be))
 
-        if (l.mType != AiLightSourceType.DIRECTIONAL) {
-            l.mAttenuationConstant = float(be)
-            l.mAttenuationLinear = float(be)
-            l.mAttenuationQuadratic = float(be)
+        if (l.type != AiLightSourceType.DIRECTIONAL) {
+            l.attenuationConstant = float(be)
+            l.attenuationLinear = float(be)
+            l.attenuationQuadratic = float(be)
         }
 
-        l.mColorDiffuse = AiColor3D(this)
-        l.mColorSpecular = AiColor3D(this)
-        l.mColorAmbient = AiColor3D(this)
+        l.colorDiffuse = AiColor3D(this)
+        l.colorSpecular = AiColor3D(this)
+        l.colorAmbient = AiColor3D(this)
 
-        if (l.mType == AiLightSourceType.SPOT) {
-            l.mAngleInnerCone = float(be)
-            l.mAngleOuterCone = float(be)
+        if (l.type == AiLightSourceType.SPOT) {
+            l.angleInnerCone = float(be)
+            l.angleOuterCone = float(be)
         }
     }
 

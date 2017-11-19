@@ -14,9 +14,9 @@ internal fun aiCreateAnimMesh(mesh: AiMesh): AiAnimMesh {
 //            mNumVertices = mesh.mNumVertices
     )
 
-    mesh.mColors.forEachIndexed { i, _ ->
-        animesh.mColors.add(mutableListOf())
-        animesh.mColors[i] = mesh.mColors[i].toMutableList()
+    mesh.colors.forEachIndexed { i, _ ->
+        animesh.colors.add(mutableListOf())
+        animesh.colors[i] = mesh.colors[i].toMutableList()
     }
 
     for (a in 0 until mesh.textureCoords.size) {

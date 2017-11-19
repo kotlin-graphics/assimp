@@ -16,23 +16,19 @@ import java.nio.file.FileSystemException
 
 class PlyLoader : BaseImporter() {
 
-    companion object {
-
-        val desc = AiImporterDesc(
-                mName = "Stanford Polygon Library (PLY) Importer",
-                mFlags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportTextFlavour,
-                mFileExtensions = "ply"
-        )
-    }
+    override val info = AiImporterDesc(
+                name = "Stanford Polygon Library (PLY) Importer",
+                flags = AiImporterFlags.SupportBinaryFlavour or AiImporterFlags.SupportTextFlavour,
+                fileExtensions = listOf("ply"))
 
     /** Document object model representation extracted from the file */
     lateinit var pcDom: DOM
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
-        val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
+        val extension = file.s.substring(file.s.lastIndexOf('.') + 1)
 
         if (extension == "ply")
             return true
@@ -42,12 +38,12 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, scene: AiScene) {
+    override fun internReadFile(file: URI, scene: AiScene) {
 
-        val file = File(pFile)
+        val file = File(file)
 
         // Check whether we can read from the file
-        if (!file.canRead()) throw FileSystemException("Failed to open PLY file $pFile.")
+        if (!file.canRead()) throw FileSystemException("Failed to open PLY file $file.")
 
         // allocate storage and copy the contents of the file to a memory buffer
         val fileChannel = RandomAccessFile(file, "r").channel
@@ -752,7 +748,7 @@ class PlyLoader : BaseImporter() {
                 p_pcOut.vertices = MutableList(iNum, { AiVector3D() })
 
                 if (avColors.isNotEmpty())
-                    p_pcOut.mColors[0] = ArrayList()
+                    p_pcOut.colors[0] = ArrayList()
                 if (avTexCoords.isNotEmpty())
                     p_pcOut.textureCoords = mutableListOf(MutableList(iNum, { floatArrayOf(0f, 0f) }))
                 if (avNormals.isNotEmpty())
@@ -777,7 +773,7 @@ class PlyLoader : BaseImporter() {
                         p_pcOut.vertices[iVertex] put avPositions[idx]
 
                         if (avColors.isNotEmpty())
-                            p_pcOut.mColors[0][iVertex] put avColors[idx]
+                            p_pcOut.colors[0][iVertex] put avColors[idx]
 
                         if (avTexCoords.isNotEmpty()) {
                             val vec = avTexCoords[idx]

@@ -1,5 +1,8 @@
 package assimp
 
+import glm_.BYTES
+import glm_.mat4x4.Mat4
+
 /**
  * Created by elect on 13/11/2016.
  */
@@ -62,11 +65,16 @@ typealias AiFace = MutableList<Int>
  */
 data class AiVertexWeight(
         //! Index of the vertex which is influenced by the bone.
-        var mVertexId: Int = 0,
+        var vertexId: Int = 0,
 
         //! The strength of the influence in the range (0...1).
         //! The influence from all bones at one vertex amounts to 1.
-        var mWeight: Float = 0f)
+        var weight: Float = 0f
+) {
+    companion object {
+        val size = Int.BYTES + Float.BYTES
+    }
+}
 
 // ---------------------------------------------------------------------------
 /** @brief A single bone of a mesh.
@@ -90,6 +98,9 @@ data class AiBone(
 ) {
     //! Copy constructor
 //    aiBone(const aiBone& other) TODO check if in data
+    companion object {
+        val size = Int.BYTES + Mat4.size
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -129,14 +140,16 @@ enum class AiPrimitiveType(val i: Int) {
     }
 }
 
-infix fun Int.or(other: assimp.AiPrimitiveType) = this or other.i
+infix fun Int.or(other: AiPrimitiveType) = or(other.i)
+infix fun Int.has(other: AiPrimitiveType) = and(other.i) != 0
+infix fun Int.hasnt(other: AiPrimitiveType) = and(other.i) == 0
 
-fun AI_PRIMITIVE_TYPE_FOR_N_INDICES(n: Int) = if (n > 3) assimp.AiPrimitiveType.POLYGON else assimp.AiPrimitiveType.Companion.of(1 shl (n - 1))
+fun AI_PRIMITIVE_TYPE_FOR_N_INDICES(n: Int) = if (n > 3) AiPrimitiveType.POLYGON else AiPrimitiveType.of(1 shl (n - 1))
 
-data class AiAnimMesh (
+data class AiAnimMesh(
         /** Weight of the AnimMesh. */
         var mWeight: Float = 0f
-): assimp.AiMesh()
+) : AiMesh()
 
 /** Enumerates the methods of mesh morphing supported by Assimp.    */
 enum class AiMorphingMethod(val i: Int) {
@@ -211,18 +224,18 @@ open class AiMesh(
          * but the normals for vertices that are only referenced by point or line primitives are undefined and set to
          * qNaN.  See the #normals member for a detailed discussion of qNaNs.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mTangents: MutableList<AiVector3D> = ArrayList(),
+        var tangents: MutableList<AiVector3D> = ArrayList(),
 
         /** Vertex bitangents.
          * The bitangent of a vertex points in the direction of the positive Y texture axis. The array contains
          * normalized vectors, NULL if not present. The array is numVertices in size.
          * @note If the mesh contains tangents, it automatically also contains bitangents.         */
-        var mBitangents: MutableList<AiVector3D> = mutableListOf(),
+        var bitangents: MutableList<AiVector3D> = mutableListOf(),
 
         /** Vertex color sets.
          * A mesh may contain 0 to #AI_MAX_NUMBER_OF_COLOR_SETS vertex colors per vertex. NULL if not present. Each
          * array is numVertices in size if present.         */
-        var mColors: MutableList<MutableList<AiColor4D>> = mutableListOf(),
+        var colors: MutableList<MutableList<AiColor4D>> = mutableListOf(),
 
         /** Vertex texture coords, also known as UV channels.
          * A mesh may contain 0 to AI_MAX_NUMBER_OF_TEXTURECOORDS per vertex. NULL if not present. The array is
@@ -245,13 +258,13 @@ open class AiMesh(
         var faces: MutableList<AiFace> = ArrayList(),
 
         /** The number of bones this mesh contains.
-         * Can be 0, in which case the mBones array is NULL.
+         * Can be 0, in which case the bones array is NULL.
          */
-        var mNumBones: Int = 0,
+        var numBones: Int = 0,
 
         /** The bones of this mesh.
          * A bone consists of a name by which it can be found in the frame hierarchy and a set of vertex weights.         */
-        var mBones: ArrayList<AiBone> = ArrayList(),
+        var bones: ArrayList<AiBone> = ArrayList(),
 
         /** The material used by this mesh.
          * A mesh uses only a single material. If an imported model uses multiple materials, the import splits up the
@@ -293,23 +306,19 @@ open class AiMesh(
     //! It is not possible that it contains tangents and no bitangents
     //! (or the other way round). The existence of one of them
     //! implies that the second is there, too.
-    fun hasTangentsAndBitangents() = mTangents.isNotEmpty() && mBitangents.isNotEmpty() && numVertices > 0
+    fun hasTangentsAndBitangents() = tangents.isNotEmpty() && bitangents.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains a vertex color set
-    //! \param pIndex Index of the vertex color set
-    fun hasVertexColors(pIndex: Int) =
-            if (pIndex >= assimp.AI_MAX_NUMBER_OF_COLOR_SETS)
-                false
-            else
-                mColors[pIndex] != null && numVertices > 0
+    //! \param index Index of the vertex color set
+    fun hasVertexColors(index: Int) =
+            if (index >= assimp.AI_MAX_NUMBER_OF_COLOR_SETS) false
+            else index < colors.size && numVertices > 0
 
     //! Check whether the mesh contains a texture coordinate set
-    //! \param pIndex Index of the texture coordinates set
-    fun hasTextureCoords(pIndex: Int) =
-            if (pIndex >= assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS)
-                false
-            else
-                textureCoords[pIndex].isNotEmpty() && numVertices > 0
+    //! \param index Index of the texture coordinates set
+    fun hasTextureCoords(index: Int) =
+            if (index >= assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS) false
+            else textureCoords[index].isNotEmpty() && numVertices > 0
 
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {
@@ -321,10 +330,14 @@ open class AiMesh(
     //! Get the number of vertex color channels the mesh contains
     fun getNumColorChannels(): Int {
         var n = 0
-        while (n < assimp.AI_MAX_NUMBER_OF_COLOR_SETS && mColors[n] != null) ++n
+        while (n < assimp.AI_MAX_NUMBER_OF_COLOR_SETS && n < colors.size) ++n
         return n
     }
 
     //! Check whether the mesh contains bones
-    fun hasBones() = mBones != null && mNumBones > 0
+    fun hasBones() = bones.isNotEmpty() && numBones > 0
+
+    companion object {
+        val size = 6 * Int.BYTES
+    }
 }

@@ -3,6 +3,7 @@ package assimp
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import mu.KotlinLogging
+import kotlin.math.abs
 
 val logger = KotlinLogging.logger {}
 
@@ -48,7 +49,65 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
         a1 * vector.x + b1 * vector.y + c1 * vector.z + d1,
         a2 * vector.x + b2 * vector.y + c2 * vector.z + d2)
 
+val epsilon = 10e-3f
+val Vec3.isBlack get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilon
 
-var ASSIMP_BUILD_NO_VALIDATEDS_PROCESS = false
+object ASSIMP {
 
-var ASSIMP_BUILD_DEBUG = true
+    object BUILD {
+
+        var DEBUG = true
+
+        object NO {
+
+            var VALIDATEDS_PROCESS = true
+
+            var X_IMPORTER = false
+            var OBJ_IMPORTER = false
+            var AMF_IMPORTER = false
+            var _3DS_IMPORTER = false
+            var MD3_IMPORTER = false
+            var MD2_IMPORTER = false
+            var PLY_IMPORTER = false
+            var MDL_IMPORTER = false
+            var ASE_IMPORTER = false
+            var HMP_IMPORTER = false
+            var SMD_IMPORTER = false
+            var MDC_IMPORTER = false
+            var MD5_IMPORTER = false
+            var STL_IMPORTER = false
+            var LWO_IMPORTER = false
+            var DXF_IMPORTER = false
+            var NFF_IMPORTER = false
+            var RAW_IMPORTER = false
+            var SIB_IMPORTER = false
+            var OFF_IMPORTER = false
+            var AC_IMPORTER = false
+            var BVH_IMPORTER = false
+            var IRRMESH_IMPORTER = false
+            var IRR_IMPORTER = false
+            var Q3D_IMPORTER = false
+            var B3D_IMPORTER = false
+            var COLLADA_IMPORTER = false
+            var TERRAGEN_IMPORTER = false
+            var CSM_IMPORTER = false
+            var _3D_IMPORTER = false
+            var LWS_IMPORTER = false
+            var OGRE_IMPORTER = false
+            var OPENGEX_IMPORTER = false
+            var MS3D_IMPORTER = false
+            var COB_IMPORTER = false
+            var BLEND_IMPORTER = false
+            var Q3BSP_IMPORTER = false
+            var NDO_IMPORTER = false
+            var IFC_IMPORTER = false
+            var XGL_IMPORTER = false
+            var FBX_IMPORTER = false
+            var ASSBIN_IMPORTER = false
+            var GLTF_IMPORTER = false
+            var C4D_IMPORTER = false
+            var _3MF_IMPORTER = false
+            var X3D_IMPORTER = false
+        }
+    }
+}

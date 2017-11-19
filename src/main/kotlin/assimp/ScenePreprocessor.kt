@@ -18,9 +18,10 @@ object ScenePreprocessor {
     lateinit var scene: AiScene
 
     /** Preprocess the current scene     */
-    fun processScene() {
+    fun processScene(scene: AiScene) {
 
         // scene cant be null
+        this.scene = scene
 
         // Process all meshes
         scene.meshes.forEach { it.process() }
@@ -92,10 +93,10 @@ object ScenePreprocessor {
         }
 
         // If tangents and normals are given but no bitangents compute them
-        if (mTangents.isNotEmpty() && normals.isNotEmpty() && mBitangents.isEmpty()) {
-            mBitangents = ArrayList(numVertices)
+        if (tangents.isNotEmpty() && normals.isNotEmpty() && bitangents.isEmpty()) {
+            bitangents = ArrayList(numVertices)
             for (i in 0 until numVertices)
-                mBitangents[i] = normals[i] cross mTangents[i]
+                bitangents[i] = normals[i] cross tangents[i]
         }
     }
 

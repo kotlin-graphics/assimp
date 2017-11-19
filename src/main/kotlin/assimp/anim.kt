@@ -41,6 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
+import glm_.BYTES
+import glm_.quat.Quat
+import glm_.vec3.Vec3
+
 
 /**
  * Created by elect on 29/01/2017.
@@ -53,7 +57,12 @@ class AiVectorKey(
         var time: Double = 0.0,
 
         /** The value of this key */
-        var value: AiVector3D = AiVector3D())
+        var value: AiVector3D = AiVector3D()) {
+
+    companion object {
+        val size = Double.BYTES + Vec3.size
+    }
+}
 
 // ---------------------------------------------------------------------------
 /** A time-value pair specifying a rotation for the given time.
@@ -63,7 +72,12 @@ class AiQuatKey(
         var time: Double = 0.0,
 
         /** The value of this key */
-        var value: AiQuaternion = AiQuaternion())
+        var value: AiQuaternion = AiQuaternion()
+) {
+    companion object {
+        val size = Double.BYTES + Quat.size
+    }
+}
 
 // ---------------------------------------------------------------------------
 /** Binds a anim mesh to a specific point in time. */
@@ -176,7 +190,12 @@ class AiNodeAnim(
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is taken).*/
-        var postState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT)
+        var postState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT){
+
+    companion object {
+        val size = 3 * Int.BYTES
+    }
+}
 
 // ---------------------------------------------------------------------------
 /** Describes vertex-based animations for a single mesh or a group of
@@ -231,4 +250,9 @@ class AiAnimation(
         /** The number of mesh animation channels. Each channel affects a single mesh and defines morphing animation. */
         var numMorphMeshChannels: Int = 0,
         /** The morph mesh animation channels. Each channel affects a single mesh. The array is numMorphMeshChannels in size. */
-        var morphMeshChannels: ArrayList<AiMeshMorphAnim> = ArrayList())
+        var morphMeshChannels: ArrayList<AiMeshMorphAnim> = ArrayList()){
+
+    companion object {
+        val size = 2 *Double.BYTES + 3 * Int.BYTES
+    }
+}
