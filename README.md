@@ -1,6 +1,6 @@
 # assimp
 
-Java (~kotlin) porting of [Assimp](https://github.com/assimp/assimp)
+JVM porting of [Assimp](https://github.com/assimp/assimp)
 
 This port is being written trying to stick as much as possible close to the C version in order to:
 
