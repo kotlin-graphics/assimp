@@ -1,12 +1,17 @@
 package assimp
 
 import assimp.format.ProgressHandler
+import glm_.plus
+import glm_.shl
 import uno.kotlin.uri
 import java.net.URI
 
 /**
  * Created by elect on 13/11/2016.
  */
+
+/** utility to do char4 to uint32 in a portable manner  */
+fun AI_MAKE_MAGIC(string: String) = (string[0] shl 24) + (string[1] shl 16) + (string[2] shl 8) + string[3]
 
 abstract class BaseImporter {
 

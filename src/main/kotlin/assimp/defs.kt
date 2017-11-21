@@ -44,6 +44,7 @@ infix operator fun File.plus(another: String) = File(this, another)
 
 fun URL.exists() = Files.exists(Paths.get(toURI()))
 fun URI.exists() = Files.exists(Paths.get(this))
+val URI.extension get() = path.substringAfterLast('.', "").toLowerCase()
 val URI.s get() = toString()
 
 fun Element.elementChildren(): ArrayList<Element> {

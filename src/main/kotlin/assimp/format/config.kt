@@ -133,7 +133,7 @@ object AiConfig {
          *  the [-1, 1] range. That is, a bounding box for the whole scene is computed, the maximum component is taken
          *  and all meshes are scaled appropriately (uniformly of course!).
          *  This might be useful if you don't know the spatial dimension of the input data  */
-        var PTV_NORMALIZE: Nothing = TODO()
+        var PTV_NORMALIZE = false
 
         /** @brief Configures the #aiProcess_PreTransformVertices step to use a users defined matrix as the scene root
          *  node transformation before transforming vertices.
@@ -438,12 +438,12 @@ object AiConfig {
          */
         var GLOBAL_KEYFRAME = 0
 
-        var MD3_KEYFRAME = GLOBAL_KEYFRAME
-        var MD2_KEYFRAME = GLOBAL_KEYFRAME
-        var MDL_KEYFRAME = GLOBAL_KEYFRAME
-        var MDC_KEYFRAME = GLOBAL_KEYFRAME
-        var SMD_KEYFRAME = GLOBAL_KEYFRAME
-        var UNREAL_KEYFRAME = GLOBAL_KEYFRAME
+        var MD3_KEYFRAME = -1
+        var MD2_KEYFRAME = -1
+        var MDL_KEYFRAME = -1
+        var MDC_KEYFRAME = -1
+        var SMD_KEYFRAME = -1
+        var UNREAL_KEYFRAME = -1
 
         /** @brief  Configures the AC loader to collect all surfaces which have the "Backface cull" flag set
          *  in separate meshes.
@@ -524,7 +524,7 @@ object AiConfig {
          *  The layer index is zero-based and the layer name may not be empty.<br>
          *  Property type: Integer. Default value: all layers are loaded.
          */
-        //var LWO_ONE_LAYER_ONLY: Nothing = TODO()
+        var LWO_ONE_LAYER_ONLY: Nothing = TODO()    // double valence
 
         /** @brief  Configures the MD5 loader to not load the MD5ANIM file for a MD5MESH file automatically.
          *
