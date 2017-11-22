@@ -1,6 +1,7 @@
 package assimp.format.collada
 
 import assimp.*
+import assimp.format.AiConfig
 import glm_.*
 import glm_.func.common.max
 import glm_.func.deg
@@ -20,12 +21,12 @@ class ColladaLoader : BaseImporter() {
     companion object {
 
         val desc = AiImporterDesc(
-                mName = "Collada Importer",
-                mComments = "http://collada.org",
-                mFlags = AiImporterFlags.SupportTextFlavour.i,
-                mMinMajor = 1, mMinMinor = 3,
-                mMaxMajor = 1, mMaxMinor = 5,
-                mFileExtensions = "dae"
+                name = "Collada Importer",
+                comments = "http://collada.org",
+                flags = AiImporterFlags.SupportTextFlavour.i,
+                minMajor = 1, minMinor = 3,
+                maxMajor = 1, maxMinor = 5,
+                fileExtensions = listOf("dae")
         )
     }
 
@@ -59,18 +60,18 @@ class ColladaLoader : BaseImporter() {
     /** Accumulated animations for the target scene */
     val mAnims = ArrayList<AiAnimation>()
 
-    val noSkeletonMesh = false
-    val ignoreUpDirection = false
+    var noSkeletonMesh = AiConfig.Import.NO_SKELETON_MESHES
+    var ignoreUpDirection = AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION
 
     /** Used by FindNameForNode() to generate unique node names */
     var mNodeNameCounter = 0
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
         // check file extension
-        val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
+        val extension = file.s.substring(file.s.lastIndexOf('.') + 1)
 
         if (extension == "dae")
             return true
@@ -83,10 +84,10 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, scene: AiScene) {
-        mFileName = pFile
+    override fun internReadFile(file: URI, scene: AiScene) {
+        mFileName = file
         // parse the input file
-        val parser = ColladaParser(pFile)
+        val parser = ColladaParser(file)
         if (parser.mRootNode == null) throw Error("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)
@@ -182,51 +183,51 @@ class ColladaLoader : BaseImporter() {
         }
 
         // now fill our ai data structure
-        val out = AiLight(mName = pTarget.name, mType = srcLight.mType)
+        val out = AiLight(mName = pTarget.name, type = srcLight.mType)
 
         // collada lights point in -Z by default, rest is specified in node transform
         out.mDirection.put(0f, 0f, -1f)
 
-        out.mAttenuationConstant = srcLight.mAttConstant
-        out.mAttenuationLinear = srcLight.mAttLinear
-        out.mAttenuationQuadratic = srcLight.mAttQuadratic
+        out.attenuationConstant = srcLight.mAttConstant
+        out.attenuationLinear = srcLight.mAttLinear
+        out.attenuationQuadratic = srcLight.mAttQuadratic
 
         val intensity = srcLight.mColor * srcLight.mIntensity
-        out.mColorDiffuse = intensity
-        out.mColorSpecular = intensity
-        out.mColorAmbient = intensity
-        if (out.mType == AiLightSourceType.AMBIENT) {
-            out.mColorDiffuse = AiColor3D(0)
-            out.mColorSpecular = AiColor3D(0)
-            out.mColorAmbient = srcLight.mColor * srcLight.mIntensity
+        out.colorDiffuse = intensity
+        out.colorSpecular = intensity
+        out.colorAmbient = intensity
+        if (out.type == AiLightSourceType.AMBIENT) {
+            out.colorDiffuse = AiColor3D(0)
+            out.colorSpecular = AiColor3D(0)
+            out.colorAmbient = srcLight.mColor * srcLight.mIntensity
         } else {
             // collada doesn't differentiate between these color types
-            out.mColorDiffuse = intensity
-            out.mColorSpecular = intensity
-            out.mColorAmbient = AiColor3D(0)
+            out.colorDiffuse = intensity
+            out.colorSpecular = intensity
+            out.colorAmbient = AiColor3D(0)
         }
 
         // convert falloff angle and falloff exponent in our representation, if given
-        if (out.mType == AiLightSourceType.SPOT) {
+        if (out.type == AiLightSourceType.SPOT) {
 
-            out.mAngleInnerCone = srcLight.mFalloffAngle.rad
+            out.angleInnerCone = srcLight.mFalloffAngle.rad
 
             // ... some extension magic.
             if (srcLight.mOuterAngle >= ASSIMP_COLLADA_LIGHT_ANGLE_NOT_SET * (1 - 1e-6f)) {
                 // ... some deprecation magic.
                 if (srcLight.mPenumbraAngle >= ASSIMP_COLLADA_LIGHT_ANGLE_NOT_SET * (1 - 1e-6f))
                 // Need to rely on falloff_exponent. I don't know how to interpret it, so I need to guess .... epsilon chosen to be 0.1
-                    out.mAngleOuterCone = glm.acos(glm.pow(.1f, 1f / srcLight.mFalloffExponent)) + out.mAngleInnerCone
+                    out.angleOuterCone = glm.acos(glm.pow(.1f, 1f / srcLight.mFalloffExponent)) + out.angleInnerCone
                 else {
-                    out.mAngleOuterCone = out.mAngleInnerCone + srcLight.mPenumbraAngle.rad
-                    if (out.mAngleOuterCone < out.mAngleInnerCone) {
-                        val temp = out.mAngleInnerCone
-                        out.mAngleInnerCone = out.mAngleOuterCone
-                        out.mAngleOuterCone = temp
+                    out.angleOuterCone = out.angleInnerCone + srcLight.mPenumbraAngle.rad
+                    if (out.angleOuterCone < out.angleInnerCone) {
+                        val temp = out.angleInnerCone
+                        out.angleInnerCone = out.angleOuterCone
+                        out.angleOuterCone = temp
                     }
                 }
             } else
-                out.mAngleOuterCone = srcLight.mOuterAngle.rad
+                out.angleOuterCone = srcLight.mOuterAngle.rad
         }
 
         // add to light list
@@ -398,11 +399,11 @@ class ColladaLoader : BaseImporter() {
 
         // tangents, if given.
         if (pSrcMesh.mTangents.size >= pStartVertex + numVertices)
-            dstMesh.mTangents = pSrcMesh.mTangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.tangents = pSrcMesh.mTangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
 
         // bitangents, if given.
         if (pSrcMesh.mBitangents.size >= pStartVertex + numVertices)
-            dstMesh.mBitangents = pSrcMesh.mBitangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.bitangents = pSrcMesh.mBitangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
 
         // same for texturecoords, as many as we have empty slots are not allowed, need to pack and adjust UV indexes accordingly
         for (texNumber in 0 until pSrcMesh.mTexCoords.size) {
@@ -416,10 +417,10 @@ class ColladaLoader : BaseImporter() {
 
         // same for vertex colors, as many as we have. again the same packing to avoid empty slots
         for (colorNumber in 0 until pSrcMesh.mColors.size) {
-            dstMesh.mColors.add(mutableListOf())
+            dstMesh.colors.add(mutableListOf())
             if (pSrcMesh.mColors.size >= pStartVertex + numVertices)
                 for (v in 0 until numVertices)
-                    dstMesh.mColors[colorNumber].add(pSrcMesh.mColors[colorNumber][pStartVertex + v])
+                    dstMesh.colors[colorNumber].add(pSrcMesh.mColors[colorNumber][pStartVertex + v])
         }
 
         // create faces. Due to the fact that each face uses unique vertices, we can simply count up on each vertex
@@ -541,7 +542,7 @@ class ColladaLoader : BaseImporter() {
 
                     // one day I gonna kill that XSI Collada exporter
                     if (weight > 0f)
-                        dstBones[jointIndex.i].add(AiVertexWeight(mVertexId = (a - pStartVertex).ui.v, mWeight = weight))
+                        dstBones[jointIndex.i].add(AiVertexWeight(vertexId = (a - pStartVertex).ui.v, weight = weight))
                 }
             }
 
@@ -549,7 +550,7 @@ class ColladaLoader : BaseImporter() {
             val numRemainingBones = dstBones.filter { it.isNotEmpty() }.size
 
             // create bone array and copy bone weights one by one
-            dstMesh.mNumBones = numRemainingBones
+            dstMesh.numBones = numRemainingBones
             for (a in 0 until numBones) {
 
                 // omit bones without weights
@@ -577,7 +578,7 @@ class ColladaLoader : BaseImporter() {
                 else logger.warn { "ColladaLoader::CreateMesh(): could not find corresponding node for joint \"${bone.name}\"." }
 
                 // and insert bone
-                dstMesh.mBones.add(bone)
+                dstMesh.bones.add(bone)
             }
         }
         return dstMesh
@@ -795,7 +796,7 @@ class ColladaLoader : BaseImporter() {
             tex.achFormatHint = image.mEmbeddedFormat.substring(0, 4)
 
             // and copy texture data
-            tex.mWidth = image.mImageData.size
+            tex.width = image.mImageData.size
             tex.pcData = image.mImageData.clone()
 
             // setup texture reference string
@@ -880,9 +881,9 @@ class ColladaLoader : BaseImporter() {
 
     /** Stores all lights in the given scene    */
     fun storeSceneLights(pScene: AiScene) {
-        pScene.mNumLights = mLights.size
+        pScene.numLights = mLights.size
         if (mLights.isNotEmpty()) {
-            pScene.mLights.addAll(mLights)
+            pScene.lights.addAll(mLights)
             mLights.clear()
         }
     }
@@ -1293,6 +1294,15 @@ class ColladaLoader : BaseImporter() {
     /** no value at key found, try to interpolate if present at other keys. if not, return zero
      *  TODO: interpolation */
     fun getWeightAtKey(_val: MorphTimeValues, value: Int) = _val.keys.firstOrNull { it.value == value }?.weight ?: 0f
+
+    /** Return importer meta information.
+     *  See BaseImporter.info for the details */
+    override val info = desc
+
+    override fun setupProperties(imp:Importer)    {
+        noSkeletonMesh = AiConfig.Import.NO_SKELETON_MESHES
+        ignoreUpDirection = AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION
+    }
 
     //
     // ColladaLoader.h -----------------------------------------------------------------------------------------------------

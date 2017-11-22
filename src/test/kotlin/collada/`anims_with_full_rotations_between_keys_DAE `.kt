@@ -14,7 +14,7 @@ import uno.kotlin.uri
  * Created by elect on 24/01/2017.
  */
 
-class anims_with_full_rotations_between_keys_DAE : StringSpec() {
+class `anims_with_full_rotations_between_keys DAE` : StringSpec() {
 
     init {
         val file = "anims_with_full_rotations_between_keys.dae"

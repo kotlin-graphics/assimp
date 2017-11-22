@@ -14,21 +14,17 @@ const val ObjMinSize = 16
 
 class ObjFileImporter : BaseImporter() {
 
-    companion object {
-
-        val desc = AiImporterDesc(
-                mName = "Wavefront Object Importer",
-                mComments = "surfaces not supported",
-                mFlags = AiImporterFlags.SupportTextFlavour.i,
-                mFileExtensions = "obj"
-        )
-    }
+    override val info = AiImporterDesc(
+                name = "Wavefront Object Importer",
+                comments = "surfaces not supported",
+                flags = AiImporterFlags.SupportTextFlavour.i,
+                fileExtensions = listOf("obj"))
 
     /**  Returns true, if file is an obj file.  */
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
         if (!checkSig)   //Check File Extension
-            return pFile.s.substring(pFile.s.lastIndexOf('.') + 1) == "obj"
+            return file.s.substring(file.s.lastIndexOf('.') + 1) == "obj"
         else //Check file Header
             return false
     }
@@ -37,19 +33,19 @@ class ObjFileImporter : BaseImporter() {
     private lateinit var file: File
 
     /** Obj-file import implementation  */
-    override fun internReadFile(pFile: URI, scene: AiScene) {
+    override fun internReadFile(file: URI, scene: AiScene) {
 
         // Read file into memory
-        file = File(pFile)
-        if (!file.canRead()) throw FileSystemException("Failed to open file $pFile.")
+        this.file = File(file)
+        if (!this.file.canRead()) throw FileSystemException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = file.length()
+        val fileSize = this.file.length()
 
         if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(file)
+        val parser = ObjFileParser(this.file)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, scene)
@@ -232,7 +228,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
-            pMesh.mColors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
+            pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
@@ -263,7 +259,7 @@ class ObjFileImporter : BaseImporter() {
 
                 // Copy all vertex colors
                 if (pModel.m_VertexColors.isNotEmpty())
-                    pMesh.mColors[0][newIndex] put pModel.m_VertexColors[vertex]
+                    pMesh.colors[0][newIndex] put pModel.m_VertexColors[vertex]
 
                 // Copy all texture coordinates
                 if (pModel.m_TextureCoord.isNotEmpty() && vertexIndex < pSourceFace.m_texturCoords.size) {
@@ -414,7 +410,7 @@ class ObjFileImporter : BaseImporter() {
                 // TODO handle file null?
                 val name = tex.file!!
 
-                if (!scene.mTextures.containsKey(name)) {
+                if (!scene.textures.containsKey(name)) {
 
                     var i = 0
                     while (!name[i].isLetter()) i++
@@ -422,7 +418,7 @@ class ObjFileImporter : BaseImporter() {
 
                     val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
 
-                    scene.mTextures[name] = gli.load(texFile.toPath())
+                    scene.textures[name] = gli.load(texFile.toPath())
                 }
             }
         }

@@ -1,5 +1,7 @@
 package assimp
 
+import glm_.BYTES
+import glm_.vec3.Vec3
 import java.nio.ByteBuffer
 
 /**
@@ -13,23 +15,23 @@ class AiTexture {
 
     /** Width of the texture, in pixels
      *
-     * If mHeight is zero the texture is compressed in a format like JPEG. In this case mWidth specifies the size of the memory area pcData is pointing to, in bytes.     */
-    var mWidth = 0  // ColladaParser.findFilenameForEffectTexture lies on this to be 0 at start, if you have to change it, check it
+     * If height is zero the texture is compressed in a format like JPEG. In this case width specifies the size of the memory area pcData is pointing to, in bytes.     */
+    var width = 0  // ColladaParser.findFilenameForEffectTexture lies on this to be 0 at start, if you have to change it, check it
 
     /** Height of the texture, in pixels
      *
      * If this value is zero, pcData points to an compressed texture in any format (e.g. JPEG).      */
-    var mHeight = 0
+    var height = 0
 
     /** A hint from the loader to make it easier for applications to determine the type of embedded textures.
      *
-     * If mHeight != 0 this member is show how data is packed. Hint will consist of two parts: channel order and channel bitness (count of the bits for every color
+     * If height != 0 this member is show how data is packed. Hint will consist of two parts: channel order and channel bitness (count of the bits for every color
      * channel). For simple parsing by the viewer it's better to not omit absent color channel and just use 0 for bitness. For example:
      * 1. Image contain RGBA and 8 bit per channel, achFormatHint == "rgba8888";
      * 2. Image contain ARGB and 8 bit per channel, achFormatHint == "argb8888";
      * 3. Image contain RGB and 5 bit for R and B channels and 6 bit for G channel, achFormatHint == "rgba5650";
      * 4. One color image with B channel and 1 bit for it, achFormatHint == "rgba0010";
-     * If mHeight == 0 then achFormatHint is set set to '\\0\\0\\0\\0' if the loader has no additional information about the texture file format used OR the file
+     * If height == 0 then achFormatHint is set set to '\\0\\0\\0\\0' if the loader has no additional information about the texture file format used OR the file
      * extension of the format without a trailing dot. If there are multiple file extensions for a format, the shortest extension is chosen (JPEG maps to 'jpg',
      * not to 'jpeg').
      * E.g. 'dds\\0', 'pcx\\0', 'jpg\\0'.  All characters are lower-case.
@@ -38,11 +40,11 @@ class AiTexture {
 
     /** Data of the texture.
      *
-     * Points to an array of mWidth * mHeight aiTexel's.
+     * Points to an array of width * height aiTexel's.
      * The format of the texture data is always ARGB8888 to
      * make the implementation for user of the library as easy
-     * as possible. If mHeight = 0 this is a pointer to a memory
-     * buffer of size mWidth containing the compressed texture
+     * as possible. If height = 0 this is a pointer to a memory
+     * buffer of size width containing the compressed texture
      * data. Good luck, have fun!
      */
     var pcData = byteArrayOf()
@@ -256,6 +258,9 @@ class AiTexture {
          *  Mutually exclusive with #aiTextureFlags_UseAlpha.     */
         ignoreAlpha(0x4)
     }
+    companion object {
+        val size = 2 * Int.BYTES
+    }
 }
 
 
@@ -421,7 +426,11 @@ data class AiMaterial(
             var transparent: AiColor3D? = null,
 
             var reflective: AiColor3D? = null // TODO unsure
-    )
+    ) {
+        companion object {
+            val size = 6  * Vec3.size
+        }
+    }
 
     data class Texture(
 
@@ -446,5 +455,13 @@ data class AiMaterial(
             var flags: Int? = null,
 
             var uvTrafo: AiUVTransform? = null
-    )
+    ) {
+        companion object {
+            val size = 8 * Int.BYTES + Float.BYTES + Vec3.size
+        }
+    }
+
+    companion object {
+        val size = 4 * Int.BYTES + 6 * Float.BYTES + Color.size + Texture.size
+    }
 }

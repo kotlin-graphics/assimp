@@ -52,10 +52,10 @@ class stl : StringSpec() {
                     normals[1] shouldBe Vec3(0, 0, 1)
                     normals[2] shouldBe Vec3(0, 0, 1)
 
-                    mTangents.isEmpty() shouldBe true
-                    mBitangents.isEmpty() shouldBe true
+                    tangents.isEmpty() shouldBe true
+                    bitangents.isEmpty() shouldBe true
 
-                    mColors.all { it.isEmpty() } shouldBe true
+                    colors.all { it.isEmpty() } shouldBe true
 
                     textureCoords.all { it.isEmpty() } shouldBe true
 
@@ -64,7 +64,7 @@ class stl : StringSpec() {
                     var p = 0
                     faces[0].all { it == p++ } shouldBe true
 
-                    mNumBones shouldBe 0
+                    numBones shouldBe 0
 
                     name shouldBe ""
 
@@ -77,9 +77,9 @@ class stl : StringSpec() {
 
                     with(color!!) {
 
-                        diffuse shouldBe Vec3(0.6)
-                        specular shouldBe Vec3(0.6)
-                        ambient shouldBe Vec3(0.05)
+                        diffuse shouldBe Vec3(1f)
+                        specular shouldBe Vec3(1f)
+                        ambient shouldBe Vec3(1f)
                     }
                 }
             }
@@ -137,10 +137,10 @@ class stl : StringSpec() {
                     normals[800] shouldBe Vec3(0.449999988, -0.200000003, 0.870000005)
                     normals[854] shouldBe Vec3(0.129999995, 0.129999995, 0.980000019)
 
-                    mTangents.isEmpty() shouldBe true
-                    mBitangents.isEmpty() shouldBe true
+                    tangents.isEmpty() shouldBe true
+                    bitangents.isEmpty() shouldBe true
 
-                    mColors.all { it.isEmpty() } shouldBe true
+                    colors.all { it.isEmpty() } shouldBe true
 
                     textureCoords.all { it.isEmpty() } shouldBe true
 
@@ -149,7 +149,7 @@ class stl : StringSpec() {
                     var p = 0
                     faces[0].all { it == p++ } shouldBe true
 
-                    mNumBones shouldBe 0
+                    numBones shouldBe 0
 
                     name shouldBe ""
 
@@ -162,9 +162,9 @@ class stl : StringSpec() {
 
                     with(color!!) {
 
-                        diffuse shouldBe Vec3(0.6)
-                        specular shouldBe Vec3(0.6)
-                        ambient shouldBe Vec3(0.05)
+                        diffuse shouldBe Vec3(1f)
+                        specular shouldBe Vec3(1f)
+                        ambient shouldBe Vec3(1f)
                     }
                 }
             }
@@ -222,10 +222,10 @@ class stl : StringSpec() {
                     normals[4000] shouldBe Vec3(0.147421882, 0.461364329, -0.874877036)
                     normals[4103] shouldBe Vec3(0.780922532, 0.308308363, 0.543236554)
 
-                    mTangents.isEmpty() shouldBe true
-                    mBitangents.isEmpty() shouldBe true
+                    tangents.isEmpty() shouldBe true
+                    bitangents.isEmpty() shouldBe true
 
-                    mColors.all { it.isEmpty() } shouldBe true
+                    colors.all { it.isEmpty() } shouldBe true
 
                     textureCoords.all { it.isEmpty() } shouldBe true
 
@@ -234,7 +234,7 @@ class stl : StringSpec() {
                     var p = 0
                     faces[0].all { it == p++ } shouldBe true
 
-                    mNumBones shouldBe 0
+                    numBones shouldBe 0
 
                     name shouldBe ""
 
@@ -247,9 +247,9 @@ class stl : StringSpec() {
 
                     with(color!!) {
 
-                        diffuse shouldBe Vec3(0.6)
-                        specular shouldBe Vec3(0.6)
-                        ambient shouldBe Vec3(0.05)
+                        diffuse shouldBe Vec3(1f)
+                        specular shouldBe Vec3(1f)
+                        ambient shouldBe Vec3(1f)
                     }
                 }
             }

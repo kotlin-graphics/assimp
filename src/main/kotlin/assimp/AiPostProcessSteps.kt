@@ -398,4 +398,6 @@ enum class AiPostProcessSteps(@JvmField val i: Int) {
 }
 
 infix fun Int.has(b: AiPostProcessSteps) = and(b.i) != 0
+infix fun Int.hasnt(b: AiPostProcessSteps) = and(b.i) == 0
+infix fun Int.or(b: AiPostProcessSteps) = or(b.i)
 infix fun Int.wo(b: AiPostProcessSteps) = and(b.i.inv())

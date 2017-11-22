@@ -41,8 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
+import glm_.BYTES
 import glm_.f
 import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 
 // ---------------------------------------------------------------------------
 /** Helper structure to describe a virtual camera.
@@ -83,83 +85,83 @@ import glm_.mat4x4.Mat4
  * camera already look in the right direction.
  *
  */
-class AiCamera (
+class AiCamera(
         /** The name of the camera.
-     *
-     *  There must be a node in the scenegraph with the same name.
-     *  This node specifies the position of the camera in the scene
-     *  hierarchy and can be animated.
-     */
-    var name:String = "",
+         *
+         *  There must be a node in the scenegraph with the same name.
+         *  This node specifies the position of the camera in the scene
+         *  hierarchy and can be animated.
+         */
+        var name: String = "",
 
         /** Position of the camera relative to the coordinate space
-     *  defined by the corresponding node.
-     *
-     *  The default value is 0|0|0.
-     */
-    var position: AiVector3D = AiVector3D(),
+         *  defined by the corresponding node.
+         *
+         *  The default value is 0|0|0.
+         */
+        var position: AiVector3D = AiVector3D(),
 
 
         /** 'Up' - vector of the camera coordinate system relative to
-     *  the coordinate space defined by the corresponding node.
-     *
-     *  The 'right' vector of the camera coordinate system is
-     *  the cross product of  the up and lookAt vectors.
-     *  The default value is 0|1|0. The vector
-     *  may be normalized, but it needn't.
-     */
-    var up: AiVector3D = AiVector3D(0, 1, 0),
+         *  the coordinate space defined by the corresponding node.
+         *
+         *  The 'right' vector of the camera coordinate system is
+         *  the cross product of  the up and lookAt vectors.
+         *  The default value is 0|1|0. The vector
+         *  may be normalized, but it needn't.
+         */
+        var up: AiVector3D = AiVector3D(0, 1, 0),
 
 
         /** 'LookAt' - vector of the camera coordinate system relative to
-     *  the coordinate space defined by the corresponding node.
-     *
-     *  This is the viewing direction of the user.
-     *  The default value is 0|0|1. The vector
-     *  may be normalized, but it needn't.
-     */
-    var lookAt: AiVector3D = AiVector3D(0, 0, 1),
+         *  the coordinate space defined by the corresponding node.
+         *
+         *  This is the viewing direction of the user.
+         *  The default value is 0|0|1. The vector
+         *  may be normalized, but it needn't.
+         */
+        var lookAt: AiVector3D = AiVector3D(0, 0, 1),
 
 
         /** Half horizontal field of view angle, in radians.
-     *
-     *  The field of view angle is the angle between the center
-     *  line of the screen and the left or right border.
-     *  The default value is 1/4PI.
-     */
-    var horizontalFOV:Float = .25f * Math.PI.f, // TODO glm
+         *
+         *  The field of view angle is the angle between the center
+         *  line of the screen and the left or right border.
+         *  The default value is 1/4PI.
+         */
+        var horizontalFOV: Float = .25f * Math.PI.f, // TODO glm
 
         /** Distance of the near clipping plane from the camera.
-     *
-     * The value may not be 0.f (for arithmetic reasons to prevent
-     * a division through zero). The default value is 0.1f.
-     */
-    var clipPlaneNear:Float = .1f,
+         *
+         * The value may not be 0.f (for arithmetic reasons to prevent
+         * a division through zero). The default value is 0.1f.
+         */
+        var clipPlaneNear: Float = .1f,
 
         /** Distance of the far clipping plane from the camera.
-     *
-     * The far clipping plane must, of course, be further away than the
-     * near clipping plane. The default value is 1000.f. The ratio
-     * between the near and the far plane should not be too
-     * large (between 1000-10000 should be ok) to avoid floating-point
-     * inaccuracies which could lead to z-fighting.
-     */
-    var clipPlaneFar:Float = 1_000f,
+         *
+         * The far clipping plane must, of course, be further away than the
+         * near clipping plane. The default value is 1000.f. The ratio
+         * between the near and the far plane should not be too
+         * large (between 1000-10000 should be ok) to avoid floating-point
+         * inaccuracies which could lead to z-fighting.
+         */
+        var clipPlaneFar: Float = 1_000f,
 
 
         /** Screen aspect ratio.
-     *
-     * This is the ration between the width and the height of the
-     * screen. Typical values are 4/3, 1/2 or 1/1. This value is
-     * 0 if the aspect ratio is not defined in the source file.
-     * 0 is also the default value.
-     */
-    var aspect:Float = 0f) {
+         *
+         * This is the ration between the width and the height of the
+         * screen. Typical values are 4/3, 1/2 or 1/1. This value is
+         * 0 if the aspect ratio is not defined in the source file.
+         * 0 is also the default value.
+         */
+        var aspect: Float = 0f) {
 
     /** @brief Get a *right-handed* camera matrix from me
      *  @param out Camera matrix to be filled
      */
-    fun getCameraMatrix (mat: Mat4) {
+    fun getCameraMatrix(mat: Mat4) {
 
         /** todo: test ... should work, but i'm not absolutely sure */
 
@@ -189,5 +191,9 @@ class AiCamera (
 //
 //        out.d1 = out.d2 = out.d3 = 0.f;
 //        out.d4 = 1.f;
+    }
+
+    companion object {
+        val size = 3 * Vec3.size + 4 * Float.BYTES
     }
 }

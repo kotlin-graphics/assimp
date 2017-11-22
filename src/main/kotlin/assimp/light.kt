@@ -41,6 +41,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
+import glm_.BYTES
+import glm_.vec3.Vec3
+
 /**
  * Created by elect on 29/01/2017.
  */
@@ -81,7 +84,7 @@ enum class AiLightSourceType(val i: Int) {
     AREA(0x5);
 
     companion object {
-        fun of(i:Int) = values().first { it.i == i }
+        fun of(i: Int) = values().first { it.i == i }
     }
 }
 
@@ -106,13 +109,13 @@ class AiLight(
          *  This node specifies the position of the light in the scene
          *  hierarchy and can be animated.
          */
-        var mName:String = "",
+        var mName: String = "",
 
         /** The type of the light source.
          *
          * aiLightSource_UNDEFINED is not a valid value for this member.
          */
-        var mType: AiLightSourceType = AiLightSourceType.UNDEFINED,
+        var type: AiLightSourceType = AiLightSourceType.UNDEFINED,
 
         /** Position of the light source in space. Relative to the
          *  transformation of the node corresponding to the light.
@@ -147,7 +150,7 @@ class AiLight(
          *  This member corresponds to the att0 variable in the equation.
          *  Naturally undefined for directional lights.
          */
-        var mAttenuationConstant:Float = 0f,
+        var attenuationConstant: Float = 0f,
 
         /** Linear light attenuation factor.
          *
@@ -159,7 +162,7 @@ class AiLight(
          *  This member corresponds to the att1 variable in the equation.
          *  Naturally undefined for directional lights.
          */
-        var mAttenuationLinear:Float = 1f,
+        var attenuationLinear: Float = 1f,
 
         /** Quadratic light attenuation factor.
          *
@@ -171,7 +174,7 @@ class AiLight(
          *  This member corresponds to the att2 variable in the equation.
          *  Naturally undefined for directional lights.
          */
-        var mAttenuationQuadratic:Float = 0f,
+        var attenuationQuadratic: Float = 0f,
 
         /** Diffuse color of the light source
          *
@@ -179,7 +182,7 @@ class AiLight(
          *  material color to obtain the final color that contributes
          *  to the diffuse shading term.
          */
-        var mColorDiffuse: AiColor3D = AiColor3D(),
+        var colorDiffuse: AiColor3D = AiColor3D(),
 
         /** Specular color of the light source
          *
@@ -187,7 +190,7 @@ class AiLight(
          *  material color to obtain the final color that contributes
          *  to the specular shading term.
          */
-        var mColorSpecular: AiColor3D = AiColor3D(),
+        var colorSpecular: AiColor3D = AiColor3D(),
 
         /** Ambient color of the light source
          *
@@ -197,7 +200,7 @@ class AiLight(
          *  this value it, is just a remaining of the fixed-function pipeline
          *  that is still supported by quite many file formats.
          */
-        var mColorAmbient: AiColor3D = AiColor3D(),
+        var colorAmbient: AiColor3D = AiColor3D(),
 
         /** Inner angle of a spot light's light cone.
          *
@@ -205,7 +208,7 @@ class AiLight(
          *  angle. The angle is given in radians. It is 2PI for point
          *  lights and undefined for directional lights.
          */
-        var mAngleInnerCone:Float= AI_MATH_TWO_PIf,
+        var angleInnerCone: Float = AI_MATH_TWO_PIf,
 
         /** Outer angle of a spot light's light cone.
          *
@@ -217,7 +220,12 @@ class AiLight(
          *  interpolation between the inner and the outer cone of the
          *  spot light.
          */
-        var mAngleOuterCone:Float = AI_MATH_TWO_PIf,
+        var angleOuterCone: Float = AI_MATH_TWO_PIf,
 
         /** Size of area light source. */
-        var mSize: AiVector2D = AiVector2D())
+        var mSize: AiVector2D = AiVector2D()
+) {
+    companion object {
+        val size = Int.BYTES + 6 * Vec3.size + 5 * Float.BYTES
+    }
+}

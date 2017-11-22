@@ -1,5 +1,6 @@
 package assimp
 
+import glm_.BYTES
 import glm_.mat4x4.Mat4
 
 /**
@@ -23,7 +24,7 @@ data class AiNode(
          * The name might be empty (length of zero) but all nodes which need to be referenced by either bones or
          * animations are named.
          * Multiple nodes may have the same name, except for nodes which are referenced by bones (see #aiBone and
-         * #aiMesh::mBones). Their names *must* be unique.
+         * #aiMesh::bones). Their names *must* be unique.
          *
          * Cameras and lights reference a specific node by name - if there are multiple nodes with this name, they are
          * assigned to each of them.
@@ -81,6 +82,10 @@ data class AiNode(
 //        meshes = other.meshes.clone()
 //        metaData = other.metaData   // TODO copy?
 //    }
+
+    companion object {
+        val size = Mat4.size + 2 * Int.BYTES
+    }
 }
 
 class AiMetadata
@@ -176,23 +181,23 @@ class AiScene {
     var animations = ArrayList<AiAnimation>()
 
     /** The number of textures embedded into the file */
-    var mNumTextures = 0
+    var numTextures = 0
 
     /** JVM ASSIMP CUSTOM, the array of the textures used in the scene.
      *
      * Not many file formats embed their textures into the file.
      * An example is Quake's MDL format (which is also used by some GameStudio versions)
      */
-    val mTextures = mutableMapOf<String, gli_.Texture>()
+    val textures = mutableMapOf<String, gli_.Texture>()
 
     /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
      * will be 0         */
-    var mNumLights = 0
+    var numLights = 0
 
     /** The array of light sources.
      *
-     * All light sources imported from the given file are listed here. The array is mNumLights in size.         */
-    var mLights = ArrayList<AiLight>()
+     * All light sources imported from the given file are listed here. The array is numLights in size.         */
+    var lights = ArrayList<AiLight>()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
     var numCameras = 0
@@ -213,14 +218,18 @@ class AiScene {
     fun hasMaterials() = materials.isNotEmpty()
 
     /** Check whether the scene contains lights */
-    fun hasLights() = mLights.isNotEmpty()
+    fun hasLights() = lights.isNotEmpty()
 
     /** Check whether the scene contains textures   */
-    fun hasTextures() = mTextures.isNotEmpty()
+    fun hasTextures() = textures.isNotEmpty()
 
     /** Check whether the scene contains cameras    */
     fun hasCameras() = cameras.isNotEmpty()
 
     /** Check whether the scene contains animations */
     fun hasAnimations() = animations.isNotEmpty()
+
+    companion object {
+        val size = 7 * Int.BYTES
+    }
 }
