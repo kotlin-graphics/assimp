@@ -14,7 +14,7 @@ class Pointer<T>(var datas: Array<T>, var pointer: Int = 0) {
 			datas[pointer] = value
 		}
 
-	val lastIndex: Int get() = datas.lastIndex
+	val lastIndex: Int get() = datas.lastIndex-pointer
 
 	operator fun inc(): Pointer<T> {
 		return Pointer<T>(datas, pointer + 1)

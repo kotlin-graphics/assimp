@@ -506,7 +506,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
         anim.mName = animName.toString()
 
         var running = true
-        while (running) {
+        while (running) {if(P.datas.size==730096) {println(P.pointer); if(P.pointer==729736){println(P[0..P.lastIndex])}}
             var objectName = GetNextToken()
             if (objectName.length() == 0)
                 ThrowException("Unexpected end of file while parsing animation set: pointer =" + P.pointer + " total length =" + P.datas.size)
@@ -532,24 +532,20 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
             if (objectName.length() == 0)
                 ThrowException("Unexpected end of file while parsing animation.")
-            else
-                if (objectName == "}")
-                    break // animation finished
-                else
-                    if (objectName == "AnimationKey")
-                        ParseDataObjectAnimationKey(banim)
-                    else
-                        if (objectName == "AnimationOptions")
-                            ParseUnknownDataObject() // not interested
-                        else
-                            if (objectName == "{") {
-                                // read frame name
-                                banim.mBoneName = GetNextToken()
-                                CheckForClosingBrace()
-                            } else {
-                                warn("Unknown data object in animation in x file")
-                                ParseUnknownDataObject()
-                            }
+            else if (objectName == "}")
+                break // animation finished
+            else if (objectName == "AnimationKey")
+                ParseDataObjectAnimationKey(banim)
+            else if (objectName == "AnimationOptions")
+                ParseUnknownDataObject() // not interested
+            else if (objectName == "{") {
+                // read frame name
+                banim.mBoneName = GetNextToken()
+                CheckForClosingBrace()
+            } else {
+                warn("Unknown data object in animation in x file")
+                ParseUnknownDataObject()
+            }
         }
     }
 
@@ -741,8 +737,9 @@ class XFileParser(pBuffer: Pointer<Char>) {
             while ((P < End) && !isspace(P.value)) {
                 // either keep token delimiters when already holding a token, or return if first valid char
                 if (P.value == ';' || P.value == '}' || P.value == '{' || P.value == ',') {
-                    if (s.length == 0)
+                    if (s.length == 0) {
                         s.append(P.value); P++
+                    }
                     break // stop for delimiter
                 }
                 s.append(P.value); P++
