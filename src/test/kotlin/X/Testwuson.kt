@@ -1,4 +1,4 @@
-package directX
+package X
 
 import assimp.Importer
 import io.kotlintest.specs.StringSpec
@@ -10,9 +10,7 @@ class Testwuson : StringSpec() {
         testwuson {
             with(Importer().readFile(x + testwuson)!!) {
                 with(rootNode) {
-                    println(rootNode.name)
-					println(children.size)
-                    rootNode.children.forEach({e -> println(e.name)})
+                    X.printNodeNames(rootNode)
                 }
             }
         }

@@ -14,6 +14,7 @@ import assimp.AI_MAX_NUMBER_OF_COLOR_SETS
 class XFileParser() {
 
     var P : Pointer<Char> = Pointer<Char>(arrayOf())
+    /**Should be 1 more than Java length of array, i.e. should point to lastIndex+1, because null-termination does not exist in Java*/
     var End : Pointer<Char> = Pointer<Char>(arrayOf())
 
     constructor(pBuffer: Pointer<Char>) : this() {

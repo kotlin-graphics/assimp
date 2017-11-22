@@ -1,8 +1,7 @@
-package directX
+package X
 
 import assimp.format.X.Pointer
 import assimp.format.X.XFileParser
-import assimp.models
 import io.kotlintest.specs.StringSpec
 import assimp.format.X.fast_atoreal_move
 import io.kotlintest.matchers.shouldBe

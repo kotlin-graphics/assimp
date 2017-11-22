@@ -1,4 +1,4 @@
-package directX
+package X
 
 import assimp.Importer
 import io.kotlintest.specs.StringSpec
@@ -14,8 +14,8 @@ class anim_test : StringSpec() {
                 //val compare  = Importer().readFile(x_ass + anim_test_a)!!
 
                 kotlin.io.println("Node names: ")
-                directX.printNodeNames(rootNode)
-               // directX.printNodeNames(compare.rootNode)
+                X.printNodeNames(rootNode)
+               // X.printNodeNames(compare.rootNode)
                 kotlin.with(rootNode) {
 
                 }

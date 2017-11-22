@@ -10,7 +10,7 @@ class MakeLeftHandedProcess {
     fun Execute(pScene: AiScene) {
         // Check for an existent root node to proceed
         assert(pScene.rootNode != null)
-        debug("MakeLeftHandedProcess begin")
+        debug("MakeLeftHandedProcess: MakeLeftHandedProcess begin")
 
         // recursively convert all the nodes
         ProcessNode(pScene.rootNode, AiMatrix4x4())
@@ -31,7 +31,7 @@ class MakeLeftHandedProcess {
                 if(nodeAnim!=null) ProcessAnimation(nodeAnim)
             }
         }
-        debug("MakeLeftHandedProcess finished")
+        debug("MakeLeftHandedProcess: MakeLeftHandedProcess finished")
     }
 
     fun ProcessNode(pNode: AiNode, pParentGlobalRotation: AiMatrix4x4) {
@@ -127,10 +127,10 @@ class FlipWindingOrderProcess {
     }
 
     fun Execute(pScene : AiScene) {
-        debug("FlipWindingOrderProcess begin")
+        debug("FlipWindingOrderProcess: FlipWindingOrderProcess begin")
         for (i in 0 until pScene.numMeshes)
         ProcessMesh(pScene.meshes[i])
-        debug("FlipWindingOrderProcess finished")
+        debug("FlipWindingOrderProcess: FlipWindingOrderProcess finished")
     }
 
     fun ProcessMesh(pMesh : AiMesh) {

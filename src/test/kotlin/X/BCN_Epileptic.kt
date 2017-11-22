@@ -1,8 +1,6 @@
-package directX
+package X
 
-import assimp.AiNode
 import assimp.Importer
-import assimp.models
 import io.kotlintest.specs.StringSpec
 
 

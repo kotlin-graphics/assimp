@@ -1,4 +1,4 @@
-package directX
+package X
 
 import assimp.Importer
 import io.kotlintest.specs.StringSpec
@@ -16,7 +16,6 @@ class mozd02x : StringSpec() {
 
         mozd02x {
             with(Importer().readFile(x + mozd02x)!!) {
-                println("Node names: ")
                 printNodeNames(rootNode)
                 with(rootNode) {
 
