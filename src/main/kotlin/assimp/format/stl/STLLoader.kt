@@ -276,7 +276,7 @@ class STLImporter : BaseImporter() {
         val words = buffer.words
 
         // setup the name of the node
-        if (!buffer[0].isNewLine()) {
+        if (!buffer[0].isNewLine) {
             if (words[0].length >= MAXLEN) throw Error("STL: Node name too long")
             pScene.rootNode.name = words[0]
         } else pScene.rootNode.name = "<STL_ASCII>"
