@@ -139,15 +139,15 @@ class MD2Importer : BaseImporter() {
         val mesh = AiMesh(primitiveTypes = AiPrimitiveType.TRIANGLE.i).also { scene.meshes.add(it) }
 
         // navigate to the begin of the frame data
-        val framePos = MD2.Header.size + header.offsetFrames + MD2.Frame.size(header.numVertices) * configFrameID
+        val framePos = header.offsetFrames + MD2.Frame.size(header.numVertices) * configFrameID
         val frame = MD2.Frame(buffer.apply { position(framePos) }, header.numVertices)
 
         // navigate to the begin of the triangle data
-        buffer.position(MD2.Header.size + header.offsetTriangles)
+        buffer.position(header.offsetTriangles)
         val triangles = Array(header.numTriangles, { MD2.Triangle(buffer) })
 
         // navigate to the begin of the tex coords data
-        buffer.position(MD2.Header.size + header.offsetTexCoords)
+        buffer.position(header.offsetTexCoords)
         val texCoords = Array(header.numTexCoords, { MD2.TexCoord(buffer) })
 
         // navigate to the begin of the vertex data
@@ -175,8 +175,8 @@ class MD2Importer : BaseImporter() {
             // apply a default material
             helper.color = AiMaterial.Color(diffuse = AiColor3D(0.6f), specular = AiColor3D(0.6f), ambient = AiColor3D(0.05f))
             helper.name = AI_DEFAULT_MATERIAL_NAME
-            // TODO: Try to guess the name of the texture file from the model file name
-            helper.textures.add(AiMaterial.Texture(file = "texture_dummy.bmp"))
+            val fileName = file.name.substringAfterLast('\\').substringBeforeLast('.')
+            helper.textures.add(AiMaterial.Texture(file = "$fileName.bmp"))
         }
 
         // now read all triangles of the first frame, apply scaling and translation

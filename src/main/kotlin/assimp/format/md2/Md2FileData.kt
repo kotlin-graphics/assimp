@@ -46,6 +46,8 @@ import assimp.AiVector3D
 import assimp.logger
 import glm_.BYTES
 import glm_.c
+import glm_.i
+import unsigned.toUInt
 import java.nio.ByteBuffer
 
 object MD2 {
@@ -96,21 +98,21 @@ object MD2 {
 
     /** Data structure for a MD2 triangle     */
     class Triangle(buffer: ByteBuffer) {
-        val vertexIndices = IntArray(3, { buffer.int })
-        val textureIndices = IntArray(3, { buffer.int })
+        val vertexIndices = IntArray(3, { buffer.short.i })
+        val textureIndices = IntArray(3, { buffer.short.i })
 
         companion object {
-            val size = 6 * Int.BYTES
+            val size = 6 * Short.BYTES
         }
     }
 
     /** Data structure for a MD2 vertex     */
     class Vertex(buffer: ByteBuffer) {
-        val vertex = IntArray(3, { buffer.int })
-        var lightNormalIndex = buffer.int
+        val vertex = IntArray(3, { buffer.get().toUInt() })
+        var lightNormalIndex = buffer.get().toUInt()
 
         companion object {
-            val size = 4 * Int.BYTES
+            val size = 4 * Byte.BYTES
         }
     }
 
@@ -129,11 +131,11 @@ object MD2 {
 
     /** Data structure for a MD2 texture coordinate */
     class TexCoord(buffer: ByteBuffer) {
-        var s = buffer.int
-        var t = buffer.int
+        var s = buffer.short.i
+        var t = buffer.short.i
 
         companion object {
-            val size = 2 * Int.BYTES
+            val size = 2 * Short.BYTES
         }
     }
 

@@ -524,7 +524,7 @@ object AiConfig {
          *  The layer index is zero-based and the layer name may not be empty.<br>
          *  Property type: Integer. Default value: all layers are loaded.
          */
-        var LWO_ONE_LAYER_ONLY: Nothing = TODO()    // double valence
+//        var LWO_ONE_LAYER_ONLY: Nothing = TODO()    // double valence
 
         /** @brief  Configures the MD5 loader to not load the MD5ANIM file for a MD5MESH file automatically.
          *

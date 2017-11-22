@@ -2,6 +2,7 @@ package assimp
 
 import assimp.format.assbin.AssbinLoader
 import assimp.format.collada.ColladaLoader
+import assimp.format.md2.MD2Importer
 import assimp.format.obj.ObjFileImporter
 import assimp.format.ply.PlyLoader
 import assimp.format.stl.STLImporter
@@ -28,6 +29,7 @@ val importerInstanceList
             if (!PLY_IMPORTER) add(PlyLoader())
             if (!COLLADA_IMPORTER) add(ColladaLoader())
             if (!ASSBIN_IMPORTER) add(AssbinLoader())
+            if (!MD2_IMPORTER) add(MD2Importer())
         }
     }
 
