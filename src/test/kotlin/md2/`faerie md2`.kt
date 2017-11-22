@@ -1,9 +1,6 @@
 package md2
 
-import assimp.AiAnimBehaviour
-import assimp.Importer
-import assimp.collada
-import assimp.md2
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec3.Vec3
@@ -22,132 +19,57 @@ class `faerie md2` : StringSpec() {
         file {
             with(Importer().readFile((md2 + file).uri)!!) {
 
-//                flags shouldBe 0
-//
-//                with(rootNode) {
-//                    name shouldBe "Array Test 001"
-//                    transformation shouldBe Mat4(
-//                            1f, 0f, 0f, 0f,
-//                            0f, 0f, -1f, 0f,
-//                            0f, 1f, 0f, 0f,
-//                            0f, 0f, 0f, 1f)
-//                    parent shouldBe null
-//                    numChildren shouldBe 1
-//
-//                    with(children[0]) {
-//                        name shouldBe "Box001"
-//                        transformation shouldBe Mat4(
-//                                1f, 5.235988e-08f, 0f, 0f,
-//                                -5.235988e-08f, 1f, 0f, 0f,
-//                                0f, 0f, 1f, 0f,
-//                                0f, 0f, 0f, 1f)
-//                        (parent === rootNode) shouldBe true
-//                        numChildren shouldBe 2
-//
-//                        with(children[0]) {
-//                            name shouldBe "Box001-Pivot"
-//                            transformation shouldBe Mat4(
-//                                    1f, 0f, 0f, 0f,
-//                                    0f, 1f, 0f, 0f,
-//                                    0f, 0f, 1f, 0f,
-//                                    0.185947001f, 0f, 0f, 1f)
-//                            (parent === rootNode.children[0]) shouldBe true
-//                            numChildren shouldBe 0
-//
-//                            numMeshes shouldBe 1
-//                            meshes[0] shouldBe 0
-//                            metaData shouldBe null
-//                        }
-//
-//                        with(children[1]) {
-//                            name shouldBe "Box002"
-//                            transformation shouldBe Mat4(
-//                                    1f, 5.235988e-08f, 0f, 0f,
-//                                    -5.235988e-08f, 1f, 0f, 0f,
-//                                    0f, 0f, 1f, 0f,
-//                                    0f, 0f, 0f, 1f)
-//                            (parent === rootNode.children[0]) shouldBe true
-//                            numChildren shouldBe 2
-//
-//                            with(children[0]) {
-//                                name shouldBe "Box002-Pivot"
-//                                transformation shouldBe Mat4(
-//                                        1f, 0f, 0f, 0f,
-//                                        0f, 1f, 0f, 0f,
-//                                        0f, 0f, 1f, 0f,
-//                                        0.185947001f, 1.89182305f, 0f, 1f)
-//                                (parent === rootNode.children[0].children[1]) shouldBe true
-//                                numChildren shouldBe 0
-//
-//                                numMeshes shouldBe 1
-//                                meshes[0] shouldBe 1
-//                                metaData shouldBe null
-//                            }
-//
-//                            with(children[1]) {
-//                                name shouldBe "Box003"
-//                                transformation shouldBe Mat4(
-//                                        1f, 5.235988e-08f, 0f, 0f,
-//                                        -5.235988e-08f, 1f, 0f, 0f,
-//                                        0f, 0f, 1f, 0f,
-//                                        0f, 0f, 0f, 1f)
-//                                (parent === rootNode.children[0].children[1]) shouldBe true
-//                                numChildren shouldBe 2
-//
-//                                // TODO continue?
-//
-//                                numMeshes shouldBe 0
-//                                meshes.isEmpty() shouldBe true
-//                                metaData shouldBe null
-//                            }
-//
-//                            numMeshes shouldBe 0
-//                            meshes.isEmpty() shouldBe true
-//                            metaData shouldBe null
-//                        }
-//
-//                        numMeshes shouldBe 0
-//                        meshes.isEmpty() shouldBe true
-//                        metaData shouldBe null
-//                    }
-//                }
-//
-//                numMeshes shouldBe 64
-//
-//                with(meshes[0]) {
-//
-//                    primitiveTypes shouldBe 8
-//                    numVertices shouldBe 24
-//                    numFaces shouldBe 6
-//
-//                    vertices[0] shouldBe Vec3(-0.5f, -0.5f, 0f)
-//                    vertices[11] shouldBe Vec3(-0.5f, -0.5f, 1f)
-//                    vertices[23] shouldBe Vec3(-0.5f, 0.5f, 1f)
-//
-//                    normals[0] shouldBe Vec3(0f, 0f, -1f)
-//                    normals[11] shouldBe Vec3(0f, -1f, 0f)
-//                    normals[23] shouldBe Vec3(-1f, 0f, 0f)
-//
-//                    textureCoords[0][0][0] shouldBe 1f
-//                    textureCoords[0][0][1] shouldBe 0f
-//                    textureCoords[0][11][0] shouldBe 0f
-//                    textureCoords[0][11][1] shouldBe 1f
-//                    textureCoords[0][23][0] shouldBe 0f
-//                    textureCoords[0][23][1] shouldBe 1f
-//
-//                    for (i in 0..23 step 4) faces[i / 4] shouldBe mutableListOf(i, i + 1, i + 2, i + 3)
-//
-//                    name shouldBe "Box001Mesh"
-//                }
-//
-//                // for further mesh test, follow this issue, https://github.com/assimp/assimp/issues/1561
-//
-//                numMaterials shouldBe 1
-//
-//                with(materials[0]) {
-//                    color!!.diffuse shouldBe Vec3(0.600000024f)
-//                    name shouldBe "DefaultMaterial"
-//                }
+                flags shouldBe 0
+
+                with(rootNode) {
+                    name.isEmpty() shouldBe true
+                    transformation shouldBe Mat4()
+                    parent shouldBe null
+                    numChildren shouldBe 0
+                    children.isEmpty() shouldBe true
+
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 0
+                }
+
+                with(meshes[0]) {
+
+                    primitiveTypes shouldBe 4
+                    numVertices shouldBe 1962
+                    numFaces shouldBe 654
+
+                    vertices[0] shouldBe Vec3(-9.96106529f, 26.6228905f, 6.63490105f)
+                    vertices[980] shouldBe Vec3(-1.92686939f, 13.9874496f, 4.68170929f)
+                    vertices[1961] shouldBe Vec3(-2.08440304f, 3.79757690f, 3.44811630f)
+
+                    normals[0] shouldBe Vec3(-0.525731027f, 0f,  -0.850651026f)
+                    normals[980] shouldBe Vec3(0.262865990f, 0.162459999f, 0.951056004f)
+                    normals[1961] shouldBe Vec3(-0.716566980f, 0.147621006f, 0.681717992f)
+
+                    textureCoords[0][0][0] shouldBe 0.645454526f
+                    textureCoords[0][0][1] shouldBe 0.766839385f
+                    textureCoords[0][980][0] shouldBe 0.368181825f
+                    textureCoords[0][980][1] shouldBe 0.694300532f
+                    textureCoords[0][1961][0] shouldBe 0.836363614f
+                    textureCoords[0][1961][1] shouldBe 0.502590656f
+
+                    for (i in 0..653 step 3) faces[i / 3] shouldBe mutableListOf(i, i + 1, i + 2)
+
+                    name.isEmpty() shouldBe true
+                }
+                numMaterials shouldBe 1
+
+                with(materials[0]) {
+                    shadingModel shouldBe AiShadingMode.gouraud
+                    with(color!!) {
+                        diffuse shouldBe Vec3(0.600000024f)
+                        specular shouldBe Vec3(0.600000024f)
+                        ambient shouldBe Vec3(0.0500000007)
+                    }
+                    textures[0].type shouldBe AiTexture.Type.diffuse
+                    textures[0].file shouldBe "faerie.bmp"
+                    name shouldBe "DefaultMaterial"
+                }
 //
 //                numAnimations shouldBe 1
 //

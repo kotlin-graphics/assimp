@@ -153,11 +153,11 @@ object MD2 {
      *  @param index Input index (0-161)
      *  @return Receives the output normal  */
     fun lookupNormalIndex(index: Int): AiVector3D {
-        var i = index * 3
+        var i = index
         if (i >= normals.size / 3) // make sure the normal index has a valid value
             i = normals.size / 3 - 1
         // flip z and y to become right-handed
-        return AiVector3D(normals, i).apply { val t = z; z = y; y = t; }
+        return AiVector3D(normals, i * 3).apply { val t = z; z = y; y = t; }
     }
 
     val normals = floatArrayOf(
