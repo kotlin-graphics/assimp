@@ -61,14 +61,14 @@ class MakeLeftHandedProcess {
             if (pMesh.hasNormals())
                 pMesh.normals[a].z *= -1.0f
             if (pMesh.hasTangentsAndBitangents()) {
-                pMesh.mTangents[a].z *= -1.0f
-                pMesh.mBitangents[a].z *= -1.0f
+                pMesh.tangents[a].z *= -1.0f
+                pMesh.bitangents[a].z *= -1.0f
             }
         }
 
         // mirror offset matrices of all bones
-        for (a in 0 until pMesh.mNumBones) {
-            var bone = pMesh.mBones[a]
+        for (a in 0 until pMesh.numBones) {
+            var bone = pMesh.bones[a]
             bone.offsetMatrix.a3 = -bone.offsetMatrix.a3
             bone.offsetMatrix.b3 = -bone.offsetMatrix.b3
             bone.offsetMatrix.d3 = -bone.offsetMatrix.d3
@@ -80,7 +80,7 @@ class MakeLeftHandedProcess {
         // mirror bitangents as well as they're derived from the texture coords
         if (pMesh.hasTangentsAndBitangents()) {
             for (a in 0 until pMesh.numVertices)
-                pMesh.mBitangents[a] = pMesh.mBitangents[a] * -1.0f
+                pMesh.bitangents[a] = pMesh.bitangents[a] * -1.0f
         }
     }
 

@@ -11,11 +11,11 @@ class anim_test : StringSpec() {
 
         anim_test {
             with(Importer().readFile(x + anim_test)!!) {
-                val compare  = Importer().readFile(x + anim_test_a)!!
+                //val compare  = Importer().readFile(x_ass + anim_test_a)!!
 
                 kotlin.io.println("Node names: ")
                 directX.printNodeNames(rootNode)
-                directX.printNodeNames(compare.rootNode)
+               // directX.printNodeNames(compare.rootNode)
                 kotlin.with(rootNode) {
 
                 }

@@ -7,6 +7,9 @@ import kotlin.math.abs
 
 val logger = KotlinLogging.logger {}
 
+fun abs(d : Double) = Math.abs(d)
+fun abs(f : Float) = Math.abs(f)
+
 fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiVector3D) {
 
     /* extract translation */

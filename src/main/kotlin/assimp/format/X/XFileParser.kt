@@ -11,11 +11,27 @@ import assimp.AiVectorKey
 import assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS
 import assimp.AI_MAX_NUMBER_OF_COLOR_SETS
 
-class XFileParser(pBuffer: Pointer<Char>) {
+class XFileParser() {
+
+    var P : Pointer<Char> = Pointer<Char>(arrayOf())
+    var End : Pointer<Char> = Pointer<Char>(arrayOf())
+
+    constructor(pBuffer: Pointer<Char>) : this() {
+        setup(pBuffer)
+        fullRoutine(pBuffer)
+    }
+
+    fun fullRoutine(pBuffer: Pointer<Char>) {
+        ParseFile()
+
+        // filter the imported hierarchy for some degenerated cases
+        if (mScene.mRootNode != null) {
+            FilterHierarchy(mScene.mRootNode!!)
+        }
+    }
 
     // set up memory pointers
-    var P: Pointer<Char> = pBuffer + 0
-    var End: Pointer<Char> = P + pBuffer.lastIndex
+
 
 
     var mMajorVersion: Int = 0
@@ -30,9 +46,11 @@ class XFileParser(pBuffer: Pointer<Char>) {
 
     var mLineNumber: Int = 0
 
-    var mScene: Scene
+    var mScene: Scene = Scene()
 
-    init {
+    fun setup(pBuffer: Pointer<Char>) {
+        P = pBuffer + 0
+        End = P + pBuffer.lastIndex + 1
 
         // check header
         if (!(P[0..3].equals("xof ")))
@@ -79,12 +97,6 @@ class XFileParser(pBuffer: Pointer<Char>) {
         }
 
         mScene = Scene()
-        ParseFile()
-
-        // filter the imported hierarchy for some degenerated cases
-        if (mScene.mRootNode != null) {
-            FilterHierarchy(mScene.mRootNode!!)
-        }
     }
 
     fun ParseFile() {
@@ -506,16 +518,16 @@ class XFileParser(pBuffer: Pointer<Char>) {
         anim.mName = animName.toString()
 
         var running = true
-        while (running) {if(P.datas.size==730096) {println(P.pointer); if(P.pointer==729736){println(P[0..P.lastIndex])}}
+        while (running) {if(P.datas.size==343) {println(P.pointer); if(P.pointer==342){println(P[0..P.lastIndex])}}
             var objectName = GetNextToken()
             if (objectName.length() == 0)
-                ThrowException("Unexpected end of file while parsing animation set: pointer =" + P.pointer + " total length =" + P.datas.size)
+                ThrowException("ParseDataObjectAnimationSet: Unexpected end of file while parsing animation set: pointer =" + P.pointer + " total length =" + P.datas.size)
             else if (objectName == "}")
                 break // animation set finished
             else if (objectName == "Animation")
                 ParseDataObjectAnimation(anim)
             else {
-                warn("Unknown data object in animation set in x file")
+                warn("ParseDataObjectAnimationSet: Unknown data object in animation set in x file")
                 ParseUnknownDataObject()
             }
         }
@@ -531,7 +543,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
             var objectName = GetNextToken()
 
             if (objectName.length() == 0)
-                ThrowException("Unexpected end of file while parsing animation.")
+                ThrowException("ParseDataObjectAnimation: Unexpected end of file while parsing animation.")
             else if (objectName == "}")
                 break // animation finished
             else if (objectName == "AnimationKey")
@@ -543,7 +555,7 @@ class XFileParser(pBuffer: Pointer<Char>) {
                 banim.mBoneName = GetNextToken()
                 CheckForClosingBrace()
             } else {
-                warn("Unknown data object in animation in x file")
+                warn("ParseDataObjectAnimation: Unknown data object in animation in x file")
                 ParseUnknownDataObject()
             }
         }

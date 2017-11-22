@@ -7,15 +7,13 @@ import java.net.URI
 
 class XFileImporter : BaseImporter() {
 
-    companion object {
-
-        val desc = AiImporterDesc(
-                mName = "Direct3D XFile Importer",
-                mComments = "Binary not supported",
-                mFlags = AiImporterFlags.SupportTextFlavour.i, // or AiImporterFlags.SupportBinaryFlavour.i or AiImporterFlags.SupportCompressedFlavour.i,
-                mFileExtensions = "x"
+        override val info = AiImporterDesc(
+                name = "Direct3D XFile Importer",
+                comments = "Binary not supported",
+                flags = AiImporterFlags.SupportTextFlavour.i, // or AiImporterFlags.SupportBinaryFlavour.i or AiImporterFlags.SupportCompressedFlavour.i,
+                fileExtensions = arrayListOf("x","X")
         )
-    }
+
 
     var mBuffer: Pointer<Char> = Pointer<Char>(arrayOf())
 
@@ -454,7 +452,7 @@ class XFileImporter : BaseImporter() {
                 // vertex colors
                 for (c in 0 until AI_MAX_NUMBER_OF_COLOR_SETS) {
                     if (c < sourceMesh.mColors.size && sourceMesh.mColors[c].size() > 0)
-                        mesh.mColors.add(MutableList<AiColor4D>(numVertices, { AiColor4D() }))
+                        mesh.colors.add(MutableList<AiColor4D>(numVertices, { AiColor4D() }))
                 }
 
                 // now collect the vertex data of all data streams present in the imported mesh
@@ -491,8 +489,8 @@ class XFileImporter : BaseImporter() {
                         }
                         // vertex color sets
                         for (e in 0 until AI_MAX_NUMBER_OF_COLOR_SETS)
-                            if (e < mesh.mColors.size && mesh.hasVertexColors(e))
-                                mesh.mColors[e][newIndex] = sourceMesh.mColors[e][pf.mIndices[d]]
+                            if (e < mesh.colors.size && mesh.hasVertexColors(e))
+                                mesh.colors[e][newIndex] = sourceMesh.mColors[e][pf.mIndices[d]]
 
                         newIndex++
                     }
@@ -538,10 +536,10 @@ class XFileImporter : BaseImporter() {
                 }
 
                 // store the bones in the mesh
-                mesh.mNumBones = newBones.size()
+                mesh.numBones = newBones.size()
                 if (newBones.size() > 0) {
-                    mesh.mBones = ArrayList<AiBone>(mesh.mNumBones)
-                    mesh.mBones.addAll(newBones)
+                    mesh.bones = ArrayList<AiBone>(mesh.numBones)
+                    mesh.bones.addAll(newBones)
                 }
             }
         }

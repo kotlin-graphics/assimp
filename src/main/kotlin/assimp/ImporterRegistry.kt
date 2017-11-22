@@ -1,5 +1,6 @@
 package assimp
 
+import assimp.format.X.XFileImporter
 import assimp.format.assbin.AssbinLoader
 import assimp.format.collada.ColladaLoader
 import assimp.format.md2.MD2Importer
@@ -30,6 +31,7 @@ val importerInstanceList
             if (!COLLADA_IMPORTER) add(ColladaLoader())
             if (!ASSBIN_IMPORTER) add(AssbinLoader())
             if (!MD2_IMPORTER) add(MD2Importer())
+            if (!X_IMPORTER) add(XFileImporter())
         }
     }
 
