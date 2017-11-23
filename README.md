@@ -41,7 +41,7 @@ Advantages:
 - runs entirely on jvm (Garbage Collector)
 - lighter import
 - written in Kotlin (less code to write, more features, more expressiveness)
-- cleaner, more intuitive interface (especially the Material part) 
+- cleaner, more intuitive interface (especially the [Material part](https://github.com/kotlin-graphics/assimp/blob/master/src/main/kotlin/assimp/material.kt#L385-L413) 
 - plain names, without prefixes
 - possibility to set the build-time flags and property (debug/config/log)
 - easier to debug
