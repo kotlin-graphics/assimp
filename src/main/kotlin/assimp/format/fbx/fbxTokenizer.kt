@@ -117,6 +117,8 @@ class Token(
 
     override fun toString() = "$type, ${if (isBinary) "offset 0x$offset" else "line $line, col $column"}"
 
+    val stringContents = String(chars, begin, end - begin)
+
     companion object {
         val BINARY_MARKER = -1
     }

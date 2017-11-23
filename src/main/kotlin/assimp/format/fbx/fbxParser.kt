@@ -53,22 +53,21 @@
 // *    }
 // *  @endverbatim
 // *
-// *  As can be seen in this sample, elements can contain nested Scope
-// *  as their trailing member.  **/
+// *  As can be seen in this sample, elements can contain nested Scope as their trailing member.  **/
 //class Element(val keyToken: Token, parser: Parser) {
 //
 //    const Token& key_token
 //    val tokens = ArrayList<Token>()
-//    std::unique_ptr<Scope> compound
+//    var compound: Scope? = null
 //
 //    init {
 //        lateinit var n: Token
 //        do {
-//            n = parser.advanceToNextToken() ?: parseError("unexpected end of file, expected closing bracket", parser.lastToken())
+//            n = parser.advanceToNextToken() ?: parseError("unexpected end of file, expected closing bracket", parser.lastToken)
 //            if (n.type == Tt.DATA) {
 //                tokens.add(n)
 //                val prev = n
-//                n = parser.advanceToNextToken() ?: parseError("unexpected end of file, expected bracket, comma or key", parser.LastToken())
+//                n = parser.advanceToNextToken() ?: parseError("unexpected end of file, expected bracket, comma or key", parser.lastToken)
 //                val ty = n.type
 //                // some exporters are missing a comma on the next line
 //                if (ty == Tt.DATA && prev.type == Tt.DATA && (n.line == prev.line + 1)) {
@@ -79,41 +78,22 @@
 //                    parseError("unexpected token; expected bracket, comma or key", n)
 //            }
 //            if (n.type == Tt.OPEN_BRACKET) {
-//                compound.reset(new Scope (parser))
+//                compound = Scope(parser)
 //
 //                // current token should be a TOK_CLOSE_BRACKET
-//                n = parser.CurrentToken()
-//                ai_assert(n)
+//                n = parser.currentToken!!
 //
-//                if (n->Type() != TokenType_CLOSE_BRACKET) {
-//                ParseError("expected closing bracket", n)
+//                if (n.type != Tt.CLOSE_BRACKET) parseError("expected closing bracket", n)
+//
+//                parser.advanceToNextToken()
+//                break
 //            }
-//
-//                parser.AdvanceToNextToken()
-//                return
-//            }
-//        } while (n->Type() != TokenType_KEY && n->Type() != TokenType_CLOSE_BRACKET)
-//    }
-//
-//    const Scope* Compound()
-//    const {
-//        return compound.get()
-//    }
-//
-//    const Token& KeyToken()
-//    const {
-//        return key_token
-//    }
-//
-//    const TokenList& Tokens()
-//    const {
-//        return tokens
+//        } while (n.type != Tt.KEY && n.type != Tt.CLOSE_BRACKET)
 //    }
 //}
 //
 //
-///** FBX data entity that consists of a 'scope', a collection
-// *  of not necessarily unique #Element instances.
+///** FBX data entity that consists of a 'scope', a collection of not necessarily unique #Element instances.
 // *
 // *  Example:
 // *  @verbatim
@@ -123,14 +103,31 @@
 // *        [...]
 // *    }
 // *  @endverbatim  */
-//class Scope {
+//class Scope(parser: Parser, topLevel: Boolean = false) {
 //
-//    public :
+//    val elements = mutableMapOf<String, Element>()
 //
-//    Scope(Parser& parser, bool topLevel = false)
-//    ~Scope()
+//    init {
+//        if (!topLevel) with(parser.currentToken!!) {
+//            if (type != Tt.OPEN_BRACKET) parseError("expected open bracket", this)
+//        }
 //
-//    public :
+//        var n = parser.advanceToNextToken() ?: parseError("unexpected end of file")
+//
+//        // note: empty scopes are allowed
+//        while (n.type != Tt.CLOSE_BRACKET) {
+//            if (n.type != Tt.KEY) parseError("unexpected token, expected TOK_KEY", n)
+//
+//            elements[n.stringContents] = Element(n, parser)
+//
+//            // Element() should stop at the next Key token (or right after a Close token)
+//            val t = parser.currentToken
+//            if (t == null) {
+//                if (topLevel) break
+//                parseError("unexpected end of file", parser.lastToken)
+//            } else n = t
+//        }
+//    }
 //
 //    const Element* operator [] (const std::string& index)
 //    const {
@@ -159,16 +156,12 @@
 //    const {
 //        return elements
 //    }
-//
-//    private :
-//
-//    ElementMap elements
 //}
 //
 //
 ///** FBX parsing class, takes a list of input tokens and generates a hierarchy
 // *  of nested #Scope instances, representing the fbx DOM.*/
-//class Parser {
+//abstract class Parser {
 //
 //    /** Parse given a token list. Does not take ownership of the tokens -
 //     *  the objects must persist during the entire parser lifetime */
@@ -193,33 +186,31 @@
 ////    friend
 ////    class Element;
 //
-//    fun advanceToNextToken(): Token?
+//    abstract fun advanceToNextToken(): Token?
 //
-//    TokenPtr LastToken() const
-//    TokenPtr CurrentToken() const
-//
-//
-//    private :
-//    const TokenList& tokens
-//
-//    TokenPtr last, current
-//    TokenList::const_iterator cursor
-//    std::unique_ptr<Scope> root
-//
-//    const bool is_binary
+//    abstract val lastToken: Token?
+//    abstract val currentToken: Token?
+////
+////
+////    private :
+////    const TokenList& tokens
+////
+////    TokenPtr last, current
+////    TokenList::const_iterator cursor
+////    std::unique_ptr<Scope> root
+////
+////    const bool is_binary
 //}
 //
 //
 ///** signal parse error, this is always unrecoverable. Throws Error. */
-//fun parseError(message: String, token: Token): Nothing = throw Error(Util.addTokenText("FBX-Parser", message, token))
-//
-//fun parseError(message: String, element: Element? = null) {
+//fun parseError(message: String, element: Element? = null): Nothing {
 //    element?.let { parseError(message, it.keyToken) }
 //    throw Error("FBX-Parser $message")
 //}
 //
-//fun parseError(message: String, token: Token?) {
-//    token?.let { parseError(message, token) }
+//fun parseError(message: String, token: Token?): Nothing {
+//    token?.let { throw Error(Util.addTokenText("FBX-Parser", message, token)) }
 //    parseError(message)
 //}
 //
