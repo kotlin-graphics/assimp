@@ -55,12 +55,9 @@ import glm_.shl
  *  ------------------------------------------------------------------------------------------------    */
 fun superFastHash(string: String, len: Int = string.length, hash: Int = 0): Int {
 
-    var tmp = 0
-    var rem = 0
-
     if (string.isEmpty()) return 0
 
-    rem = len and 3
+    val rem = len and 3
     var len = len ushr 2
     var hash = hash
     val chars = string.toCharArray()
@@ -69,7 +66,7 @@ fun superFastHash(string: String, len: Int = string.length, hash: Int = 0): Int 
     /* Main loop */
     while (len > 0) {
         hash += chars.get16bits(data)
-        tmp = (chars.get16bits(data + 2) shl 11) xor hash
+        val tmp = (chars.get16bits(data + 2) shl 11) xor hash
         hash = (hash shl 16) xor tmp
         data += 2 * Short.BYTES
         hash += hash ushr 11
@@ -107,4 +104,4 @@ fun superFastHash(string: String, len: Int = string.length, hash: Int = 0): Int 
     return hash
 }
 
-private fun CharArray.get16bits(ptr: Int) = (get(ptr) shl 8) and get(ptr + 1).i
+private fun CharArray.get16bits(ptr: Int) = get(ptr).i or (get(ptr + 1) shl 8)

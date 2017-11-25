@@ -320,7 +320,7 @@ object AiConfig {
      *  It represents just a hint to loaders and post-processing steps to use faster code paths, if possible.
      *  This property is expected to be an integer, != 0 stands for true. The default value is 0.
      */
-    var FAVOUR_SPEED = 0
+    var FAVOUR_SPEED = false
 
     /** ###########################################################################
      *  IMPORTER SETTINGS

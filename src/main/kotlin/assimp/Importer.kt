@@ -46,6 +46,7 @@ import assimp.format.ProgressHandler
 import glm_.BYTES
 import glm_.bool
 import glm_.i
+import glm_.mat4x4.Mat4
 import glm_.size
 import assimp.AiPostProcessSteps as Pps
 import uno.kotlin.uri
@@ -87,6 +88,8 @@ constructor() {
 
     // Just because we don't want you to know how we're hacking around.
     internal val impl = ImporterPimpl() // allocate the pimpl first
+
+    fun impl() = impl
 
     /** Copy constructor.
      *
@@ -164,6 +167,21 @@ constructor() {
     fun unregisterPPStep(imp: BaseProcess) = when (impl.postProcessingSteps.remove(imp)) {
         true -> logger.info { "Unregistering custom post-processing step" }.let { AiReturn.SUCCESS }
         else -> logger.warn { "Unable to remove custom post-processing step: I can't find you .." }.let { AiReturn.FAILURE }
+    }
+
+    inline operator fun <reified T : Any> set(szName: String, value: T) = impl().properties.put(superFastHash(szName), value)
+    //            = when(T::class){
+//        String::class -> println("String")
+//        Int::class -> println("Int")
+//        Float::class -> println("Float")
+//        Boolean::class -> println("Boolean")
+//        Mat4::class -> println("Mat4")
+//        else -> throw Error()
+//    }
+    inline operator fun <reified T> get(szName: String): T? = when (T::class) {
+        String::class -> impl().properties[superFastHash(szName)] as T?
+        Int::class -> impl().properties[superFastHash(szName)] as T?
+        else -> throw Error("suca")
     }
 
     /** Set an integer configuration property.
