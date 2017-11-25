@@ -33,3 +33,25 @@ The development is essentially feature-driver, if you want to express your prefe
 ### Contributions:
 
 Do not hesitate to offer any help: pushes (java or kotlin, it doesn't matter), testing, website, wiki, etc
+
+### Comparison to a simple binding
+
+Advantages:
+
+- runs entirely on jvm (Garbage Collector)
+- lighter import
+- written in Kotlin (less code to write, more features, more expressiveness)
+- cleaner, more intuitive interface (especially the [Material part](https://github.com/kotlin-graphics/assimp/blob/master/src/main/kotlin/assimp/material.kt#L385-L413))
+- plain names, without prefixes
+- possibility to set the build-time flags and property (debug/config/log)
+- easier to debug
+- easier to modify/customize, e.g: textures get automatically loaded and offered via [gli library](https://github.com/kotlin-graphics/glm), you just have to upload them to GL
+- matrices are row-major instead row-columns and offered via the [glm library](https://github.com/kotlin-graphics/glm)
+- easier to fix (found a couple of bugs on the original assimp, opened an issue, I didnt have to wait for the next releases fix)
+- reduced the maintenance at minimum by keeping the same structure as possible during the port
+- possible to get the same loading speed, using binary assimp format
+
+Disadvantages:
+- code needs to be ported from cpp to java
+- code needs to be maintained
+- a little slower compared to cpp when loading big meshes if not using assbin

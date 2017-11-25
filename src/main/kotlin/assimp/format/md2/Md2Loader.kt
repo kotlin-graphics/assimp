@@ -176,7 +176,7 @@ class MD2Importer : BaseImporter() {
             helper.color = AiMaterial.Color(diffuse = AiColor3D(0.6f), specular = AiColor3D(0.6f), ambient = AiColor3D(0.05f))
             helper.name = AI_DEFAULT_MATERIAL_NAME
             val fileName = file.name.substringAfterLast('\\').substringBeforeLast('.')
-            helper.textures.add(AiMaterial.Texture(file = "$fileName.bmp"))
+            helper.textures.add(AiMaterial.Texture(file = "$fileName.bmp", type = AiTexture.Type.diffuse))
         }
 
         // now read all triangles of the first frame, apply scaling and translation
