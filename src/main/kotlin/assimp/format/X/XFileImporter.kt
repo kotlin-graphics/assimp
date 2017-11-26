@@ -76,14 +76,15 @@ class XFileImporter : BaseImporter() {
         }
 
         // Convert everything to OpenGL space... it's the same operation as the conversion back, so we can reuse the step directly
-        var convertProcess = MakeLeftHandedProcess()
-        convertProcess.Execute(pScene)
+        //var convertProcess : MakeLeftHandedProcess = ();
+        MakeLeftHandedProcess.Execute(pScene)
 
-        var flipper = FlipWindingOrderProcess()
-        flipper.Execute(pScene)
+        //var flipper : ;
+        FlipWindingOrderProcess.Execute(pScene)
 
         // finally: create a dummy material if not material was imported
         if (pScene.numMaterials == 0) {
+            debug("Dummy material!")
             pScene.numMaterials = 1
             // create the Material
             var mat = AiMaterial()
@@ -146,24 +147,24 @@ class XFileImporter : BaseImporter() {
                         var trafo = bone.mTrafoKeys[c].mMatrix
 
                         // extract position
-                        var pos = AiVector3D(trafo.a3, trafo.b3, trafo.c3)
+                        var pos = AiVector3D(trafo.d0, trafo.d1, trafo.d2)
 
                         nbone.positionKeys[c].time = time
                         nbone.positionKeys[c].value = pos
 
                         // extract scaling
                         var scale = AiVector3D()
-                        scale.x = AiVector3D(trafo.a0, trafo.b0, trafo.c0).length()
-                        scale.y = AiVector3D(trafo.a1, trafo.b1, trafo.c1).length()
-                        scale.z = AiVector3D(trafo.a2, trafo.b2, trafo.c2).length()
+                        scale.x = AiVector3D(trafo.a0, trafo.a1, trafo.a2).length()
+                        scale.y = AiVector3D(trafo.b0, trafo.b1, trafo.b2).length()
+                        scale.z = AiVector3D(trafo.c0, trafo.c1, trafo.c2).length()
                         nbone.scalingKeys[c].time = time
                         nbone.scalingKeys[c].value = scale
 
                         // reconstruct rotation matrix without scaling
                         var rotmat = AiMatrix3x3(
-                                trafo.a0 / scale.x, trafo.a1 / scale.y, trafo.a2 / scale.z,
-                                trafo.b0 / scale.x, trafo.b1 / scale.y, trafo.b2 / scale.z,
-                                trafo.c0 / scale.x, trafo.c1 / scale.y, trafo.c2 / scale.z)
+                                trafo.a0 / scale.x, trafo.b0 / scale.y, trafo.c0 / scale.z,
+                                trafo.a1 / scale.x, trafo.b1 / scale.y, trafo.c1 / scale.z,
+                                trafo.a2 / scale.x, trafo.b2 / scale.y, trafo.c2 / scale.z)
 
                         // and convert it into a quaternion
                         nbone.rotationKeys[c].time = time
@@ -467,7 +468,7 @@ class XFileImporter : BaseImporter() {
                     // create face. either triangle or triangle fan depending on the index count
                     var df = mesh.faces[c] // destination face
                     //df.numIndices = pf.mIndices.size(); //3
-                    df = MutableList<Int>(pf.mIndices.size(), { 0 })
+                    df = MutableList<Int>(pf.mIndices.size(), { 0 }); mesh.faces[c]=df
 
                     // collect vertex data for indices of this face
                     for (d in 0 until df.size()) {
@@ -484,7 +485,9 @@ class XFileImporter : BaseImporter() {
                         for (e in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                             if (e < mesh.textureCoords.size && mesh.hasTextureCoords(e)) {
                                 var tex = sourceMesh.mTexCoords[e][pf.mIndices[d]]
-                                mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f - tex.y, 0.0f).toFloatArray()
+                                mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f - tex.y
+                                        //, 0.0f //Not sure why this is in original C++ code, but not in kotlin port.
+                                ).toFloatArray()
                             }
                         }
                         // vertex color sets

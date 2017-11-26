@@ -2,7 +2,7 @@ package assimp.format.X
 
 import assimp.*
 
-class MakeLeftHandedProcess {
+object MakeLeftHandedProcess {
     fun IsActive(pFlags: Int): Boolean {
         return 0 != (pFlags.and(AiPostProcessSteps.MakeLeftHanded.i))
     }
@@ -36,16 +36,16 @@ class MakeLeftHandedProcess {
 
     fun ProcessNode(pNode: AiNode, pParentGlobalRotation: AiMatrix4x4) {
         // mirror all base vectors at the local Z axis
-        pNode.transformation.c1 = -pNode.transformation.c1
+        pNode.transformation.b2 = -pNode.transformation.b2
         pNode.transformation.c2 = -pNode.transformation.c2
-        pNode.transformation.c3 = -pNode.transformation.c3
-        pNode.transformation.c0 = -pNode.transformation.c0
+        pNode.transformation.d2 = -pNode.transformation.d2
+        pNode.transformation.a2 = -pNode.transformation.a2
 
         // now invert the Z axis again to keep the matrix determinant positive.
         // The local meshes will be inverted accordingly so that the result should look just fine again.
-        pNode.transformation.a3 = -pNode.transformation.a3
-        pNode.transformation.b3 = -pNode.transformation.b3
-        pNode.transformation.c3 = -pNode.transformation.c3
+        pNode.transformation.d0 = -pNode.transformation.d0
+        pNode.transformation.d1 = -pNode.transformation.d1
+        pNode.transformation.d2 = -pNode.transformation.d2
         pNode.transformation.d3 = -pNode.transformation.d3 // useless, but anyways...
 
         // continue for all children
@@ -72,9 +72,9 @@ class MakeLeftHandedProcess {
             bone.offsetMatrix.a3 = -bone.offsetMatrix.a3
             bone.offsetMatrix.b3 = -bone.offsetMatrix.b3
             bone.offsetMatrix.d3 = -bone.offsetMatrix.d3
-            bone.offsetMatrix.c1 = -bone.offsetMatrix.c1
+            bone.offsetMatrix.b2 = -bone.offsetMatrix.b2
             bone.offsetMatrix.c2 = -bone.offsetMatrix.c2
-            bone.offsetMatrix.c0 = -bone.offsetMatrix.c0
+            bone.offsetMatrix.a2 = -bone.offsetMatrix.a2
         }
 
         // mirror bitangents as well as they're derived from the texture coords
@@ -109,8 +109,8 @@ class MakeLeftHandedProcess {
         {
             /* That's the safe version, but the float errors add up. So we try the short version instead
             aiMatrix3x3 rotmat = pAnim.mRotationKeys[a].mValue.GetMatrix();
-            rotmat.a3 = -rotmat.a3; rotmat.b3 = -rotmat.b3;
-            rotmat.c1 = -rotmat.c1; rotmat.c2 = -rotmat.c2;
+            rotmat.d0 = -rotmat.d0; rotmat.d1 = -rotmat.d1;
+            rotmat.b3 = -rotmat.b3; rotmat.c2 = -rotmat.c2;
             aiQuaternion rotquat( rotmat);
             pAnim.mRotationKeys[a].mValue = rotquat;
             */
@@ -121,7 +121,7 @@ class MakeLeftHandedProcess {
 
 }
 
-class FlipWindingOrderProcess {
+object FlipWindingOrderProcess {
     fun IsActive(pFlags : Int) : Boolean {
         return 0 != (pFlags.and(AiPostProcessSteps.FlipWindingOrder.i))
     }

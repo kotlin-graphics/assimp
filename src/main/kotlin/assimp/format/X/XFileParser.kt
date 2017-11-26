@@ -45,7 +45,7 @@ class XFileParser() {
     var mBinaryFloatSize: Int = 0
     var mBinaryNumCount: Int = 0
 
-    var mLineNumber: Int = 0
+    var mLineNumber: Int = 1 //=0?
 
     var mScene: Scene = Scene()
 
@@ -215,14 +215,14 @@ class XFileParser() {
         readHeadOfDataObject()
 
         // read its components
-        pMatrix.a0 = ReadFloat(); pMatrix.b0 = ReadFloat()
-        pMatrix.c0 = ReadFloat(); pMatrix.d0 = ReadFloat()
-        pMatrix.a1 = ReadFloat(); pMatrix.b1 = ReadFloat()
-        pMatrix.c1 = ReadFloat(); pMatrix.d1 = ReadFloat()
-        pMatrix.a2 = ReadFloat(); pMatrix.b2 = ReadFloat()
-        pMatrix.c2 = ReadFloat(); pMatrix.d2 = ReadFloat()
-        pMatrix.a3 = ReadFloat(); pMatrix.b3 = ReadFloat()
-        pMatrix.c3 = ReadFloat(); pMatrix.d3 = ReadFloat()
+        pMatrix.a0 = ReadFloat(); pMatrix.a1 = ReadFloat()
+        pMatrix.a2 = ReadFloat(); pMatrix.a3 = ReadFloat()
+        pMatrix.b0 = ReadFloat(); pMatrix.b1 = ReadFloat()
+        pMatrix.b2 = ReadFloat(); pMatrix.b3 = ReadFloat()
+        pMatrix.c0 = ReadFloat(); pMatrix.c1 = ReadFloat()
+        pMatrix.c2 = ReadFloat(); pMatrix.c3 = ReadFloat()
+        pMatrix.d0 = ReadFloat(); pMatrix.d1 = ReadFloat()
+        pMatrix.d2 = ReadFloat(); pMatrix.d3 = ReadFloat()
 
         // trailing symbols
         CheckForSemicolon()
@@ -305,14 +305,14 @@ class XFileParser() {
             bone.mWeights[a].mWeight = ReadFloat()
 
         // read matrix offset
-        bone.mOffsetMatrix.a0 = ReadFloat(); bone.mOffsetMatrix.b0 = ReadFloat()
-        bone.mOffsetMatrix.c0 = ReadFloat(); bone.mOffsetMatrix.d0 = ReadFloat()
-        bone.mOffsetMatrix.a1 = ReadFloat(); bone.mOffsetMatrix.b1 = ReadFloat()
-        bone.mOffsetMatrix.c1 = ReadFloat(); bone.mOffsetMatrix.d1 = ReadFloat()
-        bone.mOffsetMatrix.a2 = ReadFloat(); bone.mOffsetMatrix.b2 = ReadFloat()
-        bone.mOffsetMatrix.c2 = ReadFloat(); bone.mOffsetMatrix.d2 = ReadFloat()
-        bone.mOffsetMatrix.a3 = ReadFloat(); bone.mOffsetMatrix.b3 = ReadFloat()
-        bone.mOffsetMatrix.c3 = ReadFloat(); bone.mOffsetMatrix.d3 = ReadFloat()
+        bone.mOffsetMatrix.a0 = ReadFloat(); bone.mOffsetMatrix.a1 = ReadFloat()
+        bone.mOffsetMatrix.a2 = ReadFloat(); bone.mOffsetMatrix.a3 = ReadFloat()
+        bone.mOffsetMatrix.b0 = ReadFloat(); bone.mOffsetMatrix.b1 = ReadFloat()
+        bone.mOffsetMatrix.b2 = ReadFloat(); bone.mOffsetMatrix.b3 = ReadFloat()
+        bone.mOffsetMatrix.c0 = ReadFloat(); bone.mOffsetMatrix.c1 = ReadFloat()
+        bone.mOffsetMatrix.c2 = ReadFloat(); bone.mOffsetMatrix.c3 = ReadFloat()
+        bone.mOffsetMatrix.d0 = ReadFloat(); bone.mOffsetMatrix.d1 = ReadFloat()
+        bone.mOffsetMatrix.d2 = ReadFloat(); bone.mOffsetMatrix.d3 = ReadFloat()
 
         CheckForSemicolon()
         CheckForClosingBrace()
@@ -622,14 +622,14 @@ class XFileParser() {
                     // read matrix
                     var key = MatrixKey()
                     key.mTime = time.toDouble()
-                    key.mMatrix.a0 = ReadFloat(); key.mMatrix.b0 = ReadFloat()
-                    key.mMatrix.c0 = ReadFloat(); key.mMatrix.d0 = ReadFloat()
-                    key.mMatrix.a1 = ReadFloat(); key.mMatrix.b1 = ReadFloat()
-                    key.mMatrix.c1 = ReadFloat(); key.mMatrix.d1 = ReadFloat()
-                    key.mMatrix.a2 = ReadFloat(); key.mMatrix.b2 = ReadFloat()
-                    key.mMatrix.c2 = ReadFloat(); key.mMatrix.d2 = ReadFloat()
-                    key.mMatrix.a3 = ReadFloat(); key.mMatrix.b3 = ReadFloat()
-                    key.mMatrix.c3 = ReadFloat(); key.mMatrix.d3 = ReadFloat()
+                    key.mMatrix.a0 = ReadFloat(); key.mMatrix.a1 = ReadFloat()
+                    key.mMatrix.a2 = ReadFloat(); key.mMatrix.a3 = ReadFloat()
+                    key.mMatrix.b0 = ReadFloat(); key.mMatrix.b1 = ReadFloat()
+                    key.mMatrix.b2 = ReadFloat(); key.mMatrix.b3 = ReadFloat()
+                    key.mMatrix.c0 = ReadFloat(); key.mMatrix.c1 = ReadFloat()
+                    key.mMatrix.c2 = ReadFloat(); key.mMatrix.c2 = ReadFloat()
+                    key.mMatrix.d0 = ReadFloat(); key.mMatrix.d1 = ReadFloat()
+                    key.mMatrix.d2 = ReadFloat(); key.mMatrix.d3 = ReadFloat()
                     pAnimBone.mTrafoKeys.push_back(key)
 
                     CheckForSemicolon()
@@ -768,8 +768,9 @@ class XFileParser() {
         var running = true
         while (running) {
             while (P < End && isspace(P.value)) {
-                if (P.value == '\n')
+                if (P.value == '\n') {
                     mLineNumber++
+                }
                 ++P
             }
 
@@ -798,8 +799,9 @@ class XFileParser() {
             ThrowException("Expected quotation mark.")
         ++P
 
-        while (P < End && P.value != '"')
-            poString.append(P++, 1)
+        while (P < End && P.value != '"') {
+            poString.append(P.value); P++ //Is stuf bugged now?
+        }
 
         if (P >= End - 1)
             ThrowException("Unexpected end of file while parsing string")
@@ -969,7 +971,7 @@ class XFileParser() {
     }
 
     fun ThrowException(s: String) {
-        throw RuntimeException(s)
+        throw RuntimeException("Line" + mLineNumber + ": " + s)
     }
 
     fun FilterHierarchy(pNode: Node) {
