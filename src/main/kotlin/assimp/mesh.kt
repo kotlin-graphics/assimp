@@ -323,7 +323,7 @@ open class AiMesh(
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {
         var n = 0
-        while (n < assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS && textureCoords[n].isNotEmpty()) ++n
+        while (n < assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS && n < textureCoords.size && textureCoords[n].isNotEmpty()) ++n
         return n
     }
 
