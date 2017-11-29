@@ -38,6 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------
 */
+
+package assimp.format.md3
+
 import assimp.*
 import assimp.format.AiConfig
 import glm_.i
@@ -176,14 +179,6 @@ object Q3Shader {
         return true;
     }
 }
-
-class Prova(override val info: AiImporterDesc) : BaseImporter() {
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-}
-
 
 /** @brief Importer class to load MD3 files */
 class MD3Importer : BaseImporter() {

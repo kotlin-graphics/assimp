@@ -1,14 +1,3 @@
-import assimp.AI_MAKE_MAGIC
-import assimp.AI_MAX_ALLOC
-import assimp.AiVector3D
-import assimp.logger
-import glm_.BYTES
-import glm_.i
-import glm_.size
-import glm_.vec3.Vec3
-import java.nio.ByteBuffer
-import assimp.AI_INT_MERGE_SCENE as Ms
-
 /*
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
@@ -50,6 +39,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
+package assimp.format.md3
+
+import assimp.AI_MAKE_MAGIC
+import assimp.AI_MAX_ALLOC
+import assimp.AiVector3D
+import assimp.logger
+import glm_.BYTES
+import glm_.i
+import glm_.size
+import glm_.vec3.Vec3
+import java.nio.ByteBuffer
+import assimp.AI_INT_MERGE_SCENE as Ms
 
 object MD3 {
 

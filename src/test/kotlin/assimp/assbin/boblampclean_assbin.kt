@@ -1,11 +1,13 @@
-package assimp
+package assimp.assbin
 
-import io.kotlintest.matchers.shouldBe
+import assimp.Importer
+import assimp.assbin
 import io.kotlintest.specs.StringSpec
 
-class assbin : StringSpec() {
+// TODO
+class `boblampclean assbin` : StringSpec() {
 
-    val assbin = models + "/Assbin/"
+    val boblampclean = "ogldev/boblampclean.assbin"
 
     init {
 
@@ -18,7 +20,7 @@ class assbin : StringSpec() {
 ////            scene.flags shouldBe 0
 //        }
 //
-        val boblampclean = "ogldev/boblampclean.assbin"
+
 
         boblampclean {
 
