@@ -3,7 +3,7 @@ package assimp
 import assimp.format.assbin.AssbinLoader
 import assimp.format.collada.ColladaLoader
 import assimp.format.md2.MD2Importer
-//import assimp.format.md3.MD3Importer
+//import assimp.format.md3.MD3Loader
 import assimp.format.obj.ObjFileImporter
 import assimp.format.ply.PlyLoader
 import assimp.format.stl.STLImporter

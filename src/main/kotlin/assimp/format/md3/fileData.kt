@@ -1,9 +1,13 @@
 import assimp.AI_MAKE_MAGIC
+import assimp.AI_MAX_ALLOC
 import assimp.AiVector3D
+import assimp.logger
 import glm_.BYTES
 import glm_.i
+import glm_.size
 import glm_.vec3.Vec3
 import java.nio.ByteBuffer
+import assimp.AI_INT_MERGE_SCENE as Ms
 
 /*
 Open Asset Import Library (assimp)
@@ -70,7 +74,7 @@ object MD3 {
     /** @brief Data structure for the MD3 main header     */
     class Header(buffer: ByteBuffer) {
         /** magic number    */
-        val indent = buffer.int
+        val ident = buffer.int
         /** file format version */
         val version = buffer.int
         /** original name in .pak archive   */
@@ -93,6 +97,20 @@ object MD3 {
         val ofsSurfaces = buffer.int
         /** end of file */
         val ofsEof = buffer.int
+
+        /** Validate offsets in the header     */
+        fun validateOffsets(fileSize: Int, configFrameID: Int) {
+            // Check magic number
+            if (ident != MAGIC_NUMBER_BE && ident != MAGIC_NUMBER_LE) throw Error("Invalid MD3 file: Magic bytes not found")
+            // Check file format version
+            if (version > 15) logger.warn { "Unsupported MD3 file version. Continuing happily ..." }
+            // Check some offset values whether they are valid
+            if (numSurfaces == 0) throw Error("Invalid md3 file: NUM_SURFACES is 0")
+            if (ofsFrames >= fileSize || ofsSurfaces >= fileSize || ofsEof > fileSize) throw Error("Invalid MD3 header: some offsets are outside the file")
+            if (numSurfaces > AI_MAX_ALLOC(MD3.Surface.size)) throw Error("Invalid MD3 header: too many surfaces, would overflow")
+            if (ofsSurfaces + numSurfaces * MD3.Surface.size >= fileSize) throw Error("Invalid MD3 header: some surfaces are outside the file")
+            if (numFrames <= configFrameID) throw Error("The requested frame is not existing the file")
+        }
 
         companion object {
             val size = 11 * Int.BYTES + MAXQPATH
@@ -150,6 +168,27 @@ object MD3 {
         val ofsXyzNormal = buffer.int
         /** offset to the end of the Surface object */
         val ofsEnd = buffer.int
+
+        fun validateOffsets(buffer: ByteBuffer) {
+            val fileSize = buffer.size
+            // Calculate the relative offset of the surface
+            val ofs = buffer.position()
+            // Check whether all data chunks are inside the valid range
+            if (ofsTriangles + ofs + numTriangles * MD3.Triangle.size > fileSize ||
+                    ofsShaders + ofs + numShader * MD3.Shader.size > fileSize ||
+                    ofsSt + ofs + numVertices * MD3.TexCoord.size > fileSize ||
+                    ofsXyzNormal + ofs + numVertices * MD3.Vertex.size > fileSize)
+                throw Error("Invalid MD3 surface header: some offsets are outside the file")
+            // Check whether all requirements for Q3 files are met. We don't care, but probably someone does.
+            if (numTriangles > MAX_TRIANGLES) logger.warn { "MD3: Quake III triangle limit exceeded" }
+            if (numShader > MAX_SHADERS) logger.warn { "MD3: Quake III shader limit exceeded" }
+            if (numVertices > MAX_VERTS) logger.warn { "MD3: Quake III vertex limit exceeded" }
+            if (numFrames > MAX_FRAMES) logger.warn { "MD3: Quake III frame limit exceeded" }
+        }
+
+        companion object {
+            val size = 11 * Int.BYTES + MAXQPATH
+        }
     }
 
     /** @brief Data structure for a shader defined in there */
@@ -158,29 +197,45 @@ object MD3 {
         val name = String(ByteArray(MAXQPATH, { buffer.get() }))
         /** index of the shader */
         val shaderIndex = buffer.int
+
+        companion object {
+            val size = MAXQPATH + Int.BYTES
+        }
     }
 
     /** @brief Data structure for a triangle */
     class Triangle(buffer: ByteBuffer) {
         /** triangle indices    */
-        val indexes = IntArray(3, {buffer.int})
+        val indexes = IntArray(3, { buffer.int })
+
+        companion object {
+            val size = 3 * Int.BYTES
+        }
     }
 
     /** @brief Data structure for an UV coord */
-    class TexCoord(buffer: ByteBuffer)    {
+    class TexCoord(buffer: ByteBuffer) {
         /** UV coordinates  */
         val u = buffer.float
         val v = buffer.float
+
+        companion object {
+            val size = 2 * Float.BYTES
+        }
     }
 
     /** @brief Data structure for a vertex */
-    class Vertex(buffer: ByteBuffer)    {
+    class Vertex(buffer: ByteBuffer) {
         /** X/Y/Z coordinates   */
         val x = buffer.short.i
         val y = buffer.short.i
         val z = buffer.short.i
         /** encoded normal vector   */
         val normal = buffer.short.i
+
+        companion object {
+            val size = 4 * Short.BYTES
+        }
     }
 
     /** @brief Unpack a Q3 16 bit vector to its full float3 representation
@@ -192,15 +247,15 @@ object MD3 {
      */
 //    fun latLngNormalToVec3(uint16_t p_iNormal, ai_real* p_afOut)
 //    {
-//        ai_real lat =(ai_real)((p_iNormal > > 8 u ) & 0xff);
-//        ai_real lng =(ai_real)((p_iNormal & 0xff));
-//        const ai_real invVal(ai_real(1.0) / ai_real(128.0));
-//        lat *= ai_real(3.141926) * invVal;
-//        lng *= ai_real(3.141926) * invVal;
+//        ai_real lat =(ai_real)((p_iNormal > > 8 u ) & 0xff)
+//        ai_real lng =(ai_real)((p_iNormal & 0xff))
+//        const ai_real invVal(ai_real(1.0) / ai_real(128.0))
+//        lat *= ai_real(3.141926) * invVal
+//        lng *= ai_real(3.141926) * invVal
 //
-//        p_afOut[0] = std::cos(lat) * std::sin(lng);
-//        p_afOut[1] = std::sin(lat) * std::sin(lng);
-//        p_afOut[2] = std::cos(lng);
+//        p_afOut[0] = std::cos(lat) * std::sin(lng)
+//        p_afOut[1] = std::sin(lat) * std::sin(lng)
+//        p_afOut[2] = std::cos(lng)
 //    }
 //
 //
@@ -216,23 +271,23 @@ object MD3 {
 //        // check for singularities
 //        if (0.0f == p_vIn[0] && 0.0f == p_vIn[1]) {
 //            if (p_vIn[2] > 0.0f) {
-//                ((unsigned char *)&p_iOut)[0] = 0;
-//                ((unsigned char *)&p_iOut)[1] = 0;       // lat = 0, long = 0
+//                ((unsigned char *)&p_iOut)[0] = 0
+//                ((unsigned char *)&p_iOut)[1] = 0       // lat = 0, long = 0
 //            } else {
-//                ((unsigned char *)&p_iOut)[0] = 128;
-//                ((unsigned char *)&p_iOut)[1] = 0;       // lat = 0, long = 128
+//                ((unsigned char *)&p_iOut)[0] = 128
+//                ((unsigned char *)&p_iOut)[1] = 0       // lat = 0, long = 128
 //            }
 //        } else {
-//            int a, b;
+//            int a, b
 //
-//            a = int(57.2957795f * (std::atan2(p_vIn[1], p_vIn[0])) * (255.0f / 360.0f));
-//            a & = 0xff;
+//            a = int(57.2957795f * (std::atan2(p_vIn[1], p_vIn[0])) * (255.0f / 360.0f))
+//            a & = 0xff
 //
-//            b = int(57.2957795f * (std::acos(p_vIn[2])) * (255.0f / 360.0f));
-//            b & = 0xff;
+//            b = int(57.2957795f * (std::acos(p_vIn[2])) * (255.0f / 360.0f))
+//            b & = 0xff
 //
-//            ((unsigned char *)&p_iOut)[0] = b;   // longitude
-//            ((unsigned char *)&p_iOut)[1] = a;   // latitude
+//            ((unsigned char *)&p_iOut)[0] = b   // longitude
+//            ((unsigned char *)&p_iOut)[1] = a   // latitude
 //        }
 //    }
 }

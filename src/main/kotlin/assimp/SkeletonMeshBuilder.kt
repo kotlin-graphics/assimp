@@ -189,7 +189,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
             }
             // add all the vertices to the bone's influences
             bone.numWeights = numVertices
-            bone.weights = Array(numVertices, { AiVertexWeight(vertexStartIndex + it, 1f) })
+            bone.weights = MutableList(numVertices, { AiVertexWeight(vertexStartIndex + it, 1f) })
             // HACK: (thom) transform all vertices to the bone's local space. Should be done before adding
             // them to the array, but I'm tired now and I'm annoyed.
             val boneToMeshTransform = bone.offsetMatrix.inverse()

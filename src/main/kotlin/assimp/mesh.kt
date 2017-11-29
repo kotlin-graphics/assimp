@@ -71,6 +71,8 @@ data class AiVertexWeight(
         //! The influence from all bones at one vertex amounts to 1.
         var weight: Float = 0f
 ) {
+    constructor(other: AiVertexWeight) : this(other.vertexId, other.weight)
+
     companion object {
         val size = Int.BYTES + Float.BYTES
     }
@@ -91,13 +93,13 @@ data class AiBone(
         var numWeights: Int = 0,
 
         //! The vertices affected by this bone
-        var weights: Array<AiVertexWeight> = arrayOf(),
+        var weights: List<AiVertexWeight> = listOf(),
 
         //! Matrix that transforms from mesh space to bone space in bind pose
         var offsetMatrix: AiMatrix4x4 = AiMatrix4x4()
 ) {
-    //! Copy constructor
-//    aiBone(const aiBone& other) TODO check if in data
+    constructor(other: AiBone) : this(other.name, other.numWeights, List(other.weights.size, { AiVertexWeight(other.weights[it]) }), AiMatrix4x4(other.offsetMatrix))
+
     companion object {
         val size = Int.BYTES + Mat4.size
     }
@@ -149,7 +151,9 @@ fun AI_PRIMITIVE_TYPE_FOR_N_INDICES(n: Int) = if (n > 3) AiPrimitiveType.POLYGON
 data class AiAnimMesh(
         /** Weight of the AnimMesh. */
         var mWeight: Float = 0f
-) : AiMesh()
+) : AiMesh() {
+    constructor(other: AiAnimMesh) : this(other.mWeight)
+}
 
 /** Enumerates the methods of mesh morphing supported by Assimp.    */
 enum class AiMorphingMethod(val i: Int) {
@@ -255,7 +259,7 @@ open class AiMesh(
          * Each face refers to a number of vertices by their indices.
          * This array is always present in a mesh, its size is given in numFaces.
          * If the #AI_SCENE_FLAGS_NON_VERBOSE_FORMAT is NOT set each face references an unique set of vertices.         */
-        var faces: MutableList<AiFace> = ArrayList(),
+        var faces: MutableList<AiFace> = mutableListOf(),
 
         /** The number of bones this mesh contains.
          * Can be 0, in which case the bones array is NULL.
@@ -264,7 +268,7 @@ open class AiMesh(
 
         /** The bones of this mesh.
          * A bone consists of a name by which it can be found in the frame hierarchy and a set of vertex weights.         */
-        var bones: ArrayList<AiBone> = ArrayList(),
+        var bones: MutableList<AiBone> = mutableListOf(),
 
         /** The material used by this mesh.
          * A mesh uses only a single material. If an imported model uses multiple materials, the import splits up the
@@ -286,27 +290,38 @@ open class AiMesh(
         /** Attachment meshes for this mesh, for vertex-based animation.
          *  Attachment meshes carry replacement data for some of the mesh'es vertex components (usually positions, normals).
          *  Note! Currently only works with Collada loader.*/
-        var mAnimMeshes: ArrayList<AiMesh> = arrayListOf(),
+        var mAnimMeshes: MutableList<AiAnimMesh> = mutableListOf(),
 
         /** Method of morphing when animeshes are specified. */
         var mMethod: Int = 0    // TODO to enum AiMorphingMethod?
 ) {
+    constructor(other: AiMesh) : this(other.primitiveTypes, other.numVertices, other.numFaces,
+            MutableList(other.vertices.size, { AiVector3D(other.vertices[it]) }),
+            MutableList(other.normals.size, { AiVector3D(other.normals[it]) }),
+            MutableList(other.tangents.size, { AiVector3D(other.tangents[it]) }),
+            MutableList(other.bitangents.size, { AiVector3D(other.bitangents[it]) }),
+            MutableList(other.colors.size, { a -> MutableList(other.colors[a].size, { AiColor4D(other.colors[a][it]) }) }),
+            MutableList(other.textureCoords.size, { a -> MutableList(other.textureCoords[a].size, { other.textureCoords[a][it].clone() }) }),
+            MutableList(other.faces.size, { other.faces[it] }), other.numBones,
+            MutableList(other.bones.size, { AiBone(other.bones[it]) }), other.materialIndex,
+            other.name, other.mNumAnimMeshes, MutableList(other.mAnimMeshes.size, { AiAnimMesh(other.mAnimMeshes[it]) }), other.mMethod)
+
     //! Check whether the mesh contains positions. Provided no special
     //! scene flags are set, this will always be true
-    fun hasPositions() = numVertices > 0
+    val hasPositions get() = numVertices > 0
 
     //! Check whether the mesh contains faces. If no special scene flags
     //! are set this should always return true
-    fun hasFaces() = numFaces > 0
+    val hasFaces get() = numFaces > 0
 
     //! Check whether the mesh contains normal vectors
-    fun hasNormals() = normals.isNotEmpty() && numVertices > 0
+    val hasNormals get() = normals.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains tangent and bitangent vectors
     //! It is not possible that it contains tangents and no bitangents
     //! (or the other way round). The existence of one of them
     //! implies that the second is there, too.
-    fun hasTangentsAndBitangents() = tangents.isNotEmpty() && bitangents.isNotEmpty() && numVertices > 0
+    val hasTangentsAndBitangents get() = tangents.isNotEmpty() && bitangents.isNotEmpty() && numVertices > 0
 
     //! Check whether the mesh contains a vertex color set
     //! \param index Index of the vertex color set
@@ -335,7 +350,7 @@ open class AiMesh(
     }
 
     //! Check whether the mesh contains bones
-    fun hasBones() = bones.isNotEmpty() && numBones > 0
+    val hasBones get() = bones.isNotEmpty() && numBones > 0
 
     companion object {
         val size = 6 * Int.BYTES

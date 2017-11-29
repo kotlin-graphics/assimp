@@ -98,12 +98,7 @@ constructor() {
      * Call readFile() to start the import process.
      */
     constructor(other: Importer) : this() {
-        with(impl) {
-            intProperties += other.impl.intProperties
-            floatProperties += other.impl.floatProperties
-            stringProperties += other.impl.stringProperties
-            matrixProperties += other.impl.matrixProperties
-        }
+        impl.properties += other.impl.properties
     }
 
     /** Registers a new loader.
@@ -169,88 +164,8 @@ constructor() {
         else -> logger.warn { "Unable to remove custom post-processing step: I can't find you .." }.let { AiReturn.FAILURE }
     }
 
-    inline operator fun <reified T : Any> set(szName: String, value: T) = impl().properties.put(superFastHash(szName), value)
-    //            = when(T::class){
-//        String::class -> println("String")
-//        Int::class -> println("Int")
-//        Float::class -> println("Float")
-//        Boolean::class -> println("Boolean")
-//        Mat4::class -> println("Mat4")
-//        else -> throw Error()
-//    }
-    inline operator fun <reified T> get(szName: String): T? = when (T::class) {
-        String::class -> impl().properties[superFastHash(szName)] as T?
-        Int::class -> impl().properties[superFastHash(szName)] as T?
-        else -> throw Error("suca")
-    }
-
-    /** Set an integer configuration property.
-     *  @param szName Name of the property. All supported properties are defined in the aiConfig.g header (all constants
-     *  share the prefix AI_CONFIG_XXX and are simple strings).
-     *  @param iValue New value of the property
-     *  @return true if the property was set before. The new value replaces the previous value in this case.
-     *  @note Property of different types (float, int, string ..) are kept on different stacks, so calling
-     *  setPropertyInteger() for a floating-point property has no effect - the loader will call getPropertyFloat() to
-     *  read the property, but it won't be there.
-     */
-    fun setPropertyInteger(szName: String, value: Int) = setGenericProperty(impl.intProperties, szName, value)
-
-    /** Set a boolean configuration property. Boolean properties are stored on the integer stack internally so it's
-     *  possible to set them via setPropertyBool and query them with getPropertyBool and vice versa.
-     *  @see setPropertyInteger()
-     */
-    fun setPropertyBool(szName: String, value: Boolean) = setPropertyInteger(szName, value.i)
-
-    /** Set a floating-point configuration property.
-     *  @see setPropertyInteger()
-     */
-    fun setPropertyFloat(szName: String, value: Float) = setGenericProperty(impl.floatProperties, szName, value)
-
-    /** Set a string configuration property.
-     *  @see setPropertyInteger()
-     */
-    fun setPropertyString(szName: String, value: String) = setGenericProperty(impl.stringProperties, szName, value)
-
-    /** Set a matrix configuration property.
-     *  @see setPropertyInteger()
-     */
-    fun setPropertyMatrix(szName: String, value: AiMatrix4x4) = setGenericProperty(impl.matrixProperties, szName, value)
-
-    /** Get a configuration property.
-     *  @param szName Name of the property. All supported properties are defined in the aiConfig.g header (all constants
-     *  share the prefix AI_CONFIG_XXX).
-     *  @param errorReturn Value that is returned if the property is not found.
-     *  @return Current value of the property
-     *  @note Property of different types (float, int, string ..) are kept on different lists, so calling
-     *  setPropertyInteger() for a floating-point property has no effect - the loader will call getPropertyFloat() to
-     *  read the property, but it won't be there.
-     */
-    fun getPropertyInteger(szName: String, errorReturn: Int = 0xffffffff.i) = getGenericProperty(impl.intProperties, szName, errorReturn)
-
-    /** Get a boolean configuration property. Boolean properties are stored on the integer stack internally so it's
-     *  possible to set them via #SetPropertyBool and query them with getPropertyBool and vice versa.
-     *  @see getPropertyInteger()
-     */
-    fun getPropertyBool(szName: String, errorReturn: Boolean = false) = getPropertyInteger(szName, errorReturn.i).bool
-
-    /** Get a floating-point configuration property
-     *  @see getPropertyInteger()
-     */
-    fun getPropertyFloat(szName: String, errorReturn: Float = 10e10f) = getGenericProperty(impl.floatProperties, szName, errorReturn)
-
-    /** Get a string configuration property
-     *
-     *  The return value remains valid until the property is modified.
-     *  @see getPropertyInteger()
-     */
-    fun getPropertyString(szName: String, errorReturn: String = "") = getGenericProperty(impl.stringProperties, szName, errorReturn)
-
-    /** Get a matrix configuration property
-     *
-     *  The return value remains valid until the property is modified.
-     *  @see getPropertyInteger()
-     */
-    fun getPropertyMatrix(szName: String, errorReturn: AiMatrix4x4 = AiMatrix4x4()) = getGenericProperty(impl.matrixProperties, szName, errorReturn)
+    operator fun <T : Any> set(szName: String, value: T) = impl.properties.put(superFastHash(szName), value)
+    inline operator fun <reified T> get(szName: String): T? = impl().properties[superFastHash(szName)] as? T
 
     var prograssHandler: ProgressHandler?
         /** Retrieves the progress handler that is currently set.
@@ -697,11 +612,11 @@ constructor() {
             // add all meshes
             repeat(scene.numMeshes) { i ->
                 mem.meshes += AiMesh.size
-                if (scene.meshes[i].hasPositions())
+                if (scene.meshes[i].hasPositions)
                     mem.meshes += AiVector3D.size * scene.meshes[i].numVertices
-                if (scene.meshes[i].hasNormals())
+                if (scene.meshes[i].hasNormals)
                     mem.meshes += AiVector3D.size * scene.meshes[i].numVertices
-                if (scene.meshes[i].hasTangentsAndBitangents())
+                if (scene.meshes[i].hasTangentsAndBitangents)
                     mem.meshes += AiVector3D.size * scene.meshes[i].numVertices * 2
                 for (a in 0 until AI_MAX_NUMBER_OF_COLOR_SETS)
                     if (scene.meshes[i].hasVertexColors(a))
@@ -711,7 +626,7 @@ constructor() {
                     if (scene.meshes[i].hasTextureCoords(a))
                         mem.meshes += AiVector3D.size * scene.meshes[i].numVertices
                     else break
-                if (scene.meshes[i].hasBones()) {
+                if (scene.meshes[i].hasBones) {
                     for (p in 0 until scene.meshes[i].numBones) {
                         mem.meshes += AiBone.size
                         mem.meshes += scene.meshes[i].bones[p].numWeights * AiVertexWeight.size

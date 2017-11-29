@@ -60,8 +60,8 @@ class ColladaLoader : BaseImporter() {
     /** Accumulated animations for the target scene */
     val mAnims = ArrayList<AiAnimation>()
 
-    var noSkeletonMesh = AiConfig.Import.NO_SKELETON_MESHES
-    var ignoreUpDirection = AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION
+    var noSkeletonMesh = false
+    var ignoreUpDirection = false
 
     /** Used by FindNameForNode() to generate unique node names */
     var mNodeNameCounter = 0
@@ -563,7 +563,7 @@ class ColladaLoader : BaseImporter() {
                     for (i in 0..11)
                         offsetMatrix[i % 4, i / 4] = readFloat(jointMatrixAcc, jointMatrices, a.L, i.L)
                     numWeights = dstBones[a].size
-                    this.weights = dstBones[a].toTypedArray()
+                    this.weights = dstBones[a].toList()
                     // apply bind shape matrix to offset matrix
                     offsetMatrix *= Mat4(pSrcController.mBindShapeMatrix, true)
                 }
@@ -1300,8 +1300,8 @@ class ColladaLoader : BaseImporter() {
     override val info = desc
 
     override fun setupProperties(imp:Importer)    {
-        noSkeletonMesh = AiConfig.Import.NO_SKELETON_MESHES
-        ignoreUpDirection = AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION
+        noSkeletonMesh = imp[AiConfig.Import.NO_SKELETON_MESHES] ?: false
+        ignoreUpDirection = imp[AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION] ?: false
     }
 
     //

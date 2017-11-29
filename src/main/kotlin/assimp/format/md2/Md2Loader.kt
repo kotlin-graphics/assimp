@@ -92,9 +92,7 @@ class MD2Importer : BaseImporter() {
      *  property list.  */
     override fun setupProperties(imp: Importer) {
         //  The AI_CONFIG_IMPORT_MD2_KEYFRAME option overrides the AI_CONFIG_IMPORT_GLOBAL_KEYFRAME option.
-        configFrameID = AiConfig.Import.MD2_KEYFRAME
-        if (-1 == configFrameID)
-            configFrameID = AiConfig.Import.GLOBAL_KEYFRAME
+        configFrameID = imp[AiConfig.Import.MD2_KEYFRAME] ?: imp[AiConfig.Import.GLOBAL_KEYFRAME] ?: 0
     }
 
     /** Return importer meta information.

@@ -9,7 +9,7 @@ class assimp_ : StringSpec() {
         "core" {
 
             val imp = Importer()
-            imp["quatkquak"] = "123"
+            imp["quatkquak"] = false
             val a = superFastHash("quatkquak")
             println(superFastHash("quatkquak0"))
             println(superFastHash("quatkquak1"))

@@ -225,6 +225,11 @@ class AiLight(
         /** Size of area light source. */
         var mSize: AiVector2D = AiVector2D()
 ) {
+    constructor(other:AiLight) : this(other.mName, other.type, AiVector3D(other.mPosition), AiVector3D(other.mDirection),
+            AiVector3D(other.mUp), other.attenuationConstant, other.attenuationLinear, other.attenuationQuadratic,
+            AiColor3D(other.colorDiffuse), AiColor3D(other.colorSpecular), AiColor3D(other.colorAmbient),
+            other.angleInnerCone, other.angleOuterCone, AiVector2D(other.mSize))
+
     companion object {
         val size = Int.BYTES + 6 * Vec3.size + 5 * Float.BYTES
     }
