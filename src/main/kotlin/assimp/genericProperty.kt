@@ -43,24 +43,26 @@ package assimp
 
 import kotlin.reflect.KMutableProperty0
 
-fun <T> setGenericProperty(list: MutableMap<Int, T>, szName: String, value: T): Boolean {
+fun <T : Any> setGenericProperty(list: MutableMap<Int, Any>, szName: String, value: T): Boolean {
+
     assert(szName.isNotEmpty())
     val hash = superFastHash(szName)
 
     return list.putIfAbsent(hash, value) != null
 }
 
-fun <T> getGenericProperty(list: MutableMap<Int, T>, szName: String, errorReturn: T?): T {
+fun <T> getGenericProperty(list: MutableMap<Int, T>, szName: String, errorReturn: T? = null): T {
+
     assert(szName.isNotEmpty())
     val hash = superFastHash(szName)
 
     return list[hash] ?: errorReturn!!
 }
 
-/** ------------------------------------------------------------------------------------------------
- *  Special version for pointer types - they will be deleted when replaced with another value
+/** Special version for pointer types - they will be deleted when replaced with another value
  *  passing NULL removes the whole property */
-fun <T> setGenericPropertyPtr(list: MutableMap<Int, T>, szName: String, value: T?, wasExisting: KMutableProperty0<Boolean>? = null) {
+fun <T> setGenericPropertyPtr(list: MutableMap<Int, T>, szName: String, value: T? = null, wasExisting: KMutableProperty0<Boolean>? = null) {
+
     assert(szName.isNotEmpty())
     val hash = superFastHash(szName)
 
@@ -72,6 +74,7 @@ fun <T> setGenericPropertyPtr(list: MutableMap<Int, T>, szName: String, value: T
 
 // ------------------------------------------------------------------------------------------------
 fun <T> hasGenericProperty(list: MutableMap<Int, T>, szName: String): Boolean {
+
     assert(szName.isNotEmpty())
     val hash = superFastHash(szName)
 

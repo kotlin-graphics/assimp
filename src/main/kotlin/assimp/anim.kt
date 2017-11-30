@@ -190,7 +190,7 @@ class AiNodeAnim(
          *
          *  The default value is aiAnimBehaviour_DEFAULT (the original
          *  transformation matrix of the affected node is taken).*/
-        var postState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT){
+        var postState: AiAnimBehaviour = AiAnimBehaviour.DEFAULT) {
 
     companion object {
         val size = 3 * Int.BYTES
@@ -242,17 +242,22 @@ class AiAnimation(
         /** The number of bone animation channels. Each channel affects a single node. */
         var numChannels: Int = 0,
         /** The node animation channels. Each channel affects a single node. The array is numChannels in size. */
-        var channels: ArrayList<AiNodeAnim?> = ArrayList(),
+        var channels: MutableList<AiNodeAnim?> = mutableListOf(),
         /** The number of mesh animation channels. Each channel affects a single mesh and defines vertex-based animation. */
         var mNumMeshChannels: Int = 0,
         /** The mesh animation channels. Each channel affects a single mesh. The array is mNumMeshChannels in size. */
-        var mMeshChannels: List<List<AiMeshAnim>> = ArrayList(),
+        var mMeshChannels: MutableList<List<AiMeshAnim>> = mutableListOf(),
         /** The number of mesh animation channels. Each channel affects a single mesh and defines morphing animation. */
         var numMorphMeshChannels: Int = 0,
         /** The morph mesh animation channels. Each channel affects a single mesh. The array is numMorphMeshChannels in size. */
-        var morphMeshChannels: ArrayList<AiMeshMorphAnim> = ArrayList()){
+        var morphMeshChannels: MutableList<AiMeshMorphAnim> = mutableListOf()
+) {
+    constructor(other: AiAnimation) : this(other.name, other.duration, other.ticksPerSecond, other.numChannels,
+            MutableList(other.channels.size, { other.channels[it] }), other.mNumMeshChannels,
+            MutableList(other.mMeshChannels.size, { other.mMeshChannels[it] }), other.numMorphMeshChannels,
+            MutableList(other.morphMeshChannels.size, { other.morphMeshChannels[it] }))
 
     companion object {
-        val size = 2 *Double.BYTES + 3 * Int.BYTES
+        val size = 2 * Double.BYTES + 3 * Int.BYTES
     }
 }

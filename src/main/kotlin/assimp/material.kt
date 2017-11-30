@@ -258,6 +258,7 @@ class AiTexture {
          *  Mutually exclusive with #aiTextureFlags_UseAlpha.     */
         ignoreAlpha(0x4)
     }
+
     companion object {
         val size = 2 * Int.BYTES
     }
@@ -408,10 +409,14 @@ data class AiMaterial(
 
         var color: AiMaterial.Color? = null,
 
-        var textures: ArrayList<AiMaterial.Texture> = ArrayList()
+        var textures: MutableList<AiMaterial.Texture> = mutableListOf()
 
         // TODO const AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = '?bg.global';
 ) {
+    constructor(other: AiMaterial) : this(other.name, other.twoSided, other.shadingModel, other.wireframe,
+            other.blendFunc, other.opacity, other.bumpScaling, other.shininess, other.reflectivity,
+            other.shininessStrength, other.refracti, if (other.color == null) null else Color(other.color!!),
+            MutableList(other.textures.size, { Texture(other.textures[it]) }))
 
     data class Color(
 
@@ -427,8 +432,16 @@ data class AiMaterial(
 
             var reflective: AiColor3D? = null // TODO unsure
     ) {
+        constructor(other: Color) : this(
+                if (other.diffuse == null) null else AiColor3D(other.diffuse!!),
+                if (other.ambient == null) null else AiColor3D(other.ambient!!),
+                if (other.specular == null) null else AiColor3D(other.specular!!),
+                if (other.emissive == null) null else AiColor3D(other.emissive!!),
+                if (other.transparent == null) null else AiColor3D(other.transparent!!),
+                if (other.reflective == null) null else AiColor3D(other.reflective!!))
+
         companion object {
-            val size = 6  * Vec3.size
+            val size = 6 * Vec3.size
         }
     }
 
@@ -456,6 +469,9 @@ data class AiMaterial(
 
             var uvTrafo: AiUVTransform? = null
     ) {
+        constructor(other: Texture) : this(other.type, other.file, other.blend, other.op, other.mapping, other.uvwsrc,
+                other.mapModeU, other.mapModeV, other.mapAxis, other.flags, other.uvTrafo)
+
         companion object {
             val size = 8 * Int.BYTES + Float.BYTES + Vec3.size
         }

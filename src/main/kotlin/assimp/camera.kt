@@ -156,7 +156,10 @@ class AiCamera(
          * 0 if the aspect ratio is not defined in the source file.
          * 0 is also the default value.
          */
-        var aspect: Float = 0f) {
+        var aspect: Float = 0f)
+{
+    constructor(other: AiCamera) : this(other.name, AiVector3D(other.position), AiVector3D(other.up),
+            AiVector3D(other.lookAt), other.horizontalFOV, other.clipPlaneNear, other.clipPlaneFar, other.aspect)
 
     /** @brief Get a *right-handed* camera matrix from me
      *  @param out Camera matrix to be filled

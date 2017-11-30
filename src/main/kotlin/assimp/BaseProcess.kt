@@ -61,10 +61,10 @@ class SharedPostProcessInfo {
     fun addProperty(name: String, data: Base) = setGenericPropertyPtr(map, name, data)
 
     /** Get a heap property */
-    fun getProperty(name: String) = getGenericProperty(map, name, null)
+    fun getProperty(name: String) = getGenericProperty(map, name)
 
     /** Remove a property of a specific type    */
-    fun removeProperty(name: String) = setGenericPropertyPtr(map, name, null)
+    fun removeProperty(name: String) = setGenericPropertyPtr(map, name)
 }
 
 // ---------------------------------------------------------------------------

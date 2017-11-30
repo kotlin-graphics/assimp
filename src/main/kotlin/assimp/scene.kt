@@ -42,7 +42,7 @@ data class AiNode(
         var name: String = "",
 
         /** The transformation relative to the node's parent. */
-        var transformation: Mat4 = Mat4(),
+        var transformation: AiMatrix4x4 = AiMatrix4x4(),
 
         /** Parent node. NULL if this node is the root node. */
         var parent: AiNode? = null,
@@ -51,7 +51,7 @@ data class AiNode(
         var numChildren: Int = 0,
 
         /** The child nodes of this node. NULL if numChildren is 0. */
-        var children: ArrayList<AiNode> = ArrayList(),
+        var children: MutableList<AiNode> = mutableListOf(),
 
         /** The number of meshes of this node. */
         var numMeshes: Int = 0,
@@ -65,6 +65,9 @@ data class AiNode(
          *  don't write any.         */
         var metaData: ArrayList<AiMetadata>? = null
 ) {
+
+    constructor(other: AiNode) : this(other.name, AiMatrix4x4(other.transformation), other.parent, other.numChildren,
+            MutableList(other.children.size, {other.children[it]}), other.numMeshes, other.meshes.clone()) // TODO metadata
 
     fun findNode(name: String): AiNode? {
         if(this.name == name) return this

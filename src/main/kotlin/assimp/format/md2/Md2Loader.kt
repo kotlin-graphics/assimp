@@ -92,9 +92,7 @@ class MD2Importer : BaseImporter() {
      *  property list.  */
     override fun setupProperties(imp: Importer) {
         //  The AI_CONFIG_IMPORT_MD2_KEYFRAME option overrides the AI_CONFIG_IMPORT_GLOBAL_KEYFRAME option.
-        configFrameID = AiConfig.Import.MD2_KEYFRAME
-        if (-1 == configFrameID)
-            configFrameID = AiConfig.Import.GLOBAL_KEYFRAME
+        configFrameID = imp[AiConfig.Import.MD2_KEYFRAME] ?: imp[AiConfig.Import.GLOBAL_KEYFRAME] ?: 0
     }
 
     /** Return importer meta information.
@@ -124,9 +122,7 @@ class MD2Importer : BaseImporter() {
         val fileChannel = RandomAccessFile(file, "r").channel
         val buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
 
-        header = MD2.Header(buffer)
-
-        validateHeader()
+        header = MD2.Header(buffer).apply { validate(fileSize, configFrameID) }
 
         // there won't be more than one mesh inside the file
         scene.numMaterials = 1
@@ -233,37 +229,6 @@ class MD2Importer : BaseImporter() {
                 }
                 scene.meshes[0].faces[i][c] = current++
             }
-        }
-    }
-
-
-    /** Validate the header of the file     */
-    fun validateHeader() = with(header) {
-        when {
-        // check magic number
-            magic != MD2.MAGIC_NUMBER_BE && magic != MD2.MAGIC_NUMBER_LE -> {
-                val magic = ByteArray(4, { ((magic ushr (3 - it)) and 0xff).b })
-                throw Error("Invalid MD2 magic word: should be IDP2, the magic word found is $magic")
-            }
-        // check file format version
-            version != 8 -> logger.warn { "Unsupported md2 file version. Continuing happily ..." }
-        // check some values whether they are valid
-            0 == numFrames -> throw Error("Invalid md2 file: NUM_FRAMES is 0")
-            offsetEnd > fileSize -> throw Error("Invalid md2 file: File is too small")
-            numSkins > AI_MAX_ALLOC(MD2.Skin.size) -> throw Error("Invalid MD2 header: too many skins, would overflow")
-            numVertices > AI_MAX_ALLOC(MD2.Vertex.size) -> throw Error("Invalid MD2 header: too many vertices, would overflow")
-            numTexCoords > AI_MAX_ALLOC(MD2.TexCoord.size) -> throw Error("Invalid MD2 header: too many texcoords, would overflow")
-            numTriangles > AI_MAX_ALLOC(MD2.Triangle.size) -> throw Error("Invalid MD2 header: too many triangles, would overflow")
-            numFrames > AI_MAX_ALLOC(MD2.Frame.size(numVertices)) -> throw Error("Invalid MD2 header: too many frames, would overflow")
-            offsetSkins + numSkins * MD2.Skin.size >= fileSize ||
-                    offsetTexCoords + numTexCoords * MD2.TexCoord.size >= fileSize ||
-                    offsetTriangles + numTriangles * MD2.Triangle.size >= fileSize ||
-                    offsetFrames + numFrames * MD2.Frame.size(numVertices) >= fileSize ||
-                    offsetEnd > fileSize -> throw Error("Invalid MD2 header: some offsets are outside the file")
-            numSkins > MD2.MAX_SKINS -> logger.warn { "The model contains more skins than Quake 2 supports" }
-            numFrames > MD2.MAX_FRAMES -> logger.warn { "The model contains more frames than Quake 2 supports" }
-            numVertices > MD2.MAX_VERTS -> logger.warn { "The model contains more vertices than Quake 2 supports" }
-            numFrames <= configFrameID -> throw Error("The requested frame is not existing the file")
         }
     }
 }
