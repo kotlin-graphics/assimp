@@ -93,12 +93,12 @@ data class AiBone(
         var numWeights: Int = 0,
 
         //! The vertices affected by this bone
-        var weights: List<AiVertexWeight> = listOf(),
+        var weights: MutableList<AiVertexWeight> = mutableListOf(),
 
         //! Matrix that transforms from mesh space to bone space in bind pose
         var offsetMatrix: AiMatrix4x4 = AiMatrix4x4()
 ) {
-    constructor(other: AiBone) : this(other.name, other.numWeights, List(other.weights.size, { AiVertexWeight(other.weights[it]) }), AiMatrix4x4(other.offsetMatrix))
+    constructor(other: AiBone) : this(other.name, other.numWeights, MutableList(other.weights.size, { AiVertexWeight(other.weights[it]) }), AiMatrix4x4(other.offsetMatrix))
 
     companion object {
         val size = Int.BYTES + Mat4.size
