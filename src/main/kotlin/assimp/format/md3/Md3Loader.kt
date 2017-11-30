@@ -51,6 +51,7 @@ import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
+import kotlin.math.min
 import assimp.AI_INT_MERGE_SCENE as Ms
 
 
@@ -125,7 +126,126 @@ object Q3Shader {
      *  @param io IOSystem to be used for reading
      *  @return false if file is not accessible
      */
-//    bool LoadShader(ShaderData& fill, const std::string& file,IOSystem* io)
+    fun loadShader(fill: ShaderData, file: String): Boolean {
+        val f = File(file)
+        if (!f.exists()) return false // if we can't access the file, don't worry and return
+
+        logger.info { "Loading Quake3 shader file $file" }
+        TODO()
+//        // read file in memory
+//        const size_t s = file->FileSize()
+//        std::vector<char> _buff(s+1)
+//        file->Read(&_buff[0],s,1)
+//        _buff[s] = 0
+//
+//        // remove comments from it (C++ style)
+//        CommentRemover::RemoveLineComments("//",&_buff[0])
+//        const char* buff = &_buff[0]
+//
+//        Q3Shader::ShaderDataBlock* curData = NULL
+//        Q3Shader::ShaderMapBlock*  curMap  = NULL
+//
+//        // read line per line
+//        for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
+//
+//            if (*buff == '{') {
+//            ++buff
+//
+//            // append to last section, if any
+//            if (!curData) {
+//                DefaultLogger::get()->error("Q3Shader: Unexpected shader section token \'{\'")
+//                return true // still no failure, the file is there
+//            }
+//
+//            // read this data section
+//            for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
+//            if (*buff == '{') {
+//            ++buff
+//            // add new map section
+//            curData->maps.push_back(Q3Shader::ShaderMapBlock())
+//            curMap = &curData->maps.back()
+//
+//            for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
+//            // 'map' - Specifies texture file name
+//            if (TokenMatchI(buff,"map",3) || TokenMatchI(buff,"clampmap",8)) {
+//                curMap->name = GetNextToken(buff)
+//            }
+//            // 'blendfunc' - Alpha blending mode
+//            else if (TokenMatchI(buff,"blendfunc",9)) {
+//                const std::string blend_src = GetNextToken(buff)
+//                if (blend_src == "add") {
+//                    curMap->blend_src  = Q3Shader::BLEND_GL_ONE
+//                    curMap->blend_dest = Q3Shader::BLEND_GL_ONE
+//                }
+//                else if (blend_src == "filter") {
+//                    curMap->blend_src  = Q3Shader::BLEND_GL_DST_COLOR
+//                    curMap->blend_dest = Q3Shader::BLEND_GL_ZERO
+//                }
+//                else if (blend_src == "blend") {
+//                    curMap->blend_src  = Q3Shader::BLEND_GL_SRC_ALPHA
+//                    curMap->blend_dest = Q3Shader::BLEND_GL_ONE_MINUS_SRC_ALPHA
+//                }
+//                else {
+//                    curMap->blend_src  = StringToBlendFunc(blend_src)
+//                    curMap->blend_dest = StringToBlendFunc(GetNextToken(buff))
+//                }
+//            }
+//            // 'alphafunc' - Alpha testing mode
+//            else if (TokenMatchI(buff,"alphafunc",9)) {
+//                const std::string at = GetNextToken(buff)
+//                if (at == "GT0") {
+//                    curMap->alpha_test = Q3Shader::AT_GT0
+//                }
+//                else if (at == "LT128") {
+//                    curMap->alpha_test = Q3Shader::AT_LT128
+//                }
+//                else if (at == "GE128") {
+//                    curMap->alpha_test = Q3Shader::AT_GE128
+//                }
+//            }
+//            else if (*buff == '}') {
+//            ++buff
+//            // close this map section
+//            curMap = NULL
+//            break
+//        }
+//        }
+//
+//        }
+//            else if (*buff == '}') {
+//            ++buff
+//            curData = NULL
+//            break
+//        }
+//
+//            // 'cull' specifies culling behaviour for the model
+//            else if (TokenMatchI(buff,"cull",4)) {
+//            SkipSpaces(&buff)
+//            if (!ASSIMP_strincmp(buff,"back",4)) {
+//                curData->cull = Q3Shader::CULL_CCW
+//            }
+//            else if (!ASSIMP_strincmp(buff,"front",5)) {
+//                curData->cull = Q3Shader::CULL_CW
+//            }
+//            else if (!ASSIMP_strincmp(buff,"none",4) || !ASSIMP_strincmp(buff,"disable",7)) {
+//                curData->cull = Q3Shader::CULL_NONE
+//            }
+//            else DefaultLogger::get()->error("Q3Shader: Unrecognized cull mode")
+//        }
+//        }
+//        }
+//
+//            else {
+//            // add new section
+//            fill.blocks.push_back(Q3Shader::ShaderDataBlock())
+//            curData = &fill.blocks.back()
+//
+//            // get the name of this section
+//            curData->name = GetNextToken(buff)
+//        }
+//        }
+//        return true
+    }
 
 
     /** @brief Convert a Q3Shader to an aiMaterial
@@ -176,7 +296,7 @@ object Q3Shader {
 //            s.first  = ss;
 //            s.second = GetNextToken(buff);
 //        }
-        return true;
+        return true
     }
 }
 
@@ -256,7 +376,9 @@ class MD3Importer : BaseImporter() {
 
         // get base path and file name
         // todo ... move to PathConverter
-        filename = this.file.substringAfterLast(File.separator).toLowerCase()
+        filename = this.file.substringAfterLast('/').toLowerCase()
+        path = this.file.substringBeforeLast('/')
+
 
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
@@ -277,7 +399,7 @@ class MD3Importer : BaseImporter() {
         // Validate the file header
         header.validateOffsets(buffer.size, configFrameID)
         // Navigate to the list of surfaces
-        val surfaces = MD3.Surface(buffer.apply { position(header.ofsSurfaces) })
+        var surfaces = MD3.Surface(buffer.apply { position(header.ofsSurfaces) })
         // Navigate to the list of tags
         val tags = MD3.Tag(buffer.apply { position(header.ofsTags) })
         // Allocate output storage
@@ -296,6 +418,7 @@ class MD3Importer : BaseImporter() {
         readShader(shaders)
 
         // Adjust all texture paths in the shader
+        val headerName = header.name
         shaders.blocks.forEach {
             TODO()
 //            ConvertPath(( * dit).name.c_str(), header_name, (*dit).name)
@@ -310,57 +433,43 @@ class MD3Importer : BaseImporter() {
         var iNumMaterials = 0
         while (iNum-- > 0) {
             // Validate the surface header
-            surfaces.validateOffsets(buffer)
+            surfaces.validateOffsets(header.ofsSurfaces, fileSize)
             // Navigate to the vertex list of the surface
-            val vertices = MD3.Vertex(buffer.apply { header.ofsSurfaces + surfaces.ofsXyzNormal })
+            val pVertices = header.ofsSurfaces + surfaces.ofsTriangles
             // Navigate to the triangle list of the surface
-//            val triangles = MD3 .Triangle *)
-//            (((uint8_t *) pcSurfaces) + pcSurfaces->OFS_TRIANGLES)
-//
-//            // Navigate to the texture coordinate list of the surface
-//            BE_NCONST MD3 ::TexCoord * pcUVs = (BE_NCONST MD3 ::TexCoord *)
-//            (((uint8_t *) pcSurfaces) + pcSurfaces->OFS_ST)
-//
-//            // Navigate to the shader list of the surface
-//            BE_NCONST MD3 ::Shader * pcShaders = (BE_NCONST MD3 ::Shader *)
-//            (((uint8_t *) pcSurfaces) + pcSurfaces->OFS_SHADERS)
-//
-//            // If the submesh is empty ignore it
-//            if (0 == pcSurfaces->NUM_VERTICES || 0 == pcSurfaces->NUM_TRIANGLES)
-//            {
-//                pcSurfaces = (BE_NCONST MD3 ::Surface *)(((uint8_t *) pcSurfaces) + pcSurfaces->OFS_END)
-//                pScene->mNumMeshes--
-//                continue
-//            }
-//
-//            // Allocate output mesh
-//            pScene->mMeshes[iNum] = new aiMesh()
-//            aiMesh * pcMesh = pScene->mMeshes[iNum]
-//
-//            std::string _texture_name
-//                    const char * texture_name = NULL
-//
-//                    // Check whether we have a texture record for this surface in the .skin file
-//                    std::list < Q3Shader::SkinData::TextureEntry > ::iterator it = std ::find(
-//                    skins.textures.begin(), skins.textures.end(), pcSurfaces->NAME)
-//
-//            if (it != skins.textures.end()) {
-//                texture_name = & * (_texture_name = ( * it).second).begin()
-//                DefaultLogger::get()->debug("MD3: Assigning skin texture "+(*it).second+" to surface "+pcSurfaces->NAME)
-//                ( * it).resolved = true // mark entry as resolved
-//            }
-//
-//            // Get the first shader (= texture?) assigned to the surface
-//            if (!texture_name && pcSurfaces->NUM_SHADER)    {
-//                texture_name = pcShaders->NAME
-//            }
-//
-//            std::string convertedPath
-//                    if (texture_name) {
-//                        ConvertPath(texture_name, headerName, convertedPath)
-//                    }
-//
-//            const Q3Shader ::ShaderDataBlock * shader = NULL
+            val pTriangles = header.ofsSurfaces + surfaces.ofsTriangles
+            // Navigate to the texture coordinate list of the surface
+            val pUVs = header.ofsSurfaces + surfaces.ofsSt//
+            // Navigate to the shader list of the surface
+            val shaders = MD3.Shader(buffer.apply { position(header.ofsSurfaces + surfaces.ofsShaders) })
+            // If the submesh is empty ignore it
+            if (0 == surfaces.numVertices || 0 == surfaces.numTriangles) {
+                surfaces = MD3.Surface(buffer.apply { position(header.ofsSurfaces + surfaces.ofsEnd) })
+                scene.numMeshes--
+                continue
+            }
+
+            // Allocate output mesh
+            val mesh = AiMesh()
+            scene.meshes.add(mesh)
+
+            // Check whether we have a texture record for this surface in the .skin file
+            var textureName = skins.textures.find { it.first == surfaces.name }?.let {
+                logger.debug { "MD3: Assigning skin texture ${it.second} to surface ${surfaces.name}" }
+                it.resolved = true // mark entry as resolved
+                it.second
+            } ?: ""
+
+            // Get the first shader (= texture?) assigned to the surface
+            if (textureName.isEmpty() && surfaces.numShader != 0)
+                textureName = shaders.name
+
+            val convertedPath = when (textureName) {
+                "" -> ""
+                else -> convertPath(textureName.trim(), headerName.trim())
+            }
+
+            var shader: Q3Shader.ShaderDataBlock? = null
 //
 //            // Now search the current shader for a record with this name (
 //            // excluding texture file extension)
@@ -450,7 +559,7 @@ class MD3Importer : BaseImporter() {
 //            pcMesh->mTextureCoords[0] = new aiVector3D[pcMesh->mNumVertices]
 //            pcMesh->mNumUVComponents[0] = 2
 //
-//            // Fill in all triangles
+//            // Fill in all pTriangles
 //            unsigned int iCurrent = 0
 //            for (unsigned int i = 0; i < (unsigned int) pcSurfaces->NUM_TRIANGLES;++i)   { pcMesh ->
 //                mFaces[i].mIndices = new unsigned int[3]
@@ -556,7 +665,7 @@ class MD3Importer : BaseImporter() {
         if (s == -1) s = t
 
         val modFilename = filename.substring(0, s)
-        val suffix = filename.substring(s, t - s)
+        val suffix = filename.substring(s, t)
 
         if (modFilename == "lower" || modFilename == "upper" || modFilename == "head") {
             val lower = "${path}lower$suffix.md3"
@@ -684,38 +793,58 @@ class MD3Importer : BaseImporter() {
      *  @param fill Receives output information     */
     fun readShader(fill: Q3Shader.ShaderData) {
         // Determine Q3 model name from given path
-        TODO()
-//        const std::string::size_type s = path.find_last_of("\\/",path.length()-2);
-//        const std::string model_file = path.substr(s+1,path.length()-(s+2));
-//
-//        // If no specific dir or file is given, use our default search behaviour
-//        if (!configShaderFile.length()) {
-//            if(!Q3Shader::LoadShader(fill,path + "..\\..\\..\\scripts\\" + model_file + ".shader",mIOHandler)) {
-//                Q3Shader::LoadShader(fill,path + "..\\..\\..\\scripts\\" + filename + ".shader",mIOHandler);
-//            }
-//        }
-//        else {
+        val modelFile = path.substringAfterLast('/')
+
+        // If no specific dir or file is given, use our default search behaviour
+        if (configShaderFile.isEmpty()) {
+            if (!Q3Shader.loadShader(fill, "$path../../../scripts/$modelFile.shader"))
+                Q3Shader.loadShader(fill, "$path../../../scripts/$filename.shader")
+        } else {
+            TODO()
 //            // If the given string specifies a file, load this file.
 //            // Otherwise it's a directory.
 //            const std::string::size_type st = configShaderFile.find_last_of('.');
 //            if (st == std::string::npos) {
 //
-//                if(!Q3Shader::LoadShader(fill,configShaderFile + model_file + ".shader",mIOHandler)) {
+//                if(!Q3Shader::LoadShader(fill,configShaderFile + modelFile + ".shader",mIOHandler)) {
 //                    Q3Shader::LoadShader(fill,configShaderFile + filename + ".shader",mIOHandler);
 //                }
 //            }
 //            else {
 //                Q3Shader::LoadShader(fill,configShaderFile,mIOHandler);
 //            }
-//        }
+        }
     }
 
-    // -------------------------------------------------------------------
     /** Convert a texture path in a MD3 file to a proper value
      *  @param[in] texture_name Path to be converted
      *  @param[in] header_path Base path specified in MD3 header
      *  @param[out] out Receives the converted output string
      */
-//    void ConvertPath (const char * texture_name, const char* header_path,
-//    std::string& out ) const
+    fun convertPath(textureName: String, headerName: String): String {
+        /*  If the MD3's internal path itself and the given path are using the same directory, remove it completely
+            to get right output paths.         */
+        val end1 = with(headerName) { if (contains('\\')) indexOfLast { it == '\\' } else indexOfLast { it == '/' } }
+        with(textureName) {
+            when {
+                contains('\\') -> indexOfLast { it == '\\' }
+                contains('/') -> indexOfLast { it == '/' }
+                else -> null
+            }
+        }?.let { end2 ->
+            /*  HACK: If the paths starts with "models", ignore the next two hierarchy levels, it specifies just the
+                model name.
+                Ignored by Q3, it might be not equal to the real model location. */
+            var len2 = 6
+            val len1 = end1
+            if (!textureName.startsWith("models") && (textureName[6] == '/' || textureName[6] == '\\')) {
+                len2 = 6 // ignore the seventh - could be slash or backslash
+                if (headerName[0] == NUL)
+                    return textureName.substring(end2 + 1) // Use the file name only
+            } else len2 = min(len1, end2)
+            if (!textureName.startsWith(headerName.substring(len2)))
+                return textureName.substring(end2 + 1) // Use the file name only
+        }
+        return textureName // Use the full path
+    }
 }

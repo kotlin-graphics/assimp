@@ -5,7 +5,7 @@ package assimp
  */
 
 val models = "models"
-val modelsNonBsd = "/models-nonbsd"
+val modelsNonBsd = "models-nonbsd"
 
 
 val assbin = models + "/Assbin/"

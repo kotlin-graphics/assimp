@@ -41,10 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.md3
 
-import assimp.AI_MAKE_MAGIC
-import assimp.AI_MAX_ALLOC
-import assimp.AiVector3D
-import assimp.logger
+import assimp.*
 import glm_.BYTES
 import glm_.i
 import glm_.size
@@ -79,7 +76,7 @@ object MD3 {
         /** file format version */
         val version = buffer.int
         /** original name in .pak archive   */
-        val name = String(ByteArray(MAXQPATH, { buffer.get() }))
+        val name = String(ByteArray(MAXQPATH, { buffer.get() })).filter { it != NUL }
         /** unknown */
         val flags = buffer.int
         /** number of frames in the file    */
@@ -137,7 +134,7 @@ object MD3 {
      */
     class Tag(buffer: ByteBuffer) {
         /** name of the tag */
-        val name = String(ByteArray(MAXQPATH, { buffer.get() }))
+        val name = String(ByteArray(MAXQPATH, { buffer.get() })).filter { it != NUL }
         /** Local tag origin and orientation    */
         val origin = AiVector3D(buffer).also { buffer.position(buffer.position() + Vec3.size) }
         val orientation = FloatArray(9, { buffer.float }) // TODO mat3?
@@ -148,7 +145,7 @@ object MD3 {
         /** magic number    */
         val indent = buffer.int
         /** original name of the surface    */
-        val name = String(ByteArray(MAXQPATH, { buffer.get() }))
+        val name = String(ByteArray(MAXQPATH, { buffer.get() })).filter { it != NUL }
         /** unknown */
         val flags = buffer.int
         /** number of frames in the surface */
@@ -170,10 +167,7 @@ object MD3 {
         /** offset to the end of the Surface object */
         val ofsEnd = buffer.int
 
-        fun validateOffsets(buffer: ByteBuffer) {
-            val fileSize = buffer.size
-            // Calculate the relative offset of the surface
-            val ofs = buffer.position()
+        fun validateOffsets(ofs: Int, fileSize: Int) {
             // Check whether all data chunks are inside the valid range
             if (ofsTriangles + ofs + numTriangles * MD3.Triangle.size > fileSize ||
                     ofsShaders + ofs + numShader * MD3.Shader.size > fileSize ||
@@ -195,7 +189,7 @@ object MD3 {
     /** @brief Data structure for a shader defined in there */
     class Shader(buffer: ByteBuffer) {
         /** filename of the shader  */
-        val name = String(ByteArray(MAXQPATH, { buffer.get() }))
+        val name = String(ByteArray(MAXQPATH, { buffer.get() })).filter { it != NUL }
         /** index of the shader */
         val shaderIndex = buffer.int
 

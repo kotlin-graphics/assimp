@@ -1,4 +1,4 @@
-package collada
+package assimp.collada
 
 import assimp.AiAnimBehaviour
 import assimp.Importer

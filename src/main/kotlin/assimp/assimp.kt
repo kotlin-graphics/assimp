@@ -111,3 +111,5 @@ object ASSIMP {
         }
     }
 }
+
+val NUL = '\u0000'

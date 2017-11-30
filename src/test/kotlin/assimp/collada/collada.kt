@@ -1,4 +1,4 @@
-package collada
+package assimp.collada
 
 import assimp.models
 import io.kotlintest.specs.StringSpec
