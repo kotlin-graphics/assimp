@@ -48,8 +48,6 @@ import kotlin.reflect.full.memberProperties
 import assimp.AiPostProcessSteps as Pps
 import assimp.AiShadingMode as Sm
 
-val PI = Math.PI
-
 /** @file Defines a (dummy) post processing step to validate the loader's
  *  output data structure (for debugging)
  *  --------------------------------------------------------------------------------------

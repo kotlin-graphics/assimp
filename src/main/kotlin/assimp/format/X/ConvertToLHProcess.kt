@@ -58,9 +58,9 @@ object MakeLeftHandedProcess {
         // mirror positions, normals and stuff along the Z axis
         for (a in 0 until pMesh.numVertices) {
             pMesh.vertices[a].z *= -1.0f
-            if (pMesh.hasNormals())
+            if (pMesh.hasNormals)
                 pMesh.normals[a].z *= -1.0f
-            if (pMesh.hasTangentsAndBitangents()) {
+            if (pMesh.hasTangentsAndBitangents) {
                 pMesh.tangents[a].z *= -1.0f
                 pMesh.bitangents[a].z *= -1.0f
             }
@@ -78,7 +78,7 @@ object MakeLeftHandedProcess {
         }
 
         // mirror bitangents as well as they're derived from the texture coords
-        if (pMesh.hasTangentsAndBitangents()) {
+        if (pMesh.hasTangentsAndBitangents) {
             for (a in 0 until pMesh.numVertices)
                 pMesh.bitangents[a] = pMesh.bitangents[a] * -1.0f
         }

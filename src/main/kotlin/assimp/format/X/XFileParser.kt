@@ -45,7 +45,7 @@ class XFileParser() {
     var mBinaryFloatSize: Int = 0
     var mBinaryNumCount: Int = 0
 
-    var mLineNumber: Int = 1 //=0?
+    var mLineNumber: Int = 0 //=0?
 
     var mScene: Scene = Scene()
 
@@ -294,14 +294,14 @@ class XFileParser() {
         var numWeights = ReadInt()
         bone.mWeights.reserve(numWeights, { BoneWeight() })
 
-        for (a in 0..numWeights - 1) {
+        for (a in 0 until numWeights) {
             var weight = BoneWeight()
             weight.mVertex = ReadInt()
-            bone.mWeights.push_back(weight)
+            bone.mWeights[a] = (weight)
         }
 
         // read vertex weights
-        for (a in 0..numWeights - 1)
+        for (a in 0 until numWeights)
             bone.mWeights[a].mWeight = ReadFloat()
 
         // read matrix offset
@@ -336,7 +336,7 @@ class XFileParser() {
         pMesh.mNormals.resize(numNormals, { AiVector3D() })
 
         // read normal vectors
-        for (a in 0..numNormals - 1)
+        for (a in 0 until numNormals)
             pMesh.mNormals[a] = ReadVector3()
 
         // read normal indices
@@ -344,12 +344,12 @@ class XFileParser() {
         if (numFaces != pMesh.mPosFaces.size())
             ThrowException("Normal face count does not match vertex face count.")
 
-        for (a in 0..numFaces - 1) {
+        for (a in 0 until numFaces) {
             var numIndices: Int = ReadInt()
             pMesh.mNormFaces.push_back(Face())
             var face = pMesh.mNormFaces.last()
 
-            for (b in 0..numIndices - 1)
+            for (b in 0 until numIndices)
                 face.mIndices.push_back(ReadInt())
 
             TestForSeparator()
@@ -371,7 +371,7 @@ class XFileParser() {
             ThrowException("Texture coord count does not match vertex count")
 
         coords.resize(numCoords, { AiVector2D() })
-        for (a in 0..numCoords - 1)
+        for (a in 0 until numCoords)
             coords[a] = ReadVector2()
 
         CheckForClosingBrace()
@@ -389,7 +389,7 @@ class XFileParser() {
             ThrowException("Vertex color count does not match vertex count")
 
         colors.resize(numColors, { AiColor4D(0, 0, 0, 1) })
-        for (a in 0..numColors - 1) {
+        for (a in 0 until numColors) {
             var index = ReadInt()
             if (index >= pMesh.mPositions.size())
                 ThrowException("Vertex color index out of bounds")
@@ -421,7 +421,7 @@ class XFileParser() {
             ThrowException("Per-Face material index count does not match face count.")
 
         // read per-face material indices
-        for (a in 0..numMatIndices - 1)
+        for (a in 0 until numMatIndices)
             pMesh.mFaceMaterials.push_back(ReadInt())
 
         // in version 03.02, the face indices end with two semicolons.
@@ -571,7 +571,7 @@ class XFileParser() {
         // read number of keys
         var numKeys = ReadInt()
 
-        for (a in 0..numKeys - 1) {
+        for (a in 0 until numKeys) {
             // read time
             var time = ReadInt()
 
@@ -659,7 +659,7 @@ class XFileParser() {
 
         // some exporters write double backslash paths out. We simply replace them if we find them
         while (pName.indexOf("\\\\") != -1)
-            pName.replace(pName.indexOf("\\\\"), 2, "\\")
+            pName.replace(pName.indexOf("\\\\"), pName.indexOf("\\\\")+2, "\\")
     }
 
     fun ParseUnknownDataObject() {
@@ -982,7 +982,7 @@ class XFileParser() {
             var child = pNode.mChildren.front()
             if (child.mName.length() == 0 && child.mMeshes.size() > 0) {
                 // transfer its meshes to us
-                for (a in 0..child.mMeshes.size() - 1)
+                for (a in 0 until child.mMeshes.size())
                     pNode.mMeshes.push_back(child.mMeshes[a])
                 child.mMeshes.clear()
 
@@ -996,7 +996,7 @@ class XFileParser() {
         }
 
         // recurse
-        for (a in 0..pNode.mChildren.size() - 1)
+        for (a in 0 until pNode.mChildren.size())
             FilterHierarchy(pNode.mChildren[a])
     }
 

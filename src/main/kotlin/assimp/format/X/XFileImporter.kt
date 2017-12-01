@@ -478,7 +478,7 @@ class XFileImporter : BaseImporter() {
                         // Position
                         mesh.vertices[newIndex] = sourceMesh.mPositions[pf.mIndices[d]]
                         // Normal, if present
-                        if (mesh.hasNormals())
+                        if (mesh.hasNormals)
                             mesh.normals[newIndex] = sourceMesh.mNormals[sourceMesh.mNormFaces[f].mIndices[d]]
 
                         // texture coord sets
@@ -533,9 +533,10 @@ class XFileImporter : BaseImporter() {
                     nbone.name = (if (obone.mName == null) "" else obone.mName!!)
                     nbone.offsetMatrix = obone.mOffsetMatrix
                     nbone.numWeights = newWeights.size()
-                    nbone.weights = Array<AiVertexWeight>(nbone.numWeights, { AiVertexWeight() })
+                    nbone.weights = MutableList<AiVertexWeight>(nbone.numWeights, { AiVertexWeight() })
                     for (d in 0 until newWeights.size())
                         nbone.weights[d] = newWeights[d]
+
                 }
 
                 // store the bones in the mesh

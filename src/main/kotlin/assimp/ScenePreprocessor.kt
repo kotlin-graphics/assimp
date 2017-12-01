@@ -1,5 +1,7 @@
 package assimp
 
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by elect on 18/11/2016.
@@ -106,18 +108,18 @@ object ScenePreprocessor {
             if (duration == -1.0) {
                 channel!!.positionKeys.forEach {
                     // Position keys
-                    first = Math.min(first, it.time)
-                    last = Math.max(last, it.time)
+                    first = min(first, it.time)
+                    last = max(last, it.time)
                 }
                 channel.scalingKeys.forEach {
                     // Scaling keys
-                    first = Math.min(first, it.time)
-                    last = Math.max(last, it.time)
+                    first = min(first, it.time)
+                    last = max(last, it.time)
                 }
                 channel.rotationKeys.forEach {
                     // Rotation keys
-                    first = Math.min(first, it.time)
-                    last = Math.max(last, it.time)
+                    first = min(first, it.time)
+                    last = max(last, it.time)
                 }
             }
             /*  Check whether the animation channel has no rotation or position tracks. In this case we generate a dummy
@@ -150,7 +152,7 @@ object ScenePreprocessor {
         }
         if (duration == -1.0) {
             logger.debug { "ScenePreprocessor: Setting animation duration" }
-            duration = last - Math.min(first, 0.0)
+            duration = last - min(first, 0.0)
         }
     }
 }
