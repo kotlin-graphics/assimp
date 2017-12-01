@@ -440,7 +440,6 @@ class MD3Importer : BaseImporter() {
         header.validateOffsets(buffer.size, configFrameID)
         // Navigate to the list of surfaces
         var pSurfaces = header.ofsSurfaces
-        var surfaces = MD3.Surface(buffer.apply { position(pSurfaces) })
         // Navigate to the list of tags
         val tags = MD3.Tag(buffer.apply { position(header.ofsTags) })
         // Allocate output storage
@@ -472,27 +471,28 @@ class MD3Importer : BaseImporter() {
         // Read all surfaces from the file
         var iNum = header.numSurfaces
         var iNumMaterials = 0
+        val meshes = ArrayList<AiMesh>()
         while (iNum-- > 0) {
+            var surfaces = MD3.Surface(buffer.apply { position(pSurfaces) })
             // Validate the surface header
-            surfaces.validateOffsets(header.ofsSurfaces, fileSize)
+            surfaces.validateOffsets(pSurfaces, fileSize)
             // Navigate to the vertex list of the surface
-            val pVertices = header.ofsSurfaces + surfaces.ofsXyzNormal
+            val pVertices = pSurfaces + surfaces.ofsXyzNormal
             // Navigate to the triangle list of the surface
-            var pTriangles = header.ofsSurfaces + surfaces.ofsTriangles
+            var pTriangles = pSurfaces + surfaces.ofsTriangles
             // Navigate to the texture coordinate list of the surface
-            val pUVs = header.ofsSurfaces + surfaces.ofsSt//
+            val pUVs = pSurfaces + surfaces.ofsSt//
             // Navigate to the shader list of the surface
-            val shaders = MD3.Shader(buffer.apply { position(header.ofsSurfaces + surfaces.ofsShaders) })
+            val shaders = MD3.Shader(buffer.apply { position(pSurfaces + surfaces.ofsShaders) })
             // If the submesh is empty ignore it
             if (0 == surfaces.numVertices || 0 == surfaces.numTriangles) {
-                surfaces = MD3.Surface(buffer.apply { position(header.ofsSurfaces + surfaces.ofsEnd) })
+                surfaces = MD3.Surface(buffer.apply { position(pSurfaces + surfaces.ofsEnd) })
                 scene.numMeshes--
                 continue
             }
 
             // Allocate output mesh
-            val mesh = AiMesh()
-            scene.meshes.add(mesh)
+            val mesh = AiMesh().also { meshes.add(it) }
 
             // Check whether we have a texture record for this surface in the .skin file
             var textureName = skins.textures.find { it.first == surfaces.name }?.let {
@@ -569,9 +569,9 @@ class MD3Importer : BaseImporter() {
                     val index = buffer.getInt(pTriangles + c * Int.BYTES)
                     if (index >= surfaces.numVertices) throw Error("MD3: Invalid vertex index")
                     buffer.position(pVertices + index * MD3.Vertex.size)
-                    val vec = AiVector3D(buffer.short,buffer.short,buffer.short) times_ MD3.XYZ_SCALE
+                    mesh.vertices.add(AiVector3D(buffer.short, buffer.short, buffer.short) times_ MD3.XYZ_SCALE)
                     // Convert the normal vector to uncompressed float3 format
-                    val nor = MD3.latLngNormalToVec3(buffer.short)
+                    mesh.normals.add(MD3.latLngNormalToVec3(buffer.short))
 
                     // Read texture coordinates
                     buffer.position(pUVs + index * MD3.TexCoord.size)
@@ -587,63 +587,62 @@ class MD3Importer : BaseImporter() {
             }
             // Go to the next surface
             pSurfaces += surfaces.ofsEnd
-            surfaces = MD3.Surface(buffer.apply { position(pSurfaces) })
+            pTriangles += surfaces.ofsEnd
         }
+        // meshes are inserted from the end
+        for(i in meshes.lastIndex downTo 0) scene.meshes.add(meshes[i])
 
         // For debugging purposes: check whether we found matches for all entries in the skins file
-//        if (!DefaultLogger::isNullLogger()) {
-//            for (std:: list < Q3Shader::SkinData::TextureEntry > ::const_iterator it = skins . textures . begin ();it != skins.textures.end(); ++it) {
-//                if (!( * it).resolved) {
-//                DefaultLogger::get()->error("MD3: Failed to match skin "+(*it).first+" to surface "+(*it).second)
-//            }
-//            }
-//        }
+        skins.textures.filter { !it.resolved }.forEach {
+            logger.error { "MD3: Failed to match skin ${it.first} to surface ${it.second}" }
+        }
+
+        if (scene.numMeshes == 0) throw Error("MD3: File contains no valid mesh")
+        scene.numMaterials = iNumMaterials
+
+        // Now we need to generate an empty node graph
+        scene.rootNode = AiNode("<MD3Root>").apply { numMeshes = scene.numMeshes }
+
+        // Attach tiny children for all tags
+        if (header.numTags != 0) {
+            scene.rootNode.numChildren = header.numTags
+
+            for (i in 0 until header.numTags) {
+
+                val nd = AiNode()
+                TODO()
+//                aiNode * nd = pScene->mRootNode->mChildren[i] = new aiNode()
+//                nd->mName.Set((const char*)pcTags->NAME)
+//                nd->mParent = pScene->mRootNode
 //
-//        if (!pScene->mNumMeshes)
-//        throw DeadlyImportError("MD3: File contains no valid mesh")
-//        pScene->mNumMaterials = iNumMaterials
+//                AI_SWAP4(pcTags->origin.x)
+//                AI_SWAP4(pcTags->origin.y)
+//                AI_SWAP4(pcTags->origin.z)
 //
-//        // Now we need to generate an empty node graph
-//        pScene->mRootNode = new aiNode("<MD3Root>")
-//        pScene->mRootNode->mNumMeshes = pScene->mNumMeshes
-//        pScene->mRootNode->mMeshes = new unsigned int[pScene->mNumMeshes]
+//                // Copy local origin, again flip z,y
+//                nd->mTransformation.a4 = pcTags->origin.x
+//                nd->mTransformation.b4 = pcTags->origin.y
+//                nd->mTransformation.c4 = pcTags->origin.z
 //
-//        // Attach tiny children for all tags
-//        if (pcHeader->NUM_TAGS) { pScene ->
-//            mRootNode->mNumChildren = pcHeader->NUM_TAGS
-//            pScene->mRootNode->mChildren = new aiNode*[pcHeader->NUM_TAGS]
-//
-//            for (unsigned int i = 0; i < pcHeader->NUM_TAGS; ++i, ++pcTags) {
-//
-//            aiNode * nd = pScene->mRootNode->mChildren[i] = new aiNode()
-//            nd->mName.Set((const char*)pcTags->NAME)
-//            nd->mParent = pScene->mRootNode
-//
-//            AI_SWAP4(pcTags->origin.x)
-//            AI_SWAP4(pcTags->origin.y)
-//            AI_SWAP4(pcTags->origin.z)
-//
-//            // Copy local origin, again flip z,y
-//            nd->mTransformation.a4 = pcTags->origin.x
-//            nd->mTransformation.b4 = pcTags->origin.y
-//            nd->mTransformation.c4 = pcTags->origin.z
-//
-//            // Copy rest of transformation (need to transpose to match row-order matrix)
-//            for (unsigned int a = 0; a < 3;++a) {
-//            for (unsigned int m = 0; m < 3;++m) { nd ->
-//            mTransformation[m][a] = pcTags->orientation[a][m]
-//            AI_SWAP4(nd->mTransformation[m][a])
-//        }
-//        }
-//        }
-//        }
-//
-//        for (unsigned int i = 0; i < pScene->mNumMeshes;++i)
-//        pScene->mRootNode->mMeshes[i] = i
-//
-//        // Now rotate the whole scene 90 degrees around the x axis to convert to internal coordinate system
-//        pScene->mRootNode->mTransformation = aiMatrix4x4(1.f, 0.f, 0.f, 0.f,
-//        0.f, 0.f, 1.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f)
+//                // Copy rest of transformation (need to transpose to match row-order matrix)
+//                for (unsigned int a = 0; a < 3;++a) {
+//                    for (unsigned int m = 0; m < 3;++m) { nd ->
+//                    mTransformation[m][a] = pcTags->orientation[a][m]
+//                    AI_SWAP4(nd->mTransformation[m][a])
+//                }
+//                }
+//                ++pTags
+            }
+        }
+
+        scene.rootNode.meshes = IntArray(scene.numMeshes, { it })
+
+        // Now rotate the whole scene 90 degrees around the x axis to convert to internal coordinate system
+        scene.rootNode.transformation.put(
+                1f, 0f, 0f, 0f,
+                0f, 0f, -1f, 0f,
+                0f, 1f, 0f, 0f,
+                0f, 0f, 0f, 1f)
     }
 
     /** Read a Q3 multipart file

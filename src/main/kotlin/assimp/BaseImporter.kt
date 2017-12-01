@@ -63,6 +63,7 @@ abstract class BaseImporter {
             internReadFile(file, sc)
         } catch (err: Exception) {
             // extract error description
+            err.printStackTrace()
             err.message?.let { errorText = it }
             logger.error(errorText)
             return null
