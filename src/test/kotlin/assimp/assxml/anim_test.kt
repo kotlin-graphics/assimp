@@ -19,6 +19,7 @@ class anim_test : StringSpec() {
                 StringBuilder().let { out ->
                     AssxmlExporter().ExportSceneAssxml(out, f1)
                     println(out.toString())
+                    println("succesful")
                 }
             }
         }
