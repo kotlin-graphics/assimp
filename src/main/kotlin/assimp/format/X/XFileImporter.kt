@@ -143,17 +143,17 @@ class XFileImporter : BaseImporter() {
 
                     for (c in 0 until bone.mTrafoKeys.size()) {
                         // deconstruct each matrix into separate position, rotation and scaling
-                        var time: Double = bone.mTrafoKeys[c].mTime
-                        var trafo = bone.mTrafoKeys[c].mMatrix
+                        val time: Double = bone.mTrafoKeys[c].mTime
+                        val trafo = bone.mTrafoKeys[c].mMatrix
 
                         // extract position
-                        var pos = AiVector3D(trafo.d0, trafo.d1, trafo.d2)
+                        val pos = AiVector3D(trafo.d0, trafo.d1, trafo.d2)
 
                         nbone.positionKeys[c].time = time
                         nbone.positionKeys[c].value = pos
 
                         // extract scaling
-                        var scale = AiVector3D()
+                        val scale = AiVector3D()
                         scale.x = AiVector3D(trafo.a0, trafo.a1, trafo.a2).length()
                         scale.y = AiVector3D(trafo.b0, trafo.b1, trafo.b2).length()
                         scale.z = AiVector3D(trafo.c0, trafo.c1, trafo.c2).length()
@@ -161,7 +161,7 @@ class XFileImporter : BaseImporter() {
                         nbone.scalingKeys[c].value = scale
 
                         // reconstruct rotation matrix without scaling
-                        var rotmat = AiMatrix3x3(
+                        val rotmat = AiMatrix3x3(
                                 trafo.a0 / scale.x, trafo.b0 / scale.y, trafo.c0 / scale.z,
                                 trafo.a1 / scale.x, trafo.b1 / scale.y, trafo.c1 / scale.z,
                                 trafo.a2 / scale.x, trafo.b2 / scale.y, trafo.c2 / scale.z)
@@ -365,7 +365,6 @@ class XFileImporter : BaseImporter() {
         var node = AiNode()
         node.name = pNode.mName
         node.parent = pParent
-
         node.transformation = pNode.mTrafoMatrix
 
         // convert meshes from the source node

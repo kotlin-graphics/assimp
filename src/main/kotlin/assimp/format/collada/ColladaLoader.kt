@@ -563,7 +563,7 @@ class ColladaLoader : BaseImporter() {
                     for (i in 0..11)
                         offsetMatrix[i % 4, i / 4] = readFloat(jointMatrixAcc, jointMatrices, a.L, i.L)
                     numWeights = dstBones[a].size
-                    this.weights = dstBones[a].toList()
+                    this.weights = dstBones[a].toMutableList()
                     // apply bind shape matrix to offset matrix
                     offsetMatrix *= Mat4(pSrcController.mBindShapeMatrix, true)
                 }

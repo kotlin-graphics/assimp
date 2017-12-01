@@ -43,6 +43,8 @@ package assimp.format.md3
 
 import assimp.*
 import assimp.format.AiConfig
+import glm_.BYTES
+import glm_.f
 import glm_.i
 import glm_.size
 import java.io.File
@@ -63,10 +65,6 @@ object Q3Shader {
         class TextureEntry(val first: String, val second: String) {
             /** did we resolve this texture entry?  */
             var resolved = false
-//            // for std::find()
-//            bool operator ==(const std ::string& f) const {
-//            return f == first;
-//        }
         }
 
         /** List of textures    */
@@ -91,11 +89,6 @@ object Q3Shader {
         var blendSrc = BlendFunc.NONE
         var blendDest = BlendFunc.NONE
         var alphaTest = AlphaTestFunc.NONE
-
-//        //! For std::find()
-//        bool operator ==(const std ::string& o) const {
-//        return !ASSIMP_stricmp(o, name);
-//    }
     }
 
     /** @brief Tiny utility data structure to hold a .shader data block */
@@ -106,10 +99,6 @@ object Q3Shader {
         var cull = ShaderCullMode.CW
         /** Maps defined in the shader  */
         val maps = ArrayList<ShaderMapBlock>()
-//        //! For std::find()
-//        bool operator ==(const std ::string& o) const {
-//        return !ASSIMP_stricmp(o, name);
-//    }
     }
 
     /** @brief Tiny utility data structure to hold the data of a .shader file */
@@ -253,7 +242,58 @@ object Q3Shader {
      *  @param[out] out Material structure to be filled.
      *  @param[in] shader Input shader
      */
-//    void ConvertShaderToMaterial(aiMaterial* out , const ShaderDataBlock& shader)
+    fun convertShaderToMaterial(out: AiMaterial, shader: ShaderDataBlock) {
+
+        /*  IMPORTANT: This is not a real conversion. Actually we're just guessing and hacking around to build an
+            AiMaterial that looks nearly equal to the original Quake 3 shader. We're missing some important features
+            like animatable material properties in our material system, but at least multiple textures should be
+            handled correctly.         */
+
+        // Two-sided material?
+        out.twoSided = shader.cull == ShaderCullMode.NONE
+
+        // Iterate through all textures
+        shader.maps.forEach {
+
+            /*  CONVERSION BEHAVIOUR:
+
+                If the texture is additive
+                - if it is the first texture, assume additive blending for the whole material
+                - otherwise register it as emissive texture.
+
+                If the texture is using standard blend (or if the blend mode is unknown)
+                - if first texture: assume default blending for material
+                - in any case: set it as diffuse texture
+
+                If the texture is using 'filter' blending
+                - take as lightmap
+
+                Textures with alpha funcs
+                - AiTextureFlags_UseAlpha is set (otherwise AiTextureFlags_NoAlpha is explicitly set) */
+            val texture = AiMaterial.Texture()
+            texture.file = it.name
+            texture.type = when {
+                it.blendSrc == BlendFunc.GL_ONE && it.blendDest == BlendFunc.GL_ONE ->
+                    if (it === shader.maps[0]) {
+                        out.blendFunc = AiBlendMode.additive
+                        AiTexture.Type.diffuse
+                    } else AiTexture.Type.emissive
+                it.blendSrc == BlendFunc.GL_DST_COLOR && it.blendDest == BlendFunc.GL_ZERO -> AiTexture.Type.lightmap
+                else -> {
+                    out.blendFunc = AiBlendMode.default
+                    AiTexture.Type.diffuse
+                }
+            }
+            out.textures.add(texture) // setup texture
+
+            // setup texture flags
+            texture.flags = if (it.alphaTest != AlphaTestFunc.NONE) AiTexture.Flags.useAlpha.i else AiTexture.Flags.ignoreAlpha.i
+        }
+        // If at least one emissive texture was set, set the emissive base color to 1 to ensure the texture is actually displayed.
+        out.textures.find { it.type == AiTexture.Type.emissive }?.let {
+            out.color = AiMaterial.Color(emissive = AiVector3D(1f))
+        }
+    }
 
     /** @brief Load a skin file
      *
@@ -334,7 +374,7 @@ class MD3Importer : BaseImporter() {
         if (extension == "md3") return true
         // if check for extension is not enough, check for the magic tokens
         if (extension.isNotEmpty() || checkSig) {
-            TODO()
+//            TODO()
 //            uint32_t tokens[1];
 //            tokens[0] = AI_MD3_MAGIC_NUMBER_LE;
 //            return CheckMagicToken(pIOHandler,pFile,tokens,1);
@@ -399,7 +439,8 @@ class MD3Importer : BaseImporter() {
         // Validate the file header
         header.validateOffsets(buffer.size, configFrameID)
         // Navigate to the list of surfaces
-        var surfaces = MD3.Surface(buffer.apply { position(header.ofsSurfaces) })
+        var pSurfaces = header.ofsSurfaces
+        var surfaces = MD3.Surface(buffer.apply { position(pSurfaces) })
         // Navigate to the list of tags
         val tags = MD3.Tag(buffer.apply { position(header.ofsTags) })
         // Allocate output storage
@@ -414,12 +455,12 @@ class MD3Importer : BaseImporter() {
         val skins = Q3Shader.SkinData()
         readSkin(skins)
         // And check whether we can locate a shader file for this model
-        val shaders = Q3Shader.ShaderData()
-        readShader(shaders)
+        val shadersData = Q3Shader.ShaderData()
+        readShader(shadersData)
 
         // Adjust all texture paths in the shader
         val headerName = header.name
-        shaders.blocks.forEach {
+        shadersData.blocks.forEach {
             TODO()
 //            ConvertPath(( * dit).name.c_str(), header_name, (*dit).name)
 //
@@ -435,9 +476,9 @@ class MD3Importer : BaseImporter() {
             // Validate the surface header
             surfaces.validateOffsets(header.ofsSurfaces, fileSize)
             // Navigate to the vertex list of the surface
-            val pVertices = header.ofsSurfaces + surfaces.ofsTriangles
+            val pVertices = header.ofsSurfaces + surfaces.ofsXyzNormal
             // Navigate to the triangle list of the surface
-            val pTriangles = header.ofsSurfaces + surfaces.ofsTriangles
+            var pTriangles = header.ofsSurfaces + surfaces.ofsTriangles
             // Navigate to the texture coordinate list of the surface
             val pUVs = header.ofsSurfaces + surfaces.ofsSt//
             // Navigate to the shader list of the surface
@@ -470,132 +511,83 @@ class MD3Importer : BaseImporter() {
             }
 
             var shader: Q3Shader.ShaderDataBlock? = null
-//
-//            // Now search the current shader for a record with this name (
-//            // excluding texture file extension)
-//            if (!shaders.blocks.empty()) {
-//
-//                std::string::size_type s = convertedPath . find_last_of ('.')
-//                if (s == std::string::npos)
-//                    s = convertedPath.length()
-//
-//                const std ::string without_ext = convertedPath . substr (0, s)
-//                std::list < Q3Shader::ShaderDataBlock > ::const_iterator dit = std ::find(shaders.blocks.begin(), shaders.blocks.end(), without_ext)
-//                if (dit != shaders.blocks.end()) {
-//                    // Hurra, wir haben einen. Tolle Sache.
-//                    shader = & * dit
-//                    DefaultLogger::get()->info("Found shader record for "+without_ext)
-//                } else DefaultLogger::get()->warn("Unable to find shader record for "+without_ext)
-//            }
-//
-//            aiMaterial * pcHelper = new aiMaterial ()
-//
-//            const int iMode = (int) aiShadingMode_Gouraud
-//                    pcHelper->AddProperty<int>(&iMode, 1, AI_MATKEY_SHADING_MODEL)
-//
-//            // Add a small ambient color value - Quake 3 seems to have one
-//            aiColor3D clr
-//                    clr.b = clr.g = clr.r = 0.05f
-//            pcHelper->AddProperty<aiColor3D>(&clr, 1, AI_MATKEY_COLOR_AMBIENT)
-//
-//            clr.b = clr.g = clr.r = 1.0f
-//            pcHelper->AddProperty<aiColor3D>(&clr, 1, AI_MATKEY_COLOR_DIFFUSE)
-//            pcHelper->AddProperty<aiColor3D>(&clr, 1, AI_MATKEY_COLOR_SPECULAR)
-//
-//            // use surface name + skin_name as material name
-//            aiString name
-//                    name.Set("MD3_[" + configSkinFile + "][" + pcSurfaces->NAME+"]")
-//            pcHelper->AddProperty(&name, AI_MATKEY_NAME)
-//
-//            if (!shader) {
-//                // Setup dummy texture file name to ensure UV coordinates are kept during postprocessing
-//                aiString szString
-//                        if (convertedPath.length()) {
-//                            szString.Set(convertedPath)
-//                        } else {
-//                            DefaultLogger::get()->warn("Texture file name has zero length. Using default name")
-//                            szString.Set("dummy_texture.bmp")
-//                        }
-//                pcHelper->AddProperty(&szString, AI_MATKEY_TEXTURE_DIFFUSE(0))
-//
-//                // prevent transparency by default
-//                int no_alpha = aiTextureFlags_IgnoreAlpha
-//                        pcHelper->AddProperty(&no_alpha, 1, AI_MATKEY_TEXFLAGS_DIFFUSE(0))
-//            } else {
-//                Q3Shader::ConvertShaderToMaterial(pcHelper, *shader)
-//            }
-//
-//            pScene->mMaterials[iNumMaterials] = (aiMaterial*)pcHelper
-//            pcMesh->mMaterialIndex = iNumMaterials++
-//
-//            // Ensure correct endianness
-//            #ifdef AI_BUILD_BIG_ENDIAN
-//
-//                    for (uint32_t i = 0; i < pcSurfaces->NUM_VERTICES;++i)  {
-//                AI_SWAP2(pcVertices[i].NORMAL)
-//                AI_SWAP2(pcVertices[i].X)
-//                AI_SWAP2(pcVertices[i].Y)
-//                AI_SWAP2(pcVertices[i].Z)
-//
-//                AI_SWAP4(pcUVs[i].U)
-//                AI_SWAP4(pcUVs[i].U)
-//            }
-//            for (uint32_t i = 0; i < pcSurfaces->NUM_TRIANGLES;++i) {
-//                AI_SWAP4(pcTriangles[i].INDEXES[0])
-//                AI_SWAP4(pcTriangles[i].INDEXES[1])
-//                AI_SWAP4(pcTriangles[i].INDEXES[2])
-//            }
-//
-//            #endif
-//
-//            // Fill mesh information
-//            pcMesh->mPrimitiveTypes = aiPrimitiveType_TRIANGLE
-//
-//            pcMesh->mNumVertices = pcSurfaces->NUM_TRIANGLES*3
-//            pcMesh->mNumFaces = pcSurfaces->NUM_TRIANGLES
-//            pcMesh->mFaces = new aiFace[pcSurfaces->NUM_TRIANGLES]
-//            pcMesh->mNormals = new aiVector3D[pcMesh->mNumVertices]
-//            pcMesh->mVertices = new aiVector3D[pcMesh->mNumVertices]
-//            pcMesh->mTextureCoords[0] = new aiVector3D[pcMesh->mNumVertices]
-//            pcMesh->mNumUVComponents[0] = 2
-//
-//            // Fill in all pTriangles
-//            unsigned int iCurrent = 0
-//            for (unsigned int i = 0; i < (unsigned int) pcSurfaces->NUM_TRIANGLES;++i)   { pcMesh ->
-//                mFaces[i].mIndices = new unsigned int[3]
-//                pcMesh->mFaces[i].mNumIndices = 3
-//
-//                //unsigned int iTemp = iCurrent;
-//                for (unsigned int c = 0; c < 3;++c, ++iCurrent)  { pcMesh ->
-//                mFaces[i].mIndices[c] = iCurrent
-//
-//                // Read vertices
-//                aiVector3D& vec = pcMesh->mVertices[iCurrent]
-//                uint32_t index = pcTriangles->INDEXES[c]
-//                if (index >= pcSurfaces->NUM_VERTICES) {
-//                throw DeadlyImportError("MD3: Invalid vertex index")
-//            }
-//                vec.x = pcVertices[index].X * AI_MD3_XYZ_SCALE
-//                vec.y = pcVertices[index].Y * AI_MD3_XYZ_SCALE
-//                vec.z = pcVertices[index].Z * AI_MD3_XYZ_SCALE
-//
-//                // Convert the normal vector to uncompressed float3 format
-//                aiVector3D& nor = pcMesh->mNormals[iCurrent]
-//                LatLngNormalToVec3(pcVertices[pcTriangles->INDEXES[c]].NORMAL, (ai_real*)&nor)
-//
-//                // Read texture coordinates
-//                pcMesh->mTextureCoords[0][iCurrent].x = pcUVs[pcTriangles->INDEXES[c]].U
-//                pcMesh->mTextureCoords[0][iCurrent].y = 1.0f-pcUVs[pcTriangles->INDEXES[c]].V
-//            }
-//                // Flip face order if necessary
-//                if (!shader || shader->cull == Q3Shader::CULL_CW) {
-//                std::swap(pcMesh->mFaces[i].mIndices[2], pcMesh->mFaces[i].mIndices[1])
-//            }
-//                pcTriangles++
-//            }
-//
-//            // Go to the next surface
-//            pcSurfaces = (BE_NCONST MD3 ::Surface *)(((unsigned char *) pcSurfaces) + pcSurfaces->OFS_END)
+
+            // Now search the current shader for a record with this name (
+            // excluding texture file extension)
+            if (shadersData.blocks.isNotEmpty()) {
+                val s = convertedPath.lastIndexOf('.').takeIf { it != -1 } ?: convertedPath.length
+
+                val withoutExt = convertedPath.substring(0, s)
+                shader = shadersData.blocks.find { it.name == withoutExt }
+                if (shader != null) // Hurra, wir haben einen. Tolle Sache.
+                    logger.info { "Found shader record for $withoutExt" }
+                else logger.warn { "Unable to find shader record for $withoutExt" }
+            }
+
+            val helper = AiMaterial().apply {
+                shadingModel = AiShadingMode.gouraud
+                // Add a small ambient color value - Quake 3 seems to have one
+                color = AiMaterial.Color().apply {
+                    ambient = AiVector3D(0.05f)
+                    diffuse = AiVector3D(1f)
+                    specular = AiVector3D(1f)
+                }
+                // use surface name + skin_name as material name
+                name = "MD3_[$configSkinFile][${surfaces.name}]"
+            }
+            if (shader == null)
+                helper.textures.add(AiMaterial.Texture().apply {
+                    // Setup dummy texture file name to ensure UV coordinates are kept during postprocessing
+                    this.file = convertedPath.takeIf { it.isNotEmpty() } ?: run {
+                        logger.warn { "Texture file name has zero length. Using default name" }
+                        "dummy_texture.bmp"
+                    }
+                    flags = AiTexture.Flags.ignoreAlpha.i // prevent transparency by default
+                })
+            else Q3Shader.convertShaderToMaterial(helper, shader)
+
+            scene.materials.add(helper)
+            mesh.materialIndex = iNumMaterials++
+
+            // Fill mesh information
+            with(mesh) {
+                primitiveTypes = AiPrimitiveType.TRIANGLE.i
+                numVertices = surfaces.numTriangles * 3
+                numFaces = surfaces.numTriangles
+                textureCoords.add(mutableListOf())
+            }
+
+            // Fill in all pTriangles
+            var iCurrent = 0
+            for (i in 0 until surfaces.numTriangles) {
+                mesh.faces.add(MutableList(3, { 0 }))
+
+                //unsigned int iTemp = iCurrent;
+                for (c in 0..2) {
+                    mesh.faces[i][c] = iCurrent++
+                    // Read vertices
+                    val index = buffer.getInt(pTriangles + c * Int.BYTES)
+                    if (index >= surfaces.numVertices) throw Error("MD3: Invalid vertex index")
+                    buffer.position(pVertices + index * MD3.Vertex.size)
+                    val vec = AiVector3D(buffer.short,buffer.short,buffer.short) times_ MD3.XYZ_SCALE
+                    // Convert the normal vector to uncompressed float3 format
+                    val nor = MD3.latLngNormalToVec3(buffer.short)
+
+                    // Read texture coordinates
+                    buffer.position(pUVs + index * MD3.TexCoord.size)
+                    mesh.textureCoords[0].add(floatArrayOf(buffer.float, 1f - buffer.float))
+                }
+                // Flip face order if necessary
+                if (shader == null || shader.cull == Q3Shader.ShaderCullMode.CW) {
+                    val t = mesh.faces[i][2]
+                    mesh.faces[i][2] = mesh.faces[i][1]
+                    mesh.faces[i][1] = t
+                }
+                pTriangles += MD3.Triangle.size
+            }
+            // Go to the next surface
+            pSurfaces += surfaces.ofsEnd
+            surfaces = MD3.Surface(buffer.apply { position(pSurfaces) })
         }
 
         // For debugging purposes: check whether we found matches for all entries in the skins file

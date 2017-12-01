@@ -42,11 +42,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.md3
 
 import assimp.*
-import glm_.BYTES
-import glm_.i
-import glm_.size
+import glm_.*
 import glm_.vec3.Vec3
+import unsigned.ushr
 import java.nio.ByteBuffer
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import assimp.AI_INT_MERGE_SCENE as Ms
 
 object MD3 {
@@ -236,23 +238,17 @@ object MD3 {
     /** @brief Unpack a Q3 16 bit vector to its full float3 representation
      *
      *  @param p_iNormal Input normal vector in latitude/longitude form
-     *  @param p_afOut Pointer to an array of three floats to receive the result
+     *  @return Pointer to an array of three floats to receive the result
      *
      *  @note This has been taken from q3 source (misc_model.c)
      */
-//    fun latLngNormalToVec3(uint16_t p_iNormal, ai_real* p_afOut)
-//    {
-//        ai_real lat =(ai_real)((p_iNormal > > 8 u ) & 0xff)
-//        ai_real lng =(ai_real)((p_iNormal & 0xff))
-//        const ai_real invVal(ai_real(1.0) / ai_real(128.0))
-//        lat *= ai_real(3.141926) * invVal
-//        lng *= ai_real(3.141926) * invVal
-//
-//        p_afOut[0] = std::cos(lat) * std::sin(lng)
-//        p_afOut[1] = std::sin(lat) * std::sin(lng)
-//        p_afOut[2] = std::cos(lng)
-//    }
-//
+    fun latLngNormalToVec3(iNormal: Short): AiVector3D    {
+        val lat =((iNormal ushr 8) and 0xff) * PI * invVal
+        val lng =(iNormal and 0xff).f  * PI * invVal
+        return AiVector3D( cos(lat) * sin(lng), sin(lat) * sin(lng), cos(lng))
+    }
+    private val invVal = 1f / 128f
+
 //
 //// -------------------------------------------------------------------------------
 //    /** @brief Pack a Q3 normal into 16bit latitute/longitude representation

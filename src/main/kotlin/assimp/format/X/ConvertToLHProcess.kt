@@ -36,17 +36,17 @@ object MakeLeftHandedProcess {
 
     fun ProcessNode(pNode: AiNode, pParentGlobalRotation: AiMatrix4x4) {
         // mirror all base vectors at the local Z axis
+        pNode.transformation.a2 = -pNode.transformation.a2
         pNode.transformation.b2 = -pNode.transformation.b2
         pNode.transformation.c2 = -pNode.transformation.c2
         pNode.transformation.d2 = -pNode.transformation.d2
-        pNode.transformation.a2 = -pNode.transformation.a2
 
         // now invert the Z axis again to keep the matrix determinant positive.
         // The local meshes will be inverted accordingly so that the result should look just fine again.
-        pNode.transformation.d0 = -pNode.transformation.d0
-        pNode.transformation.d1 = -pNode.transformation.d1
-        pNode.transformation.d2 = -pNode.transformation.d2
-        pNode.transformation.d3 = -pNode.transformation.d3 // useless, but anyways...
+        pNode.transformation.c0 = -pNode.transformation.c0
+        pNode.transformation.c1 = -pNode.transformation.c1
+        pNode.transformation.c2 = -pNode.transformation.c2
+        pNode.transformation.c3 = -pNode.transformation.c3 // useless, but anyways...
 
         // continue for all children
         for (a in 0 until pNode.numChildren) {
@@ -68,13 +68,13 @@ object MakeLeftHandedProcess {
 
         // mirror offset matrices of all bones
         for (a in 0 until pMesh.numBones) {
-            var bone = pMesh.bones[a]
-            bone.offsetMatrix.a3 = -bone.offsetMatrix.a3
-            bone.offsetMatrix.b3 = -bone.offsetMatrix.b3
-            bone.offsetMatrix.d3 = -bone.offsetMatrix.d3
-            bone.offsetMatrix.b2 = -bone.offsetMatrix.b2
+            val bone = pMesh.bones[a]
+            bone.offsetMatrix.c0 = -bone.offsetMatrix.c0
+            bone.offsetMatrix.c1 = -bone.offsetMatrix.c1
             bone.offsetMatrix.c2 = -bone.offsetMatrix.c2
             bone.offsetMatrix.a2 = -bone.offsetMatrix.a2
+            bone.offsetMatrix.b2 = -bone.offsetMatrix.b2
+            bone.offsetMatrix.d2 = -bone.offsetMatrix.d2
         }
 
         // mirror bitangents as well as they're derived from the texture coords
