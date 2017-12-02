@@ -36,11 +36,11 @@ object watercan {
                 numVertices shouldBe 234
                 numFaces shouldBe 78
 
-                vertices[0] shouldBe Vec3(4.71875000f,13.9843750f,19.0312500f)
-                vertices[116] shouldBe Vec3(0.265625000f,1.09375000f,0.125000000f)
-                vertices[233] shouldBe Vec3(13.8281250f,3.56250000f,21.2031250f)
+                vertices[0] shouldBe Vec3(4.71875000f, 13.9843750f, 19.0312500f)
+                vertices[116] shouldBe Vec3(0.265625000f, 1.09375000f, 0.125000000f)
+                vertices[233] shouldBe Vec3(13.8281250f, 3.56250000f, 21.2031250f)
 
-                normals[0] shouldBe Vec3(0.3367884f,0.9412605f, 0.024541229f)
+                normals[0] shouldBe Vec3(0.3367884f, 0.9412605f, 0.024541229f)
                 normals[116] shouldBe Vec3(-0.8445991f, -0.5348365f, 0.024541229f)
                 normals[233] shouldBe Vec3(0.9996988f, 0.000000000f, 0.024541229f)
 
@@ -51,7 +51,7 @@ object watercan {
                 textureCoords[0][233][0] shouldBe 0.474252075f
                 textureCoords[0][233][1] shouldBe 0.682785511f
 
-                for (i in 0..77 step 3) faces[i / 3] shouldBe mutableListOf(i, i + 2, i + 1)
+                for (i in 0..77 * 3 step 3) faces[i / 3] shouldBe mutableListOf(i, i + 2, i + 1)
 
                 name.isEmpty() shouldBe true
             }

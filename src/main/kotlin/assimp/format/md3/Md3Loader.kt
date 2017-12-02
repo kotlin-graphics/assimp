@@ -44,7 +44,6 @@ package assimp.format.md3
 import assimp.*
 import assimp.format.AiConfig
 import glm_.BYTES
-import glm_.f
 import glm_.i
 import glm_.size
 import java.io.File
@@ -55,6 +54,7 @@ import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import kotlin.math.min
 import assimp.AI_INT_MERGE_SCENE as Ms
+import assimp.format.md3.Q3Shader.BlendFunc as Bf
 
 
 object Q3Shader {
@@ -86,9 +86,13 @@ object Q3Shader {
         /** Name of referenced map  */
         var name = ""
         //! Blend and alpha test settings for texture
-        var blendSrc = BlendFunc.NONE
-        var blendDest = BlendFunc.NONE
+        var blendSrc = Bf.NONE
+        var blendDest = Bf.NONE
         var alphaTest = AlphaTestFunc.NONE
+        fun blend(src: Bf, dest: Bf) {
+            blendSrc = src
+            blendDest = dest
+        }
     }
 
     /** @brief Tiny utility data structure to hold a .shader data block */
@@ -107,6 +111,7 @@ object Q3Shader {
         val blocks = ArrayList<ShaderDataBlock>()
     }
 
+    private val String.words get() = split(Regex("\\s+"))
     /** @brief Load a shader file
      *
      *  Generally, parsing is error tolerant. There's no failure.
@@ -120,121 +125,86 @@ object Q3Shader {
         if (!f.exists()) return false // if we can't access the file, don't worry and return
 
         logger.info { "Loading Quake3 shader file $file" }
-        TODO()
-//        // read file in memory
-//        const size_t s = file->FileSize()
-//        std::vector<char> _buff(s+1)
-//        file->Read(&_buff[0],s,1)
-//        _buff[s] = 0
-//
-//        // remove comments from it (C++ style)
-//        CommentRemover::RemoveLineComments("//",&_buff[0])
-//        const char* buff = &_buff[0]
-//
-//        Q3Shader::ShaderDataBlock* curData = NULL
-//        Q3Shader::ShaderMapBlock*  curMap  = NULL
-//
-//        // read line per line
-//        for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
-//
-//            if (*buff == '{') {
-//            ++buff
-//
-//            // append to last section, if any
-//            if (!curData) {
-//                DefaultLogger::get()->error("Q3Shader: Unexpected shader section token \'{\'")
-//                return true // still no failure, the file is there
-//            }
-//
-//            // read this data section
-//            for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
-//            if (*buff == '{') {
-//            ++buff
-//            // add new map section
-//            curData->maps.push_back(Q3Shader::ShaderMapBlock())
-//            curMap = &curData->maps.back()
-//
-//            for (;SkipSpacesAndLineEnd(&buff);SkipLine(&buff)) {
-//            // 'map' - Specifies texture file name
-//            if (TokenMatchI(buff,"map",3) || TokenMatchI(buff,"clampmap",8)) {
-//                curMap->name = GetNextToken(buff)
-//            }
-//            // 'blendfunc' - Alpha blending mode
-//            else if (TokenMatchI(buff,"blendfunc",9)) {
-//                const std::string blend_src = GetNextToken(buff)
-//                if (blend_src == "add") {
-//                    curMap->blend_src  = Q3Shader::BLEND_GL_ONE
-//                    curMap->blend_dest = Q3Shader::BLEND_GL_ONE
-//                }
-//                else if (blend_src == "filter") {
-//                    curMap->blend_src  = Q3Shader::BLEND_GL_DST_COLOR
-//                    curMap->blend_dest = Q3Shader::BLEND_GL_ZERO
-//                }
-//                else if (blend_src == "blend") {
-//                    curMap->blend_src  = Q3Shader::BLEND_GL_SRC_ALPHA
-//                    curMap->blend_dest = Q3Shader::BLEND_GL_ONE_MINUS_SRC_ALPHA
-//                }
-//                else {
-//                    curMap->blend_src  = StringToBlendFunc(blend_src)
-//                    curMap->blend_dest = StringToBlendFunc(GetNextToken(buff))
-//                }
-//            }
-//            // 'alphafunc' - Alpha testing mode
-//            else if (TokenMatchI(buff,"alphafunc",9)) {
-//                const std::string at = GetNextToken(buff)
-//                if (at == "GT0") {
-//                    curMap->alpha_test = Q3Shader::AT_GT0
-//                }
-//                else if (at == "LT128") {
-//                    curMap->alpha_test = Q3Shader::AT_LT128
-//                }
-//                else if (at == "GE128") {
-//                    curMap->alpha_test = Q3Shader::AT_GE128
-//                }
-//            }
-//            else if (*buff == '}') {
-//            ++buff
-//            // close this map section
-//            curMap = NULL
-//            break
-//        }
-//        }
-//
-//        }
-//            else if (*buff == '}') {
-//            ++buff
-//            curData = NULL
-//            break
-//        }
-//
-//            // 'cull' specifies culling behaviour for the model
-//            else if (TokenMatchI(buff,"cull",4)) {
-//            SkipSpaces(&buff)
-//            if (!ASSIMP_strincmp(buff,"back",4)) {
-//                curData->cull = Q3Shader::CULL_CCW
-//            }
-//            else if (!ASSIMP_strincmp(buff,"front",5)) {
-//                curData->cull = Q3Shader::CULL_CW
-//            }
-//            else if (!ASSIMP_strincmp(buff,"none",4) || !ASSIMP_strincmp(buff,"disable",7)) {
-//                curData->cull = Q3Shader::CULL_NONE
-//            }
-//            else DefaultLogger::get()->error("Q3Shader: Unrecognized cull mode")
-//        }
-//        }
-//        }
-//
-//            else {
-//            // add new section
-//            fill.blocks.push_back(Q3Shader::ShaderDataBlock())
-//            curData = &fill.blocks.back()
-//
-//            // get the name of this section
-//            curData->name = GetNextToken(buff)
-//        }
-//        }
-//        return true
+        // read file in memory and remove comments from it (C++ style) and empty or blank lines
+        val lines = f.readLines().filter { !it.startsWith("//") && it.isNotEmpty() && it.isNotBlank() }
+                .map { it.trim() } // and trim it
+
+        var curData: Q3Shader.ShaderDataBlock? = null
+        var curMap: Q3Shader.ShaderMapBlock? = null
+
+        // read line per line
+        var i = 0
+        while (i < lines.size) {
+
+            var line = lines[i++]
+
+            if (line[0] == '{') {
+                // append to last section, if any
+                if (curData == null) {
+                    logger.error { "Q3Shader: Unexpected shader section token '{'" }
+                    return true // still no failure, the file is there
+                }
+                // read this data section
+                while (i < lines.size) {
+                    line = lines[i++]
+                    if (line[0] == '{') {
+                        // add new map section
+                        curMap = Q3Shader.ShaderMapBlock()
+                        curData!!.maps.add(curMap)
+
+                        while (i < lines.size) {
+                            line = lines[i++]
+                            // 'map' - Specifies texture file name
+                            if (line.startsWith("map") || line.startsWith("clampmap")) curMap!!.name = line.words[1]
+                            // 'blendfunc' - Alpha blending mode
+                            else if (line.startsWith("blendfunc")) {
+                                val words = line.split(Regex("\\s+"))
+                                when (words[1]) {
+                                    "add" -> curMap!!.blend(Bf.GL_DST_COLOR, Bf.GL_ZERO)
+                                    "filter" -> curMap!!.blend(Bf.GL_DST_COLOR, Bf.GL_ZERO)
+                                    "blend" -> curMap!!.blend(Bf.GL_SRC_ALPHA, Bf.GL_ONE_MINUS_SRC_ALPHA)
+                                    else -> curMap!!.blend(words[1].toBF, words[2].toBF)
+                                }
+                            }
+                            // 'alphafunc' - Alpha testing mode
+                            else if (line.startsWith("alphaFunc")) when (line.words[1]) {
+                                "GT0" -> curMap!!.alphaTest = AlphaTestFunc.GT0
+                                "LT128" -> curMap!!.alphaTest = AlphaTestFunc.LT128
+                                "GE128" -> curMap!!.alphaTest = AlphaTestFunc.GE128
+                            }
+                            else if (line[0] == '}') {
+                                curMap = null // close this map section
+                                break
+                            }
+                        }
+                    } else if (line[0] == '}') {
+                        curData = null
+                        break
+                    }
+                    // 'cull' specifies culling behaviour for the model
+                    else if (line.startsWith("cull")) when (line.words[1]) {
+                        "back" -> curData!!.cull = ShaderCullMode.CCW
+                        "front" -> curData!!.cull = ShaderCullMode.CW
+                        "none", "disable" -> curData!!.cull = ShaderCullMode.NONE
+                        else -> logger.error { "Q3Shader: Unrecognized cull mode" }
+                    }
+                }
+            } else   // add new section and get name
+                curData = Q3Shader.ShaderDataBlock().apply { name = line }.also { fill.blocks.add(it) }
+        }
+        return true
     }
+
+    /** Convert a Q3 shader blend function to the appropriate enum value */
+    val String.toBF
+        get() = when (this) {
+            "GL_ONE" -> Bf.GL_ONE
+            "GL_ZERO" -> Bf.GL_ZERO
+            "GL_SRC_ALPHA" -> Bf.GL_SRC_ALPHA
+            "GL_ONE_MINUS_SRC_ALPHA" -> Bf.GL_ONE_MINUS_SRC_ALPHA
+            "GL_ONE_MINUS_DST_COLOR" -> Bf.GL_ONE_MINUS_DST_COLOR
+            else -> Bf.NONE.also { logger.error { "Q3Shader: Unknown blend function: $this" } }
+        }
 
 
     /** @brief Convert a Q3Shader to an aiMaterial
@@ -273,12 +243,12 @@ object Q3Shader {
             val texture = AiMaterial.Texture()
             texture.file = it.name
             texture.type = when {
-                it.blendSrc == BlendFunc.GL_ONE && it.blendDest == BlendFunc.GL_ONE ->
+                it.blendSrc == Bf.GL_ONE && it.blendDest == Bf.GL_ONE ->
                     if (it === shader.maps[0]) {
                         out.blendFunc = AiBlendMode.additive
                         AiTexture.Type.diffuse
                     } else AiTexture.Type.emissive
-                it.blendSrc == BlendFunc.GL_DST_COLOR && it.blendDest == BlendFunc.GL_ZERO -> AiTexture.Type.lightmap
+                it.blendSrc == Bf.GL_DST_COLOR && it.blendDest == Bf.GL_ZERO -> AiTexture.Type.lightmap
                 else -> {
                     out.blendFunc = AiBlendMode.default
                     AiTexture.Type.diffuse
@@ -336,7 +306,7 @@ object Q3Shader {
 //            s.first  = ss;
 //            s.second = GetNextToken(buff);
 //        }
-        return true
+//        return true
     }
 }
 
@@ -417,8 +387,8 @@ class MD3Importer : BaseImporter() {
         // get base path and file name
         // todo ... move to PathConverter
         filename = this.file.substringAfterLast('/').toLowerCase()
-        path = this.file.substringBeforeLast('/')
-
+        val last = this.file.lastIndexOf('/')
+        path = if (last == -1) this.file else this.file.substring(0, last + 1)
 
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
@@ -460,12 +430,8 @@ class MD3Importer : BaseImporter() {
         // Adjust all texture paths in the shader
         val headerName = header.name
         shadersData.blocks.forEach {
-            TODO()
-//            ConvertPath(( * dit).name.c_str(), header_name, (*dit).name)
-//
-//            for (std:: list < Q3Shader::ShaderMapBlock > ::iterator mit =(*dit).maps.begin(); mit != ( * dit).maps.end(); ++mit) {
-//            ConvertPath(( * mit).name.c_str(), header_name, (*mit).name)
-//        }
+            it.name = convertPath(it.name, headerName)
+            it.maps.forEach { it.name = convertPath(it.name, headerName) }
         }
 
         // Read all surfaces from the file
@@ -590,7 +556,7 @@ class MD3Importer : BaseImporter() {
             pTriangles += surfaces.ofsEnd
         }
         // meshes are inserted from the end
-        for(i in meshes.lastIndex downTo 0) scene.meshes.add(meshes[i])
+        for (i in meshes.lastIndex downTo 0) scene.meshes.add(meshes[i])
 
         // For debugging purposes: check whether we found matches for all entries in the skins file
         skins.textures.filter { !it.resolved }.forEach {
@@ -784,7 +750,8 @@ class MD3Importer : BaseImporter() {
      *  @param fill Receives output information     */
     fun readShader(fill: Q3Shader.ShaderData) {
         // Determine Q3 model name from given path
-        val modelFile = path.substringAfterLast('/')
+        val last = path.substring(0, path.length - 2).lastIndexOf('/')
+        val modelFile = path.substring(last + 1, path.length - 1)
 
         // If no specific dir or file is given, use our default search behaviour
         if (configShaderFile.isEmpty()) {
@@ -815,11 +782,11 @@ class MD3Importer : BaseImporter() {
     fun convertPath(textureName: String, headerName: String): String {
         /*  If the MD3's internal path itself and the given path are using the same directory, remove it completely
             to get right output paths.         */
-        val end1 = with(headerName) { if (contains('\\')) indexOfLast { it == '\\' } else indexOfLast { it == '/' } }
+        val end1 = with(headerName) { if (contains('\\')) lastIndexOf('\\') else lastIndexOf('/') }
         with(textureName) {
             when {
-                contains('\\') -> indexOfLast { it == '\\' }
-                contains('/') -> indexOfLast { it == '/' }
+                contains('\\') -> lastIndexOf('\\')
+                contains('/') -> lastIndexOf('/')
                 else -> null
             }
         }?.let { end2 ->
