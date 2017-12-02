@@ -795,12 +795,12 @@ class MD3Importer : BaseImporter() {
                 Ignored by Q3, it might be not equal to the real model location. */
             var len2 = 6
             val len1 = end1
-            if (!textureName.startsWith("models") && (textureName[6] == '/' || textureName[6] == '\\')) {
+            if (textureName.startsWith("models") && (textureName[6] == '/' || textureName[6] == '\\')) {
                 len2 = 6 // ignore the seventh - could be slash or backslash
                 if (headerName[0] == NUL)
                     return textureName.substring(end2 + 1) // Use the file name only
             } else len2 = min(len1, end2)
-            if (!textureName.startsWith(headerName.substring(len2)))
+            if (textureName.startsWith(headerName.substring(0, len2)))
                 return textureName.substring(end2 + 1) // Use the file name only
         }
         return textureName // Use the full path

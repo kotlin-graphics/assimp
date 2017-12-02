@@ -229,7 +229,7 @@ class AssbinLoader : BaseImporter() {
         if (shortened)
             TODO()  //ReadBounds(stream, b->weights, b->mNumWeights)
         else    // else write as usual
-            b.weights = List(b.numWeights, { vertexWeight() })
+            b.weights = MutableList(b.numWeights, { vertexWeight() })
     }
 
     private fun InputStream.readMaterial(mat: AiMaterial) {

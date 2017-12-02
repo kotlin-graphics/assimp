@@ -1,5 +1,6 @@
 package assimp.md3
 
+import assimp.AiBlendMode
 import assimp.AiShadingMode
 import assimp.AiTexture
 import assimp.Importer
@@ -155,19 +156,67 @@ object europeanFnt {
 
                 name.isEmpty() shouldBe true
             }
-//            numMaterials shouldBe 1
-//
-//            with(materials[0]) {
-//                shadingModel shouldBe AiShadingMode.gouraud
-//                with(color!!) {
-//                    ambient shouldBe Vec3(0.0500000007)
-//                    diffuse shouldBe Vec3(1f)
-//                    specular shouldBe Vec3(1f)
-//                }
-//                textures[0].flags shouldBe AiTexture.Flags.ignoreAlpha.i
-//                textures[0].file shouldBe "water_can.tga"
-//                name shouldBe "MD3_[default][watercan]"
-//            }
+            numMaterials shouldBe 5
+
+            with(materials[0]) {
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3(0.0500000007)
+                    diffuse shouldBe Vec3(1f)
+                    specular shouldBe Vec3(1f)
+                }
+                name shouldBe "MD3_[default][windscreen]"
+                textures[0].file shouldBe "textures/sfx/glass.tga.tga"
+                textures[0].flags shouldBe AiTexture.Flags.ignoreAlpha.i
+            }
+            with(materials[1]) {
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3(0.0500000007)
+                    diffuse shouldBe Vec3(1f)
+                    specular shouldBe Vec3(1f)
+                }
+                name shouldBe "MD3_[default][steering]"
+                twoSided shouldBe true
+                blendFunc shouldBe AiBlendMode.default
+                textures[0].file shouldBe "euro_frnt_2.tga"
+                textures[0].flags shouldBe AiTexture.Flags.useAlpha.i
+            }
+            with(materials[2]) {
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3(0.0500000007)
+                    diffuse shouldBe Vec3(1f)
+                    specular shouldBe Vec3(1f)
+                }
+                name shouldBe "MD3_[default][body]"
+                textures[0].file shouldBe "european_fnt.tga"
+                textures[0].flags shouldBe AiTexture.Flags.ignoreAlpha.i
+            }
+            with(materials[3]) {
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3(0.0500000007)
+                    diffuse shouldBe Vec3(1f)
+                    specular shouldBe Vec3(1f)
+                }
+                name shouldBe "MD3_[default][wheels]"
+                textures[0].file shouldBe "european_fnt.tga"
+                textures[0].flags shouldBe AiTexture.Flags.ignoreAlpha.i
+            }
+            with(materials[4]) {
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3(0.0500000007)
+                    diffuse shouldBe Vec3(1f)
+                    specular shouldBe Vec3(1f)
+                }
+                name shouldBe "MD3_[default][wheel_arches]"
+                twoSided shouldBe true
+                blendFunc shouldBe AiBlendMode.default
+                textures[0].file shouldBe "euro_frnt_2.tga"
+                textures[0].flags shouldBe AiTexture.Flags.useAlpha.i
+            }
         }
     }
 }

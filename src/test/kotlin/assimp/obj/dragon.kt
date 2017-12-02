@@ -1,8 +1,6 @@
 package assimp.obj
 
 import assimp.Importer
-import assimp.obj
-import io.kotlintest.specs.StringSpec
 
 // TODO
 object dragon {
