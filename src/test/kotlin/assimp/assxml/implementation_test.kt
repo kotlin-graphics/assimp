@@ -3,9 +3,6 @@ package assimp.assxml
 import assimp.AiMatrix4x4
 import assimp.format.assxml.AssxmlExporter
 import io.kotlintest.specs.StringSpec
-import java.io.CharArrayWriter
-import java.lang.System.exit
-import java.util.*
 
 class implementation_test : StringSpec() {
     init {

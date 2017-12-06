@@ -5,6 +5,7 @@ import assimp.format.assbin.AssbinLoader
 import assimp.format.collada.ColladaLoader
 import assimp.format.md2.MD2Importer
 import assimp.format.md3.MD3Importer
+import assimp.format.md5.MD5Importer
 import assimp.format.obj.ObjFileImporter
 import assimp.format.ply.PlyLoader
 import assimp.format.stl.STLImporter
@@ -33,6 +34,7 @@ val importerInstanceList
             if (!ASSBIN_IMPORTER) add(AssbinLoader())
             if (!MD2_IMPORTER) add(MD2Importer())
             if (!MD3_IMPORTER) add(MD3Importer())
+            if (!MD5_IMPORTER) add(MD5Importer())
             if (!X_IMPORTER) add(XFileImporter())
         }
     }

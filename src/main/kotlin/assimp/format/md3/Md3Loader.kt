@@ -111,7 +111,6 @@ object Q3Shader {
         val blocks = ArrayList<ShaderDataBlock>()
     }
 
-    private val String.words get() = split(Regex("\\s+"))
     /** @brief Load a shader file
      *
      *  Generally, parsing is error tolerant. There's no failure.

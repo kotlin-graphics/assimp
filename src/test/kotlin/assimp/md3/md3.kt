@@ -1,6 +1,7 @@
 package assimp.md3
 
 import assimp.*
+import glm_.i
 import io.kotlintest.specs.StringSpec
 
 /**
