@@ -253,14 +253,6 @@ class MD5Importer : BaseImporter() {
                     boneSrc.rotationQuat convertTo boneSrc.rotationQuatConverted
                 }
 
-                fun AiQuaternion.rotate(v: AiVector3D): AiVector3D {
-                    val q2 = AiQuaternion(0f, v)
-                    val qinv = AiQuaternion(this).apply { conjugate_() }
-
-                    times_(q2).times_(qinv)
-                    return AiVector3D(x, y, z)
-                }
-
                 var pvi = 0
                 for (it in src.vertices) {
                     // compute the final vertex position from all single weights
@@ -268,21 +260,15 @@ class MD5Importer : BaseImporter() {
                     mesh.vertices.add(pv)
                     // there are models which have weights which don't sum to 1 ...
                     var sum = 0f
-                    var jub = it.firstWeight
-                    var w = jub
-                    while (w < jub + it.numWeights) {
+                    for(w in it.firstWeight until it.firstWeight + it.numWeights)
                         sum += src.weights[w].weight
-                        ++w
-                    }
                     if (sum == 0f) {
                         logger.error { "MD5MESH: The sum of all vertex bone weights is 0" }
                         continue
                     }
 
                     // process bone weights
-                    jub = it.firstWeight
-                    w = jub
-                    while (w < jub + it.numWeights) {
+                    for(w in it.firstWeight until it.firstWeight + it.numWeights) {
                         if (w >= src.weights.size) throw Error("MD5MESH: Invalid weight index")
 
                         val desc = src.weights[w]
@@ -299,7 +285,6 @@ class MD5Importer : BaseImporter() {
 
                         val bone = mesh.bones[boneSrc.map]
                         bone.weights.add(AiVertexWeight(pvi, newWeight))
-                        ++w
                     }
                     pvi++
                 }
@@ -342,6 +327,14 @@ TODO()
             } else mat.textures.add(AiMaterial.Texture(file = src.shader))
             mesh.materialIndex = n++
         }
+    }
+
+    fun AiQuaternion.rotate(v: AiVector3D): AiVector3D {
+        val q2 = AiQuaternion(0f, v)
+        val qinv = AiQuaternion(this).apply { conjugate_() }
+
+        val q = times(q2).times_(qinv)
+        return AiVector3D(q.x, q.y, q.z)
     }
 
     /** Load a *.MD5ANIM file.     */

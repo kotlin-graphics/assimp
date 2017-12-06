@@ -81,6 +81,30 @@ object simpleCube {
                 numMeshes shouldBe 0
             }
 
+            with(meshes[0]) {
+
+                primitiveTypes shouldBe 4
+                numVertices shouldBe 36
+                numFaces shouldBe 12
+
+                vertices[0] shouldBe Vec3(32.0000038f, 31.9999943f,-32.0000153f)
+                vertices[5] shouldBe Vec3(-32.0000000f, -31.9999924f, 32.0000038f)
+                vertices[11] shouldBe Vec3(31.9999981f, -32.0000000f, 32.0000000f)
+
+                textureCoords[0][0][0] shouldBe 0.187500000f
+                textureCoords[0][0][1] shouldBe 1.25000000f
+                textureCoords[0][5][0] shouldBe -0.312500000f
+                textureCoords[0][5][1] shouldBe 1.25000000f
+                textureCoords[0][11][0] shouldBe 0.250000000f
+                textureCoords[0][11][1] shouldBe 1.50000000f
+
+                faces[0] shouldBe mutableListOf(0, 1, 2)
+                faces[5] shouldBe mutableListOf(11, 29, 28)
+                faces[11] shouldBe mutableListOf(23, 35, 34)
+
+                name.isEmpty() shouldBe true
+            }
+
             numMaterials shouldBe 1
 
             with(materials[0]) {
