@@ -106,13 +106,13 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
                 val childpos = AiVector3D(childTransform.a3, childTransform.b3, childTransform.c3)
                 val distanceToChild = childpos.length()
                 if (distanceToChild < 0.0001f) continue
-                val up = AiVector3D(childpos).normalize_()
+                val up = AiVector3D(childpos).normalizeAssign()
 
                 val orth = AiVector3D(1f, 0f, 0f)
                 if (glm.abs(orth dot up) > 0.99) orth.put(0f, 1f, 0f)
 
-                val front = (up cross orth).normalize_()
-                val side = (front cross up).normalize_()
+                val front = (up cross orth).normalizeAssign()
+                val side = (front cross up).normalizeAssign()
 
                 val localVertexStart = vertices.size
                 vertices.add(-front * distanceToChild * 0.1f)

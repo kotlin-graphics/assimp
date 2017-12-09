@@ -534,7 +534,7 @@ class MD3Importer : BaseImporter() {
                     val index = buffer.getInt(pTriangles + c * Int.BYTES)
                     if (index >= surfaces.numVertices) throw Error("MD3: Invalid vertex index")
                     buffer.position(pVertices + index * MD3.Vertex.size)
-                    mesh.vertices.add(AiVector3D(buffer.short, buffer.short, buffer.short) times_ MD3.XYZ_SCALE)
+                    mesh.vertices.add(AiVector3D(buffer.short, buffer.short, buffer.short).apply { this *= MD3.XYZ_SCALE })
                     // Convert the normal vector to uncompressed float3 format
                     mesh.normals.add(MD3.latLngNormalToVec3(buffer.short))
 

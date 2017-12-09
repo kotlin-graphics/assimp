@@ -15,7 +15,7 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
     pPosition.z = this[2][3]
 
     /* extract the columns of the matrix. */
-    val vCols = arrayOf(
+    val vCols = listOf(
             AiVector3D(this[0][0], this[1][0], this[2][0]),
             AiVector3D(this[0][1], this[1][1], this[2][1]),
             AiVector3D(this[0][2], this[1][2], this[2][2]))
@@ -26,12 +26,12 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
     pScaling.z = vCols[2].length()
 
     /* and the sign of the scaling */
-    if (det() < 0) pScaling.negate_()
+    if (det() < 0) pScaling.negateAssign()
 
     /* and remove all scaling from the matrix */
-    if (pScaling.x != 0f) vCols[0] div_ pScaling.x
-    if (pScaling.y != 0f) vCols[1] div_ pScaling.y
-    if (pScaling.z != 0f) vCols[2] div_ pScaling.z
+    if (pScaling.x != 0f) vCols[0] /= pScaling.x
+    if (pScaling.y != 0f) vCols[1] /= pScaling.y
+    if (pScaling.z != 0f) vCols[2] /= pScaling.z
 
     // build a 3x3 rotation matrix
     val m = AiMatrix3x3(

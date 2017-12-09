@@ -219,44 +219,26 @@ constructor(sections: ArrayList<Section>) {
                         // shader attribute
                             "shader" -> desc.shader = sz[1].trim('"')
                         // numverts attribute
-                            "numverts" -> desc.vertices.ensureCapacity(sz[1].i)
+                            "numverts" -> for (i in 0 until sz[1].i) desc.vertices.add(VertexDesc())
                         // numtris attribute
                             "numtris" -> for (i in 0 until sz[1].i) desc.faces.add(mutableListOf())
                         // numweights attribute
                             "numweights" -> for (i in 0 until sz[1].i) desc.weights.add(WeightDesc())
                         // vert attribute, ex: "vert 0 ( 0.394531 0.513672 ) 0 1"
-                            "vert" -> {
-                                val idx = sz[1].i
-                                if (idx >= desc.vertices.size)
-                                    for (i in idx .. desc.vertices.size)
-                                        desc.vertices.add(VertexDesc())
-                                val vert = desc.vertices[idx]
+                            "vert" -> with(desc.vertices[sz[1].i]) {
                                 if ("(" != sz[2]) MD5Parser.reportWarning("Unexpected token: ( was expected", elem.iLineNumber)
-                                vert.uv.put(sz, 3)
+                                uv.put(sz, 3)
                                 if (")" != sz[5]) MD5Parser.reportWarning("Unexpected token: ) was expected", elem.iLineNumber)
-                                vert.firstWeight = sz[6].i
-                                vert.numWeights = sz[7].i
+                                firstWeight = sz[6].i
+                                numWeights = sz[7].i
                             }
                         // tri attribute, ex: "tri 0 15 13 12"
-                            "tri" -> {
-                                val idx = sz[1].i
-                                if (idx >= desc.vertices.size)
-                                    for (i in idx until desc.faces.size)
-                                        desc.faces.add(mutableListOf())
-                                for (i in 0..2) desc.faces[idx].add(sz[2 + i].i)
-                            }
+                            "tri" -> with(desc.faces[sz[1].i]) { for (i in 0..2) add(sz[2 + i].i) }
                         // weight attribute, ex: "weight 362 5 0.500000 ( -3.553583 11.893474 9.719339 )"
-                            "weight" -> {
-                                val idx = sz[1].i
-                                if (idx >= desc.weights.size)
-                                    for (i in idx until desc.faces.size)
-                                        desc.weights.add(WeightDesc())
-                                desc.weights[idx].apply {
-                                    bone = sz[2].i
-                                    weight = sz[3].f
-                                    offsetPosition
-                                    READ_TRIPLE(offsetPosition, sz, 4, it.iLineNumber)
-                                }
+                            "weight" -> with(desc.weights[sz[1].i]) {
+                                bone = sz[2].i
+                                weight = sz[3].f
+                                READ_TRIPLE(offsetPosition, sz, 4, it.iLineNumber)
                             }
                         }
                     }

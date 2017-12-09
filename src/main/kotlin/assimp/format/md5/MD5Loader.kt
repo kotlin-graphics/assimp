@@ -45,7 +45,6 @@ import assimp.*
 import assimp.format.AiConfig
 import glm_.detail.Random.int
 import glm_.i
-import sun.security.provider.MD5
 import uno.buffer.destroy
 import java.io.File
 import java.net.URI
@@ -192,7 +191,8 @@ class MD5Importer : BaseImporter() {
         //  storage for node mesh indices
         with(scene.rootNode.children[0]) {
             numMeshes = scene.numMeshes
-            meshes = IntArray(numMeshes, { it }) }
+            meshes = IntArray(numMeshes, { it })
+        }
 
         var n = 0
         meshParser.meshes.filter { it.faces.isNotEmpty() || it.vertices.isNotEmpty() }.forEach { src ->
@@ -208,26 +208,21 @@ class MD5Importer : BaseImporter() {
             })
 
             // copy texture coordinates
-            mesh.textureCoords.add(mutableListOf())
-            src.vertices.forEach {
-                mesh.textureCoords[0].add(floatArrayOf(
-                        it.uv.x,
-                        1f - it.uv.y  // D3D to OpenGL
-                ))
-            }
+            mesh.textureCoords.add(MutableList(src.vertices.size, {
+                with(src.vertices[it]) {
+                    floatArrayOf(uv.x, 1f - uv.y) // D3D to OpenGL
+                }
+            }))
 
             // sort all bone weights - per bone
             val piCount = IntArray(meshParser.joints.size)
 
             src.vertices.forEach {
-                val jub = it.firstWeight
-                var w = jub
-                while (w < jub + it.numWeights) {
+                for (w in it.firstWeight until it.firstWeight + it.numWeights) {
                     val desc = src.weights[w]
                     /* FIX for some invalid exporters */
                     if (!(desc.weight < AI_MD5_WEIGHT_EPSILON && desc.weight >= -AI_MD5_WEIGHT_EPSILON))
                         ++piCount[desc.bone]
-                    ++w
                 }
             }
 
@@ -236,12 +231,12 @@ class MD5Importer : BaseImporter() {
                 if (piCount[p] != 0) mesh.numBones++
 
             if (mesh.numBones != 0) { // just for safety
-                var q = -1
                 var h = 0
-                while (q + 1 < meshParser.joints.size) {
-                    if (piCount[++q] == 0) continue
+                for (q in meshParser.joints.indices) {
+                    if (piCount[q] == 0) continue
                     mesh.bones.add(AiBone().apply {
                         numWeights = piCount[q]
+                        weights = MutableList(numWeights, { AiVertexWeight() })
                         name = meshParser.joints[q].name
                         offsetMatrix put meshParser.joints[q].invTransform
                     })
@@ -253,22 +248,20 @@ class MD5Importer : BaseImporter() {
                     boneSrc.rotationQuat convertTo boneSrc.rotationQuatConverted
                 }
 
-                var pvi = 0
+                var pvi = -1
                 for (it in src.vertices) {
                     // compute the final vertex position from all single weights
                     val pv = AiVector3D()
                     mesh.vertices.add(pv)
+                    pvi++
                     // there are models which have weights which don't sum to 1 ...
-                    var sum = 0f
-                    for(w in it.firstWeight until it.firstWeight + it.numWeights)
-                        sum += src.weights[w].weight
+                    val sum = (it.firstWeight until it.firstWeight + it.numWeights).map { src.weights[it].weight }.sum()
                     if (sum == 0f) {
                         logger.error { "MD5MESH: The sum of all vertex bone weights is 0" }
                         continue
                     }
-
                     // process bone weights
-                    for(w in it.firstWeight until it.firstWeight + it.numWeights) {
+                    for (w in it.firstWeight until it.firstWeight + it.numWeights) {
                         if (w >= src.weights.size) throw Error("MD5MESH: Invalid weight index")
 
                         val desc = src.weights[w]
@@ -281,50 +274,34 @@ class MD5Importer : BaseImporter() {
                         val v = boneSrc.rotationQuatConverted.rotate(desc.offsetPosition)
 
                         // use the original weight to compute the vertex position (some MD5s seem to depend on the invalid weight values ...)
-                        pv plus_ (boneSrc.positionXYZ + v) * desc.weight // todo
+                        pv += (boneSrc.positionXYZ + v) * desc.weight
 
-                        val bone = mesh.bones[boneSrc.map]
-                        bone.weights.add(AiVertexWeight(pvi, newWeight))
+                        mesh.bones[boneSrc.map].weights[pvi].apply { vertexId = pvi; weight = newWeight; }
                     }
-                    pvi++
                 }
             }
             /*  now setup all faces - we can directly copy the list
                 (however, take care that the aiFace destructor doesn't delete the mIndices array)             */
             mesh.numFaces = src.faces.size
-            for (c in 0 until mesh.numFaces)
-                mesh.faces.add(src.faces[c])
+//            for (c in 0 until mesh.numFaces) TODO check
+            mesh.faces.addAll(src.faces)
 
             // generate a material for the mesh
-            val mat = AiMaterial ()
-            scene.materials.add(mat)
-
-            // insert the typical doom3 textures:
-            // nnn_local.tga  - normal map
-            // nnn_h.tga      - height map
-            // nnn_s.tga      - specular map
-            // nnn_d.tga      - diffuse map
-            if (src.shader.isNotEmpty() && !src.shader.contains('.')) {
-TODO()
-//                aiString temp (meshSrc.mShader)
-//                temp.Append("_local.tga")
-//                mat->AddProperty(&temp, AI_MATKEY_TEXTURE_NORMALS(0))
-//
-//                temp = aiString(meshSrc.mShader)
-//                temp.Append("_s.tga")
-//                mat->AddProperty(&temp, AI_MATKEY_TEXTURE_SPECULAR(0))
-//
-//                temp = aiString(meshSrc.mShader)
-//                temp.Append("_d.tga")
-//                mat->AddProperty(&temp, AI_MATKEY_TEXTURE_DIFFUSE(0))
-//
-//                temp = aiString(meshSrc.mShader)
-//                temp.Append("_h.tga")
-//                mat->AddProperty(&temp, AI_MATKEY_TEXTURE_HEIGHT(0))
-
-                // set this also as material name
-                mat.name = src.shader
-            } else mat.textures.add(AiMaterial.Texture(file = src.shader))
+            scene.materials.add(AiMaterial().apply {
+                /*  insert the typical doom3 textures:
+                    nnn_local.tga  - normal map
+                    nnn_h.tga      - height map
+                    nnn_s.tga      - specular map
+                    nnn_d.tga      - diffuse map */
+                if (src.shader.isNotEmpty() && !src.shader.contains('.')) {
+                    textures.add(AiMaterial.Texture(type = AiTexture.Type.normals, file = "${src.shader}_local.tga"))
+                    textures.add(AiMaterial.Texture(type = AiTexture.Type.specular, file = "${src.shader}_s.tga"))
+                    textures.add(AiMaterial.Texture(type = AiTexture.Type.diffuse, file = "${src.shader}_d.tga"))
+                    textures.add(AiMaterial.Texture(type = AiTexture.Type.height, file = "${src.shader}_h.tga"))
+                    // set this also as material name
+                    name = src.shader
+                } else textures.add(AiMaterial.Texture(file = src.shader))
+            })
             mesh.materialIndex = n++
         }
     }
@@ -343,15 +320,15 @@ TODO()
         val f = File(file)
 
         // Check whether we can read from the file
-        if( !f.exists() || !f.canRead() || f.length() == 0L)   {
-            logger.warn{ "Failed to read MD5ANIM file: $file" }
+        if (!f.exists() || !f.canRead() || f.length() == 0L) {
+            logger.warn { "Failed to read MD5ANIM file: $file" }
             return
         }
         loadFileIntoMemory(f)
 
         // parse the basic file structure
-        val parser = MD5Parser (buffer,fileSize)
-TODO()
+        val parser = MD5Parser(buffer, fileSize)
+        TODO()
         // load the animation information from the parse tree
 //        val animParser = MD5AnimParser (parser.sections)
 //
