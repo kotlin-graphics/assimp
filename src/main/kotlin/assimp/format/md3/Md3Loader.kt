@@ -310,7 +310,7 @@ object Q3Shader {
 }
 
 /** @brief Importer class to load MD3 files */
-class MD3Importer : BaseImporter() {
+class Md3Importer : BaseImporter() {
     /** Configuration option: frame to be loaded */
     var configFrameID = 0
     /** Configuration option: process multi-part files */

@@ -55,7 +55,7 @@ import kotlin.math.sqrt
 val AI_MD5_WEIGHT_EPSILON = 1e-5f
 
 /** Importer class for the MD5 file format */
-class MD5Importer : BaseImporter() {
+class Md5Importer : BaseImporter() {
 
     /** Path to the file, excluding the file extension but with the dot */
     var file = ""

@@ -3,6 +3,7 @@ package assimp
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import mu.KotlinLogging
+import java.nio.ByteBuffer
 import kotlin.math.abs
 
 val logger = KotlinLogging.logger {}
@@ -113,3 +114,9 @@ object ASSIMP {
 }
 
 val NUL = '\u0000'
+
+var ByteBuffer.pos
+    get() = position()
+    set(value) {
+        position(value)
+    }

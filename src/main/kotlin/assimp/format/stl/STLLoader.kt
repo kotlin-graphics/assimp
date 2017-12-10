@@ -16,7 +16,7 @@ import java.util.*
  * Created by elect on 13/11/2016.
  */
 
-class STLImporter : BaseImporter() {
+class StlImporter : BaseImporter() {
 
     override val info = AiImporterDesc(
             name = "Stereolithography (STL) Importer",

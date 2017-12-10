@@ -57,7 +57,7 @@ import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
 /** Importer class for MD2 */
-class MD2Importer : BaseImporter() {
+class Md2Importer : BaseImporter() {
 
     /** Configuration option: frame to be loaded */
     var configFrameID = 0

@@ -107,17 +107,19 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
     val elements = mutableMapOf<String, Element>()
 
     init {
-        if (!topLevel) with(parser.currentToken!!) {
-            if (type != Tt.OPEN_BRACKET) parseError("expected open bracket", this)
+        if (!topLevel) {
+            val t = parser.currentToken!!
+            if (t.type != Tt.OPEN_BRACKET) parseError("expected open bracket", t)
         }
 
         var n = parser.advanceToNextToken() ?: parseError("unexpected end of file")
 
         // note: empty scopes are allowed
         while (n.type != Tt.CLOSE_BRACKET) {
-            if (n.type != Tt.KEY) parseError("unexpected token, expected TOK_KEY", n)
+            if (n.type != Tt.KEY)
+                parseError("unexpected token, expected TOK_KEY", n)
 
-            elements[n.stringContents] = Element(n, parser)
+            elements[n.stringContents(buffer)] = Element(n, parser)
 
             // Element() should stop at the next Key token (or right after a Close token)
             val t = parser.currentToken
@@ -141,7 +143,7 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
 
 /** FBX parsing class, takes a list of input tokens and generates a hierarchy
  *  of nested #Scope instances, representing the fbx DOM.*/
-abstract class Parser
+class Parser
 /** Parse given a token list. Does not take ownership of the tokens -
  *  the objects must persist during the entire parser lifetime */
 constructor(val tokens: ArrayList<Token>, val isBinary: Boolean) {
@@ -152,10 +154,14 @@ constructor(val tokens: ArrayList<Token>, val isBinary: Boolean) {
     var root = Scope(this, true)
 
     fun advanceToNextToken(): Token? {
+        println(cursor)
+        if(cursor == 8110)
+            println()
         last = current
-        current = if (cursor == tokens.lastIndex) null else tokens[cursor++]
+        current = tokens[cursor++].takeUnless { cursor == tokens.lastIndex }
         return current
     }
+
     val lastToken get() = last
     val currentToken get() = current
 }

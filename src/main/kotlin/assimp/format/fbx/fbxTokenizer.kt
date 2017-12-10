@@ -43,6 +43,7 @@ package assimp.format.fbx
 
 import assimp.isLineEnd
 import assimp.isSpaceOrNewLine
+import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0
 
 
@@ -70,23 +71,22 @@ enum class TokenType {
  *
  *  Offers iterator protocol. Tokens are immutable. */
 class Token(
-        var chars: CharArray,
         var begin: Int,
         var end: Int,
         val type: TokenType,
         line: Int,
-        column: Int = BINARY_MARKER
+        val _column: Int = BINARY_MARKER
 ) {
+    constructor(input: ByteBuffer, len: Int, type: TokenType) : this(input.position(), input.position() + len, type, input.position())
+
     init {
         assert(begin != 0)
         assert(end != 0)
 
-        if (column == BINARY_MARKER)
-        // binary tokens may have zero length because they are sometimes dummies inserted by TokenizeBinary()
-            assert(end >= begin)
+        if (_column == BINARY_MARKER)
+            assert(end >= begin) // binary tokens may have zero length because they are sometimes dummies inserted by TokenizeBinary()
         else
-        // tokens must be of non-zero length
-            assert(end - begin > 0)
+            assert(end - begin > 0) // tokens must be of non-zero length
     }
 
     // full string copy for the sole purpose that it nicely appears in msvc's debugger window.
@@ -107,17 +107,17 @@ class Token(
             line = value
         }
 
-    var column = column
+    val column = _column
         get() {
             assert(!isBinary)
             return field
         }
 
-    val isBinary get() = column == BINARY_MARKER
+    val isBinary get() = _column == BINARY_MARKER
 
     override fun toString() = "$type, ${if (isBinary) "offset 0x$offset" else "line $line, col $column"}"
 
-    val stringContents = String(chars, begin, end - begin)
+    fun stringContents(input: ByteBuffer) = String(ByteArray(end - begin, { input.get(begin + it) }))
 
     companion object {
         val BINARY_MARKER = -1
@@ -182,19 +182,22 @@ fun tokenize(outputTokens: ArrayList<Token>, chars: CharArray, input: Int) {
                 `continue` = true
             }
             '{' -> {
+                TODO()
                 processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                outputTokens.add(Token(chars, cur, cur + 1, TokenType.OPEN_BRACKET, line, column))
+//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.OPEN_BRACKET, line, column))
                 `continue` = true
             }
             '}' -> {
+                TODO()
                 processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                outputTokens.add(Token(chars, cur, cur + 1, TokenType.CLOSE_BRACKET, line, column))
+//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.CLOSE_BRACKET, line, column))
                 `continue` = true
             }
             ',' -> {
+                TODO()
                 if (pendingDataToken)
                     processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.DATA, true)
-                outputTokens.add(Token(chars, cur, cur + 1, TokenType.COMMA, line, column))
+//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.COMMA, line, column))
                 `continue` = true
             }
             ':' -> {
@@ -263,7 +266,8 @@ fun processDataToken(outputTokens: ArrayList<Token>, chars: CharArray, start: KM
         }
         if (inDoubleQuotes)
             tokenizeError("non-terminated double quotes", line, column)
-        outputTokens.add(Token(chars, start(), end() + 1, type, line, column))
+        TODO()
+//        outputTokens.add(Token(chars, start(), end() + 1, type, line, column))
         ++c
     } else if (mustHaveToken)
         tokenizeError("unexpected character, expected data token", line, column)
