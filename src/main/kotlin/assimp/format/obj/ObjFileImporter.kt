@@ -323,7 +323,7 @@ class ObjFileImporter : BaseImporter() {
         val numMaterials = pModel.m_MaterialLib.size
         pScene.numMaterials = 0
         if (pModel.m_MaterialLib.isEmpty()) {
-            System.err.println("OBJ: no materials specified")
+            logger.debug { "OBJ: no materials specified" }
             return
         }
 
@@ -344,7 +344,7 @@ class ObjFileImporter : BaseImporter() {
                 1 -> AiShadingMode.gouraud
                 2 -> AiShadingMode.phong
                 else -> {
-                    System.err.println("OBJ: unexpected illumination model (0-2 recognized)")
+                    logger.error { "OBJ: unexpected illumination model (0-2 recognized)" }
                     AiShadingMode.gouraud
                 }
             }

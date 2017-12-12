@@ -1,8 +1,9 @@
 package assimp.format.obj
 
+import assimp.logger
+import assimp.words
 import glm_.f
 import glm_.i
-import assimp.words
 
 /**
  * Created by elect on 27/11/2016.
@@ -67,13 +68,14 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         var type: Material.Texture.Type? = null
         var clamped = false
 
-        if (words[0] == "refl" && TypeOption in words)
-            type = reflMap[words[words.indexOf(TypeOption) + 1]]
-        else
-            type = tokenMap[words[0]]
+        type = if (words[0] == "refl" && TypeOption in words)
+            reflMap[words[words.indexOf(TypeOption) + 1]]
+        else tokenMap[words[0]]
 
-        if (type == null)
-            throw Error("OBJ/MTL: Encountered unknown texture type")
+        if (type == null) {
+            logger.error { "OBJ/MTL: Encountered unknown texture type" }
+            return
+        }
 
         if (ClampOption in words)
             clamped = words[words.indexOf(ClampOption) + 1] == "on"
