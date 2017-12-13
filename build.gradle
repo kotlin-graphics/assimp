@@ -33,7 +33,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    compile "org.jetbrains.kotlin:kotlin-reflect"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
     compile 'com.github.kotlin-graphics:uno-sdk:05131f92ed75190a28c4be062446ada96f6c63d1'
 
