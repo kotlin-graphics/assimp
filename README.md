@@ -1,5 +1,10 @@
 # assimp
 
+[![Build Status](https://travis-ci.org/kotlin-graphics/assimp.svg?branch=master)](https://travis-ci.org/kotlin-graphics/assimp) 
+![](https://reposs.herokuapp.com/?path=kotlin-graphics/assimp&color=yellow) 
+[![Release](https://jitpack.io/v/kotlin-graphics/assimp.svg)](https://jitpack.io/#kotlin-graphics/assimp) 
+[![Slack Status](http://slack.kotlinlang.org/badge.svg)](http://slack.kotlinlang.org/)
+
 JVM porting of [Assimp](https://github.com/assimp/assimp)
 
 This port is being written trying to stick as much as possible close to the C version in order to:
