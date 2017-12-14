@@ -35,7 +35,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:a73325d904d871a88230099d8bea173351a9bccb'
+    compile 'com.github.kotlin-graphics:uno-sdk:64d1ee1e377a36908a6ca96e1d1119e35215b0f7'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
