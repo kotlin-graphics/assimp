@@ -12,7 +12,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.0'
+    ext.kotlinVersion = '1.2.10'
 
     repositories {
         jcenter()
@@ -35,7 +35,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:f9a47461db6eb4e398563d6414d291fd88d38132'
+    compile 'com.github.kotlin-graphics:uno-sdk:4fb6a716e9a3770298d3e6bcdf8e03b6b09d32c8'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
