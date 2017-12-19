@@ -79,7 +79,7 @@ class Md5Importer : BaseImporter() {
     override fun canRead(file: URI, checkSig: Boolean): Boolean {
         val extension = file.extension
         if (extension == "md5anim" || extension == "md5mesh" || extension == "md5camera") return true
-        else if (extension.isNotEmpty() || checkSig) {
+        else if (extension.isEmpty() || checkSig) {
             TODO()
 //            const char* tokens[] = {"MD5Version"};
 //            return SearchFileHeaderForToken(pIOHandler,pFile,tokens,1);
