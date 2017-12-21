@@ -46,7 +46,7 @@ package assimp.format.fbx
  */
 
 /** FBX import settings, parts of which are publicly accessible via their corresponding AI_CONFIG constants */
-object ImportSettings {
+class ImportSettings {
 
     /** Enable strict mode:
      *   - only accept fbx 2012, 2013 files

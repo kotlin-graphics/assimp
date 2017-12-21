@@ -68,6 +68,8 @@ See http://en.wikipedia.org/wiki/FBX
 // -------------------------------------------------------------------------------------------
 class FbxImporter : BaseImporter() {
 
+    val settings = ImportSettings()
+
     override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
         val extension = file.extension
@@ -89,7 +91,7 @@ class FbxImporter : BaseImporter() {
         )
 
     override fun setupProperties(imp: Importer) {
-        with(ImportSettings) {
+        with(settings) {
             with(AiConfig.Import.Fbx.Read) {
                 readAllLayers = imp[ALL_GEOMETRY_LAYERS] ?: true
                 readAllMaterials = imp[ALL_MATERIALS] ?: false
@@ -135,12 +137,12 @@ class FbxImporter : BaseImporter() {
 
             // use this information to construct a very rudimentary parse-tree representing the FBX scope structure
             val parser = Parser (tokens, isBinary)
-        println()
-//            // take the raw parse-tree and convert it to a FBX DOM
-//            Document doc(parser,settings);
-//
-//            // convert the FBX DOM to aiScene
-//            ConvertToAssimpScene(pScene,doc);
+
+            // take the raw parse-tree and convert it to a FBX DOM
+            val doc = Document (parser,settings)
+
+            // convert the FBX DOM to aiScene
+            convertToAssimpScene(scene, doc)
 //
 //            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
         }

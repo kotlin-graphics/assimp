@@ -41,8 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
-import assimp.isLineEnd
-import assimp.isSpaceOrNewLine
+import assimp.*
+import glm_.c
+import glm_.f
+import gln.buf
 import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0
 
@@ -77,8 +79,6 @@ class Token(
         line: Int,
         val _column: Int = BINARY_MARKER
 ) {
-    constructor(input: ByteBuffer, len: Int, type: TokenType) : this(input.position(), input.position() + len, type, input.position())
-
     init {
         assert(begin != 0)
         assert(end != 0)
@@ -117,11 +117,105 @@ class Token(
 
     override fun toString() = "$type, ${if (isBinary) "offset 0x$offset" else "line $line, col $column"}"
 
-    fun stringContents(input: ByteBuffer) = String(ByteArray(end - begin, { input.get(begin + it) }))
+    val stringContents get() = String(ByteArray(end - begin, { buffer[begin + it] }))
 
     companion object {
         val BINARY_MARKER = -1
     }
+
+    val parseAsString: String
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+
+            if (isBinary) {
+                if (buffer[begin].c != 'S') parseError("failed to parse S(tring), unexpected data type (binary)", this)
+                // read string length
+                val len = buffer.getInt(begin + 1)
+
+                assert(end - begin == 5 + len)
+                return String(ByteArray(len, { buffer[begin + 5 + it] }))
+            }
+
+            val length = end - begin
+            if (length < 2) parseError("token is too short to hold a string", this)
+
+            val s = buffer[begin].c
+            val e = buffer[end - 1].c
+            if (s != '"' || e != '"') parseError("expected double quoted string", this)
+
+            return String(ByteArray(length - 2, { buffer[begin + 1 + it] }))
+        }
+
+    val parseAsInt: Int
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+
+            if (isBinary) {
+                if (buffer[begin].c != 'I') parseError("failed to parse I(nt), unexpected data type (binary)", this)
+
+                return buffer.getInt(begin + 1)
+            }
+
+            assert(end - begin > 0)
+
+            val beginOut = intArrayOf(begin, 1)
+            val intVal = buffer.strtol10(beginOut)
+            if (beginOut[1] != 0) parseError("failed to parse ID", this)
+            return intVal
+        }
+
+    val parseAsId: Long
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+            if (isBinary) {
+                if (buffer[begin].c != 'L') parseError("failed to parse ID, unexpected data type, expected L(ong) (binary)", this)
+                return buffer.getLong(begin + 1)
+            }
+            // XXX: should use size_t here
+            val length = end - begin
+            assert(length > 0)
+            val beginOutMax = intArrayOf(begin, 0, length)
+            val id = buffer.strtoul10_64(beginOutMax)
+            if (beginOutMax[1] > end) parseError("failed to parse ID (text)", this)
+            return id
+        }
+
+    val parseAsInt64: Long
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+            if (isBinary) {
+                if (buffer[begin].c != 'L') parseError("failed to parse Int64, unexpected data type", this)
+                return buffer.getLong(begin + 1)
+            }
+            // XXX: should use size_t here
+            val length = end - begin
+            assert(length > 0)
+            val beginOutMax = intArrayOf(begin, 0, length)
+            val id = buffer.strtol10_64(beginOutMax)
+            if (beginOutMax[1] > end) parseError("failed to parse Int64 (text)", this)
+            return id
+        }
+
+    val parseAsFloat: Float
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+            if (isBinary)
+                return when (buffer.get(begin).c) {
+                    'F' -> buffer.getFloat(begin + 1)
+                    'D' -> buffer.getDouble(begin + 1).f
+                    else -> parseError("failed to parse F(loat) or D(ouble), unexpected data type (binary)", this)
+                }
+            // need to copy the input string to a temporary buffer
+            // first - next in the fbx token stream comes ',',
+            // which fast_atof could interpret as decimal point.
+//            #define MAX_FLOAT_LENGTH 31 TODO check
+//            char temp [MAX_FLOAT_LENGTH + 1];
+//            const size_t length = static_cast<size_t>(t.end() - t.begin());
+//            std::copy(t.begin(), t.end(), temp);
+//            temp[std::min(static_cast<size_t>(MAX_FLOAT_LENGTH), length)] = '\0';
+            return String(ByteArray(begin - end, { buffer.get(begin + it) })).f
+        }
+//    val parseAsDim:
 }
 
 private var tokenBegin = 0

@@ -1,10 +1,10 @@
-import assimp.NUL
 import assimp.format.fbx.Token
 import assimp.format.fbx.TokenType
 import assimp.format.fbx.Util
 import assimp.pos
 import glm_.*
 import java.nio.ByteBuffer
+import kotlin.reflect.KMutableProperty0
 
 /*
 Open Asset Import Library (assimp)
@@ -99,7 +99,7 @@ fun tokenizeError(message: String, offset: Int): Nothing = throw Error(Util.addO
 
 fun tokenizeError(message: String, input: ByteBuffer): Nothing = tokenizeError(message, input.pos)
 
-fun ByteBuffer.string(longLength: Boolean = false, allowNull: Boolean = false): Int {
+fun ByteBuffer.readString(beginOut: KMutableProperty0<Int>? = null, endOut: KMutableProperty0<Int>? = null, longLength: Boolean = false, allowNull: Boolean = false): Int {
     val lenLen = if (longLength) 4 else 1
     if (remaining() < lenLen) tokenizeError("cannot ReadString, out of bounds reading length", this)
 
@@ -107,47 +107,50 @@ fun ByteBuffer.string(longLength: Boolean = false, allowNull: Boolean = false): 
 
     if (remaining() < length) tokenizeError("cannot ReadString, length is out of bounds", this)
 
-    val begin = pos
+    val b = pos
+    beginOut?.set(pos)
     pos += length
+
+    endOut?.set(pos)
 
     if (!allowNull)
         for (i in 0 until length)
-            if (get(begin + i) == 0.b)
+            if (get(b + i) == 0.b)
                 tokenizeError("failed ReadString, unexpected NUL character in string", this)
 
     return length
 }
 
-fun readData(input: ByteBuffer, end: Int) {
-    if (end - input.pos < 1) tokenizeError("cannot ReadData, out of bounds reading length", input)
+fun ByteBuffer.readData(beginOut: KMutableProperty0<Int>, endOut: KMutableProperty0<Int>) {
+    if (remaining() < 1) tokenizeError("cannot ReadData, out of bounds reading length", this)
 
-    val type = input.get().c
-//            sbegin_out = cursor++
+    val type = get(pos).c
+    beginOut.set(pos++)
 
     when (type) {
     // 16 bit int
-        'Y' -> input.pos += Short.BYTES
+        'Y' -> pos += Short.BYTES
     // 1 bit bool flag (yes/no)
-        'C' -> input.pos++
+        'C' -> pos++
     // 32 bit int or float
-        'I', 'F' -> input.pos += Int.BYTES
+        'I', 'F' -> pos += Int.BYTES
     // double
-        'D' -> input.pos += Double.BYTES
+        'D' -> pos += Double.BYTES
     // 64 bit int
-        'L' -> input.pos += Long.BYTES
+        'L' -> pos += Long.BYTES
     // note: do not write cursor += ReadWord(...cursor) as this would be UB
     // raw binary data
         'R' -> {
-            val length = input.int
-            input.pos += length
+            val length = int
+            pos += length
         }
     // TODO: what is the 'b' type code? Right now we just skip over it. Take the full range we could get
         'b' -> Unit
     // array of *
         'f', 'd', 'l', 'i' -> {
-            val length = input.int
-            val encoding = input.int
-            val compLen = input.int
+            val length = int
+            val encoding = int
+            val compLen = int
 
             // compute length based on type and check against the stored value
             if (encoding == 0) {
@@ -156,21 +159,25 @@ fun readData(input: ByteBuffer, end: Int) {
                     'd', 'l' -> 8
                     else -> throw Error("invalid type")
                 }
-                if (length * stride != compLen) tokenizeError("cannot ReadData, calculated data stride differs from what the file claims", input)
+                if (length * stride != compLen) tokenizeError("cannot ReadData, calculated data stride differs from what the file claims", this)
             }
             // zip/deflate algorithm (encoding==1)? take given length. anything else? die
-            else if (encoding != 1) tokenizeError("cannot ReadData, unknown encoding", input)
-            input.pos += compLen
+            else if (encoding != 1) tokenizeError("cannot ReadData, unknown encoding", this)
+            pos += compLen
         }
     // string
-        'S' -> input.string(true, true) // 0 characters can legally happen in such strings
-        else -> tokenizeError("cannot ReadData, unexpected type code: $type", input)
+        'S' -> readString(longLength = true, allowNull = true) // 0 characters can legally happen in such strings
+        else -> tokenizeError("cannot ReadData, unexpected type code: $type", this)
     }
 
-    if (input.pos > end) tokenizeError("cannot ReadData, the remaining size is too small for the data type: $type", input)
+    if (pos > capacity()) tokenizeError("cannot ReadData, the remaining size is too small for the data type: $type", this)
 
     // the type code is contained in the returned range
+    endOut.set(pos)
 }
+
+var sBeg = 0
+var sEnd = 0
 
 fun readScope(outputTokens: ArrayList<Token>, input: ByteBuffer, end: Int, is64bits: Boolean): Boolean {
 
@@ -191,19 +198,19 @@ fun readScope(outputTokens: ArrayList<Token>, input: ByteBuffer, end: Int, is64b
     val propLength = if (is64bits) input.double.i else input.int
 
     // now comes the name of the scope/key
-    val len = input.string()
+    input.readString(::sBeg, ::sEnd)
 
-    outputTokens.add(Token(input, len, TokenType.KEY))
+    outputTokens.add(Token(sBeg, sEnd, TokenType.KEY, input.pos))
 
     // now come the individual properties
     val beginCursor = input.pos
     repeat(propCount) {
         val begin = input.pos
-        readData(input, beginCursor + propLength)
+        input.readData(::sBeg, ::sEnd)
 
-        outputTokens.add(Token(input, input.pos - begin, TokenType.DATA))
+        outputTokens.add(Token(sBeg, sEnd, TokenType.DATA, input.pos))
 
-        if (it != propCount - 1) outputTokens.add(Token(input, 1, TokenType.COMMA))
+        if (it != propCount - 1) outputTokens.add(Token(input.pos, input.pos + 1, TokenType.COMMA, input.pos))
     }
 
     if (input.pos - beginCursor != propLength) tokenizeError("property length not reached, something is wrong", input)
@@ -216,12 +223,12 @@ fun readScope(outputTokens: ArrayList<Token>, input: ByteBuffer, end: Int, is64b
     if (input.pos < endOffset) {
         if (endOffset - input.pos < sentinelBlockLength) tokenizeError("insufficient padding bytes at block end", input)
 
-        outputTokens.add(Token(input, 1, TokenType.OPEN_BRACKET))
+        outputTokens.add(Token(input.pos, input.pos + 1, TokenType.OPEN_BRACKET, input.pos))
 
         // XXX this is vulnerable to stack overflowing ..
         while (input.pos < endOffset - sentinelBlockLength)
             readScope(outputTokens, input, endOffset - sentinelBlockLength, is64bits)
-        outputTokens.add(Token(input, 1, TokenType.CLOSE_BRACKET))
+        outputTokens.add(Token(input.pos, input.pos + 1, TokenType.CLOSE_BRACKET, input.pos))
 
         for (i in 0 until sentinelBlockLength)
             if (input.get(input.pos + i) != 0.b)
