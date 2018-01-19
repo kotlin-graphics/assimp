@@ -244,8 +244,15 @@ class ObjFileParser(private val file: File) {
     fun getMaterialLib(words: List<String>) {
 
         if (words.size < 2) throw Error("File name of the material is absent.")
+        // support for names with spaces
+        var filename = ""
+        var i = 1
+        while (i < words.size){
+            filename += " " + words[i]
+            i++
+        }
+        filename = filename.trim()
 
-        val filename = words[1]
 
         val pFile = file.parentFile + filename
 
