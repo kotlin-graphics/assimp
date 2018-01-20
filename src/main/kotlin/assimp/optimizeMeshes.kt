@@ -42,7 +42,7 @@ object OptimizeMeshes : BaseProcess(){
 
         var n : Long = 0
         for (i in 0 until mScene.numMeshes) {
-            meshes[i].vertex_format = ProcessHelper.GetMeshVFormatUnique(mScene.meshes[i])
+            meshes[i].vertex_format = ProcessHelper.getMeshVFormatUnique(mScene.meshes[i])
 
             if (meshes[i].instance_cnt > 1 && meshes[i].output_id == NotSet ) {
                 meshes[i].output_id = n++
@@ -100,7 +100,8 @@ object OptimizeMeshes : BaseProcess(){
                 var faces = 0
 
                 // Find meshes to merge with us
-                for (a in i+1 until pNode.numMeshes) {
+                var a = 0
+                while(a < pNode.numMeshes){
                     var am = pNode.meshes[a]
                     if (meshes[am].instance_cnt == 1 && canJoin(im,am,verts,faces)) {
 
@@ -110,8 +111,9 @@ object OptimizeMeshes : BaseProcess(){
 
                         pNode.meshes[a] = pNode.meshes[pNode.numMeshes - 1]
                         --pNode.numMeshes
-                        TODO() //--a (val cannot be reassigned)
+                        --a
                     }
+                    ++a
                 }
 
                 // and merge all meshes which we found, replace the old ones
