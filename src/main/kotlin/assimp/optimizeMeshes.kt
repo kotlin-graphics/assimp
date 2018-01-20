@@ -4,15 +4,15 @@ import assimp.AiPostProcessSteps as Pps
 import assimp.AiShadingMode as Sm
 
 object OptimizeMeshes : BaseProcess(){
-    val NotSet = 0xffffffff
-    val DeadBeef = 0xdeadbeef
-    lateinit var mScene : AiScene
-    var pts = false
-    var maxVerts = NotSet
-    var maxFaces = NotSet
+    private val NotSet = 0xffffffff
+    private val DeadBeef = 0xdeadbeef
+    private lateinit var mScene : AiScene
+    private var pts = false
+    private var maxVerts = NotSet
+    private var maxFaces = NotSet
     var meshes = ArrayList<MeshInfo>()
     var output = ArrayList<AiMesh>()
-    var merge_list = ArrayList<AiMesh>()
+    private var merge_list = ArrayList<AiMesh>()
 
     override fun isActive(flags: Int) : Boolean{
         if(flags has Pps.OptimizeMeshes){
