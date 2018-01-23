@@ -96,24 +96,25 @@ class ColladaLoader : BaseImporter() {
         // ... then fill the materials with the now adjusted settings
         fillMaterials(parser)
         // Apply unitsize scale calculation
-        scene.rootNode.transformation *= AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
+        scene.rootNode.transformation.timesAssign(AiMatrix4x4( // TODO glm avoid mat4 instance?
+                parser.mUnitSize, 0, 0, 0,
                 0, parser.mUnitSize, 0, 0,
                 0, 0, parser.mUnitSize, 0,
-                0, 0, 0, 1)
+                0, 0, 0, 1))
         if (!ignoreUpDirection)
         // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
-                scene.rootNode.transformation *= AiMatrix4x4(
+                scene.rootNode.transformation.timesAssign(AiMatrix4x4(
                         0, 1, 0, 0,
                         -1, 0, 0, 0,
                         0, 0, 1, 0,
-                        0, 0, 0, 1)
+                        0, 0, 0, 1))
             else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
-                scene.rootNode.transformation *= AiMatrix4x4(
+                scene.rootNode.transformation.timesAssign(AiMatrix4x4(
                         1, 0, 0, 0,
                         0, 0, -1, 0,
                         0, +1, 0, 0,
-                        0, 0, 0, 1)
+                        0, 0, 0, 1))
 
         // store all meshes
         storeSceneMeshes(scene)
@@ -565,7 +566,7 @@ class ColladaLoader : BaseImporter() {
                     numWeights = dstBones[a].size
                     this.weights = dstBones[a].toMutableList()
                     // apply bind shape matrix to offset matrix
-                    offsetMatrix *= Mat4(pSrcController.mBindShapeMatrix, true)
+                    offsetMatrix.timesAssign(Mat4(pSrcController.mBindShapeMatrix, true))
                 }
 
                 // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.

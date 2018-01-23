@@ -1687,7 +1687,7 @@ class ColladaParser(pFile: URI) {
 
     /** Calculates the resulting transformation fromm all the given transform steps */
     fun calculateResultTransform(pTransforms: ArrayList<Transform>): Mat4 {
-        var res = Mat4()
+        val res = Mat4()
         pTransforms.forEach { tf ->
             when (tf.mType) {
                 TransformType.LOOKAT -> {

@@ -308,9 +308,9 @@ class Md5Importer : BaseImporter() {
 
     fun AiQuaternion.rotate(v: AiVector3D): AiVector3D {
         val q2 = AiQuaternion(0f, v)
-        val qinv = AiQuaternion(this).apply { conjugate_() }
+        val qinv = AiQuaternion(this).apply { conjugateAssign() }
 
-        val q = times(q2).times_(qinv)
+        val q = times(q2).times(qinv)
         return AiVector3D(q.x, q.y, q.z)
     }
 
@@ -467,7 +467,7 @@ class Md5Importer : BaseImporter() {
                     // store it for later use
                     b.invTransform put b.transform
                     pc.transformation put b.transform
-                    b.invTransform.inverse_()
+                    b.invTransform.inverseAssign()
 
                     /*  the transformations for each bone are absolute, so we need to multiply them with the inverse of
                         the absolute matrix of the parent joint                     */

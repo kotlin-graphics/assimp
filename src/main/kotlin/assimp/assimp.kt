@@ -22,12 +22,12 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
             AiVector3D(this[0][2], this[1][2], this[2][2]))
 
     /* extract the scaling factors */
-    pScaling.x = vCols[0].length()
-    pScaling.y = vCols[1].length()
-    pScaling.z = vCols[2].length()
+    pScaling.x = vCols[0].length
+    pScaling.y = vCols[1].length
+    pScaling.z = vCols[2].length
 
     /* and the sign of the scaling */
-    if (det() < 0) pScaling.negateAssign()
+    if (det < 0) pScaling.negateAssign()
 
     /* and remove all scaling from the matrix */
     if (pScaling.x != 0f) vCols[0] /= pScaling.x
