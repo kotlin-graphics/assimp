@@ -71,7 +71,7 @@ class ColladaLoader : BaseImporter() {
     override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
         // check file extension
-        val extension = file.s.substring(file.s.lastIndexOf('.') + 1)
+        val extension = file.s.substring(file.s.lastIndexOf('.') + 1).toLowerCase()
 
         if (extension == "dae")
             return true
