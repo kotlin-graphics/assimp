@@ -5,9 +5,9 @@ import io.kotlintest.specs.StringSpec
 
 class test_cube_text : StringSpec() {
     init {
-        val test = "test_cube_text.X"
+        val test = "test_cube_text.x"
         test {
-            with(Importer().readFile(x + "test_cube_text.X")!!) {
+            with(Importer().readFile(x + "test_cube_text.x")!!) {
                 printNodeNames(rootNode)
             }
         }
