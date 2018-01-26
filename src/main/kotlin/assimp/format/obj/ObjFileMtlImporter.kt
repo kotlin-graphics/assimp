@@ -52,7 +52,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
                     // Index Of refraction
                         'i' -> m_pModel.m_pCurrentMaterial!!.ior = words[1].f
                     // New material
-                        'e' -> createMaterial(words[1])
+                        'e' -> createMaterial(line)
                     }
                 'm', 'b', 'r' -> getTexture(line)
                 'i' -> m_pModel.m_pCurrentMaterial!!.illumination_model = words[1].i
@@ -85,7 +85,10 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
 
     // -------------------------------------------------------------------
     //  Creates a material from loaded data.
-    fun createMaterial(matName: String) {
+    fun createMaterial(line: String) {
+
+        // get the name of the material with spaces
+        var matName = ObjTools.getNameWithSpace(line)
 
         val mat = m_pModel.m_MaterialMap[matName]
 

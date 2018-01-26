@@ -7,6 +7,8 @@ import assimp.Importer
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
+import java.io.File
+import java.net.URI
 
 /**
  * Created by Sunny on 19/01/2018.

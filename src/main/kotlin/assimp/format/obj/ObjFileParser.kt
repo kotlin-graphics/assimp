@@ -187,9 +187,8 @@ class ObjFileParser(private val file: File) {
     // -------------------------------------------------------------------
     //  Get values for a new material description
     fun getMaterialDesc(line: String) {
-
-        // Get name
-        val strName = line.split("\\s+".toRegex())[1].trim()
+        // Get name (support for spaces)
+        val strName = ObjTools.getNameWithSpace(line)
 
         // If the current mesh has the same material, we simply ignore that 'usemtl' command
         // There is no need to create another object or even mesh here
@@ -244,15 +243,9 @@ class ObjFileParser(private val file: File) {
     fun getMaterialLib(words: List<String>) {
 
         if (words.size < 2) throw Error("File name of the material is absent.")
-        // support for names with spaces
-        var filename = ""
-        var i = 1
-        while (i < words.size){
-            filename += " " + words[i]
-            i++
-        }
-        filename = filename.trim()
 
+        // get the name of the mat file with spaces
+        var filename = ObjTools.getNameWithSpace(words,1)
 
         val pFile = file.parentFile + filename
 
