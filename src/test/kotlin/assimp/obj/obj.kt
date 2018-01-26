@@ -9,8 +9,8 @@ class obj : StringSpec() {
 
     init {
         "box"{ box(path + "box.obj") }
-//        "spider"{ spider(path + "spider.obj") }
-//        "nanosuit" { nanosuit(path + "nanosuit/nanosuit.obj") }
-//        "shelter" { shelter(path + "statie B01.obj")}
+        "spider"{ spider(path + "spider.obj") }
+        "nanosuit" { nanosuit(path + "nanosuit/nanosuit.obj") }
+        "shelter" { shelter(path + "statie B01.obj")}
     }
 }

@@ -18,7 +18,7 @@ object box {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile("E:\\Desktop\\box.obj".url.file)!!) {
+        with(Importer().readFile(fileName)!!) {
 
             with(rootNode) {
 
