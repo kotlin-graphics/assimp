@@ -35,38 +35,12 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:5507bcb6f898bb17664cffaf80a68d7bee699454'
+    compile 'com.github.kotlin-graphics:gli:4edd718afb63ba4778c5d61a7409b3bc6c08b782'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-
-
-    switch (OperatingSystem.current()) {
-        case OperatingSystem.WINDOWS:
-            ext.lwjglNatives = "natives-windows"
-            break
-        case OperatingSystem.LINUX:
-            ext.lwjglNatives = "natives-linux"
-            break
-        case OperatingSystem.MAC_OS:
-            ext.lwjglNatives = "natives-macos"
-            break
-    }
-    ext.lwjglVersion = "3.1.5-SNAPSHOT"
-    compile "org.lwjgl:lwjgl:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-openal:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-stb:${lwjglVersion}"
-    runtime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
 }
 
 repositories {
