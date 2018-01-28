@@ -1086,7 +1086,7 @@ class Converter(val out: AiScene, val doc: Document) {
         materialsConverted[material] = materials.size
 
         materials += outMat
-        // stip Material:: prefix
+        // strip Material:: prefix
         val name = if (material.name.startsWith("Material::")) material.name.substring(10) else material.name
 
         // set material name if not empty - this could happen and there should be no key for it in this case.
@@ -1352,45 +1352,70 @@ class Converter(val out: AiScene, val doc: Document) {
         trySetTextureProperties_(outMat, layeredTextures, "ShininessExponent", Tt.shininess, mesh)
     }
 
-    fun getColorPropertyFromMaterial(props: PropertyTable, baseName: String) =
-            props.get<AiVector3D>(baseName) ?: props.get<AiVector3D>("${baseName}Color")?.also { diffuseColor ->
-                props.get<Float>("${baseName}Factor")?.let { diffuseColor *= it }
-            }
+    fun getColorPropertyFromMaterial(props: PropertyTable, baseName: String) = getColorPropertyFactored(props, "${baseName}Color", "${baseName}Factor", true)
+
+    fun getColorPropertyFactored(props: PropertyTable, colorName: String, factorName: String, useTemplate: Boolean = true): AiColor3D? {
+
+        val baseColor = props.get<AiVector3D>(colorName, useTemplate) ?: return AiColor3D()
+
+        // if no factor name, return the colour as is
+        if (factorName.isEmpty())
+            return baseColor
+
+        // otherwise it should be multiplied by the factor, if found.
+        props.get<Float>(factorName, useTemplate)?.let { baseColor *= it }
+
+        return baseColor
+    }
+
+    fun getColorProperty(props: PropertyTable, colorName: String, useTemplate: Boolean = true) = props.get<AiVector3D>(colorName, useTemplate)
+            ?: AiColor3D()
 
     fun setShadingPropertiesCommon(outMat: AiMaterial, props: PropertyTable) {
-        /*  set shading properties. There are various, redundant ways in which FBX materials specify their shading settings
-            (depending on shading models, prop template etc.). No idea which one is right in a particular context.
-            Just try to make sense of it - there's no spec to verify this against, so why should we.    */
-        getColorPropertyFromMaterial(props, "Diffuse")?.let { diffuse ->
-            outMat.color.let {
-                if (it == null) outMat.color = AiMaterial.Color(diffuse = diffuse)
-                else it.diffuse = diffuse
-            }
+        /*  Set shading properties.
+            Modern FBX Files have two separate systems for defining these, with only the more comprehensive one described
+            in the property template.
+            Likely the other values are a legacy system, which is still always exported by the official FBX SDK.
+
+            Blender's FBX import and export mostly ignore this legacy system, and as we only support recent versions of
+            FBX anyway, we can do the same.    */
+        getColorPropertyFromMaterial(props, "Diffuse")?.let { (outMat.color ?: AiMaterial.Color()).diffuse = it }
+        getColorPropertyFromMaterial(props, "Emissive")?.let {(outMat.color ?: AiMaterial.Color()).emissive = it }
+        getColorPropertyFromMaterial(props, "Ambient")?.let {(outMat.color ?: AiMaterial.Color()).ambient = it }
+        // we store specular factor as SHININESS_STRENGTH, so just get the color
+        (outMat.color ?: AiMaterial.Color()).specular = getColorProperty(props, "SpecularColor", true)
+        // and also try to get SHININESS_STRENGTH
+        outMat.shininessStrength = props.get<Float>("SpecularFactor", true)
+        // and the specular exponent
+        outMat.shininess = props.get<Float>("ShininessExponent")
+        // TransparentColor / TransparencyFactor... gee thanks FBX :rolleyes:
+        var calculatedOpacity = 1f
+        getColorPropertyFactored(props, "TransparentColor", "TransparencyFactor")?.let {
+            (outMat.color ?: AiMaterial.Color()).transparent = it
+            // as calculated by FBX SDK 2017:
+            calculatedOpacity = 1f - (it.r + it.g + it.b) / 3f
         }
-        getColorPropertyFromMaterial(props, "Emissive")?.let { emissive ->
-            outMat.color.let {
-                if (it == null) outMat.color = AiMaterial.Color(emissive = emissive)
-                else it.emissive = emissive
-            }
-        }
-        getColorPropertyFromMaterial(props, "Ambient")?.let { ambient ->
-            outMat.color.let {
-                if (it == null) outMat.color = AiMaterial.Color(ambient = ambient)
-                else it.ambient = ambient
-            }
-        }
-        getColorPropertyFromMaterial(props, "Specular")?.let { specular ->
-            outMat.color.let {
-                if (it == null) outMat.color = AiMaterial.Color(specular = specular)
-                else it.specular = specular
-            }
-        }
-        props.get<Float>("Opacity")?.let { outMat.opacity = it }
-        props.get<Float>("Reflectivity")?.let { outMat.reflectivity = it }
-        props.get<Float>("Shininess")?.let { outMat.shininessStrength = it }
-        props.get<Float>("ShininessExponent")?.let { outMat.shininess = it }
-        props.get<Float>("BumpFactor")?.let { outMat.bumpScaling = it }
-        props.get<Float>("DisplacementFactor")?.let { outMat.displacementScaling = it }
+        /*  use of TransparencyFactor is inconsistent.
+            Maya always stores it as 1.0, so we can't use it to set AI_MATKEY_OPACITY.
+            Blender is more sensible and stores it as the alpha value.
+            However both the FBX SDK and Blender always write an additional legacy "Opacity" field, so we can try to use that.
+
+            If we can't find it, we can fall back to the value which the FBX SDK calculates from transparency colour (RGB)
+            and factor (F) as:
+            1.0 - F*((R+G+B)/3)
+
+            There's no consistent way to interpret this opacity value, so it's up to clients to do the correct thing.   */
+        val opacity: Float? = props["Opacity"]
+        if (opacity != null)
+            outMat.opacity = opacity
+        else if (calculatedOpacity != 0f)
+            outMat.opacity = calculatedOpacity
+
+        // reflection color and factor are stored separately
+        (outMat.color ?: AiMaterial.Color()).reflective = getColorProperty(props, "ReflectionColor", true)
+        outMat.reflectivity = props.get<Float>("ReflectionFactor", true)
+        outMat.bumpScaling = props.get<Float>("BumpFactor")
+        outMat.displacementScaling = props.get<Float>("DisplacementFactor")
     }
 
     /** get the number of fps for a FrameRate enumerated value */

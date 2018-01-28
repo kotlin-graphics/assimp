@@ -89,18 +89,9 @@ class PropertyTable(var element: Element? = null, var templateProps: PropertyTab
         }
     }
 
-    operator fun <T> get(name: String): T? {
-        var p = props[name]
-        if (p == null) {
-            // hasn't been parsed yet?
-            lazyProps[name]?.let {
-                props[name] = it.readTypedProperty()
-                p = props[name]!!
-            }
-            if (p == null) // check property template
-                return templateProps?.get(name)
-        }
-        return p as T?
+    operator fun <T> get(name: String, useTemplate: Boolean = false): T? = (props[name] as T) ?: when {
+        !useTemplate -> null
+        else -> templateProps?.get(name)
     }
 
     fun getUnparsedProperties(): MutableMap<String, Property> {
@@ -122,22 +113,22 @@ class PropertyTable(var element: Element? = null, var templateProps: PropertyTab
         return result
     }
 
-    fun <T> get(name: String, result: KMutableProperty0<Boolean>): T? {
-        val prop = get<T>(name)
-        if (null == prop) {
-            result.set(false)
-            return null
-        }
-
-        // strong typing, no need to be lenient
-//        val tprop = prop->As< TypedProperty<T> >()
-//        if (nullptr == tprop) {
-//            result = false
-//            return T()
+//    fun <T> get(name: String, result: KMutableProperty0<Boolean>): T? {
+//        val prop = get<T>(name)
+//        if (null == prop) {
+//            result.set(false)
+//            return null
 //        }
-        result.set(true)
-        return prop
-    }
+//
+//        // strong typing, no need to be lenient
+////        val tprop = prop->As< TypedProperty<T> >()
+////        if (nullptr == tprop) {
+////            result = false
+////            return T()
+////        }
+//        result.set(true)
+//        return prop
+//    }
 
     fun <T> get(name: String, defaultValue: T) = get<T>(name) ?: defaultValue
 }
