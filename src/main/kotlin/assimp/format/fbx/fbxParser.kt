@@ -129,7 +129,7 @@ class Element(val keyToken: Token, parser: Parser) {
             "KTime" -> TypedProperty(t.parseAsInt64)
             "Vector3D", "ColorRGB", "Vector", "Color", "Lcl Translation", "Lcl Rotation", "Lcl Scaling" ->
                 TypedProperty(AiVector3D({ tokens[4 + it].parseAsFloat }))
-            "double", "Number", "Float", "FieldOfView" -> TypedProperty(t.parseAsFloat)
+            "double", "Number", "Float", "FieldOfView", "UnitScaleFactor" -> TypedProperty(t.parseAsFloat)
             else -> null
         }
     }
