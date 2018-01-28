@@ -341,9 +341,9 @@ class Converter(val out: AiScene, val doc: Document) {
 
             aspect = cam.aspectWidth / cam.aspectHeight
             //cameras are defined along positive x direction
-            position put 0f
-            lookAt.put(1f, 0f, 0f)
-            up.put(0f, 1f, 0f)
+            position put cam.position
+            lookAt = (cam.interestPosition - position).normalizeAssign()
+            up put cam.upVector
             horizontalFOV = cam.fieldOfView.rad
             clipPlaneNear = cam.nearPlane
             clipPlaneFar = cam.farPlane
