@@ -11,5 +11,6 @@ class obj : StringSpec() {
         "box"{ box(path + "box.obj") }
         "spider"{ spider(path + "spider.obj") }
         "nanosuit" { nanosuit(path + "nanosuit/nanosuit.obj") }
+        "shelter" { shelter(path + "statie B01.obj")}
     }
 }

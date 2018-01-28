@@ -228,7 +228,8 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
-            pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
+            pMesh.colors.add(Array(pMesh.numVertices, { AiColor4D() }).toMutableList())
+            //pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
@@ -323,7 +324,7 @@ class ObjFileImporter : BaseImporter() {
         val numMaterials = pModel.m_MaterialLib.size
         pScene.numMaterials = 0
         if (pModel.m_MaterialLib.isEmpty()) {
-            System.err.println("OBJ: no materials specified")
+            logger.debug { "OBJ: no materials specified" }
             return
         }
 
@@ -344,7 +345,7 @@ class ObjFileImporter : BaseImporter() {
                 1 -> AiShadingMode.gouraud
                 2 -> AiShadingMode.phong
                 else -> {
-                    System.err.println("OBJ: unexpected illumination model (0-2 recognized)")
+                    logger.error { "OBJ: unexpected illumination model (0-2 recognized)" }
                     AiShadingMode.gouraud
                 }
             }
@@ -416,9 +417,14 @@ class ObjFileImporter : BaseImporter() {
                     while (!name[i].isLetter()) i++
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
-                    val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
+                    if(file.parentFile.listFiles().any { it.name == cleaned  })
+                    {
+                        val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
+                        scene.textures[name] = gli.load(texFile.toPath())
+                    }
 
-                    scene.textures[name] = gli.load(texFile.toPath())
+
+
                 }
             }
         }

@@ -406,6 +406,10 @@ constructor() {
                 ValidateDSProcess.executeOnScene(this)
                 if (impl.scene == null) return null
             }
+        if (flags has Pps.OptimizeMeshes) {
+            OptimizeMeshes.executeOnScene(this)
+            if (impl.scene == null) return null
+        }
         var flags = flags
         if (ASSIMP.BUILD.DEBUG) {
             if (impl.extraVerbose) {

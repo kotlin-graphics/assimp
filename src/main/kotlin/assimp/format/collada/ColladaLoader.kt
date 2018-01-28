@@ -71,7 +71,7 @@ class ColladaLoader : BaseImporter() {
     override fun canRead(file: URI, checkSig: Boolean): Boolean {
 
         // check file extension
-        val extension = file.s.substring(file.s.lastIndexOf('.') + 1)
+        val extension = file.s.substring(file.s.lastIndexOf('.') + 1).toLowerCase()
 
         if (extension == "dae")
             return true
@@ -95,7 +95,7 @@ class ColladaLoader : BaseImporter() {
         scene.rootNode = buildHierarchy(parser, parser.mRootNode!!)
         // ... then fill the materials with the now adjusted settings
         fillMaterials(parser)
-        // Apply unitsize scale calculation
+        // Apply unitsize scale calculation  // TODO glm avoid mat4 instance?
         scene.rootNode.transformation timesAssign AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
                 0, parser.mUnitSize, 0, 0,
                 0, 0, parser.mUnitSize, 0,

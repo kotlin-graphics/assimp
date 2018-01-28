@@ -13,7 +13,7 @@ class fbx : StringSpec() {
     val path_ = modelsNonBsd + "/FBX/"
 
     init {
-        "spider"  { spider(path + "spider.fbx") }
+//        "spider"  { spider(path + "spider.fbx") }
 //        "boar man"  { boarMan(path_ + "BoarMan.md5mesh") }
     }
 }

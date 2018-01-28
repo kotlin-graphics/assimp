@@ -173,17 +173,16 @@ class StlImporter : BaseImporter() {
         // search for an occurrence of "COLOR=" in the header
         var sz2 = 0
         while (sz2 < 80) {
-
             if (mBuffer.getChar(sz2++) == 'C' && mBuffer.getChar(sz2++) == 'O' && mBuffer.getChar(sz2++) == 'L' &&
                     mBuffer.getChar(sz2++) == 'O' && mBuffer.getChar(sz2++) == 'R' && mBuffer.getChar(sz2++) == '=') {
-
                 // read the default vertex color for facets
                 bIsMaterialise = true
+                logger.info { "STL: Taking code path for Materialise files" }
                 val invByte = 1f / 255f
                 clrColorDefault.r = (mBuffer.getFloat(sz2++) * invByte).f
                 clrColorDefault.g = (mBuffer.getFloat(sz2++) * invByte).f
                 clrColorDefault.b = (mBuffer.getFloat(sz2++) * invByte).f
-                clrColorDefault.a = (mBuffer.getFloat(sz2++) * invByte).f
+                clrColorDefault.a = (mBuffer.getFloat(sz2) * invByte).f
                 break
             }
         }
@@ -226,7 +225,7 @@ class StlImporter : BaseImporter() {
 
                     pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D(clrColorDefault) }).toMutableList()
 
-                    println("STL: Mesh has vertex colors")
+                    logger.info { "STL: Mesh has vertex colors" }
                 }
                 val clr = pMesh.colors[0]!![i * 3]
                 clr.a = 1f
@@ -285,29 +284,28 @@ class StlImporter : BaseImporter() {
         var i = 0
 
         while (true) {
-
             val word = words[i]
-
+            // seems we're finished although there was no end marker
             if (i == word.length - 1 && word != "endsolid") {
-                System.err.println("STL: unexpected EOF. \'endsolid\' keyword was expected")
+                logger.warn { "STL: unexpected EOF. \'endsolid\' keyword was expected" }
                 break
             }
 
             if (word == "facet") {
 
-                if (faceVertexCounter != 3) System.err.println("STL: A new facet begins but the old is not yet complete")
+                if (faceVertexCounter != 3) logger.warn { "STL: A new facet begins but the old is not yet complete" }
 
                 faceVertexCounter = 0
                 val vn = AiVector3D()
                 normalBuffer.add(vn)
 
-                if (words[i + 1] != "normal") System.err.println("STL: a facet normal vector was expected but not found")
+                if (words[i + 1] != "normal") logger.warn { "STL: a facet normal vector was expected but not found" }
                 else {
                     try {
                         i++
-                        vn.x = words[++i].toFloat()
-                        vn.y = words[++i].toFloat()
-                        vn.z = words[++i].toFloat()
+                        vn.x = words[++i].f
+                        vn.y = words[++i].f
+                        vn.z = words[++i].f
                         normalBuffer.add(AiVector3D(vn))
                         normalBuffer.add(AiVector3D(vn))
                     } catch (exc: NumberFormatException) {
@@ -317,14 +315,14 @@ class StlImporter : BaseImporter() {
             } else if (word == "vertex") {
 
                 if (faceVertexCounter >= 3) {
-                    System.err.println("STL: a facet with more than 3 vertices has been found")
+                    logger.error { "STL: a facet with more than 3 vertices has been found" }
                     i++
                 } else {
                     try {
                         val vn = AiVector3D()
-                        vn.x = words[++i].toFloat()
-                        vn.y = words[++i].toFloat()
-                        vn.z = words[++i].toFloat()
+                        vn.x = words[++i].f
+                        vn.y = words[++i].f
+                        vn.z = words[++i].f
                         positionBuffer.add(vn)
                         faceVertexCounter++
                     } catch (exc: NumberFormatException) {

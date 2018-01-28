@@ -1,8 +1,10 @@
 package assimp.format.obj
 
-import glm_.f
 import assimp.*
+import glm_.f
+import glm_.i
 import java.io.File
+import assimp.AiPrimitiveType as Pt
 
 /**
  * Created by elect on 21/11/2016.
@@ -64,9 +66,7 @@ class ObjFileParser(private val file: File) {
                     'n' -> m_pModel.m_Normals.add(AiVector3D((1..3).map { words[it].f }))
                 }
             // Parse a face, line or point statement
-                'p' -> getFace(AiPrimitiveType.POINT, line)
-                'l' -> getFace(AiPrimitiveType.LINE, line)
-                'f' -> getFace(AiPrimitiveType.POLYGON, line)
+                'p', 'l', 'f' -> getFace(if (line[0] == 'f') Pt.POLYGON else if (line[0] == 'l') Pt.LINE else Pt.POINT, line)
             // Parse a material desc. setter
                 'u' -> if (words[0] == "usemtl") getMaterialDesc(line)
             // Parse a material library or merging group ('mg')
@@ -88,9 +88,9 @@ class ObjFileParser(private val file: File) {
 
     // -------------------------------------------------------------------
     //  Get values for a new face instance
-    fun getFace(type: AiPrimitiveType, line: String) {
+    fun getFace(type: Pt, line: String) {
 
-        val vertices = line.substring(1).trim().split("\\s+".toRegex())
+        val vertices = line.substring(1).trim().split(Regex("\\s+"))
 
         val face = Face(type)
         var hasNormal = false
@@ -101,61 +101,56 @@ class ObjFileParser(private val file: File) {
 
         for (vertex in vertices) {
 
-            if (vertex[0] == '/' && type == AiPrimitiveType.POINT) throw Error("Obj: Separator unexpected in point statement")
+            if (vertex[0] == '/' && type == Pt.POINT) logger.error { "Obj: Separator unexpected in point statement" }
 
             val component = vertex.split("/")
 
-            for (i in component.indices)
-
+            var skip = false
+            var i = 0
+            while (i in 0 until component.size && !skip) {
                 if (component[i].isNotEmpty()) {
-
-                    val iVal = component[i].toInt()
-
-                    if (iVal > 0)
-                    // Store parsed index
-                        when (i) {
-                            0 -> face.m_vertices.add(iVal - 1)
-                            1 -> face.m_texturCoords.add(iVal - 1)
-                            2 -> {
-                                face.m_normals.add(iVal - 1)
-                                hasNormal = true
-                            }
-                            else -> throw Error("OBJ: Not supported token in face description detected")
+                    val iVal = component[i].i
+                    if (iVal > 0) when (i) {    // Store parsed index
+                        0 -> face.m_vertices.add(iVal - 1)
+                        1 -> face.m_texturCoords.add(iVal - 1)
+                        2 -> {
+                            face.m_normals.add(iVal - 1)
+                            hasNormal = true
                         }
-                    else if (iVal < 0)
-                    // Store relatively index
-                        when (i) {
-                            0 -> face.m_vertices.add(vSize + iVal)
-                            1 -> face.m_texturCoords.add(vtSize + iVal)
-                            2 -> {
-                                face.m_normals.add(vnSize + iVal)
-                                hasNormal = true
-                            }
-                            else -> throw Error("OBJ: Not supported token in face description detected")
+                        else -> {
+                            logger.error { "OBJ: Not supported token in face description detected" }
+                            skip = true
                         }
+                    }
+                    else if (iVal < 0) when (i) {   // Store relatively index
+                        0 -> face.m_vertices.add(vSize + iVal)
+                        1 -> face.m_texturCoords.add(vtSize + iVal)
+                        2 -> {
+                            face.m_normals.add(vnSize + iVal)
+                            hasNormal = true
+                        }
+                        else -> {
+                            logger.error { "OBJ: Not supported token in face description detected" }
+                            skip = true
+                        }
+                    }
                 }
+                i++
+            }
         }
-
         if (face.m_vertices.isEmpty()) throw Error("Obj: Ignoring empty face")
-
         // Set active material, if one set
         face.m_pMaterial = m_pModel.m_pCurrentMaterial ?: m_pModel.m_pDefaultMaterial
-
         // Create a default object, if nothing is there
-        if (m_pModel.m_pCurrent == null)
-            createObject(DefaultObjName)
-
+        if (m_pModel.m_pCurrent == null) createObject(DefaultObjName)
         // Assign face to mesh
-        if (m_pModel.m_pCurrentMesh == null)
-            createMesh(DefaultObjName)
-
+        if (m_pModel.m_pCurrentMesh == null) createMesh(DefaultObjName)
         // Store the face
         with(m_pModel.m_pCurrentMesh!!) {
             m_Faces.add(face)
             m_uiNumIndices += face.m_vertices.size
             m_uiUVCoordinates[0] += face.m_texturCoords.size
-            if (!m_hasNormals && hasNormal)
-                m_hasNormals = true
+            if (!m_hasNormals && hasNormal) m_hasNormals = true
         }
     }
 
@@ -192,9 +187,8 @@ class ObjFileParser(private val file: File) {
     // -------------------------------------------------------------------
     //  Get values for a new material description
     fun getMaterialDesc(line: String) {
-
-        // Get name
-        val strName = line.split("\\s+".toRegex())[1].trim()
+        // Get name (support for spaces)
+        val strName = ObjTools.getNameWithSpace(line)
 
         // If the current mesh has the same material, we simply ignore that 'usemtl' command
         // There is no need to create another object or even mesh here
@@ -250,7 +244,8 @@ class ObjFileParser(private val file: File) {
 
         if (words.size < 2) throw Error("File name of the material is absent.")
 
-        val filename = words[1]
+        // get the name of the mat file with spaces
+        var filename = ObjTools.getNameWithSpace(words,1)
 
         val pFile = file.parentFile + filename
 
