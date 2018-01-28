@@ -59,11 +59,11 @@ data class AiNode(
         /** The meshes of this node. Each entry is an index into the mesh list of the #aiScene.     */
         var meshes: IntArray = intArrayOf(),
 
-        /** Metadata associated with this node or NULL if there is no metadata.
+        /** Metadata associated with this node or empty if there is no metadata.
          *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
          *  @endlink page for more information on every source file format. Importers that don't document any metadata
          *  don't write any.         */
-        var metaData: ArrayList<AiMetadata>? = null
+        val metaData: ArrayList<AiMetadata> = ArrayList()
 ) {
 
     constructor(other: AiNode) : this(other.name, AiMatrix4x4(other.transformation), other.parent, other.numChildren,
@@ -90,8 +90,6 @@ data class AiNode(
         val size = Mat4.size + 2 * Int.BYTES
     }
 }
-
-class AiMetadata
 
 // -------------------------------------------------------------------------------
 /**

@@ -41,6 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
+import kotlin.reflect.KMutableProperty0
+
 /** @file  FBXProperties.h
  *  @brief FBX dynamic properties
  */
@@ -54,7 +56,7 @@ package assimp.format.fbx
  */
 open class Property : Any()
 
-class TypedProperty<T>(var value: T) : Property()
+class TypedProperty<T : Any>(var value: T) : Property()
 
 /**
  *  Represents a property table as can be found in the newer FBX files (Properties60, Properties70)
@@ -101,45 +103,41 @@ class PropertyTable(var element: Element? = null, var templateProps: PropertyTab
         return p as T?
     }
 
-//    DirectPropertyMap GetUnparsedProperties() const
+    fun getUnparsedProperties(): MutableMap<String, Property> {
+
+        val result = mutableMapOf<String, Property>()
+
+        // Loop through all the lazy properties (which is all the properties)
+        for (entry in lazyProps) {
+
+            // Skip parsed properties
+            if (props.contains(entry.key)) continue
+
+            // Read the entry's value.
+            val prop = entry.value.readTypedProperty() ?: continue  // Element could not be read. Skip it.
+
+            // Add to result
+            result[entry.key] = prop
+        }
+        return result
+    }
+
+    fun <T> get(name: String, result: KMutableProperty0<Boolean>): T? {
+        val prop = get<T>(name)
+        if (null == prop) {
+            result.set(false)
+            return null
+        }
+
+        // strong typing, no need to be lenient
+//        val tprop = prop->As< TypedProperty<T> >()
+//        if (nullptr == tprop) {
+//            result = false
+//            return T()
+//        }
+        result.set(true)
+        return prop
+    }
+
+    fun <T> get(name: String, defaultValue: T) = get<T>(name) ?: defaultValue
 }
-
-
-// ------------------------------------------------------------------------------------------------
-//template <typename T>
-//inline
-//T PropertyGet(const PropertyTable& in , const std::string& name, const T& defaultValue) {
-//    const Property * const prop = in.Get(name)
-//    if (nullptr == prop) {
-//        return defaultValue
-//    }
-//
-//    // strong typing, no need to be lenient
-//    const TypedProperty < T > * const tprop = prop->As< TypedProperty<T> >()
-//    if (nullptr == tprop) {
-//        return defaultValue
-//    }
-//
-//    return tprop->Value()
-//}
-//
-//// ------------------------------------------------------------------------------------------------
-//template <typename T>
-//inline
-//T PropertyGet(const PropertyTable& in , const std::string& name, bool& result) {
-//    const Property * const prop = in.Get(name)
-//    if (nullptr == prop) {
-//        result = false
-//        return T()
-//    }
-//
-//    // strong typing, no need to be lenient
-//    const TypedProperty < T > * const tprop = prop->As< TypedProperty<T> >()
-//    if (nullptr == tprop) {
-//        result = false
-//        return T()
-//    }
-//
-//    result = true
-//    return tprop->Value()
-//}

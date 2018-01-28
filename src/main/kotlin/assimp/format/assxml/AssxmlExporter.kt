@@ -1,12 +1,8 @@
 package assimp.format.assxml
 
 import assimp.*
-import unsigned.and
-import java.io.CharArrayWriter
-import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.text.Typography.tm
 
 
 class AssxmlExporter {
@@ -131,7 +127,7 @@ class AssxmlExporter {
             // write lights
             for (i in 0 until scene.numLights) {
                 var l  = scene.lights[i]; var name = StringBuilder()
-                ConvertName(name,l.mName)
+                ConvertName(name,l.name)
 
                 // light header
                 ioprintf(io,"\t<Light parent=\"%s\"> type=\"%s\"\n\t\t<Vector3 name=\"diffuse\"   > %0 8f %0 8f %0 8f </Vector3>\n\t\t<Vector3 name=\"specular\"  > %0 8f %0 8f %0 8f </Vector3>\n\t\t<Vector3 name=\"ambient\"   > %0 8f %0 8f %0 8f </Vector3>\n".format(
@@ -145,14 +141,14 @@ class AssxmlExporter {
                 if (l.type != AiLightSourceType.DIRECTIONAL) {
                     ioprintf(io,
                             "\t\t<Vector3 name=\"pos\"       > %0 8f %0 8f %0 8f </Vector3>\n\t\t<Float   name=\"atten_cst\" > %f </Float>\n\t\t<Float   name=\"atten_lin\" > %f </Float>\n\t\t<Float   name=\"atten_sqr\" > %f </Float>\n".format(
-                                            l.mPosition.x,l.mPosition.y,l.mPosition.z,
+                                            l.position.x,l.position.y,l.position.z,
                                             l.attenuationConstant,l.attenuationLinear,l.attenuationQuadratic))
                 }
 
                 if (l.type != AiLightSourceType.POINT) {
                     ioprintf(io,
                             "\t\t<Vector3 name=\"lookat\"    > %0 8f %0 8f %0 8f </Vector3>\n".format(
-                                    l.mDirection.x,l.mDirection.y,l.mDirection.z))
+                                    l.direction.x,l.direction.y,l.direction.z))
                 }
 
                 if (l.type == AiLightSourceType.SPOT) {
@@ -222,7 +218,7 @@ class AssxmlExporter {
 
                     ioprintf(io,"\t<Material>\n")
                     ioprintf(io,"\t\t<MatPropertyList  num=\"%d\">\n".format(matproperties.size + if(mat.textures.size>0) textureToMap(mat.textures[0]).size else 0))
-                    for (prop in matproperties.entries) {
+                    for (prop in matproperties) {
 
 //                        var prop = matproperties.asSequence()[n];
                         var sz = ""
@@ -284,7 +280,7 @@ class AssxmlExporter {
                                     5));
 
                             for (p in 0 until 5) {
-                                ioprintf(io,"%2x ".format(v.mTranslation.x, v.mTranslation.y, v.mScaling.x, v.mScaling.y, v.mRotation));
+                                ioprintf(io,"%2x ".format(v.translation.x, v.translation.y, v.scaling.x, v.scaling.y, v.rotation));
                                 if (p!=0 && 0 == p%30) {
                                     ioprintf(io,"\n\t\t\t\t");
                                 }
@@ -299,7 +295,7 @@ class AssxmlExporter {
                     for(j in 0 until mat.textures.size) {
                         var tex = mat.textures[j]
                         var texproperties = textureToMap(tex)
-                        for (prop in texproperties.entries) {
+                        for (prop in texproperties) {
 
 //                        var prop = matproperties.asSequence()[n];
                             var sz = ""
@@ -361,7 +357,7 @@ class AssxmlExporter {
                                         5));
 
                                 for (p in 0 until 5) {
-                                    ioprintf(io,"%2x ".format(v.mTranslation.x, v.mTranslation.y, v.mScaling.x, v.mScaling.y, v.mRotation));
+                                    ioprintf(io,"%2x ".format(v.translation.x, v.translation.y, v.scaling.x, v.scaling.y, v.rotation));
                                     if (p!=0 && 0 == p%30) {
                                         ioprintf(io,"\n\t\t\t\t");
                                     }

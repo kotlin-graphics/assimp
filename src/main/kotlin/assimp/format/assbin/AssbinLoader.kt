@@ -1,6 +1,7 @@
 package assimp.format.assbin
 
 import assimp.*
+import assimp.format.X.reserve
 import gli_.has
 import gli_.hasnt
 import glm_.*
@@ -380,19 +381,28 @@ class AssbinLoader : BaseImporter() {
             if (shortened)
                 TODO()//ReadBounds(stream, nd->positionKeys, nd->numPositionKeys)
             else    // else write as usual
-                nd.positionKeys = List(nd.numPositionKeys, { vectorKey() })
+                nd.positionKeys.apply {
+                    clear()
+                    reserve(nd.numPositionKeys) { vectorKey() }
+                }
 
         if (nd.numRotationKeys > 0)
             if (shortened)
                 TODO()//ReadBounds(stream, nd->rotationKeys, nd->numRotationKeys)
             else    // else write as usual
-                nd.rotationKeys = List(nd.numRotationKeys, { quatKey() })
+                nd.rotationKeys.apply {
+                    clear()
+                    reserve(nd.numRotationKeys) { quatKey() }
+                }
 
         if (nd.numScalingKeys > 0)
             if (shortened)
                 TODO()//ReadBounds(stream, nd->scalingKeys, nd->numScalingKeys)
             else    // else write as usual
-                nd.scalingKeys = List(nd.numScalingKeys, { vectorKey() })
+                nd.scalingKeys.apply {
+                    clear()
+                    reserve(nd.numScalingKeys) { vectorKey() }
+                }
     }
 
     private fun InputStream.readLight(l: AiLight) {
@@ -400,7 +410,7 @@ class AssbinLoader : BaseImporter() {
         assert(int(be) == ASSBIN_CHUNK_AILIGHT)
         int(be)   // size
 
-        l.mName = string()
+        l.name = string()
         l.type = AiLightSourceType.of(int(be))
 
         if (l.type != AiLightSourceType.DIRECTIONAL) {

@@ -9,7 +9,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.20-eap-11'
+    ext.kotlinVersion = '1.2.20'
 
     repositories {
         jcenter()
@@ -33,7 +33,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:a9a34c7f6f3cf21d872e717a2afe414141b9b836'
+    compile 'com.github.kotlin-graphics:uno-sdk:94f256712b99c3411bb6633e7bb0ac079e22dd11'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
@@ -50,7 +50,7 @@ dependencies {
             ext.lwjglNatives = "natives-macos"
             break
     }
-    ext.lwjglVersion = "3.1.4-SNAPSHOT"
+    ext.lwjglVersion = "3.1.5-SNAPSHOT"
     compile "org.lwjgl:lwjgl:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"

@@ -155,7 +155,7 @@ class AiNodeAnim(
          *
          * If there are position keys, there will also be at least one
          * scaling and one rotation key.*/
-        var positionKeys: List<AiVectorKey> = ArrayList(),
+        var positionKeys: ArrayList<AiVectorKey> = arrayListOf(),
 
         /** The number of rotation keys */
         var numRotationKeys: Int = 0,
@@ -166,7 +166,7 @@ class AiNodeAnim(
          *
          * If there are rotation keys, there will also be at least one
          * scaling and one position key. */
-        var rotationKeys: List<AiQuatKey> = ArrayList(),
+        var rotationKeys: ArrayList<AiQuatKey> = arrayListOf(),
 
         /** The number of scaling keys */
         var numScalingKeys: Int = 0,
@@ -176,7 +176,7 @@ class AiNodeAnim(
          *
          * If there are scaling keys, there will also be at least one
          * position and one rotation key.*/
-        var scalingKeys: List<AiVectorKey> = ArrayList(),
+        var scalingKeys: ArrayList<AiVectorKey> = arrayListOf(),
 
         /** Defines how the animation behaves before the first
          *  key is encountered.

@@ -47,7 +47,7 @@ object animFullRot {
 
                         numMeshes shouldBe 1
                         meshes[0] shouldBe 0
-                        metaData shouldBe null
+                        metaData.isEmpty() shouldBe true
                     }
 
                     with(children[1]) {
@@ -72,7 +72,7 @@ object animFullRot {
 
                             numMeshes shouldBe 1
                             meshes[0] shouldBe 1
-                            metaData shouldBe null
+                            metaData.isEmpty() shouldBe true
                         }
 
                         with(children[1]) {
@@ -89,17 +89,17 @@ object animFullRot {
 
                             numMeshes shouldBe 0
                             meshes.isEmpty() shouldBe true
-                            metaData shouldBe null
+                            metaData.isEmpty() shouldBe true
                         }
 
                         numMeshes shouldBe 0
                         meshes.isEmpty() shouldBe true
-                        metaData shouldBe null
+                        metaData.isEmpty() shouldBe true
                     }
 
                     numMeshes shouldBe 0
                     meshes.isEmpty() shouldBe true
-                    metaData shouldBe null
+                    metaData.isEmpty() shouldBe true
                 }
             }
 

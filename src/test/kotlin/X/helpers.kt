@@ -81,9 +81,9 @@ fun compareNode(rootNode: AiNode, rootNode1: AiNode) {
     compareIntArray(rootNode.meshes, rootNode1.meshes)
 
     if(!areNull(rootNode.metaData, rootNode1.metaData)) {
-        rootNode.metaData!!.size shouldBe rootNode1.metaData!!.size
-        for(i in 0 until rootNode.metaData!!.size) {
-            compareMetaData(rootNode.metaData!![i]!!, rootNode1.metaData!![i]!!)
+        rootNode.metaData.size shouldBe rootNode1.metaData.size
+        for(i in 0 until rootNode.metaData.size) {
+            compareMetaData(rootNode.metaData[i], rootNode1.metaData[i])
         }
     }
 
@@ -151,9 +151,9 @@ fun areNull(a1 : Any?, a2: Any?) : Boolean {
 }
 
 fun compareUVTransform(uvTrafo: AiUVTransform, uvTrafo1: AiUVTransform) {
-    compareVector(uvTrafo.mScaling, uvTrafo1.mScaling)
-    compareVector(uvTrafo.mTranslation, uvTrafo1.mTranslation)
-    uvTrafo.mRotation shouldBe uvTrafo1.mRotation
+    compareVector(uvTrafo.scaling, uvTrafo1.scaling)
+    compareVector(uvTrafo.translation, uvTrafo1.translation)
+    uvTrafo.rotation shouldBe uvTrafo1.rotation
 }
 
 fun compareShadingMode(shadingModel: AiShadingMode?, shadingModel1: AiShadingMode?) {
@@ -161,7 +161,7 @@ fun compareShadingMode(shadingModel: AiShadingMode?, shadingModel1: AiShadingMod
         shadingModel1 shouldBe null
         return
     }
-    shadingModel!!.i  shouldBe shadingModel1!!.i
+    shadingModel.i  shouldBe shadingModel1!!.i
 }
 
 fun compareColors(color: AiMaterial.Color, color1: AiMaterial.Color) {
@@ -184,7 +184,7 @@ fun compareBlendMode(blendFunc: AiBlendMode, blendFunc1: AiBlendMode) {
 }
 
 fun compareLights(a1: AiLight, a2: AiLight) {
-    a1.mName shouldBe a2.mName
+    a1.name shouldBe a2.name
     a1.angleInnerCone shouldBe a2.angleInnerCone
     a1.angleOuterCone shouldBe a2.angleOuterCone
     a1.attenuationConstant shouldBe a2.attenuationConstant
@@ -194,10 +194,10 @@ fun compareLights(a1: AiLight, a2: AiLight) {
     compareColors(a1.colorAmbient, a2.colorAmbient)
     compareColors(a1.colorDiffuse, a2.colorDiffuse)
     compareColors(a1.colorSpecular, a2.colorSpecular)
-    compareVector(a1.mDirection, a2.mDirection)
-    compareVector(a1.mUp, a2.mUp)
-    compareVector(a1.mPosition, a2.mPosition)
-    compareVector(a1.mSize, a2.mSize)
+    compareVector(a1.direction, a2.direction)
+    compareVector(a1.up, a2.up)
+    compareVector(a1.position, a2.position)
+    compareVector(a1.size, a2.size)
 }
 
 fun compareVector(lookAt: AiVector2D, lookAt1: AiVector2D) {
@@ -286,23 +286,23 @@ fun compareNodeAnim(nodeanim1: AiNodeAnim?, nodeanim2: AiNodeAnim?) {
     nodeanim2 shouldNotBe null
     nodeanim1!!.nodeName shouldBe nodeanim2!!.nodeName
 
-    nodeanim1!!.numPositionKeys shouldBe nodeanim2!!.numPositionKeys
-    for(i in 0 until nodeanim1!!.positionKeys.size) {
-        compareVectorKey(nodeanim1!!.positionKeys[i], nodeanim2!!.positionKeys[i])
+    nodeanim1.numPositionKeys shouldBe nodeanim2.numPositionKeys
+    for(i in 0 until nodeanim1.positionKeys.size) {
+        compareVectorKey(nodeanim1.positionKeys[i], nodeanim2.positionKeys[i])
     }
 
-    nodeanim1!!.numRotationKeys shouldBe nodeanim2!!.numRotationKeys
-    for(i in 0 until nodeanim1!!.rotationKeys.size) {
-        compareQuatKey(nodeanim1!!.rotationKeys[i], nodeanim2!!.rotationKeys[i])
+    nodeanim1.numRotationKeys shouldBe nodeanim2.numRotationKeys
+    for(i in 0 until nodeanim1.rotationKeys.size) {
+        compareQuatKey(nodeanim1.rotationKeys[i], nodeanim2.rotationKeys[i])
     }
 
-    nodeanim1!!.numScalingKeys shouldBe nodeanim2!!.numScalingKeys
-    for(i in 0 until nodeanim1!!.scalingKeys.size) {
-        compareVectorKey(nodeanim1!!.scalingKeys[i], nodeanim2!!.scalingKeys[i])
+    nodeanim1.numScalingKeys shouldBe nodeanim2.numScalingKeys
+    for(i in 0 until nodeanim1.scalingKeys.size) {
+        compareVectorKey(nodeanim1.scalingKeys[i], nodeanim2.scalingKeys[i])
     }
 
-    compareAnimBehaviour(nodeanim1!!.preState, nodeanim2!!.preState)
-    compareAnimBehaviour(nodeanim1!!.postState, nodeanim2!!.postState)
+    compareAnimBehaviour(nodeanim1.preState, nodeanim2.preState)
+    compareAnimBehaviour(nodeanim1.postState, nodeanim2.postState)
 }
 
 fun compareAnimBehaviour(p1: AiAnimBehaviour, p2: AiAnimBehaviour) {

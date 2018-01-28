@@ -231,6 +231,45 @@ class Element(val keyToken: Token, parser: Parser) {
 //        }
     }
 
+    /** read an array of int64_ts   */
+    fun parseLongsDataArray(out: ArrayList<Long>) {
+        out.clear()
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
+
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count == 0) return
+
+            if (type != 'l') parseError("expected long array (binary)")
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * 8)
+
+            val ip = buff.asLongBuffer()
+            for (i in 0 until count) out += ip[i]
+
+            return
+        }
+        TODO()
+//        const size_t dim = ParseTokenAsDim(*tok[0])
+//
+//        // see notes in ParseVectorDataArray()
+//        out.reserve(dim)
+//
+//        const Scope & scope = GetRequiredScope (el)
+//        const Element & a = GetRequiredElement (scope, "a", &el)
+//
+//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end;) {
+//            const int64_t ival = ParseTokenAsInt64(** it ++)
+//
+//            out.push_back(ival)
+//        }
+    }
+
     /** read an array of float3 tuples */
     fun parseVec3DataArray(out: ArrayList<AiVector3D>) { // TODO consider returning directly `out`
         out.clear()
@@ -402,6 +441,8 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
     fun findElementCaseInsensitive(elementName: String) = elements[elementName.toLowerCase()]
 
     fun getCollection(index: String) = elements[index]!!
+
+    infix fun hasElement(index: String) = get(index) != null
 }
 
 

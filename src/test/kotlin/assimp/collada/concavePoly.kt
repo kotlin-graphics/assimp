@@ -27,7 +27,7 @@ object concavePoly {
                     children.isEmpty() shouldBe true
                     numMeshes shouldBe 1
                     meshes[0] shouldBe 0
-                    metaData shouldBe null
+                    metaData.isEmpty() shouldBe true
                 }
             }
 

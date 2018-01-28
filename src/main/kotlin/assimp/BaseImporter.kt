@@ -123,4 +123,19 @@ abstract class BaseImporter {
     open fun internReadFile(file: String, scene: AiScene) = internReadFile(file.uri, scene)
 
     open fun internReadFile(file: URI, scene: AiScene) = Unit
+
+    companion object {
+        /** Extract file extension from a string
+         *  @param file Input file
+         *  @return extension without trailing dot, all lowercase
+         */
+        fun getExtension (file: String): String {
+            val pos = file.indexOfLast { it == '.' }
+
+            // no file extension at all
+            if( pos == -1) return ""
+
+            return file.substring(pos+1).toLowerCase() // thanks to Andy Maloney for the hint
+        }
+    }
 }

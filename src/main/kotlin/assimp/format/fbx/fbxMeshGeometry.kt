@@ -44,6 +44,7 @@ package assimp.format.fbx
 import assimp.*
 import glm_.vec2.Vec2
 import org.lwjgl.openal.AL
+import kotlin.reflect.KMutableProperty0
 
 /** @file  FBXImporter.h
  *  @brief Declaration of the FBX main importer class */
@@ -75,6 +76,7 @@ open class Geometry(id: Long, element: Element, name: String, doc: Document) : O
 class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Geometry(id, element, name, doc) {
 
     // cached data arrays
+    /** Per-face-vertex material assignments */
     val materials = ArrayList<Int>()
     val vertices = ArrayList<AiVector3D>()
     val faces = ArrayList<Int>()
@@ -174,27 +176,42 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
 
     /** Get a UV coordinate slot, returns an empty array if
      *  the requested slot does not exist. */
-    const std ::vector<aiVector2D>& GetTextureCoords(unsigned int index) const
+    fun getTextureCoords(index: Int) = if (index >= AI_MAX_NUMBER_OF_TEXTURECOORDS) arrayListOf() else uvs[index]
 
-    /** Get a UV coordinate slot, returns an empty array if
-     *  the requested slot does not exist. */
-    std::string GetTextureCoordChannelName (unsigned int index) const
+    /** Get a UV coordinate slot, returns an empty array if the requested slot does not exist. */
+    fun getTextureCoordChannelName(index: Int) = if (index >= AI_MAX_NUMBER_OF_TEXTURECOORDS) "" else uvNames[index]
 
-    /** Get a vertex color coordinate slot, returns an empty array if
-     *  the requested slot does not exist. */
-    const std ::vector<aiColor4D>& GetVertexColors(unsigned int index) const
+    /** Get a vertex color coordinate slot, returns an empty array if the requested slot does not exist. */
+    fun getVertexColors(index: Int) = if (index >= AI_MAX_NUMBER_OF_COLOR_SETS) arrayListOf() else colors[index]
 
-    /** Get per-face-vertex material assignments */
-    const MatIndexArray & GetMaterialIndices () const
+    /** Convert from a fbx file vertex index (for example from a #Cluster weight) or NULL if the vertex index is not valid. */
+    fun toOutputVertexIndex(inIndex: Int, count: KMutableProperty0<Int>): Int? {
+        if (inIndex >= mappingCounts.size) return null
 
-    /** Convert from a fbx file vertex index (for example from a #Cluster weight) or NULL
-     * if the vertex index is not valid. */
-    const unsigned int * ToOutputVertexIndex(unsigned int in_index, unsigned int & count) const
+        assert(mappingCounts.size == mappingOffsets.size)
+        count.set(mappingCounts[inIndex])
 
-    /** Determine the face to which a particular output vertex index belongs.
-     *  This mapping is always unique. */
-    unsigned int FaceForVertexIndex(unsigned int in_index)
-    const
+        assert(mappingOffsets[inIndex] + count() <= mappings.size)
+
+        return mappingOffsets[inIndex]
+    }
+
+    /** Determine the face to which a particular output vertex index belongs. This mapping is always unique. */
+    fun faceForVertexIndex(inIndex: Int): Int {
+        assert(inIndex < vertices.size)
+
+        // in the current conversion pattern this will only be needed if weights are present, so no need to always pre-compute this table
+        if (facesVertexStartIndices.isEmpty()) {
+            for (i in 0..faces.size)
+                facesVertexStartIndices += 0
+
+            facesVertexStartIndices[1] = faces.sum()
+            facesVertexStartIndices.removeAt(facesVertexStartIndices.lastIndex)
+        }
+
+        assert(facesVertexStartIndices.size == faces.size)
+        return facesVertexStartIndices.indexOfFirst { it > inIndex } // TODO last item excluded?
+    }
 
     fun readLayer(layer: Scope) {
         val layerElement = layer.getCollection("LayerElement")
@@ -299,8 +316,8 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             resolveVertexDataArray(normalsOut, source, mappingInformationType, referenceInformationType, "Normals",
                     "NormalsIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
 
-    fun readVertexDataColors (colorsOut:ArrayList<AiColor4D>, source:Scope, mappingInformationType: String, referenceInformationType: String) =
-            resolveVertexDataArray(colorsOut,source,mappingInformationType,referenceInformationType, "Colors",
+    fun readVertexDataColors(colorsOut: ArrayList<AiColor4D>, source: Scope, mappingInformationType: String, referenceInformationType: String) =
+            resolveVertexDataArray(colorsOut, source, mappingInformationType, referenceInformationType, "Colors",
                     "ColorIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
 
     fun readVertexDataTangents(tangentsOut: ArrayList<AiVector3D>, source: Scope, mappingInformationType: String, referenceInformationType: String) {
@@ -309,7 +326,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
                 if (any) "TangentsIndex" else "TangentIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
     }
 
-    fun readVertexDataBinormals (binormalsOut:ArrayList<AiVector3D>, source: Scope, mappingInformationType: String, referenceInformationType: String) {
+    fun readVertexDataBinormals(binormalsOut: ArrayList<AiVector3D>, source: Scope, mappingInformationType: String, referenceInformationType: String) {
         val any = source.elements["Binormals"]!!.isNotEmpty()
         resolveVertexDataArray(binormalsOut, source, mappingInformationType, referenceInformationType, if (any) "Binormals" else "Binormal",
                 if (any) "BinormalsIndex" else "BinormalIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
@@ -356,6 +373,9 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
         /*  handle permutations of Mapping and Reference type - it would be nice to deal with this more elegantly and
             with less redundancy, but right now it seems unavoidable. */
         if (mappingInformationType == "ByVertice" && referenceInformationType == "Direct") {
+
+            if(!source.hasElement(indexDataElementName)) return
+
             val tempData = ArrayList<T>()
             getRequiredElement(source, dataElementName).parseVectorDataArray(tempData)
 
@@ -374,6 +394,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             val tempData2 = Array<T?>(tempData.size, { null })
 
             val uvIndices = ArrayList<Int>()
+            if(!source.hasElement(indexDataElementName)) return
             getRequiredElement(source, indexDataElementName).parseIntsDataArray(uvIndices)
 
             for (i in 0 until uvIndices.size) {

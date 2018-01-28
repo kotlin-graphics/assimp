@@ -109,7 +109,7 @@ class AiLight(
          *  This node specifies the position of the light in the scene
          *  hierarchy and can be animated.
          */
-        var mName: String = "",
+        var name: String = "",
 
         /** The type of the light source.
          *
@@ -122,7 +122,7 @@ class AiLight(
          *
          *  The position is undefined for directional lights.
          */
-        var mPosition: AiVector3D = AiVector3D(),
+        var position: AiVector3D = AiVector3D(),
 
         /** Direction of the light source in space. Relative to the
          *  transformation of the node corresponding to the light.
@@ -130,7 +130,7 @@ class AiLight(
          *  The direction is undefined for point lights. The vector
          *  may be normalized, but it needn't.
          */
-        var mDirection: AiVector3D = AiVector3D(),
+        var direction: AiVector3D = AiVector3D(),
 
         /** Up direction of the light source in space. Relative to the
          *  transformation of the node corresponding to the light.
@@ -138,7 +138,7 @@ class AiLight(
          *  The direction is undefined for point lights. The vector
          *  may be normalized, but it needn't.
          */
-        var mUp: AiVector3D = AiVector3D(),
+        var up: AiVector3D = AiVector3D(),
 
         /** Constant light attenuation factor.
          *
@@ -223,12 +223,12 @@ class AiLight(
         var angleOuterCone: Float = AI_MATH_TWO_PIf,
 
         /** Size of area light source. */
-        var mSize: AiVector2D = AiVector2D()
+        var size: AiVector2D = AiVector2D()
 ) {
-    constructor(other:AiLight) : this(other.mName, other.type, AiVector3D(other.mPosition), AiVector3D(other.mDirection),
-            AiVector3D(other.mUp), other.attenuationConstant, other.attenuationLinear, other.attenuationQuadratic,
+    constructor(other:AiLight) : this(other.name, other.type, AiVector3D(other.position), AiVector3D(other.direction),
+            AiVector3D(other.up), other.attenuationConstant, other.attenuationLinear, other.attenuationQuadratic,
             AiColor3D(other.colorDiffuse), AiColor3D(other.colorSpecular), AiColor3D(other.colorAmbient),
-            other.angleInnerCone, other.angleOuterCone, AiVector2D(other.mSize))
+            other.angleInnerCone, other.angleOuterCone, AiVector2D(other.size))
 
     companion object {
         val size = Int.BYTES + 6 * Vec3.size + 5 * Float.BYTES

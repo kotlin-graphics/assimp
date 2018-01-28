@@ -67,6 +67,8 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
 
     infix fun Int.or(f: LazyObject.Flags) = or(f.ordinal)
 
+    fun <T>get(dieOnError: Boolean = false) = get(dieOnError) as? T
+
     fun get(dieOnError: Boolean = false): Object? {
 
         if (isBeingConstructed || failedToConstruct) return null
@@ -170,8 +172,8 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
 //        return ob ? dynamic_cast<const T*>(ob) : NULL
 //    }
 
-    val isBeingConstructed get() = flags == Flags.BEING_CONSTRUCTED
-    val failedToConstruct get() = flags == Flags.FAILED_TO_CONSTRUCT
+    val isBeingConstructed get() = flags == Flags.BEING_CONSTRUCTED.ordinal
+    val failedToConstruct get() = flags == Flags.FAILED_TO_CONSTRUCT.ordinal
 }
 
 
@@ -394,7 +396,7 @@ class Model(id: Long, element: Element, doc: Document, name: String) : Object(id
     val freeze get() = props["Freeze"] ?: false
 
     /** convenience method to check if the node has a Null node marker */
-//    bool IsNull () const
+    val isNull get() = attributes.any { it is Null }
 
     fun resolveLinks(element: Element, doc: Document) {
 
@@ -466,7 +468,7 @@ class Texture(id: Long, element: Element, doc: Document, name: String) : Object(
 /** DOM class for layered FBX textures */
 class LayeredTexture(id: Long, element: Element, doc: Document, name: String) : Object(id, element, name) {
 
-    val textures = ArrayList<Texture?>()
+    val textures = ArrayList<Texture>()
     val blendMode = element.scope["BlendModes"]?.let { BlendMode.values()[it[0].parseAsInt] }
             ?: BlendMode.Translucent
     val alpha = element.scope["Alphas"]?.get(0)?.parseAsFloat ?: 0f
@@ -482,10 +484,11 @@ class LayeredTexture(id: Long, element: Element, doc: Document, name: String) : 
                 domWarning("failed to read source object for texture link, ignoring", element)
                 continue
             }
-            val tex = ob as? Texture
-            textures += tex
+            (ob as? Texture)?.let { textures += it }
         }
     }
+
+    val textureCount get() = textures.size
 
     enum class BlendMode { Translucent, Additive, Modulate, Modulate2, Over, Normal, Dissolve, Darken, ColorBurn,
         LinearBurn, DarkerColor, Lighten, Screen, ColorDodge, LinearDodge, LighterColor, SoftLight, HardLight,
@@ -503,7 +506,7 @@ class Video(id: Long, element: Element, doc: Document, name: String) : Object(id
     val fileName = element.scope["FileName"]?.get(0)?.parseAsString ?: ""
 
     var contentLength = 0
-    var content: ByteArray? = null
+    var content = byteArrayOf()
 
     init {
 
@@ -531,6 +534,12 @@ class Video(id: Long, element: Element, doc: Document, name: String) : Object(id
         }
     }
 
+    fun relinquishContent(): ByteArray {
+        val ptr = content
+        content = byteArrayOf()
+        return ptr
+    }
+
     val props = getPropertyTable(doc, "Video.FbxVideo", element, element.scope)
 }
 
@@ -550,7 +559,7 @@ class Material(id: Long, element: Element, doc: Document, name: String) : Object
             element, element.scope)
 
     val textures = mutableMapOf<String, Texture>()
-    val layeredTextures = mutableMapOf<String, ArrayList<LayeredTexture>>()
+    val layeredTextures = mutableMapOf<String, LayeredTexture>()
 
     init {
 
@@ -577,7 +586,7 @@ class Material(id: Long, element: Element, doc: Document, name: String) : Object
                 val prop = con.prop
                 if (layeredTextures.contains(prop)) domWarning("duplicate layered texture link: $prop", element)
 
-                layeredTextures[prop] = arrayListOf(layeredTexture)
+                layeredTextures[prop] = layeredTexture
                 layeredTexture.fillTexture(doc)
             } else {
                 val prop = con.prop
@@ -593,131 +602,177 @@ class Material(id: Long, element: Element, doc: Document, name: String) : Object
 /** Represents a FBX animation curve (i.e. a 1-dimensional set of keyframes and values therefor) */
 class AnimationCurve(id: Long, element: Element, name: String, doc: Document) : Object(id, element, name) {
 
+    /** get list of keyframe positions (time). Invariant: |GetKeys()| > 0   */
     val keys = ArrayList<Long>()
+    /** list of keyframe values. Invariant: |GetKeys()| == |GetValues()| && |GetKeys()| > 0     */
     val values = ArrayList<Float>()
     val attributes = ArrayList<Float>()
     val flags = ArrayList<Int>()
 
-    init{
+    init {
         val sc = element.scope
         val keyTime = sc["KeyTime"]!!
         val keyValueFloat = sc["KeyValueFloat"]!!
 
-        keyTime.parseLongsDataArray(keys, KeyTime)
-        keyValueFloat.parseFloatsDataArray(values, KeyValueFloat)
+        keyTime.parseLongsDataArray(keys)
+        keyValueFloat.parseFloatsDataArray(values)
 
-        if(keys.size() != values.size()) {
-            DOMError("the number of key times does not match the number of keyframe values",&KeyTime)
-        }
+        if (keys.size != values.size) domError("the number of key times does not match the number of keyframe values", keyTime)
 
         // check if the key times are well-ordered
-        if(!std::equal(keys.begin(), keys.end() - 1, keys.begin() + 1, std::less<KeyTimeList::value_type>())) {
-            DOMError("the keyframes are not in ascending order",&KeyTime)
-        }
+        for (i in 0 until keys.size - 1)
+            if (keys[i] <= keys[i + 1])
+                domError("the keyframes are not in ascending order", keyTime)
 
-        const Element* KeyAttrDataFloat = sc["KeyAttrDataFloat"]
-        if(KeyAttrDataFloat) {
-            ParseVectorDataArray(attributes, *KeyAttrDataFloat)
-        }
-
-        const Element* KeyAttrFlags = sc["KeyAttrFlags"]
-        if(KeyAttrFlags) {
-            ParseVectorDataArray(flags, *KeyAttrFlags)
-        }
-    }
-
-    /** get list of keyframe positions (time).
-     *  Invariant: |GetKeys()| > 0 */
-    const KeyTimeList & GetKeys ()
-    const {
-        return keys
-    }
-
-
-    /** get list of keyframe values.
-     * Invariant: |GetKeys()| == |GetValues()| && |GetKeys()| > 0*/
-    const KeyValueList & GetValues ()
-    const {
-        return values
-    }
-
-
-    const std ::vector<float>& GetAttributes()
-    const {
-        return attributes
-    }
-
-    const std ::vector < unsigned int >& GetFlags()
-    const {
-        return flags
+        sc["KeyAttrDataFloat"]?.parseFloatsDataArray(attributes)
+        sc["KeyAttrFlags"]?.parseIntsDataArray(flags)
     }
 }
-//
-//// property-name -> animation curve
-//typedef std::map<std::string, const AnimationCurve*> AnimationCurveMap
-//
-//
-///** Represents a FBX animation curve (i.e. a mapping from single animation curves to nodes) */
-//class AnimationCurveNode : public Object
-//{
-//    public:
-//    /* the optional white list specifies a list of property names for which the caller
-//    wants animations for. If the curve node does not match one of these, std::range_error
-//    will be thrown. */
-//    AnimationCurveNode(uint64_t id, const Element & element, const std ::string& name, const Document& doc,
-//    const char * const * target_prop_whitelist = NULL, size_t whitelist_size = 0)
-//
-//    virtual ~AnimationCurveNode()
-//
-//    const PropertyTable & Props () const {
-//        ai_assert(props.get())
-//        return * props.get()
-//    }
-//
-//
-//    const AnimationCurveMap & Curves () const
-//
-//            /** Object the curve is assigned to, this can be NULL if the
-//             *  target object has no DOM representation or could not
-//             *  be read for other reasons.*/
-//            const Object * Target () const {
-//        return target
-//    }
-//
-//    const Model * TargetAsModel () const {
-//        return dynamic_cast < const Model * > (target)
-//    }
-//
-//    const NodeAttribute * TargetAsNodeAttribute () const {
-//        return dynamic_cast < const NodeAttribute * > (target)
-//    }
-//
-//    /** Property of Target() that is being animated*/
-//    const std ::string& TargetProperty() const {
-//    return prop
-//}
-//
-//    private:
-//    const Object * target
-//            std::shared_ptr < const PropertyTable > props
-//            mutable AnimationCurveMap curves
-//
-//    std::string prop
-//            const Document & doc
-//}
-//
-//typedef std::vector<const AnimationCurveNode*> AnimationCurveNodeList
+
+/** Represents a FBX animation curve (i.e. a mapping from single animation curves to nodes) */
+class AnimationCurveNode(id: Long, element: Element, name: String, val doc: Document,
+                         targetPropWhitelist: ArrayList<String> = arrayListOf()) : Object(id, element, name) {
+
+    /** Object the curve is assigned to, this can be NULL if the target object has no DOM representation or could not
+     *  be read for other reasons.*/
+    var target: Object? = null
+    val props: PropertyTable
+    val curves = mutableMapOf<String, AnimationCurve>()
+
+    /** Property of Target() that is being animated*/
+    var prop = ""
+
+    /* the optional white list specifies a list of property names for which the caller wants animations for.
+        If the curve node does not match one of these, std::range_error will be thrown. */
+    init {
+        val sc = element.scope
+
+        // find target node
+        val whitelist = arrayOf("Model", "NodeAttribute")
+        val conns = doc.getConnectionsBySourceSequenced(id, whitelist)
+
+        for (con in conns) {
+
+            // link should go for a property
+            if (con.prop.isEmpty()) continue
+
+            if (targetPropWhitelist.isNotEmpty()) {
+                val s = con.prop
+                var ok = false
+                for (p in targetPropWhitelist) {
+                    if (s == p) {
+                        ok = true
+                        break
+                    }
+                }
+
+                if (!ok) throw Error("AnimationCurveNode target property is not in whitelist") // TODO handle better std::range_error?
+            }
+
+            val ob = con.destinationObject
+            if (ob == null) {
+                domWarning("failed to read destination object for AnimationCurveNode->Model link, ignoring", element)
+                continue
+            }
+
+            // XXX support constraints as DOM class
+            //ai_assert(dynamic_cast<const Model*>(ob) || dynamic_cast<const NodeAttribute*>(ob));
+            target = ob
+            if (target == null) continue
+
+            prop = con.prop
+            break
+        }
+
+        if (target == null) domWarning("failed to resolve target Model/NodeAttribute/Constraint for AnimationCurveNode", element)
+
+        props = getPropertyTable(doc, "AnimationCurveNode.FbxAnimCurveNode", element, sc, false)
+    }
+
+    fun curves (): MutableMap<String, AnimationCurve> {
+
+        if ( curves.isEmpty() ) {
+            // resolve attached animation curves
+            val conns = doc.getConnectionsByDestinationSequenced(id,"AnimationCurve")
+
+            for(con in conns) {
+
+                // link should go for a property
+                if (con.prop.isEmpty()) continue
+
+                val ob = con.sourceObject
+                if(ob == null) {
+                    domWarning("failed to read source object for AnimationCurve->AnimationCurveNode link, ignoring", element)
+                    continue
+                }
+
+                val anim = ob as? AnimationCurve
+                if(anim == null) {
+                    domWarning("source object for ->AnimationCurveNode link is not an AnimationCurve", element)
+                    continue
+                }
+
+                curves[con.prop] = anim
+            }
+        }
+
+        return curves
+    }
+
+    val targetAsModel get() = target as? Model
+
+    val targetAsNodeAttribute get() =target as? NodeAttribute
+}
 
 /** Represents a FBX animation layer (i.e. a list of node animations) */
 class AnimationLayer(id: Long, element: Element, name: String, val doc: Document) : Object(id, element, name) {
 
-    // note: the props table here bears little importance and is usually absent
+    /** note: the props table here bears little importance and is usually absent */
     val props = getPropertyTable(doc, "AnimationLayer.FbxAnimLayer", element, element.scope, true)
 
     /* the optional white list specifies a list of property names for which the caller
     wants animations for. Curves not matching this list will not be added to the
     animation layer. */
-    AnimationCurveNodeList Nodes (const char * const * target_prop_whitelist = NULL, size_t whitelist_size = 0) const
+    fun nodes (targetPropWhitelist: Array<String> = arrayOf()): ArrayList<AnimationCurveNode> {
+
+        val nodes = ArrayList<AnimationCurveNode>()
+
+        // resolve attached animation nodes
+        val conns = doc.getConnectionsByDestinationSequenced(id,"AnimationCurveNode")
+        nodes.ensureCapacity(conns.size)
+
+        for(con in conns) {
+
+            // link should not go to a property
+            if (con.prop.isEmpty()) continue
+
+            val ob = con.sourceObject
+            if(ob == null) {
+                domWarning("failed to read source object for AnimationCurveNode->AnimationLayer link, ignoring", element)
+                continue
+            }
+
+            val anim = ob as? AnimationCurveNode
+            if(anim == null) {
+                domWarning("source object for ->AnimationLayer link is not an AnimationCurveNode", element)
+                continue
+            }
+
+            if(targetPropWhitelist.isNotEmpty()) {
+                val s = anim.prop
+                var ok = false
+                for (p in targetPropWhitelist) {
+                    if (s == p)  {
+                        ok = true
+                        break
+                    }
+                }
+                if(!ok) continue
+            }
+            nodes += anim
+        }
+        return nodes // pray for NRVO
+    }
 }
 
 /** Represents a FBX animation stack (i.e. a list of animation layers) */
@@ -916,7 +971,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
     val creationTimeStamp = IntArray(7)
 
     private val animationStacks = ArrayList<Long>()
-//    mutable std::vector<const AnimationStack*> animationStacksResolved
+    val animationStacksResolved = ArrayList<AnimationStack>()
 
     var globals: FileGlobalSettings? = null
 
@@ -1002,6 +1057,19 @@ class Document(val parser: Parser, val settings: ImportSettings) {
 
     fun animationStacks(): ArrayList<AnimationStack> {
 
+        if (animationStacksResolved.isNotEmpty() || animationStacks.isEmpty()) return animationStacksResolved
+
+        animationStacksResolved.ensureCapacity(animationStacks.size)
+        for(id in animationStacks) {
+            val lazy = get(id) ?: continue
+            val stack = get(id)?.get<AnimationStack>()
+            if(stack == null){
+                domWarning("failed to read AnimationStack object")
+                continue
+            }
+            animationStacksResolved += stack
+        }
+        return animationStacksResolved
     }
 
     fun getConnectionsSequenced(id: Long, conns: MutableMap<Long, ArrayList<Connection>>): ArrayList<Connection> {
