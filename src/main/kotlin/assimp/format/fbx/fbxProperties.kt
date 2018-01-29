@@ -61,15 +61,20 @@ class TypedProperty<T : Any>(var value: T) : Property()
 /**
  *  Represents a property table as can be found in the newer FBX files (Properties60, Properties70)
  */
-class PropertyTable(var element: Element? = null, var templateProps: PropertyTable? = null) {
+class PropertyTable(val element: Element? = null, val templateProps: PropertyTable? = null) {
 
     val lazyProps = HashMap<String, Element>()
     val props = HashMap<String, Any?>()
 
     init {
         if (element != null && templateProps != null) {
-            val scope = element!!.scope
-            for (v in scope.elements.flatMap { e -> List(e.value.size, { Pair(e.key, e.value[it]) }) }) {
+            val scope = element.scope
+//            val elements = scope.elements.flatMap { e -> List(e.value.size, { Pair(e.key, e.value[it]) }) }
+            val elements = ArrayList<Pair<String, Element>>()
+            for(e in scope.elements)
+                for(p in e.value)
+                    elements += e.key to p
+            for (v in elements) {
                 if (v.first != "P") {
                     domWarning("expected only P elements in property table", v.second)
                     continue

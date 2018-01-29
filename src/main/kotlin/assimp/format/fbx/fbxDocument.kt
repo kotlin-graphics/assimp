@@ -1192,19 +1192,19 @@ class Document(val parser: Parser, val settings: ImportSettings) {
             }
             val oName = tok[0].parseAsString
             val templs = sc.getCollection("PropertyTemplate")
-            for (el in templs) {
-                val sc = el.compound
-                if (sc == null) {
-                    domWarning("expected nested scope in PropertyTemplate, ignoring", el)
+            for (e in templs) {
+                val s = e.compound
+                if (s == null) {
+                    domWarning("expected nested scope in PropertyTemplate, ignoring", e)
                     continue
                 }
-                val tok = el.tokens
-                if (tok.isEmpty()) {
-                    domWarning("expected name for PropertyTemplate element, ignoring", el)
+                val t = e.tokens
+                if (t.isEmpty()) {
+                    domWarning("expected name for PropertyTemplate element, ignoring", e)
                     continue
                 }
-                val pName = tok[0].parseAsString
-                sc["Properties70"]?.let {
+                val pName = t[0].parseAsString
+                s["Properties70"]?.let {
                     val props = PropertyTable(it, null)
                     templates[oName + "." + pName] = props
                 }
@@ -1256,7 +1256,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
     fun readGlobalSettings() {
         val sc = parser.root
         val eHead = sc["GlobalSettings"]
-        if (eHead == null || eHead.compound != null) {
+        if (eHead?.compound == null) {
             domWarning("no GlobalSettings dictionary found")
             globals = FileGlobalSettings(this, PropertyTable())
             return
@@ -1264,9 +1264,8 @@ class Document(val parser: Parser, val settings: ImportSettings) {
 
         val props = getPropertyTable(this, "", eHead, eHead.compound!!, true)
 
-//        if (!props) { TODO
-//            DOMError("GlobalSettings dictionary contains no property table")
-//        }
+        if (props.lazyProps.isEmpty() || props.props.isEmpty())
+            domError("GlobalSettings dictionary contains no property table")
 
         globals = FileGlobalSettings(this, props)
     }

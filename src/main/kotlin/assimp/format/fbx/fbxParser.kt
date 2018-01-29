@@ -440,7 +440,7 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
 
     fun findElementCaseInsensitive(elementName: String) = elements[elementName.toLowerCase()]
 
-    fun getCollection(index: String) = elements[index]!!
+    fun getCollection(index: String) = elements[index] ?: arrayListOf()
 
     infix fun hasElement(index: String) = get(index) != null
 }
