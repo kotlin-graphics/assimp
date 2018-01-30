@@ -67,29 +67,27 @@ class PropertyTable(val element: Element? = null, val templateProps: PropertyTab
     val props = HashMap<String, Any?>()
 
     init {
-        if (element != null && templateProps != null) {
-            val scope = element.scope
-//            val elements = scope.elements.flatMap { e -> List(e.value.size, { Pair(e.key, e.value[it]) }) }
-            val elements = ArrayList<Pair<String, Element>>()
-            for(e in scope.elements)
-                for(p in e.value)
-                    elements += e.key to p
-            for (v in elements) {
-                if (v.first != "P") {
-                    domWarning("expected only P elements in property table", v.second)
-                    continue
-                }
-                val name = v.second.peekPropertyName
-                if (name.isEmpty()) {
-                    domWarning("could not read property name", v.second)
-                    continue
-                }
+        element?.let {
+            val scope = it.scope
+            for (e in scope.elements) {
+                val key = e.key
+                for (value in e.value) {
+                    if (key != "P") {
+                        domWarning("expected only P elements in property table", value)
+                        continue
+                    }
+                    val name = value.peekPropertyName
+                    if (name.isEmpty()) {
+                        domWarning("could not read property name", value)
+                        continue
+                    }
 
-                if (lazyProps.contains(name)) {
-                    domWarning("duplicate property name, will hide previous value: $name", v.second)
-                    continue
+                    if (lazyProps.contains(name)) {
+                        domWarning("duplicate property name, will hide previous value: $name", value)
+                        continue
+                    }
+                    lazyProps[name] = value
                 }
-                lazyProps[name] = v.second
             }
         }
     }

@@ -1264,7 +1264,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
 
         val props = getPropertyTable(this, "", eHead, eHead.compound!!, true)
 
-        if (props.lazyProps.isEmpty() || props.props.isEmpty())
+        if (props.lazyProps.isEmpty() && props.props.isEmpty())
             domError("GlobalSettings dictionary contains no property table")
 
         globals = FileGlobalSettings(this, props)
