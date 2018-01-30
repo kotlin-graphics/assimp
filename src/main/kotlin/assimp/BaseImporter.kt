@@ -22,7 +22,7 @@ abstract class BaseImporter {
     var progress: ProgressHandler? = null
 
     /** Returns whether the class can handle the format of the given file.
-     *
+     *.
      *  The implementation should be as quick as possible. A check for the file extension is enough. If no suitable
      *  loader is found with this strategy, canRead() is called again, the 'checkSig' parameter set to true this time.
      *  Now the implementation is expected to perform a full check of the file structure, possibly searching the first
