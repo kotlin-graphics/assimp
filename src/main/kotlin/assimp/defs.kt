@@ -41,6 +41,12 @@ typealias AiQuaternion = Quat
  */
 fun AI_MAX_ALLOC(size: Int) = (256 * 1024 * 1024) / size
 
+fun AI_DEG_TO_RAD(x: Float) = ((x)*0.0174532925f)
+fun AI_RAD_TO_DEG(x: Float) = ((x)*57.2957795f)
+fun is_special_float(f: Float) : Boolean {
+    return f == (1 shl 8) - 1f
+}
+
 // TODO file operators overloading, https://youtrack.jetbrains.com/issue/KT-15009
 infix operator fun File.plus(another: String) = File(this, another)
 

@@ -16,7 +16,7 @@ object OptimizeMeshes : BaseProcess(){
 
     override fun isActive(flags: Int) : Boolean{
         if(flags has Pps.OptimizeMeshes){
-            pts = flags has Pps.SortByPType;
+            pts = flags has Pps.SortByPType
             maxVerts = when(flags has Pps.SplitLargeMeshes){
                 true -> DeadBeef
                 false -> maxVerts
@@ -62,9 +62,9 @@ object OptimizeMeshes : BaseProcess(){
         System.arraycopy(output,0,mScene.meshes,0,output.size)
 
         if (output.size != oldNum) {
-            logger.info("OptimizeMeshesProcess finished. Input meshes: %d, Output meshes: %d",oldNum,mScene.numMeshes);
+            logger.info("OptimizeMeshesProcess finished. Input meshes: %d, Output meshes: %d",oldNum,mScene.numMeshes)
         } else {
-            logger.debug( "OptimizeMeshesProcess finished" );
+            logger.debug( "OptimizeMeshesProcess finished" )
         }
     }
 
@@ -79,10 +79,10 @@ object OptimizeMeshes : BaseProcess(){
     fun findInstancedMeshes (pNode: AiNode)
     {
         for(i in 0 until pNode.numMeshes) {
-            ++meshes[ pNode.meshes[ i ] ].instance_cnt;
+            ++meshes[ pNode.meshes[ i ] ].instance_cnt
         }
         for(i in 0 until pNode.numChildren) {
-            findInstancedMeshes( pNode.children[ i ] );
+            findInstancedMeshes( pNode.children[ i ] )
         }
     }
 
