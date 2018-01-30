@@ -11,8 +11,6 @@ import org.w3c.dom.Element
 import java.io.File
 import java.net.URI
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -52,8 +50,8 @@ fun is_special_float(f: Float) : Boolean {
 // TODO file operators overloading, https://youtrack.jetbrains.com/issue/KT-15009
 infix operator fun File.plus(another: String) = File(this, another)
 
-fun URL.exists() = Files.exists(Paths.get(toURI()))
-fun URI.exists() = Files.exists(Paths.get(this))
+fun URL.exists() = File(toURI()).exists()
+fun URI.exists() = File(this).exists()
 val URI.extension
     get() =
         if (path.contains(".")) path.substringAfterLast('.', "").toLowerCase()
