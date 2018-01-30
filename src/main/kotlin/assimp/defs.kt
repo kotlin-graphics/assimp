@@ -41,7 +41,9 @@ typealias AiQuaternion = Quat
  */
 fun AI_MAX_ALLOC(size: Int) = (256 * 1024 * 1024) / size
 
+/** Consider using extension property Float.rad */
 fun AI_DEG_TO_RAD(x: Float) = ((x)*0.0174532925f)
+/** Consider using extension property Float.deg */
 fun AI_RAD_TO_DEG(x: Float) = ((x)*57.2957795f)
 fun is_special_float(f: Float) : Boolean {
     return f == (1 shl 8) - 1f
