@@ -133,5 +133,7 @@ class PropertyTable(val element: Element? = null, val templateProps: PropertyTab
 //        return prop
 //    }
 
-    fun <T> get(name: String, defaultValue: T) = get<T>(name) ?: defaultValue
+    fun <T> get(name: String, defaultValue: T): T {
+        return get<T>(name) ?: defaultValue
+    }
 }
