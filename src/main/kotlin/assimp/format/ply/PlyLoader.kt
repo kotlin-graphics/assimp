@@ -4,11 +4,11 @@ import glm_.*
 import glm_.vec3.Vec3
 import assimp.*
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.net.URI
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
-import java.nio.file.FileSystemException
 
 /**
  * Created by elect on 10/12/2016.
@@ -43,7 +43,7 @@ class PlyLoader : BaseImporter() {
         val file = File(file)
 
         // Check whether we can read from the file
-        if (!file.canRead()) throw FileSystemException("Failed to open PLY file $file.")
+        if (!file.canRead()) throw IOException("Failed to open PLY file $file.")
 
         // allocate storage and copy the contents of the file to a memory buffer
         val fileChannel = RandomAccessFile(file, "r").channel
