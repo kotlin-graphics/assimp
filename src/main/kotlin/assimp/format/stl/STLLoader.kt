@@ -4,12 +4,12 @@ import assimp.*
 import glm_.*
 import unsigned.ushr
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
-import java.nio.file.FileSystemException
 import java.util.*
 
 /**
@@ -105,7 +105,7 @@ class StlImporter : BaseImporter() {
         val file = File(pFile)
 
         // Check whether we can read from the file
-        if (!file.canRead()) throw FileSystemException("Failed to open STL file $pFile.")
+        if (!file.canRead()) throw IOException("Failed to open STL file $pFile.")
 
         fileSize = file.length().i
 
