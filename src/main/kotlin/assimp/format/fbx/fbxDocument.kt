@@ -67,7 +67,7 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
 
     infix fun Int.or(f: LazyObject.Flags) = or(f.ordinal)
 
-    fun <T>get(dieOnError: Boolean = false) = get(dieOnError) as? T
+    fun <T> get(dieOnError: Boolean = false) = get(dieOnError) as? T
 
     fun get(dieOnError: Boolean = false): Object? {
 
@@ -689,25 +689,25 @@ class AnimationCurveNode(id: Long, element: Element, name: String, val doc: Docu
         props = getPropertyTable(doc, "AnimationCurveNode.FbxAnimCurveNode", element, sc, false)
     }
 
-    fun curves (): MutableMap<String, AnimationCurve> {
+    fun curves(): MutableMap<String, AnimationCurve> {
 
-        if ( curves.isEmpty() ) {
+        if (curves.isEmpty()) {
             // resolve attached animation curves
-            val conns = doc.getConnectionsByDestinationSequenced(id,"AnimationCurve")
+            val conns = doc.getConnectionsByDestinationSequenced(id, "AnimationCurve")
 
-            for(con in conns) {
+            for (con in conns) {
 
                 // link should go for a property
                 if (con.prop.isEmpty()) continue
 
                 val ob = con.sourceObject
-                if(ob == null) {
+                if (ob == null) {
                     domWarning("failed to read source object for AnimationCurve->AnimationCurveNode link, ignoring", element)
                     continue
                 }
 
                 val anim = ob as? AnimationCurve
-                if(anim == null) {
+                if (anim == null) {
                     domWarning("source object for ->AnimationCurveNode link is not an AnimationCurve", element)
                     continue
                 }
@@ -721,7 +721,7 @@ class AnimationCurveNode(id: Long, element: Element, name: String, val doc: Docu
 
     val targetAsModel get() = target as? Model
 
-    val targetAsNodeAttribute get() =target as? NodeAttribute
+    val targetAsNodeAttribute get() = target as? NodeAttribute
 }
 
 /** Represents a FBX animation layer (i.e. a list of node animations) */
@@ -733,41 +733,41 @@ class AnimationLayer(id: Long, element: Element, name: String, val doc: Document
     /* the optional white list specifies a list of property names for which the caller
     wants animations for. Curves not matching this list will not be added to the
     animation layer. */
-    fun nodes (targetPropWhitelist: Array<String> = arrayOf()): ArrayList<AnimationCurveNode> {
+    fun nodes(targetPropWhitelist: Array<String> = arrayOf()): ArrayList<AnimationCurveNode> {
 
         val nodes = ArrayList<AnimationCurveNode>()
 
         // resolve attached animation nodes
-        val conns = doc.getConnectionsByDestinationSequenced(id,"AnimationCurveNode")
+        val conns = doc.getConnectionsByDestinationSequenced(id, "AnimationCurveNode")
         nodes.ensureCapacity(conns.size)
 
-        for(con in conns) {
+        for (con in conns) {
 
             // link should not go to a property
             if (con.prop.isEmpty()) continue
 
             val ob = con.sourceObject
-            if(ob == null) {
+            if (ob == null) {
                 domWarning("failed to read source object for AnimationCurveNode->AnimationLayer link, ignoring", element)
                 continue
             }
 
             val anim = ob as? AnimationCurveNode
-            if(anim == null) {
+            if (anim == null) {
                 domWarning("source object for ->AnimationLayer link is not an AnimationCurveNode", element)
                 continue
             }
 
-            if(targetPropWhitelist.isNotEmpty()) {
+            if (targetPropWhitelist.isNotEmpty()) {
                 val s = anim.prop
                 var ok = false
                 for (p in targetPropWhitelist) {
-                    if (s == p)  {
+                    if (s == p) {
                         ok = true
                         break
                     }
                 }
-                if(!ok) continue
+                if (!ok) continue
             }
             nodes += anim
         }
@@ -1060,10 +1060,10 @@ class Document(val parser: Parser, val settings: ImportSettings) {
         if (animationStacksResolved.isNotEmpty() || animationStacks.isEmpty()) return animationStacksResolved
 
         animationStacksResolved.ensureCapacity(animationStacks.size)
-        for(id in animationStacks) {
+        for (id in animationStacks) {
             val lazy = get(id) ?: continue
-            val stack = get(id)?.get<AnimationStack>()
-            if(stack == null){
+            val stack = lazy.get<AnimationStack>()
+            if (stack == null) {
                 domWarning("failed to read AnimationStack object")
                 continue
             }
@@ -1148,24 +1148,26 @@ class Document(val parser: Parser, val settings: ImportSettings) {
         objects[0L] = LazyObject(0L, eObjects, this)
 
         val sObjects = eObjects.compound!!
-        for (el in sObjects.elements.flatMap { e -> List(e.value.size, { Pair(e.key, e.value[it]) }) }) {
+        for (el in sObjects.elements) {
+            val key = el.key
+            for (e in el.value) {
+                // extract ID
+                val tok = e.tokens
 
-            // extract ID
-            val tok = el.second.tokens
+                if (tok.isEmpty()) domError("expected ID after object key", e)
 
-            if (tok.isEmpty()) domError("expected ID after object key", el.second)
+                val id = tok[0].parseAsId
 
-            val id = tok[0].parseAsId
+                // id=0 is normally implicit
+                if (id == 0L) domError("encountered object with implicitly defined id 0", e)
 
-            // id=0 is normally implicit
-            if (id == 0L) domError("encountered object with implicitly defined id 0", el.second)
+                if (objects.contains(id)) domWarning("encountered duplicate object id, ignoring first occurrence", e)
 
-            if (objects.contains(id)) domWarning("encountered duplicate object id, ignoring first occurrence", el.second)
+                objects[id] = LazyObject(id, e, this)
 
-            objects[id] = LazyObject(id, el.second, this)
-
-            // grab all animation stacks upfront since there is no listing of them
-            if (el.first == "AnimationStack") animationStacks += id
+                // grab all animation stacks upfront since there is no listing of them
+                if (key == "AnimationStack") animationStacks += id
+            }
         }
     }
 

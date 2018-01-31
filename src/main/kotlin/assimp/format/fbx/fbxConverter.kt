@@ -68,7 +68,7 @@ fun CONVERT_FBX_TIME(time: Long) = time / 46186158000.0
  *  @param doc Parsed FBX document
  */
 fun convertToAssimpScene(out: AiScene, doc: Document) {
-
+    Converter(out, doc)
 }
 
 
@@ -101,9 +101,6 @@ class Converter(val out: AiScene, val doc: Document) {
     val renamedNodes = mutableMapOf<String, String>()
 
     var animFps = 0.0
-
-//    aiScene* const out
-//    const FBX::Document& doc
 
     /** The different parts that make up the final local transformation of a fbx-node     */
     enum class TransformationComp { Translation, RotationOffset, RotationPivot, PreRotation, Rotation, PostRotation,
