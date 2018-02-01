@@ -25,7 +25,7 @@ object sphereWithHole {
 //                children shouldBe null
                 numMeshes shouldBe 1
                 meshes[0] shouldBe 0
-                metaData shouldBe null
+                metaData.isEmpty() shouldBe true
             }
             numMeshes shouldBe 1
             meshes.size shouldBe 1

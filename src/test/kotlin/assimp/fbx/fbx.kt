@@ -13,6 +13,7 @@ class fbx : StringSpec() {
     val path_ = modelsNonBsd + "/FBX/"
 
     init {
+        "concavePolygon"  { concavePolygon(path_ + "2013_BINARY/ConcavePolygon.fbx") }
 //        "spider"  { spider(path + "spider.fbx") }
 //        "boar man"  { boarMan(path_ + "BoarMan.md5mesh") }
     }

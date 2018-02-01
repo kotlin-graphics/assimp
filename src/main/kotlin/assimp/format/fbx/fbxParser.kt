@@ -41,6 +41,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
+import assimp.ASSIMP.BUILD.DEBUG
+import assimp.AiMatrix4x4
+import assimp.AiVector3D
+import glm_.*
+import java.nio.ByteBuffer
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+import kotlin.reflect.KMutableProperty0
 import assimp.format.fbx.TokenType as Tt
 
 
@@ -58,6 +66,10 @@ class Element(val keyToken: Token, parser: Parser) {
 
     val tokens = ArrayList<Token>()
     var compound: Scope? = null
+
+    var begin = 0
+    var type = ' '
+    var count = 0
 
     init {
         lateinit var n: Token
@@ -89,6 +101,300 @@ class Element(val keyToken: Token, parser: Parser) {
             }
         } while (n.type != Tt.KEY && n.type != Tt.CLOSE_BRACKET)
     }
+
+    val scope: Scope
+        get() {
+            if (compound == null) parseError("expected compound scope", this)
+            return compound!!
+        }
+
+    /** peek into an element and check if it contains a FBX property, if so return its name.    */
+    val peekPropertyName: String
+        get() {
+            assert(keyToken.stringContents == "P")
+            return if (tokens.size < 4) "" else tokens[0].parseAsString
+        }
+
+    /** read a typed property out of a FBX element. The return value is NULL if the property cannot be read. */
+    fun readTypedProperty(): Property? {
+        assert(keyToken.stringContents == "P")
+
+        assert(tokens.size >= 5)
+        val t = tokens[4]
+        return when (tokens[1].parseAsString) {
+            "KString" -> TypedProperty(t.parseAsString)
+            "bool", "Bool" -> TypedProperty(t.parseAsInt != 0)
+            "int", "Int", "enum", "Enum" -> TypedProperty(t.parseAsInt)
+            "ULongLong" -> TypedProperty(t.parseAsId)
+            "KTime" -> TypedProperty(t.parseAsInt64)
+            "Vector3D", "ColorRGB", "Vector", "Color", "Lcl Translation", "Lcl Rotation", "Lcl Scaling" ->
+                TypedProperty(AiVector3D({ tokens[4 + it].parseAsFloat }))
+            "double", "Number", "Float", "FieldOfView", "UnitScaleFactor" -> TypedProperty(t.parseAsFloat)
+            else -> null
+        }
+    }
+
+    /** get token at a particular index */
+    operator fun get(index: Int) = tokens.getOrNull(index) ?: parseError("missing token at index $index", this)
+
+    /** read a 4x4 matrix from an array of 16 floats */
+    fun readMatrix(): AiMatrix4x4 {
+        val values = ArrayList<Float>()
+        parseFloatsDataArray(values)
+
+        if (values.size != 16) parseError("expected 16 matrix elements")
+
+        return AiMatrix4x4(values)
+    }
+
+    inline fun <reified T> parseVectorDataArray(out: ArrayList<T>) = when (T::class) {
+        AiVector3D::class -> parseVec3DataArray(out as ArrayList<AiVector3D>)
+        else -> throw Error()
+    }
+
+    /** read an array of floats */
+    fun parseFloatsDataArray(out: ArrayList<Float>) {
+        out.clear()
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
+
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count == 0) return
+
+            if (type != 'd' && type != 'f') parseError("expected float or double array (binary)", this)
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+
+            if (type == 'd') {
+                val d = buff.asDoubleBuffer()
+                for (i in 0 until count) out += d[i].f
+            } else if (type == 'f') {
+                val f = buff.asFloatBuffer()
+                for (i in 0 until count) out += f[i]
+            }
+            return
+        }
+        TODO()
+//        val dim = tokens[0].parseAsDim
+
+        // see notes in ParseVectorDataArray()
+//        out.reserve(dim)
+
+//        const Scope & scope = GetRequiredScope (el)
+//        const Element & a = GetRequiredElement (scope, "a", &el)
+//
+//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
+//            const float ival = ParseTokenAsFloat(** it ++)
+//            out.push_back(ival)
+//        }
+    }
+
+    /** read an array of ints */
+    fun parseIntsDataArray(out: ArrayList<Int>) {
+        out.clear()
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
+
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count == 0) return
+
+            if (type != 'i') parseError("expected int array (binary)", this)
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+
+            val ip = buff.asIntBuffer()
+            for (i in 0 until count) out += ip[i]
+            return
+        }
+        TODO()
+//        val dim = tokens[0].parseAsDim
+
+        // see notes in ParseVectorDataArray()
+//        out.reserve(dim)
+
+//        const Scope & scope = GetRequiredScope (el)
+//        const Element & a = GetRequiredElement (scope, "a", &el)
+//
+//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
+//            const float ival = ParseTokenAsFloat(** it ++)
+//            out.push_back(ival)
+//        }
+    }
+
+    /** read an array of int64_ts   */
+    fun parseLongsDataArray(out: ArrayList<Long>) {
+        out.clear()
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
+
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count == 0) return
+
+            if (type != 'l') parseError("expected long array (binary)")
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * 8)
+
+            val ip = buff.asLongBuffer()
+            for (i in 0 until count) out += ip[i]
+
+            return
+        }
+        TODO()
+//        const size_t dim = ParseTokenAsDim(*tok[0])
+//
+//        // see notes in ParseVectorDataArray()
+//        out.reserve(dim)
+//
+//        const Scope & scope = GetRequiredScope (el)
+//        const Element & a = GetRequiredElement (scope, "a", &el)
+//
+//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end;) {
+//            const int64_t ival = ParseTokenAsInt64(** it ++)
+//
+//            out.push_back(ival)
+//        }
+    }
+
+    /** read an array of float3 tuples */
+    fun parseVec3DataArray(out: ArrayList<AiVector3D>) { // TODO consider returning directly `out`
+        out.clear()
+
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
+
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
+
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count % 3 != 0) parseError("number of floats is not a multiple of three (3) (binary)", this)
+
+            if (count == 0) return
+
+            if (type != 'd' && type != 'f') parseError("expected float or double array (binary)", this)
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+
+            val count3 = count / 3
+            out.ensureCapacity(count3)
+
+            if (type == 'd') {
+                val d = buff.asDoubleBuffer()
+                for (i in 0 until count3) out += AiVector3D(d.get(), d.get(), d.get())
+                // for debugging
+                /*for ( size_t i = 0; i < out.size(); i++ ) {
+                    aiVector3D vec3( out[ i ] );
+                    std::stringstream stream;
+                    stream << " vec3.x = " << vec3.x << " vec3.y = " << vec3.y << " vec3.z = " << vec3.z << std::endl;
+                    DefaultLogger::get()->info( stream.str() );
+                }*/
+            } else if (type == 'f') {
+                val f = buff.asFloatBuffer()
+                for (i in 0 until count3) out += AiVector3D(f.get(), f.get(), f.get())
+            }
+            return
+        }
+        TODO()
+//        const size_t dim = ParseTokenAsDim(*tok[0])
+//
+//        // may throw bad_alloc if the input is rubbish, but this need
+//        // not to be prevented - importing would fail but we wouldn't
+//        // crash since assimp handles this case properly.
+//        out.reserve(dim)
+//
+//        const Scope & scope = GetRequiredScope (el)
+//        const Element & a = GetRequiredElement (scope, "a", &el)
+//
+//        if (a.Tokens().size() % 3 != 0) {
+//            ParseError("number of floats is not a multiple of three (3)", & el)
+//        }
+//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
+//            aiVector3D v
+//                    v.x = ParseTokenAsFloat(** it ++)
+//            v.y = ParseTokenAsFloat(** it ++)
+//            v.z = ParseTokenAsFloat(** it ++)
+//
+//            out.push_back(v)
+//        }
+    }
+
+    /** read the type code and element count of a binary data array and stop there */
+    fun readBinaryDataArrayHead(begin: KMutableProperty0<Int>, end: Int, type: KMutableProperty0<Char>,
+                                count: KMutableProperty0<Int>) {
+        if (end - begin() < 5) parseError("binary data array is too short, need five (5) bytes for type signature and element count", this)
+
+        // data type
+        type.set(buffer[begin()].c)
+
+        // read number of elements
+        val len = buffer.getInt(begin() + 1)
+
+        count.set(len)
+        begin.set(begin() + 5)
+    }
+
+    /** read binary data array, assume cursor points to the 'compression mode' field (i.e. behind the header) */
+    fun readBinaryDataArray(type: Char, count: Int, begin: KMutableProperty0<Int>, end: Int): ByteBuffer {
+        val encMode = buffer.getInt(begin())
+        begin.set(begin() + Int.BYTES)
+
+        // next comes the compressed length
+        val compLen = buffer.getInt(begin())
+        begin.set(begin() + Int.BYTES)
+
+        assert(begin() + compLen == end)
+
+        // determine the length of the uncompressed data by looking at the type signature
+        val stride = when (type) {
+            'f', 'i' -> Float.BYTES
+            'd', 'l' -> Double.BYTES
+            else -> throw Error()
+        }
+
+        val fullLength = stride * count
+        val buff: ByteBuffer = ByteBuffer.allocate(fullLength)
+
+        if (encMode == 0) {
+            assert(fullLength == compLen)
+            // plain data, no compression
+            for (i in 0 until end)
+                buff[i] = buffer.get(begin() + i)
+        } else if (encMode == 1) {
+            val input = ByteArray(fullLength, { buffer.get(begin() + it) })
+            val decompresser = Inflater().apply { setInput(input) }
+            val result = ByteArray(fullLength)
+            val resultLength = decompresser.inflate(result)
+            decompresser.end()
+            for (i in 0 until resultLength)
+                buff[i] = result[i]
+        } else {
+            if (DEBUG)
+            // runtime check for this happens at tokenization stage
+                throw Error()
+        }
+
+        begin.set(begin() + compLen)
+        assert(begin() == end)
+
+        return buff
+    }
 }
 
 
@@ -104,7 +410,7 @@ class Element(val keyToken: Token, parser: Parser) {
  *  @endverbatim  */
 class Scope(parser: Parser, topLevel: Boolean = false) {
 
-    val elements = mutableMapOf<String, Element>()
+    val elements = HashMap<String, ArrayList<Element>>()
 
     init {
         if (!topLevel) {
@@ -116,10 +422,9 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
 
         // note: empty scopes are allowed
         while (n.type != Tt.CLOSE_BRACKET) {
-            if (n.type != Tt.KEY)
-                parseError("unexpected token, expected TOK_KEY", n)
+            if (n.type != Tt.KEY) parseError("unexpected token, expected TOK_KEY", n)
 
-            elements[n.stringContents(buffer)] = Element(n, parser)
+            elements.getOrPut(n.stringContents, ::arrayListOf) += Element(n, parser)
 
             // Element() should stop at the next Key token (or right after a Close token)
             val t = parser.currentToken
@@ -130,14 +435,14 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
         }
     }
 
-    operator fun get(index: String) = elements[index]
+    operator fun get(index: String) = elements[index]?.get(0)
+    fun getArray(index: String) = elements[index]!!
 
     fun findElementCaseInsensitive(elementName: String) = elements[elementName.toLowerCase()]
 
-//    ElementCollection GetCollection(const std::string& index)
-//    const {
-//        return elements.equal_range(index)
-//    }
+    fun getCollection(index: String) = elements[index] ?: arrayListOf()
+
+    infix fun hasElement(index: String) = get(index) != null
 }
 
 
@@ -154,11 +459,8 @@ constructor(val tokens: ArrayList<Token>, val isBinary: Boolean) {
     var root = Scope(this, true)
 
     fun advanceToNextToken(): Token? {
-        println(cursor)
-        if(cursor == 8110)
-            println()
         last = current
-        current = tokens[cursor++].takeUnless { cursor == tokens.lastIndex }
+        current = tokens.getOrNull(cursor++)
         return current
     }
 
@@ -207,27 +509,23 @@ fun parseError(message: String, token: Token?): Nothing {
 //float ParseTokenAsFloat(const Token& t);
 //int ParseTokenAsInt(const Token& t);
 //int64_t ParseTokenAsInt64(const Token& t);
-//std::string ParseTokenAsString(const Token& t);
+
 //
 ///* read data arrays */
 //void ParseVectorDataArray(std::vector<aiVector3D>& out , const Element& el);
 //void ParseVectorDataArray(std::vector<aiColor4D>& out , const Element& el);
 //void ParseVectorDataArray(std::vector<aiVector2D>& out , const Element& el);
 //void ParseVectorDataArray(std::vector<int>& out , const Element& el);
-//void ParseVectorDataArray(std::vector<float>& out , const Element& el);
+
 //void ParseVectorDataArray(std::vector<unsigned int>& out , const Element& el);
 //void ParseVectorDataArray(std::vector<uint64_t>& out , const Element& e);
 //void ParseVectorDataArray(std::vector<int64_t>& out , const Element& el);
 //
 //
-//// extract a required element from a scope, abort if the element cannot be found
-//const Element& GetRequiredElement(const Scope& sc, const std::string& index, const Element* element = NULL);
+/** extract a required element from a scope, abort if the element cannot be found */
+fun getRequiredElement(sc: Scope, index: String, element: Element? = null) =
+        sc[index] ?: parseError("did not find required element \"$index\"", element)
 //
 //// extract required compound scope
 //const Scope& GetRequiredScope(const Element& el);
-//// get token at a particular index
-//const Token& GetRequiredToken(const Element& el, unsigned int index);
-//
-//
-//// read a 4x4 matrix from an array of 16 floats
-//aiMatrix4x4 ReadMatrix(const Element& element);
+/** get token at a particular index */

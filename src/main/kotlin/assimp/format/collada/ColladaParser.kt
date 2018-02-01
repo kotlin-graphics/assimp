@@ -885,23 +885,23 @@ class ColladaParser(pFile: URI) {
                         testClosing("mirrorV")
                     }
                     "repeatU" -> {
-                        oSampler.mTransform.mScaling.x = readFloatFromTextContent()
+                        oSampler.mTransform.scaling.x = readFloatFromTextContent()
                         testClosing("repeatU")
                     }
                     "repeatV" -> {
-                        oSampler.mTransform.mScaling.y = readFloatFromTextContent()
+                        oSampler.mTransform.scaling.y = readFloatFromTextContent()
                         testClosing("repeatV")
                     }
                     "offsetU" -> {
-                        oSampler.mTransform.mTranslation.x = readFloatFromTextContent()
+                        oSampler.mTransform.translation.x = readFloatFromTextContent()
                         testClosing("offsetU")
                     }
                     "offsetV" -> {
-                        oSampler.mTransform.mTranslation.y = readFloatFromTextContent()
+                        oSampler.mTransform.translation.y = readFloatFromTextContent()
                         testClosing("offsetV")
                     }
                     "rotateUV" -> {
-                        oSampler.mTransform.mRotation = readFloatFromTextContent()
+                        oSampler.mTransform.rotation = readFloatFromTextContent()
                         testClosing("rotateUV")
                     }
                     "blend_mode" -> {

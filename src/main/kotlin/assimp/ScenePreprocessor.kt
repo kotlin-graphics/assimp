@@ -135,17 +135,17 @@ object ScenePreprocessor {
                     it.transformation.decompose(scaling, rotation, position)
                     if (channel.numRotationKeys == 0) { // No rotation keys? Generate a dummy track
                         channel.numRotationKeys = 1
-                        channel.rotationKeys = listOf(AiQuatKey(0.0, rotation))
+                        channel.rotationKeys = arrayListOf(AiQuatKey(0.0, rotation))
                         logger.debug { "ScenePreprocessor: Dummy rotation track has been generated" }
                     }
                     if (channel.numScalingKeys == 0) { // No scaling keys? Generate a dummy track
                         channel.numScalingKeys = 1
-                        channel.scalingKeys = listOf(AiVectorKey(0.0, scaling))
+                        channel.scalingKeys = arrayListOf(AiVectorKey(0.0, scaling))
                         logger.debug { "ScenePreprocessor: Dummy scaling track has been generated" }
                     }
                     if (channel.numPositionKeys == 0) { // No position keys? Generate a dummy track
                         channel.numPositionKeys = 1
-                        channel.positionKeys = listOf(AiVectorKey(0.0, position))
+                        channel.positionKeys = arrayListOf(AiVectorKey(0.0, position))
                         logger.debug { "ScenePreprocessor: Dummy position track has been generated" }
                     }
                 }

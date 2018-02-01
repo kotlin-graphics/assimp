@@ -319,9 +319,9 @@ object SceneCombiner {
                 // Add name prefixes?
                 if (flags has Ms.GEN.UNIQUE_NAMES) {
                     if (flags has Ms.GEN.UNIQUE_NAMES_IF_NECESSARY)
-                        if (!findNameMatch(dest.lights.last().mName, src, n))
+                        if (!findNameMatch(dest.lights.last().name, src, n))
                             continue
-                    prefixString(dest.lights.last()::mName, cur.id)
+                    prefixString(dest.lights.last()::name, cur.id)
                 }
             }
             // --------------------------------------------------------------------

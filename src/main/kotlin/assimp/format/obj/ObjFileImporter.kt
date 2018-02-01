@@ -3,8 +3,8 @@ package assimp.format.obj
 import assimp.*
 import gli_.gli
 import java.io.File
+import java.io.IOException
 import java.net.URI
-import java.nio.file.FileSystemException
 
 /**
  * Created by elect on 21/11/2016.
@@ -37,7 +37,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Read file into memory
         this.file = File(file)
-        if (!this.file.canRead()) throw FileSystemException("Failed to open file $file.")
+        if (!this.file.canRead()) throw IOException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
         val fileSize = this.file.length()

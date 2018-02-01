@@ -95,26 +95,25 @@ class ColladaLoader : BaseImporter() {
         scene.rootNode = buildHierarchy(parser, parser.mRootNode!!)
         // ... then fill the materials with the now adjusted settings
         fillMaterials(parser)
-        // Apply unitsize scale calculation
-        scene.rootNode.transformation.timesAssign(AiMatrix4x4( // TODO glm avoid mat4 instance?
-                parser.mUnitSize, 0, 0, 0,
+        // Apply unitsize scale calculation  // TODO glm avoid mat4 instance?
+        scene.rootNode.transformation timesAssign AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
                 0, parser.mUnitSize, 0, 0,
                 0, 0, parser.mUnitSize, 0,
-                0, 0, 0, 1))
+                0, 0, 0, 1)
         if (!ignoreUpDirection)
         // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
-                scene.rootNode.transformation.timesAssign(AiMatrix4x4(
+                scene.rootNode.transformation timesAssign AiMatrix4x4(
                         0, 1, 0, 0,
                         -1, 0, 0, 0,
                         0, 0, 1, 0,
-                        0, 0, 0, 1))
+                        0, 0, 0, 1)
             else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
-                scene.rootNode.transformation.timesAssign(AiMatrix4x4(
+                scene.rootNode.transformation timesAssign AiMatrix4x4(
                         1, 0, 0, 0,
                         0, 0, -1, 0,
                         0, +1, 0, 0,
-                        0, 0, 0, 1))
+                        0, 0, 0, 1)
 
         // store all meshes
         storeSceneMeshes(scene)
@@ -184,10 +183,10 @@ class ColladaLoader : BaseImporter() {
         }
 
         // now fill our ai data structure
-        val out = AiLight(mName = pTarget.name, type = srcLight.mType)
+        val out = AiLight(name = pTarget.name, type = srcLight.mType)
 
         // collada lights point in -Z by default, rest is specified in node transform
-        out.mDirection.put(0f, 0f, -1f)
+        out.direction.put(0f, 0f, -1f)
 
         out.attenuationConstant = srcLight.mAttConstant
         out.attenuationLinear = srcLight.mAttLinear
@@ -566,7 +565,7 @@ class ColladaLoader : BaseImporter() {
                     numWeights = dstBones[a].size
                     this.weights = dstBones[a].toMutableList()
                     // apply bind shape matrix to offset matrix
-                    offsetMatrix.timesAssign(Mat4(pSrcController.mBindShapeMatrix, true))
+                    offsetMatrix timesAssign Mat4(pSrcController.mBindShapeMatrix, true)
                 }
 
                 // HACK: (thom) Some exporters address the bone nodes by SID, others address them by ID or even name.
@@ -1186,9 +1185,9 @@ class ColladaLoader : BaseImporter() {
                         numPositionKeys = resultTrafos.size,
                         numRotationKeys = resultTrafos.size,
                         numScalingKeys = resultTrafos.size,
-                        positionKeys = List(resultTrafos.size, { AiVectorKey() }),
-                        rotationKeys = List(resultTrafos.size, { AiQuatKey() }),
-                        scalingKeys = List(resultTrafos.size, { AiVectorKey() }))
+                        positionKeys = Array(resultTrafos.size){ AiVectorKey() }.toCollection(ArrayList()),
+                        rotationKeys = Array(resultTrafos.size) { AiQuatKey() }.toCollection(ArrayList()),
+                        scalingKeys = Array(resultTrafos.size) { AiVectorKey() }.toCollection(ArrayList()))
 
                 for (a in 0 until resultTrafos.size) {
                     val mat = resultTrafos[a]

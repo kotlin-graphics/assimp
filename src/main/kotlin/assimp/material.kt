@@ -370,17 +370,17 @@ data class AiUVTransform(
         /** Translation on the u and v axes.
          *
          *  The default value is (0|0).         */
-        var mTranslation: AiVector2D = AiVector2D(),
+        var translation: AiVector2D = AiVector2D(),
 
         /** Scaling on the u and v axes.
          *
          *  The default value is (1|1).         */
-        var mScaling: AiVector2D = AiVector2D(),
+        var scaling: AiVector2D = AiVector2D(),
 
         /** Rotation - in counter-clockwise direction.
          *
          *  The rotation angle is specified in radians. The rotation center is 0.5f|0.5f. The default value 0.f.         */
-        var mRotation: Float = 0f
+        var rotation: Float = 0f
 )
 
 data class AiMaterial(
@@ -409,6 +409,8 @@ data class AiMaterial(
 
         var color: AiMaterial.Color? = null,
 
+        var displacementScaling: Float? = null,
+
         var textures: MutableList<AiMaterial.Texture> = mutableListOf()
 
         // TODO const AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = '?bg.global';
@@ -416,7 +418,7 @@ data class AiMaterial(
     constructor(other: AiMaterial) : this(other.name, other.twoSided, other.shadingModel, other.wireframe,
             other.blendFunc, other.opacity, other.bumpScaling, other.shininess, other.reflectivity,
             other.shininessStrength, other.refracti, if (other.color == null) null else Color(other.color!!),
-            MutableList(other.textures.size, { Texture(other.textures[it]) }))
+            other.displacementScaling, MutableList(other.textures.size, { Texture(other.textures[it]) }))
 
     data class Color(
 

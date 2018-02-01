@@ -34,7 +34,7 @@ object cameras {
                     children.isEmpty() shouldBe true
                     numMeshes shouldBe 0
                     meshes.isEmpty() shouldBe true
-                    metaData shouldBe null
+                    metaData.isEmpty() shouldBe true
                 }
                 with(children[1]) {
                     name shouldBe "Camera_002"
@@ -48,7 +48,7 @@ object cameras {
                     children.isEmpty() shouldBe true
                     numMeshes shouldBe 0
                     meshes.isEmpty() shouldBe true
-                    metaData shouldBe null
+                    metaData.isEmpty() shouldBe true
                 }
                 with(children[2]) {
                     name shouldBe "Camera_003"
@@ -62,7 +62,7 @@ object cameras {
                     children.isEmpty() shouldBe true
                     numMeshes shouldBe 0
                     meshes.isEmpty() shouldBe true
-                    metaData shouldBe null
+                    metaData.isEmpty() shouldBe true
                 }
             }
 
