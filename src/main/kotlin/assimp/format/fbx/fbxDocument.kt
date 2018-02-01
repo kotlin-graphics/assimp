@@ -41,10 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
-import assimp.AiMatrix4x4
-import assimp.AiVector2D
-import assimp.AiVector3D
-import assimp.strncmp
+import assimp.*
 import glm_.bool
 import glm_.c
 import glm_.i
@@ -95,8 +92,9 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
         if (tokens[1].isBinary)
             for (i in name.indices) {
                 if (name[i].i == 0x0 && name[i + 1].i == 0x1)
-                    name = name.substring(i + 2) + "::" + name.substring(0, i - 1) // TODO check
+                    name = name.substring(i + 2) + "::" + name.substring(0, i)
             }
+        else name = name.trimNUL()
 
         val classtag = tokens[2].parseAsString
 
@@ -1102,7 +1100,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
                     break
                 }
             }
-            if (obType == 0) continue
+            if (obType != 0) continue
             temp += it
         }
         temp.sort()

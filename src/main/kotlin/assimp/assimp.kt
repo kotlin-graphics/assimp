@@ -120,3 +120,9 @@ var ByteBuffer.pos
     set(value) {
         position(value)
     }
+
+fun String.trimNUL(): String {
+    val nulIdx = indexOf(NUL)
+    return if (nulIdx != -1) substring(0, nulIdx)
+    else this
+}

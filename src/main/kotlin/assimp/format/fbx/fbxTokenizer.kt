@@ -42,7 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.fbx
 
 import assimp.*
-import glm_.b
 import glm_.c
 import glm_.f
 import gln.buf
@@ -134,9 +133,7 @@ class Token(
                 val len = buffer.getInt(begin + 1)
 
                 assert(end - begin == 5 + len)
-                val bytes = ByteArray(len, { buffer[begin + 5 + it] })
-                val newLen = bytes.indexOf(NUL.b)
-                return String(bytes, 0, if(newLen != -1) newLen else len)
+                return String(ByteArray(len, { buffer[begin + 5 + it] }))
             }
 
             val length = end - begin
