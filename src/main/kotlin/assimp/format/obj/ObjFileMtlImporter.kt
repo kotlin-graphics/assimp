@@ -26,7 +26,8 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
 
         for (line in buffer) {
 
-            val words = line.words
+            val trimmedLine = line.trim()
+            val words = trimmedLine.words
 
             when (words[0][0]) {
                 'k', 'K' -> when (words[0][1]) {
@@ -42,7 +43,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
                 }
                 'd' ->
                     if (words[0] == "disp") // A displacement map
-                        getTexture(line)
+                        getTexture(trimmedLine)
                     else
                         m_pModel.m_pCurrentMaterial!!.alpha = words[1].f  // Alpha value
                 'n', 'N' ->
@@ -52,9 +53,9 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
                     // Index Of refraction
                         'i' -> m_pModel.m_pCurrentMaterial!!.ior = words[1].f
                     // New material
-                        'e' -> createMaterial(line)
+                        'e' -> createMaterial(trimmedLine)
                     }
-                'm', 'b', 'r' -> getTexture(line)
+                'm', 'b', 'r' -> getTexture(trimmedLine)
                 'i' -> m_pModel.m_pCurrentMaterial!!.illumination_model = words[1].i
             }
         }
@@ -73,7 +74,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         else tokenMap[words[0]]
 
         if (type == null) {
-            logger.error { "OBJ/MTL: Encountered unknown texture type" }
+            logger.error { "OBJ/MTL: Encountered unknown texture type --> "+ type }
             return
         }
 

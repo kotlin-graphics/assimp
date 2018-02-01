@@ -15,10 +15,10 @@ const val ObjMinSize = 16
 class ObjFileImporter : BaseImporter() {
 
     override val info = AiImporterDesc(
-                name = "Wavefront Object Importer",
-                comments = "surfaces not supported",
-                flags = AiImporterFlags.SupportTextFlavour.i,
-                fileExtensions = listOf("obj"))
+            name = "Wavefront Object Importer",
+            comments = "surfaces not supported",
+            flags = AiImporterFlags.SupportTextFlavour.i,
+            fileExtensions = listOf("obj"))
 
     /**  Returns true, if file is an obj file.  */
     override fun canRead(file: URI, checkSig: Boolean): Boolean {
@@ -216,9 +216,9 @@ class ObjFileImporter : BaseImporter() {
         // Copy vertices of this mesh instance
         pMesh.numVertices = numIndices
         if (pMesh.numVertices == 0)
-            throw Error("OBJ: no vertices")
+            throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> no vertices")
         else if (pMesh.numVertices > AI_MAX_ALLOC(AiVector3D.size))
-            throw Error("OBJ: Too many vertices, would run out of memory")
+            throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> Too many vertices, would run out of memory")
 
         pMesh.vertices = MutableList(pMesh.numVertices, { AiVector3D() })
 
@@ -229,7 +229,7 @@ class ObjFileImporter : BaseImporter() {
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
             pMesh.colors.add(Array(pMesh.numVertices, { AiColor4D() }).toMutableList())
-            //pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
+        //pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
@@ -238,6 +238,7 @@ class ObjFileImporter : BaseImporter() {
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
         var outIndex = 0
+
         pObjMesh.m_Faces.forEach { pSourceFace ->
 
             // Copy all index arrays
@@ -246,7 +247,7 @@ class ObjFileImporter : BaseImporter() {
 
                 val vertex = pSourceFace.m_vertices[vertexIndex]
 
-                if (vertex >= pModel.m_Vertices.size) throw Error("OBJ: vertex index out of range")
+                if (vertex >= pModel.m_Vertices.size) throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex index out of range")
 
                 pMesh.vertices[newIndex] put pModel.m_Vertices[vertex]
 
@@ -254,7 +255,7 @@ class ObjFileImporter : BaseImporter() {
                 if (pModel.m_Normals.isNotEmpty() && vertexIndex in pSourceFace.m_normals.indices) {
                     val normal = pSourceFace.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
-                        throw Error("OBJ: vertex normal index out of range")
+                        throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex normal index out of range")
                     pMesh.normals[newIndex] put pModel.m_Normals[normal]
                 }
 
@@ -268,20 +269,24 @@ class ObjFileImporter : BaseImporter() {
                     val tex = pSourceFace.m_texturCoords[vertexIndex]
                     assert(tex < pModel.m_TextureCoord.size)
 
-                    if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ: texture coordinate index out of range")
+                    if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> texture coordinate index out of range")
 
                     val coord3d = pModel.m_TextureCoord[tex]
                     pMesh.textureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
                 }
 
                 if (pMesh.numVertices <= newIndex)
-                    throw Error("OBJ: bad vertex index")
+                    throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> bad vertex index")
 
                 // Get destination face
-                val pDestFace = pMesh.faces[outIndex]
+                val faceIndex = outIndex;
+                val pDestFace = pMesh.faces.getOrElse(faceIndex, { mutableListOf() })
 
-                val last = (vertexIndex == pSourceFace.m_vertices.size - 1)
+                val last = vertexIndex == pSourceFace.m_vertices.lastIndex
+
                 if (pSourceFace.m_PrimitiveType != AiPrimitiveType.LINE || !last) {
+                    for (i in pDestFace.size..outVertexIndex)   // TODO check
+                        pDestFace += 0
                     pDestFace[outVertexIndex] = newIndex
                     outVertexIndex++
                 }
@@ -297,7 +302,7 @@ class ObjFileImporter : BaseImporter() {
 
                         if (!last) outIndex++
 
-                        if (vertex != 0) {
+                        if (vertexIndex != 0) {
                             if (!last) {
                                 pMesh.vertices[newIndex + 1] = pMesh.vertices[newIndex]
                                 if (pSourceFace.m_normals.isNotEmpty() && pModel.m_Normals.isNotEmpty())
@@ -308,7 +313,7 @@ class ObjFileImporter : BaseImporter() {
                                         pMesh.textureCoords[i][newIndex + 1] = pMesh.textureCoords[i][newIndex]
                                 ++newIndex
                             }
-                            pMesh.faces[pMesh.faces.indexOf(pDestFace) - 1][1] = newIndex
+                            pMesh.faces[faceIndex - 1][1] = newIndex
                         }
                     }
                     else -> if (last) outIndex++
@@ -408,7 +413,7 @@ class ObjFileImporter : BaseImporter() {
         scene.materials.forEach { mtl ->
 
             mtl.textures.forEach { tex ->
-                // TODO handle file null?
+
                 val name = tex.file!!
 
                 if (!scene.textures.containsKey(name)) {
@@ -417,14 +422,15 @@ class ObjFileImporter : BaseImporter() {
                     while (!name[i].isLetter()) i++
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
-                    if(file.parentFile.listFiles().any { it.name == cleaned  })
-                    {
+                    if (file.parentFile.listFiles().any { it.name == cleaned }) {
                         val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
                         scene.textures[name] = gli.load(texFile.toPath())
+                    } else {
+                        logger.warn { "OBJ/MTL: Texture image not found --> " + cleaned }
                     }
 
-
-
+                } else {
+                    logger.warn { "OBJ/MTL: Scene contains no --> " + name }
                 }
             }
         }
