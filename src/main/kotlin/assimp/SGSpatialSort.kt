@@ -4,7 +4,7 @@ import glm_.vec3.Vec3
 import java.util.*
 import kotlin.collections.ArrayList
 
-class SpatialSort {
+class SGSpatialSort {
     private val mPlaneNormal = Vec3(0.8523f, 0.34321f, 0.5736f).normalize()
     private val mPositions = ArrayList<Entry>()
 
