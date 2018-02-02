@@ -58,6 +58,16 @@ val URI.extension
         else ""
 val URI.s get() = toString()
 
+fun Vec3.distance(other: Vec3) : Float{
+    return Math.sqrt(Math.pow(this.x.toDouble() + other.x.toDouble(), 2.0)
+            + Math.pow(this.y.toDouble() + other.y.toDouble(), 2.0)
+            + Math.pow(this.z.toDouble() + other.z.toDouble(), 2.0)).toFloat()
+}
+
+fun Vec3.squareLength() = Math.sqrt(Math.pow(x.toDouble(),2.0)
+        + Math.pow(y.toDouble(),2.0)
+        + Math.pow(z.toDouble(),2.0)).toFloat()
+
 fun Element.elementChildren(): ArrayList<Element> {
 
     val res = ArrayList<Element>()
