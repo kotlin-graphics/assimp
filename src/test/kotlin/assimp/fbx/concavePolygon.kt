@@ -1,6 +1,5 @@
 package assimp.fbx
 
-import assimp.AiMetadata
 import assimp.AiVector3D
 import assimp.Importer
 import glm_.mat4x4.Mat4
@@ -85,8 +84,7 @@ object concavePolygon {
                 }
             }
 
-//            metaData.get<Double>("UnitScaleFactor") shouldBe 1.0
+            metaData.get<Double>("UnitScaleFactor") shouldBe 100.0
         }
-
     }
 }
