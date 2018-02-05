@@ -45,7 +45,10 @@ import assimp.ASSIMP.BUILD.DEBUG
 import assimp.AiMatrix4x4
 import assimp.AiVector3D
 import glm_.*
+import uno.buffer.bufferBig
+import uno.buffer.bufferOf
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 import kotlin.reflect.KMutableProperty0
@@ -102,11 +105,7 @@ class Element(val keyToken: Token, parser: Parser) {
         } while (n.type != Tt.KEY && n.type != Tt.CLOSE_BRACKET)
     }
 
-    val scope: Scope
-        get() {
-            if (compound == null) parseError("expected compound scope", this)
-            return compound!!
-        }
+    val scope get() = compound ?: parseError("expected compound scope", this)
 
     /** peek into an element and check if it contains a FBX property, if so return its name.    */
     val peekPropertyName: String
@@ -369,13 +368,13 @@ class Element(val keyToken: Token, parser: Parser) {
         }
 
         val fullLength = stride * count
-        val buff: ByteBuffer = ByteBuffer.allocate(fullLength)
+        val buff = bufferBig(fullLength)
 
         if (encMode == 0) {
             assert(fullLength == compLen)
             // plain data, no compression
-            for (i in 0 until end)
-                buff[i] = buffer.get(begin() + i)
+            for (i in 0 until fullLength)
+                buff[i] = buffer[begin() + i]
         } else if (encMode == 1) {
             val input = ByteArray(fullLength, { buffer.get(begin() + it) })
             val decompresser = Inflater().apply { setInput(input) }

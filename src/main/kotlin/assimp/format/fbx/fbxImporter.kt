@@ -124,7 +124,7 @@ class FbxImporter : BaseImporter() {
         /*  broadphase tokenizing pass in which we identify the core syntax elements of FBX (brackets, commas,
             key:value mappings)         */
         val tokens = ArrayList<Token>()
-        try {
+//        try {
             var isBinary = false
             if (input.startsWith("Kaydara FBX Binary")) {
                 isBinary = true
@@ -145,11 +145,11 @@ class FbxImporter : BaseImporter() {
             convertToAssimpScene(scene, doc)
 //
 //            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
-        }
-        catch(exc: Exception) {
-//            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
-//            throw;
-        }
+//        }
+//        catch(exc: Exception) {
+////            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
+//            throw Error(exc.toString())
+//        }
     }
 }
 

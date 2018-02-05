@@ -10,9 +10,8 @@ enum class AiMetadataType { BOOL, INT32, UINT64, FLOAT, DOUBLE, AISTRING, AIVECT
  *
  * The type field uniquely identifies the underlying type of the data field
  */
-class AiMetadataEntry {
-    var type = Mt.BOOL
-    var data: Any? = null
+class AiMetadataEntry<T>(val type: Mt, val data: T) {
+    constructor (d: T) : this(d!!.type, d)
 }
 
 
@@ -21,36 +20,33 @@ class AiMetadataEntry {
  *
  * Metadata is a key-value store using string keys and values.
  */
-class AiMetadata {
+class AiMetadata(
+        /** Arrays of keys, may not be NULL. Entries in this array may not be NULL as well.
+         *  Arrays of values, may not be NULL. Entries in this array may be NULL if the corresponding property key has no
+         *  assigned value. => JVM map  */
+        val map: MutableMap<String, AiMetadataEntry<*>?> = mutableMapOf()
+) {
 
     /** Length of the mKeys and mValues arrays, respectively */
-    var numProperties = 0
+    val numProperties get() = map.size
 
-    /** Arrays of keys, may not be NULL. Entries in this array may not be NULL as well. */
-    val keys = arrayListOf<String>()
-
-    /** Arrays of values, may not be NULL. Entries in this array may be NULL if the corresponding property key has no assigned value. */
-    val values = arrayListOf<AiMetadataEntry>()
-
-    fun <T: Any>set( index: Int, key: String, value: T ): Boolean {
-        // In range assertion
-        if ( index >= numProperties ) return false
-
-        // Ensure that we have a valid key.
-        if ( key.isEmpty() ) return false
-
-        // Set metadata key
-        keys[index] = key
-
-        // Set metadata type
-        values[index].type = value.type
-        // Copy the given value to the dynamic storage
-        values[index].data = value
-
-        return true
+    operator fun <T> set(key: String, value: T) = when {
+    // Ensure that we have a valid key.
+        key.isEmpty() -> false
+        else -> {
+            // Set metadata key
+            map[key] = AiMetadataEntry(value)
+            true
+        }
     }
+    fun clear() = map.clear()
+    fun isEmpty() = map.isEmpty()
+    fun isNotEmpty() = map.isNotEmpty()
+    operator fun <T> get(key: String) = map[key]?.data as? T
+}
 
-    val Any.type get() = when(this) {
+private val Any.type
+    get() = when (this) {
         is Boolean -> Mt.BOOL
         is Int -> Mt.INT32
         is Long -> Mt.UINT64
@@ -60,4 +56,3 @@ class AiMetadata {
         is AiVector3D -> Mt.AIVECTOR3D
         else -> throw Error()
     }
-}

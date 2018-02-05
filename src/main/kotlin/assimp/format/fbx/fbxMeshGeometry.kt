@@ -85,9 +85,9 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
     val binormals = ArrayList<AiVector3D>()
     val normals = ArrayList<AiVector3D>()
 
-    val uvNames = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS, { "" })
-    val uvs = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS, { ArrayList<AiVector2D>() })
-    val colors = ArrayList<ArrayList<AiColor4D>>()
+    val uvNames = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS) { "" }
+    val uvs = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS) { ArrayList<AiVector2D>() }
+    val colors = Array(AI_MAX_NUMBER_OF_COLOR_SETS) { ArrayList<AiColor4D>() }
 
     var mappingCounts = intArrayOf()
     var mappingOffsets = intArrayOf()
@@ -241,6 +241,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
     }
 
     fun readVertexData(type: String, index: Int, source: Scope) {
+
         val mappingInformationType = getRequiredElement(source, "MappingInformationType")[0].parseAsString
 
         val referenceInformationType = getRequiredElement(source, "ReferenceInformationType")[0].parseAsString
@@ -272,6 +273,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
                     logger.warn("ignoring dummy material layer (all entries -1)")
                     return
                 }
+                materials.clear()
                 materials += tempMaterials
             }
             "LayerElementNormal" -> {
@@ -374,7 +376,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             with less redundancy, but right now it seems unavoidable. */
         if (mappingInformationType == "ByVertice" && referenceInformationType == "Direct") {
 
-            if(!source.hasElement(indexDataElementName)) return
+            if (!source.hasElement(indexDataElementName)) return
 
             val tempData = ArrayList<T>()
             getRequiredElement(source, dataElementName).parseVectorDataArray(tempData)
@@ -394,7 +396,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             val tempData2 = Array<T?>(tempData.size, { null })
 
             val uvIndices = ArrayList<Int>()
-            if(!source.hasElement(indexDataElementName)) return
+            if (!source.hasElement(indexDataElementName)) return
             getRequiredElement(source, indexDataElementName).parseIntsDataArray(uvIndices)
 
             for (i in 0 until uvIndices.size) {

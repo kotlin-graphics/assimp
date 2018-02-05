@@ -80,12 +80,8 @@ fun compareNode(rootNode: AiNode, rootNode1: AiNode) {
     rootNode.numMeshes shouldBe rootNode1.numMeshes
     compareIntArray(rootNode.meshes, rootNode1.meshes)
 
-    if(!areNull(rootNode.metaData, rootNode1.metaData)) {
-        rootNode.metaData.size shouldBe rootNode1.metaData.size
-        for(i in 0 until rootNode.metaData.size) {
-            compareMetaData(rootNode.metaData[i], rootNode1.metaData[i])
-        }
-    }
+    if(!areNull(rootNode.metaData, rootNode1.metaData))
+        compareMetaData(rootNode.metaData, rootNode1.metaData)
 
     compareMatrix(rootNode.transformation, rootNode1.transformation)
 

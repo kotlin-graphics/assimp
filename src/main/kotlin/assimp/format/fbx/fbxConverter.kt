@@ -151,6 +151,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 }
             }
 
+        convertGlobalSettings()
         transferDataToScene()
 
         /*  if we didn't read any meshes set the AI_SCENE_FLAGS_INCOMPLETE to make sure the scene passes assimp's validation.
@@ -178,7 +179,7 @@ class Converter(val out: AiScene, val doc: Document) {
         try {
             for (con in conns) {
                 // ignore object-property links
-                if (con.prop.isEmpty()) continue
+                if (con.prop.isNotEmpty()) continue
 
                 val object_ = con.sourceObject
                 if (object_ == null) {
@@ -243,7 +244,8 @@ class Converter(val out: AiScene, val doc: Document) {
             }
 
             if (nodes.isNotEmpty()) {
-                parent.children = MutableList(nodes.size) { nodes[it] }
+                parent.children.clear()
+                parent.children.addAll(nodes)
                 parent.numChildren = nodes.size
             }
         } catch (exc: Exception) {
@@ -429,11 +431,10 @@ class Converter(val out: AiScene, val doc: Document) {
         val props = model.props
 
         val zeroEpsilon = 1e-6f
-        for (comp in Tc.values()) {
-            if (comp == Tc.Rotation || comp == Tc.Scaling || comp == Tc.Translation || comp == Tc.GeometricScaling || comp == Tc.GeometricRotation || comp == Tc.GeometricTranslation)
-                continue
-            props.get<AiVector3D>(comp.nameProperty)?.let { if (it.squareLength > zeroEpsilon) return true }
-        }
+        Tc.values().filter {
+            it != Tc.Rotation && it != Tc.Scaling && it != Tc.Translation && it != Tc.GeometricScaling
+                    && it != Tc.GeometricRotation && it != Tc.GeometricTranslation
+        }.forEach { comp -> props<AiVector3D>(comp.nameProperty)?.let { if (it.squareLength > zeroEpsilon) return true } }
         return false
     }
 
@@ -452,21 +453,21 @@ class Converter(val out: AiScene, val doc: Document) {
         val zeroEpsilon = 1e-6f
         var isComplex = false
 
-        props.get<AiVector3D>("PreRotation")?.let {
+        props<AiVector3D>("PreRotation")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.PreRotation] = getRotationMatrix(rot, it)
             }
         }
 
-        props.get<AiVector3D>("PostRotation")?.let {
+        props<AiVector3D>("PostRotation")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.PostRotation] = getRotationMatrix(rot, it)
             }
         }
 
-        props.get<AiVector3D>("RotationPivot")?.let {
+        props<AiVector3D>("RotationPivot")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.RotationPivot] = translation(it)
@@ -474,21 +475,21 @@ class Converter(val out: AiScene, val doc: Document) {
             }
         }
 
-        props.get<AiVector3D>("RotationOffset")?.let {
+        props<AiVector3D>("RotationOffset")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.RotationOffset] = translation(it)
             }
         }
 
-        props.get<AiVector3D>("ScalingOffset")?.let {
+        props<AiVector3D>("ScalingOffset")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.ScalingOffset] = translation(it)
             }
         }
 
-        props.get<AiVector3D>("ScalingPivot")?.let {
+        props<AiVector3D>("ScalingPivot")?.let {
             if (it.squareLength > zeroEpsilon) {
                 isComplex = true
                 chain[Tc.ScalingPivot] = translation(it)
@@ -496,32 +497,32 @@ class Converter(val out: AiScene, val doc: Document) {
             }
         }
 
-        props.get<AiVector3D>("Lcl Translation")?.let {
+        props<AiVector3D>("Lcl Translation")?.let {
             if (it.squareLength > zeroEpsilon)
                 chain[Tc.Translation] = translation(it)
         }
 
-        props.get<AiVector3D>("Lcl Scaling")?.let {
+        props<AiVector3D>("Lcl Scaling")?.let {
             if (abs(it.squareLength - 1f) > zeroEpsilon)
                 chain[Tc.Scaling] = scaling(it)
         }
 
-        props.get<AiVector3D>("Lcl Rotation")?.let {
+        props<AiVector3D>("Lcl Rotation")?.let {
             if (it.squareLength > zeroEpsilon)
                 chain[Tc.Rotation] = getRotationMatrix(rot, it)
         }
 
-        props.get<AiVector3D>("GeometricScaling")?.let {
+        props<AiVector3D>("GeometricScaling")?.let {
             if (abs(it.squareLength - 1f) > zeroEpsilon)
                 chain[Tc.GeometricScaling] = scaling(it)
         }
 
-        props.get<AiVector3D>("GeometricRotation")?.let {
+        props<AiVector3D>("GeometricRotation")?.let {
             if (it.squareLength > zeroEpsilon)
                 chain[Tc.GeometricRotation] = getRotationMatrix(rot, it)
         }
 
-        props.get<AiVector3D>("GeometricTranslation")?.let {
+        props<AiVector3D>("GeometricTranslation")?.let {
             if (it.squareLength > zeroEpsilon)
                 chain[Tc.GeometricTranslation] = translation(it)
         }
@@ -573,22 +574,17 @@ class Converter(val out: AiScene, val doc: Document) {
         val unparsedProperties = props.getUnparsedProperties()
 
         // create metadata on node
-        val numStaticMetaData = 2
-        val data = List(unparsedProperties.size + numStaticMetaData, { AiMetadata() })
-        nd.metaData.clear()
-        nd.metaData += data
-        var index = 0
+        val data = AiMetadata()
+        nd.metaData = data
 
         // find user defined properties (3ds Max)
-        data[0].set(index++, "UserProperties", props["UDP3DSMAX"] ?: "")
+        data["UserProperties"] = props("UDP3DSMAX") ?: ""
         // preserve the info that a node was marked as Null node in the original file.
-        data[0].set(index++, "IsNull", model.isNull)
+        data["IsNull"] = model.isNull
 
         // add unparsed properties to the node's metadata
-        for (entry in unparsedProperties) {
-            val typed = entry as? TypedProperty<*> ?: throw Error()
-            data[0].set(index++, entry.key, typed.value)
-        }
+        for (entry in unparsedProperties)
+            data[entry.key] = (entry.value as TypedProperty<*>).value
     }
 
     fun convertModel(model: Model, nd: AiNode, nodeGlobalTransform: AiMatrix4x4) {
@@ -632,10 +628,10 @@ class Converter(val out: AiScene, val doc: Document) {
         }
 
         // one material per mesh maps easily to AiMesh. Multiple material meshes need to be split.
-        val indices = mesh.materials
-        if (doc.settings.readMaterials && indices.isNotEmpty()) {
-            val base = indices[0]
-            for (index in indices)
+        val mIndices = mesh.materials
+        if (doc.settings.readMaterials && mIndices.isNotEmpty()) {
+            val base = mIndices[0]
+            for (index in mIndices)
                 if (index != base)
                     return convertMeshMultiMaterial(mesh, model, nodeGlobalTransform)
         }
@@ -648,13 +644,12 @@ class Converter(val out: AiScene, val doc: Document) {
     fun setupEmptyMesh(mesh: MeshGeometry): AiMesh {
         val outMesh = AiMesh()
         meshes += outMesh
-        meshesConverted[mesh]!!.add(meshes.size - 1)
+        meshesConverted[mesh] = arrayListOf(meshes.lastIndex)
 
         // set name
         val name = if (mesh.name.startsWith("Geometry::")) mesh.name.substring(10) else mesh.name
 
-        if (name.isNotEmpty())
-            outMesh.name = name
+        if (name.isNotEmpty()) outMesh.name = name
 
         return outMesh
     }
@@ -1166,7 +1161,7 @@ class Converter(val out: AiScene, val doc: Document) {
         var uvIndex = 0
 
 
-        props.get<String>("UVSet")?.let { uvSet ->
+        props<String>("UVSet")?.let { uvSet ->
             // "default" is the name which usually appears in the FbxFileTexture template
             if (uvSet != "default" && uvSet.isNotEmpty()) {
                 /*  this is a bit awkward - we need to find a mesh that uses this material and scan its UV channels
@@ -1258,7 +1253,7 @@ class Converter(val out: AiScene, val doc: Document) {
 
             var uvIndex = 0
 
-            props.get<String>("UVSet")?.let { uvSet ->
+            props<String>("UVSet")?.let { uvSet ->
                 // "default" is the name which usually appears in the FbxFileTexture template
                 if (uvSet != "default" && uvSet.isNotEmpty()) {
                     /*  this is a bit awkward - we need to find a mesh that uses this material and scan its UV channels
@@ -1353,20 +1348,20 @@ class Converter(val out: AiScene, val doc: Document) {
 
     fun getColorPropertyFactored(props: PropertyTable, colorName: String, factorName: String, useTemplate: Boolean = true): AiColor3D? {
 
-        val baseColor = props.get<AiVector3D>(colorName, useTemplate) ?: return AiColor3D()
+        val baseColor = props<AiVector3D>(colorName, useTemplate) ?: return AiColor3D()
 
         // if no factor name, return the colour as is
         if (factorName.isEmpty())
             return baseColor
 
         // otherwise it should be multiplied by the factor, if found.
-        props.get<Float>(factorName, useTemplate)?.let { baseColor *= it }
+        props<Float>(factorName, useTemplate)?.let { baseColor *= it }
 
         return baseColor
     }
 
-    fun getColorProperty(props: PropertyTable, colorName: String, useTemplate: Boolean = true) = props.get<AiVector3D>(colorName, useTemplate)
-            ?: AiColor3D()
+    fun getColorProperty(props: PropertyTable, colorName: String, useTemplate: Boolean = true) =
+            props<AiVector3D>(colorName, useTemplate) ?: AiColor3D()
 
     fun setShadingPropertiesCommon(outMat: AiMaterial, props: PropertyTable) {
         /*  Set shading properties.
@@ -1376,21 +1371,43 @@ class Converter(val out: AiScene, val doc: Document) {
 
             Blender's FBX import and export mostly ignore this legacy system, and as we only support recent versions of
             FBX anyway, we can do the same.    */
-        getColorPropertyFromMaterial(props, "Diffuse")?.let { (outMat.color ?: AiMaterial.Color()).diffuse = it }
-        getColorPropertyFromMaterial(props, "Emissive")?.let {(outMat.color ?: AiMaterial.Color()).emissive = it }
-        getColorPropertyFromMaterial(props, "Ambient")?.let {(outMat.color ?: AiMaterial.Color()).ambient = it }
+        getColorPropertyFromMaterial(props, "Diffuse")?.let { diffuse ->
+            outMat.color.let {
+                if (it == null) outMat.color = AiMaterial.Color(diffuse = diffuse)
+                else it.diffuse = diffuse
+            }
+        }
+        getColorPropertyFromMaterial(props, "Emissive")?.let { emissive ->
+            outMat.color.let {
+                if (it == null) outMat.color = AiMaterial.Color(emissive = emissive)
+                else it.emissive = emissive
+            }
+        }
+        getColorPropertyFromMaterial(props, "Ambient")?.let { ambient ->
+            outMat.color.let {
+                if (it == null) outMat.color = AiMaterial.Color(ambient = ambient)
+                else it.ambient = ambient
+            }
+        }
         // we store specular factor as SHININESS_STRENGTH, so just get the color
-        (outMat.color ?: AiMaterial.Color()).specular = getColorProperty(props, "SpecularColor", true)
+        val specular = getColorProperty(props, "SpecularColor", true)
+        outMat.color.let {
+            if (it == null) outMat.color = AiMaterial.Color(specular = specular)
+            else it.specular = specular
+        }
         // and also try to get SHININESS_STRENGTH
-        outMat.shininessStrength = props.get<Float>("SpecularFactor", true)
+        outMat.shininessStrength = props("SpecularFactor", true)
         // and the specular exponent
-        outMat.shininess = props.get<Float>("ShininessExponent")
+        outMat.shininess = props("ShininessExponent")
         // TransparentColor / TransparencyFactor... gee thanks FBX :rolleyes:
         var calculatedOpacity = 1f
-        getColorPropertyFactored(props, "TransparentColor", "TransparencyFactor")?.let {
-            (outMat.color ?: AiMaterial.Color()).transparent = it
+        getColorPropertyFactored(props, "TransparentColor", "TransparencyFactor")?.let {transparent ->
+            outMat.color.let {
+                if (it == null) outMat.color = AiMaterial.Color(transparent = transparent)
+                else it.transparent = transparent
+            }
             // as calculated by FBX SDK 2017:
-            calculatedOpacity = 1f - (it.r + it.g + it.b) / 3f
+            calculatedOpacity = 1f - (transparent.r + transparent.g + transparent.b) / 3f
         }
         /*  use of TransparencyFactor is inconsistent.
             Maya always stores it as 1.0, so we can't use it to set AI_MATKEY_OPACITY.
@@ -1402,17 +1419,21 @@ class Converter(val out: AiScene, val doc: Document) {
             1.0 - F*((R+G+B)/3)
 
             There's no consistent way to interpret this opacity value, so it's up to clients to do the correct thing.   */
-        val opacity: Float? = props["Opacity"]
+        val opacity = props<Float>("Opacity")
         if (opacity != null)
             outMat.opacity = opacity
         else if (calculatedOpacity != 0f)
             outMat.opacity = calculatedOpacity
 
         // reflection color and factor are stored separately
-        (outMat.color ?: AiMaterial.Color()).reflective = getColorProperty(props, "ReflectionColor", true)
-        outMat.reflectivity = props.get<Float>("ReflectionFactor", true)
-        outMat.bumpScaling = props.get<Float>("BumpFactor")
-        outMat.displacementScaling = props.get<Float>("DisplacementFactor")
+        val reflective = getColorProperty(props, "ReflectionColor", true)
+        outMat.color.let {
+            if (it == null) outMat.color = AiMaterial.Color(reflective = reflective)
+            else it.reflective = reflective
+        }
+        outMat.reflectivity = props("ReflectionFactor", true)
+        outMat.bumpScaling = props("BumpFactor")
+        outMat.displacementScaling = props("DisplacementFactor")
     }
 
     /** get the number of fps for a FrameRate enumerated value */
@@ -1510,7 +1531,6 @@ class Converter(val out: AiScene, val doc: Document) {
         val propWhitelist = arrayOf("Lcl Scaling", "Lcl Rotation", "Lcl Translation")
 
         for (layer in layers) {
-
             val nodes = layer.nodes(propWhitelist)
             for (node in nodes) {
 
@@ -1756,7 +1776,7 @@ class Converter(val out: AiScene, val doc: Document) {
         if (vx.size != 1 || vy.size != 1 || vz.size != 1) return false
 
         val dynVal = AiVector3D(vx[0], vy[0], vz[0])
-        val staticVal = target.props.get<AiVector3D>(comp.nameProperty, comp.defaultValue)
+        val staticVal = target.props(comp.nameProperty, comp.defaultValue)
 
         val epsilon = 1e-6f
         return (dynVal - staticVal).squareLength < epsilon
@@ -1847,9 +1867,9 @@ class Converter(val out: AiScene, val doc: Document) {
         // need to convert from TRS order to SRT?
         if (reverseOrder) {
 
-            val defScale = props.get("Lcl Scaling", AiVector3D(1))
-            val defTranslate = props.get("Lcl Translation", AiVector3D())
-            val defRot = props.get("Lcl Rotation", AiVector3D())
+            val defScale = props("Lcl Scaling", AiVector3D(1))
+            val defTranslate = props("Lcl Translation", AiVector3D())
+            val defRot = props("Lcl Rotation", AiVector3D())
 
             val scaling = ArrayList<KeyFrameList>()
             val translation = ArrayList<KeyFrameList>()
@@ -1895,7 +1915,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 na.numScalingKeys = 1
 
                 na.scalingKeys[0].time = 0.0
-                na.scalingKeys[0].value = props.get("Lcl Scaling", AiVector3D(1f))
+                na.scalingKeys[0].value = props("Lcl Scaling", AiVector3D(1f))
             }
 
             if (chain[Tc.Rotation.i].isNotEmpty())
@@ -1905,7 +1925,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 na.numRotationKeys = 1
 
                 na.rotationKeys[0].time = 0.0
-                na.rotationKeys[0].value = eulerToQuaternion(props.get("Lcl Rotation", AiVector3D()), target.rotationOrder)
+                na.rotationKeys[0].value = eulerToQuaternion(props("Lcl Rotation", AiVector3D()), target.rotationOrder)
             }
 
             if (chain[Tc.Translation.i].isNotEmpty())
@@ -1915,7 +1935,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 na.numPositionKeys = 1
 
                 na.positionKeys[0].time = 0.0
-                na.positionKeys[0].value = props.get("Lcl Translation", AiVector3D(0f))
+                na.positionKeys[0].value = props("Lcl Translation", AiVector3D(0f))
             }
 
         }
@@ -2168,10 +2188,17 @@ class Converter(val out: AiScene, val doc: Document) {
             interpolateKeys(na.rotationKeys, keys, inputs, AiVector3D(), minMaxTime, order)
     }
 
+    fun convertGlobalSettings() {
+        out.metaData = AiMetadata().apply {
+            val unitScalFactor = doc.globals!!.unitScaleFactor
+            map["UnitScaleFactor"] = AiMetadataEntry(unitScalFactor)
+        }
+    }
+
     /** copy generated meshes, animations, lights, cameras and textures to the output scene */
     fun transferDataToScene() {
-        assert(out.meshes.isNotEmpty())
-        assert(out.numMeshes != 0)
+        assert(out.meshes.isEmpty())
+        assert(out.numMeshes == 0)
 
         /*  note: the trailing () ensures initialization with NULL - not many C++ users seem to know this,
             so pointing it out to avoid confusion why this code works.  */

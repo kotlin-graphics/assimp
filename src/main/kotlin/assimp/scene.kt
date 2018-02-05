@@ -63,7 +63,7 @@ data class AiNode(
          *  Whether any metadata is generated depends on the source file format. See the @link importer_notes
          *  @endlink page for more information on every source file format. Importers that don't document any metadata
          *  don't write any.         */
-        val metaData: ArrayList<AiMetadata> = ArrayList()
+        var metaData: AiMetadata = AiMetadata()
 ) {
 
     constructor(other: AiNode) : this(other.name, AiMatrix4x4(other.transformation), other.parent, other.numChildren,
@@ -209,6 +209,12 @@ class AiScene {
      * The array is numCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
     var cameras = ArrayList<AiCamera>()
+
+    /** The global metadata assigned to the scene itself.
+     *
+     *  This data contains global metadata which belongs to the scene like unit-conversions, versions, vendors or
+     *  other model-specific data. This can be used to store format-specific metadata as well.     */
+    var metaData = AiMetadata()
 
     /** Check whether the scene contains meshes
      *  Unless no special scene flags are set this will always be true. */

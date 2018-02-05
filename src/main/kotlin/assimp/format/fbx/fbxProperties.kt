@@ -56,7 +56,7 @@ import kotlin.reflect.KMutableProperty0
  */
 open class Property : Any()
 
-class TypedProperty<T : Any>(var value: T) : Property()
+class TypedProperty<T>(var value: T) : Property()
 
 /**
  *  Represents a property table as can be found in the newer FBX files (Properties60, Properties70)
@@ -64,7 +64,7 @@ class TypedProperty<T : Any>(var value: T) : Property()
 class PropertyTable(val element: Element? = null, val templateProps: PropertyTable? = null) {
 
     val lazyProps = HashMap<String, Element>()
-    val props = HashMap<String, Any?>()
+    val props = HashMap<String, Property>()
 
     init {
         element?.let {
@@ -92,9 +92,36 @@ class PropertyTable(val element: Element? = null, val templateProps: PropertyTab
         }
     }
 
-    operator fun <T> get(name: String, useTemplate: Boolean = false): T? = (props[name] as T) ?: when {
-        !useTemplate -> null
-        else -> templateProps?.get(name)
+    /** PropertyGet */
+    operator fun <T> invoke(name: String, defaultValue: T) = (get(name) as? TypedProperty<T>)?.value ?: defaultValue
+
+    /** PropertyGet */
+    operator fun <T> invoke(name: String, useTemplate: Boolean = false): T? {
+        var prop = get(name)
+        if (null == prop) {
+            if (!useTemplate || null == templateProps) return null
+            prop = templateProps[name]
+            if (null == prop) return null
+        }
+        // strong typing, no need to be lenient
+        return (prop as? TypedProperty<T>)?.value
+    }
+
+    operator fun get(name: String): Property? {
+
+        var it = props[name]
+        if (it == null) {
+            // hasn't been parsed yet?
+            val lit = lazyProps[name]
+            if (lit != null) {
+                it = lit.readTypedProperty()!!  // = assert
+                props[name] = it
+            }
+            if (it == null)
+            // check property template
+                return templateProps?.get(name)
+        }
+        return it
     }
 
     fun getUnparsedProperties(): MutableMap<String, Property> {
@@ -114,26 +141,5 @@ class PropertyTable(val element: Element? = null, val templateProps: PropertyTab
             result[entry.key] = prop
         }
         return result
-    }
-
-//    fun <T> get(name: String, result: KMutableProperty0<Boolean>): T? {
-//        val prop = get<T>(name)
-//        if (null == prop) {
-//            result.set(false)
-//            return null
-//        }
-//
-//        // strong typing, no need to be lenient
-////        val tprop = prop->As< TypedProperty<T> >()
-////        if (nullptr == tprop) {
-////            result = false
-////            return T()
-////        }
-//        result.set(true)
-//        return prop
-//    }
-
-    fun <T> get(name: String, defaultValue: T): T {
-        return get<T>(name) ?: defaultValue
     }
 }

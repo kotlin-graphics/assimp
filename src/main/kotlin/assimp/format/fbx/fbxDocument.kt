@@ -62,6 +62,7 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
 
     enum class Flags { NULL, BEING_CONSTRUCTED, FAILED_TO_CONSTRUCT }
 
+    infix fun Int.wo(other: Flags) = and(other.ordinal.inv())
     infix fun Int.or(f: LazyObject.Flags) = or(f.ordinal)
 
     fun <T> get(dieOnError: Boolean = false) = get(dieOnError) as? T
@@ -110,59 +111,50 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
             // For debugging
             //dumpObjectClassInfo( objtype, classtag )
 
-            object_ =
-                    when {
-                        buffer.strncmp("Geometry", obType, length) -> MeshGeometry(id, element, name, doc).takeIf { classtag == "Mesh" }
-                        buffer.strncmp("NodeAttribute", obType, length) -> when (classtag) {
-                            "Camera" -> Camera(id, element, doc, name)
-                            "CameraSwitcher" -> CameraSwitcher(id, element, doc, name)
-                            "Light" -> Light(id, element, doc, name)
-                            "Null" -> Null(id, element, doc, name)
-                            "LimbNode" -> LimbNode(id, element, doc, name)
-                            else -> null
-                        }
-                        buffer.strncmp("Deformer", obType, length) -> when (classtag) {
-                            "Cluster" -> Cluster(id, element, doc, name)
-                            "Skin" -> Skin(id, element, doc, name)
-                            else -> null
-                        }
-                        buffer.strncmp("Model", obType, length) -> when (classtag) {
-                            "IKEffector", "FKEffector" -> object_ // FK and IK effectors are not supported
-                            else -> Model(id, element, doc, name)
-                        }
-                        buffer.strncmp("Material", obType, length) -> Material(id, element, doc, name)
-                        buffer.strncmp("Texture", obType, length) -> Texture(id, element, doc, name)
-                        buffer.strncmp("LayeredTexture", obType, length) -> LayeredTexture(id, element, doc, name)
-                        buffer.strncmp("Video", obType, length) -> Video(id, element, doc, name)
-                        buffer.strncmp("AnimationStack", obType, length) -> AnimationStack(id, element, name, doc)
-                        buffer.strncmp("AnimationLayer", obType, length) -> AnimationLayer(id, element, name, doc)
-                    // note: order matters for these two
-                        buffer.strncmp("AnimationCurve", obType, length) -> AnimationCurve(id, element, name, doc)
-                        buffer.strncmp("AnimationCurveNode", obType, length) -> AnimationCurveNode(id, element, name, doc)
-                        else -> object_
-                    }
+            object_ = when {
+                buffer.strncmp("Geometry", obType, length) -> MeshGeometry(id, element, name, doc).takeIf { classtag == "Mesh" }
+                buffer.strncmp("NodeAttribute", obType, length) -> when (classtag) {
+                    "Camera" -> Camera(id, element, doc, name)
+                    "CameraSwitcher" -> CameraSwitcher(id, element, doc, name)
+                    "Light" -> Light(id, element, doc, name)
+                    "Null" -> Null(id, element, doc, name)
+                    "LimbNode" -> LimbNode(id, element, doc, name)
+                    else -> null
+                }
+                buffer.strncmp("Deformer", obType, length) -> when (classtag) {
+                    "Cluster" -> Cluster(id, element, doc, name)
+                    "Skin" -> Skin(id, element, doc, name)
+                    else -> null
+                }
+                buffer.strncmp("Model", obType, length) ->  // FK and IK effectors are not supported
+                    Model(id, element, doc, name).takeIf { classtag != "IKEffector" && classtag != "FKEffector" }
+                buffer.strncmp("Material", obType, length) -> Material(id, element, doc, name)
+                buffer.strncmp("Texture", obType, length) -> Texture(id, element, doc, name)
+                buffer.strncmp("LayeredTexture", obType, length) -> LayeredTexture(id, element, doc, name)
+                buffer.strncmp("Video", obType, length) -> Video(id, element, doc, name)
+                buffer.strncmp("AnimationStack", obType, length) -> AnimationStack(id, element, name, doc)
+                buffer.strncmp("AnimationLayer", obType, length) -> AnimationLayer(id, element, name, doc)
+            // note: order matters for these two
+                buffer.strncmp("AnimationCurve", obType, length) -> AnimationCurve(id, element, name, doc)
+                buffer.strncmp("AnimationCurveNode", obType, length) -> AnimationCurveNode(id, element, name, doc)
+                else -> object_
+            }
         } catch (ex: Exception) {
-            //            flags &= ~BEING_CONSTRUCTED;
-//            flags |= FAILED_TO_CONSTRUCT;
-//
-//            if(dieOnError || doc.Settings().strictMode) {
-//                throw;
-//            }
-//
-//            // note: the error message is already formatted, so raw logging is ok
-//            if(!DefaultLogger::isNullLogger()) {
-//                DefaultLogger::get()->error(ex.what());
-//            }
-//            return NULL;
+            flags = flags wo Flags.BEING_CONSTRUCTED
+            flags = flags or Flags.FAILED_TO_CONSTRUCT
+
+            // note: the error message is already formatted, so raw logging is ok
+            logger.error(ex.toString())
+
+            if (dieOnError || doc.settings.strictMode) throw Error()
         }
-//
-//        if (!object.get()) {
-//            //DOMError("failed to convert element to DOM object, class: " + classtag + ", name: " + name,&element);
-//        }
-//
-//        flags &= ~BEING_CONSTRUCTED;
-//        return object.get();
-        return null
+
+        if (object_ == null) {
+            //DOMError("failed to convert element to DOM object, class: " + classtag + ", name: " + name,&element);
+        }
+
+        flags = flags wo Flags.BEING_CONSTRUCTED
+        return object_
     }
 
 //    inline fun <reified T> get(dieOnError: Boolean = false): T {
@@ -232,23 +224,23 @@ class CameraSwitcher(id: Long, element: Element, doc: Document, name: String) : 
 /** DOM base class for FBX cameras attached to a node */
 class Camera(id: Long, element: Element, doc: Document, name: String) : NodeAttribute(id, element, doc, name) {
 
-    val position = props["Position"] ?: AiVector3D()
-    val upVector = props["UpVector"] ?: AiVector3D(0, 1, 0)
-    val interestPosition = props["InterestPosition"] ?: AiVector3D()
+    val position get() = props("Position", AiVector3D())
+    val upVector get() = props("UpVector", AiVector3D(0, 1, 0))
+    val interestPosition get() = props("InterestPosition", AiVector3D())
 
-    val aspectWidth = props["AspectWidth"] ?: 1f
-    val aspectHeight = props["AspectHeight"] ?: 1f
-    val filmWidth = props["FilmWidth"] ?: 1f
-    val filmHeight = props["FilmHeight"] ?: 1f
+    val aspectWidth get() = props("AspectWidth", 1f)
+    val aspectHeight get() = props("AspectHeight", 1f)
+    val filmWidth get() = props("FilmWidth", 1f)
+    val filmHeight get() = props("FilmHeight", 1f)
 
-    val nearPlane = props["NearPlane"] ?: 0.1f
-    val farPlane = props["FarPlane"] ?: 100f
+    val nearPlane get() = props("NearPlane", 0.1f)
+    val farPlane get() = props("FarPlane", 100f)
 
-    val filmAspectRatio = props["FilmAspectRatio"] ?: 1f
-    val apertureMode = props["ApertureMode"] ?: 0
+    val filmAspectRatio get() = props("FilmAspectRatio", 1f)
+    val apertureMode get() = props("ApertureMode", 0)
 
-    val fieldOfView = props["FieldOfView"] ?: 1f
-    val focalLength = props["FocalLength"] ?: 1f
+    val fieldOfView get() = props("FieldOfView", 1f)
+    val focalLength get() = props("FocalLength", 1f)
 }
 
 /** DOM base class for FBX null markers attached to a node */
@@ -264,37 +256,37 @@ class Light(id: Long, element: Element, doc: Document, name: String) : NodeAttri
 
     enum class Decay { None, Linear, Quadratic, Cubic }
 
-    val color = props["Color"] ?: AiVector3D(1)
-    val type = props["Type"] ?: Type.Point
-    val castLightOnObject = props["CastLightOnObject"] ?: false
-    val drawVolumetricLight = props["DrawVolumetricLight"] ?: true
-    val drawGroundProjection = props["DrawGroundProjection"] ?: true
-    val drawFrontFacingVolumetricLight = props["DrawFrontFacingVolumetricLight"] ?: false
-    val intensity = props["Intensity"] ?: 100f
-    val innerAngle = props["InnerAngle"] ?: 0f
-    val outerAngle = props["OuterAngle"] ?: 45f
-    val fog = props["Fog"] ?: 50
-    val decayType = props["DecayType"] ?: Decay.Quadratic
-    val decayStart = props["DecayStart"] ?: 1f
-    val fileName = props["FileName"] ?: ""
+    val color get() = props("Color", AiVector3D(1))
+    val type get() = Type.values()[props("Type", Type.Point.ordinal)]
+    val castLightOnObject get() = props("CastLightOnObject", defaultValue = false)
+    val drawVolumetricLight get() = props("DrawVolumetricLight", defaultValue = true)
+    val drawGroundProjection get() = props("DrawGroundProjection", defaultValue = true)
+    val drawFrontFacingVolumetricLight get() = props("DrawFrontFacingVolumetricLight", defaultValue = false)
+    val intensity get() = props("Intensity", 100f)
+    val innerAngle get() = props("InnerAngle", 0f)
+    val outerAngle get() = props("OuterAngle", 45f)
+    val fog get() = props("Fog", 50)
+    val decayType get() = Decay.values()[props("DecayType", Decay.Quadratic.ordinal)]
+    val decayStart get() = props("DecayStart", 1f)
+    val fileName get() = props("FileName", "")
 
-    val enableNearAttenuation = props["EnableNearAttenuation"] ?: false
-    val nearAttenuationStart = props["NearAttenuationStart"] ?: 0f
-    val nearAttenuationEnd = props["NearAttenuationEnd"] ?: 0f
-    val enableFarAttenuation = props["EnableFarAttenuation"] ?: false
-    val farAttenuationStart = props["FarAttenuationStart"] ?: 0f
-    val farAttenuationEnd = props["FarAttenuationEnd"] ?: 0f
+    val enableNearAttenuation get() = props("EnableNearAttenuation", defaultValue = false)
+    val nearAttenuationStart get() = props("NearAttenuationStart", 0f)
+    val nearAttenuationEnd get() = props("NearAttenuationEnd", 0f)
+    val enableFarAttenuation get() = props("EnableFarAttenuation", defaultValue = false)
+    val farAttenuationStart get() = props("FarAttenuationStart", 0f)
+    val farAttenuationEnd get() = props("FarAttenuationEnd", 0f)
 
-    val castShadows = props["CastShadows"] ?: true
-    val shadowColor = props["ShadowColor"] ?: AiVector3D()
+    val castShadows get() = props("CastShadows", defaultValue = true)
+    val shadowColor get() = props("ShadowColor", AiVector3D())
 
-    val areaLightShape = props["AreaLightShape"] ?: 0
+    val areaLightShape get() = props("AreaLightShape", 0)
 
-    val LeftBarnDoor = props["LeftBarnDoor"] ?: 20f
-    val RightBarnDoor = props["RightBarnDoor"] ?: 20f
-    val TopBarnDoor = props["TopBarnDoor"] ?: 20f
-    val BottomBarnDoor = props["BottomBarnDoor"] ?: 20f
-    val EnableBarnDoor = props["EnableBarnDoor"] ?: true
+    val LeftBarnDoor get() = props("LeftBarnDoor", 20f)
+    val RightBarnDoor get() = props("RightBarnDoor", 20f)
+    val TopBarnDoor get() = props("TopBarnDoor", 20f)
+    val BottomBarnDoor get() = props("BottomBarnDoor", 20f)
+    val EnableBarnDoor get() = props("EnableBarnDoor", defaultValue = true)
 }
 
 //
@@ -305,8 +297,8 @@ class Model(id: Long, element: Element, doc: Document, name: String) : Object(id
     val geometry = ArrayList<Geometry>()
     val attributes = ArrayList<NodeAttribute>()
 
-    var shading = element.scope["Shading"]?.get(0)?.stringContents ?: ""
-    var culling = element.scope["Culling"]?.get(0)?.stringContents ?: ""
+    val shading = element.scope["Shading"]?.get(0)?.stringContents ?: "Y"
+    val culling = element.scope["Culling"]?.get(0)?.parseAsString ?: ""
     val props = getPropertyTable(doc, "Model.FbxNode", element, element.scope)
 
     init {
@@ -317,77 +309,77 @@ class Model(id: Long, element: Element, doc: Document, name: String) : Object(id
 
     enum class TransformInheritance { RrSs, RSrs, Rrs }
 
-    val quaternionInterpolate get() = props["QuaternionInterpolate"] ?: 0
+    val quaternionInterpolate get() = props("QuaternionInterpolate", 0)
 
-    val rotationOffset get() = props["RotationOffset"] ?: AiVector3D()
-    val rotationPivot get() = props["RotationPivot"] ?: AiVector3D()
-    val scalingOffset get() = props["ScalingOffset"] ?: AiVector3D()
-    val scalingPivot get() = props["ScalingPivot"] ?: AiVector3D()
-    val translationActive get() = props["TranslationActive"] ?: false
+    val rotationOffset get() = props("RotationOffset", AiVector3D())
+    val rotationPivot get() = props("RotationPivot", AiVector3D())
+    val scalingOffset get() = props("ScalingOffset", AiVector3D())
+    val scalingPivot get() = props("ScalingPivot", AiVector3D())
+    val translationActive get() = props("TranslationActive", defaultValue = false)
 
-    val translationMin get() = props["TranslationMin"] ?: AiVector3D()
-    val translationMax get() = props["TranslationMax"] ?: AiVector3D()
+    val translationMin get() = props("TranslationMin", AiVector3D())
+    val translationMax get() = props("TranslationMax", AiVector3D())
 
-    val translationMinX get() = props["TranslationMinX"] ?: false
-    val translationMaxX get() = props["TranslationMaxX"] ?: false
-    val translationMinY get() = props["TranslationMinY"] ?: false
-    val translationMaxY get() = props["TranslationMaxY"] ?: false
-    val translationMinZ get() = props["TranslationMinZ"] ?: false
-    val translationMaxZ get() = props["TranslationMaxZ"] ?: false
+    val translationMinX get() = props("TranslationMinX", defaultValue = false)
+    val translationMaxX get() = props("TranslationMaxX", defaultValue = false)
+    val translationMinY get() = props("TranslationMinY", defaultValue = false)
+    val translationMaxY get() = props("TranslationMaxY", defaultValue = false)
+    val translationMinZ get() = props("TranslationMinZ", defaultValue = false)
+    val translationMaxZ get() = props("TranslationMaxZ", defaultValue = false)
 
-    val rotationOrder get() = props["RotationOrder"] ?: RotOrder.EulerXYZ
-    val rotationSpaceForLimitOnly get() = props["RotationSpaceForLimitOnlyMaxZ"] ?: false
-    val rotationStiffnessX get() = props["RotationStiffnessX"] ?: 0f
-    val rotationStiffnessY get() = props["RotationStiffnessY"] ?: 0f
-    val rotationStiffnessZ get() = props["RotationStiffnessZ"] ?: 0f
-    val axisLen get() = props["AxisLen"] ?: 0f
+    val rotationOrder get() = RotOrder.values()[props("RotationOrder", RotOrder.EulerXYZ.ordinal)]
+    val rotationSpaceForLimitOnly get() = props("RotationSpaceForLimitOnlyMaxZ", defaultValue = false)
+    val rotationStiffnessX get() = props("RotationStiffnessX", 0f)
+    val rotationStiffnessY get() = props("RotationStiffnessY", 0f)
+    val rotationStiffnessZ get() = props("RotationStiffnessZ", 0f)
+    val axisLen get() = props("AxisLen", 0f)
 
-    val preRotation get() = props["PreRotation"] ?: AiVector3D()
-    val postRotation get() = props["PostRotation"] ?: AiVector3D()
-    val rotationActive get() = props["RotationActive"] ?: false
+    val preRotation get() = props("PreRotation", AiVector3D())
+    val postRotation get() = props("PostRotation", AiVector3D())
+    val rotationActive get() = props("RotationActive", defaultValue = false)
 
-    val rotationMin get() = props["RotationMin"] ?: AiVector3D()
-    val rotationMax get() = props["RotationMax"] ?: AiVector3D()
+    val rotationMin get() = props("RotationMin", AiVector3D())
+    val rotationMax get() = props("RotationMax", AiVector3D())
 
-    val rotationMinX get() = props["RotationMinX"] ?: false
-    val rotationMaxX get() = props["RotationMaxX"] ?: false
-    val rotationMinY get() = props["RotationMinY"] ?: false
-    val rotationMaxY get() = props["RotationMaxY"] ?: false
-    val rotationMinZ get() = props["RotationMinZ"] ?: false
-    val rotationMaxZ get() = props["RotationMaxZ"] ?: false
-    val inheritType get() = props["InheritType"] ?: TransformInheritance.RrSs
+    val rotationMinX get() = props("RotationMinX", defaultValue = false)
+    val rotationMaxX get() = props("RotationMaxX", defaultValue = false)
+    val rotationMinY get() = props("RotationMinY", defaultValue = false)
+    val rotationMaxY get() = props("RotationMaxY", defaultValue = false)
+    val rotationMinZ get() = props("RotationMinZ", defaultValue = false)
+    val rotationMaxZ get() = props("RotationMaxZ", defaultValue = false)
+    val inheritType get() = TransformInheritance.values()[props("InheritType", TransformInheritance.RrSs.ordinal)]
 
-    val scalingActive get() = props["ScalingActive"] ?: false
-    val scalingMin get() = props["ScalingMin"] ?: AiVector3D()
-    val scalingMax get() = props["ScalingMax"] ?: AiVector3D(1f)
-    val scalingMinX get() = props["ScalingMinX"] ?: false
-    val scalingMaxX get() = props["ScalingMaxX"] ?: false
-    val scalingMinY get() = props["ScalingMinY"] ?: false
-    val scalingMaxY get() = props["ScalingMaxY"] ?: false
-    val scalingMinZ get() = props["ScalingMinZ"] ?: false
-    val scalingMaxZ get() = props["ScalingMaxZ"] ?: false
+    val scalingActive get() = props("ScalingActive", defaultValue = false)
+    val scalingMin get() = props("ScalingMin", AiVector3D())
+    val scalingMax get() = props("ScalingMax", AiVector3D(1f))
+    val scalingMinX get() = props("ScalingMinX", defaultValue = false)
+    val scalingMaxX get() = props("ScalingMaxX", defaultValue = false)
+    val scalingMinY get() = props("ScalingMinY", defaultValue = false)
+    val scalingMaxY get() = props("ScalingMaxY", defaultValue = false)
+    val scalingMinZ get() = props("ScalingMinZ", defaultValue = false)
+    val scalingMaxZ get() = props("ScalingMaxZ", defaultValue = false)
 
-    val geometricTranslation get() = props["GeometricTranslation"] ?: AiVector3D()
-    val geometricRotation get() = props["GeometricRotation"] ?: AiVector3D()
-    val geometricScaling get() = props["GeometricScaling"] ?: AiVector3D(1f)
+    val geometricTranslation get() = props("GeometricTranslation", AiVector3D())
+    val geometricRotation get() = props("GeometricRotation", AiVector3D())
+    val geometricScaling get() = props("GeometricScaling", AiVector3D(1f))
 
-    val minDampRangeX get() = props["MinDampRangeX"] ?: 0f
-    val minDampRangeY get() = props["MinDampRangeY"] ?: 0f
-    val minDampRangeZ get() = props["MinDampRangeZ"] ?: 0f
-    val maxDampRangeX get() = props["MaxDampRangeX"] ?: 0f
-    val maxDampRangeY get() = props["MaxDampRangeY"] ?: 0f
-    val maxDampRangeZ get() = props["MaxDampRangeZ"] ?: 0f
+    val minDampRangeX get() = props("MinDampRangeX", 0f)
+    val minDampRangeY get() = props("MinDampRangeY", 0f)
+    val minDampRangeZ get() = props("MinDampRangeZ", 0f)
+    val maxDampRangeX get() = props("MaxDampRangeX", 0f)
+    val maxDampRangeY get() = props("MaxDampRangeY", 0f)
+    val maxDampRangeZ get() = props("MaxDampRangeZ", 0f)
 
-    val minDampStrengthX get() = props["MinDampStrengthX"] ?: 0f
-    val minDampStrengthY get() = props["MinDampStrengthY"] ?: 0f
-    val minDampStrengthZ get() = props["MinDampStrengthZ"] ?: 0f
-    val maxDampStrengthX get() = props["MaxDampStrengthX"] ?: 0f
-    val maxDampStrengthY get() = props["MaxDampStrengthY"] ?: 0f
-    val maxDampStrengthZ get() = props["MaxDampStrengthZ"] ?: 0f
+    val minDampStrengthX get() = props("MinDampStrengthX", 0f)
+    val minDampStrengthY get() = props("MinDampStrengthY", 0f)
+    val minDampStrengthZ get() = props("MinDampStrengthZ", 0f)
+    val maxDampStrengthX get() = props("MaxDampStrengthX", 0f)
+    val maxDampStrengthY get() = props("MaxDampStrengthY", 0f)
+    val maxDampStrengthZ get() = props("MaxDampStrengthZ", 0f)
 
-    val preferredAngleX get() = props["PreferredAngleX"] ?: 0f
-    val preferredAngleY get() = props["PreferredAngleY"] ?: 0f
-    val preferredAngleZ get() = props["PreferredAngleZ"] ?: 0f
+    val preferredAngleX get() = props("PreferredAngleX", 0f)
+    val preferredAngleY get() = props("PreferredAngleY", 0f)
+    val preferredAngleZ get() = props("PreferredAngleZ", 0f)
 
     val show get() = props["Show"] ?: true
     val lodBox get() = props["LODBox"] ?: false
@@ -409,7 +401,7 @@ class Model(id: Long, element: Element, doc: Document, name: String) : Object(id
         for (con in conns) {
 
             // material and geometry links should be Object-Object connections
-            if (con.prop.isEmpty()) continue
+            if (con.prop.isNotEmpty()) continue
 
             val ob = con.sourceObject
             if (ob == null) {
@@ -544,23 +536,31 @@ class Video(id: Long, element: Element, doc: Document, name: String) : Object(id
 /** DOM class for generic FBX materials */
 class Material(id: Long, element: Element, doc: Document, name: String) : Object(id, element, name) {
 
-    val shading = element.scope["ShadingModel"]?.get(0)?.parseAsString ?: "phong".also {
-        domWarning("shading mode not specified, assuming phong", element)
+    val shading: String
+    val multiLayer: Boolean
+    val props: PropertyTable
+
+    init {
+        val sc = element.scope
+
+        val shadingModel = sc["ShadingModel"]
+        multiLayer = (sc["MultiLayer"]?.get(0)?.parseAsInt ?: 0).bool
+
+        shading = if (shadingModel != null) shadingModel[0].parseAsString
+        else "phong".also { domWarning("shading mode not specified, assuming phong", element) }
+
+        val templateName = when (shading) {
+            "phong" -> "Material.FbxSurfacePhong"
+            "lambert" -> "Material.FbxSurfaceLambert"
+            else -> "".also { domWarning("shading mode not recognized: $shading", element) }
+        }
+        props = getPropertyTable(doc, templateName, element, sc)
     }
-    val multilayer = element.scope["MultiLayer"]?.get(0)?.parseAsInt?.bool ?: false
-    val props = getPropertyTable(doc,
-            when (shading) {
-                "phong" -> "Material.FbxSurfacePhong"
-                "lambert" -> "Material.FbxSurfaceLambert"
-                else -> "".also { domWarning("shading mode not recognized: $shading", element) }
-            },
-            element, element.scope)
 
     val textures = mutableMapOf<String, Texture>()
     val layeredTextures = mutableMapOf<String, LayeredTexture>()
 
     init {
-
         // resolve texture links
         val conns = doc.getConnectionsByDestinationSequenced(id)
         for (con in conns) {
@@ -788,7 +788,7 @@ class AnimationStack(id: Long, element: Element, name: String, doc: Document) : 
 
         for (con in conns) {
             // link should not go to a property
-            if (con.prop.isEmpty()) continue
+            if (con.prop.isNotEmpty()) continue
 
             val ob = con.sourceObject
             if (ob == null) {
@@ -805,10 +805,10 @@ class AnimationStack(id: Long, element: Element, name: String, doc: Document) : 
         }
     }
 
-    val localStart = props["LocalStart"] ?: 0L
-    val localStop = props["LocalStop"] ?: 0L
-    val referenceStart = props["ReferenceStart"] ?: 0L
-    val referenceStop = props["ReferenceStop"] ?: 0L
+    val localStart get() = props("LocalStart", 0L)
+    val localStop get() = props("LocalStop", 0L)
+    val referenceStart get() = props("ReferenceStart", 0L)
+    val referenceStop get() = props("ReferenceStop", 0L)
 }
 
 
@@ -931,28 +931,27 @@ class Connection(val insertionOrder: Long, val src: Long, val dest: Long, val pr
  *  be accessed via Document.Globals(). */
 class FileGlobalSettings(val doc: Document, val props: PropertyTable) {
 
-    val upAxis get() = props.get<Int>("UpAxis") ?: 1
-    val upAxisSign get() = props.get<Int>("UpAxisSign") ?: 1
-    val frontAxis get() = props.get<Int>("FrontAxis") ?: 2
-    val frontAxisSign get() = props.get<Int>("FrontAxisSign") ?: 1
-    val coordAxis get() = props.get<Int>("CoordAxis") ?: 1
-    val coordAxisSign get() = props.get<Int>("CoordAxisSign") ?: 1
-    val originalUpAxis get() = props.get<Int>("OriginalUpAxis") ?: 1
-    val originalUpAxisSign get() = props.get<Int>("OriginalUpAxisSign") ?: 1
-    val unitScaleFactor get() = props.get<Double>("UnitScaleFactor") ?: 1.0
-    val originalUnitScaleFactor get() = props.get<Double>("OriginalUnitScaleFactor") ?: 1.0
-    val ambientColor get() = props.get<AiVector3D>("AmbientColor") ?: AiVector3D()
-    val defaultCamera get() = props.get<String>("DefaultCamera") ?: ""
+    val upAxis get() = props("UpAxis", 1)
+    val upAxisSign get() = props("UpAxisSign", 1)
+    val frontAxis get() = props("FrontAxis", 2)
+    val frontAxisSign get() = props("FrontAxisSign", 1)
+    val coordAxis get() = props("CoordAxis", 1)
+    val coordAxisSign get() = props("CoordAxisSign", 1)
+    val originalUpAxis get() = props("OriginalUpAxis", 1)
+    val originalUpAxisSign get() = props("OriginalUpAxisSign", 1)
+    val unitScaleFactor get() = props("UnitScaleFactor", 1.0)
+    val originalUnitScaleFactor get() = props("OriginalUnitScaleFactor", 1.0)
+    val ambientColor get() = props("AmbientColor", AiVector3D())
+    val defaultCamera get() = props("DefaultCamera", "")
 
     enum class FrameRate { DEFAULT, _120, _100, _60, _50, _48, _30, _30_DROP, NTSC_DROP_FRAME, NTSC_FULL_FRAME, PAL,
         CINEMA, _1000, CINEMA_ND, CUSTOM // end-of-enum sentinel
     }
 
-    val timeMode get() = FrameRate.values()[props["TimeMode"] ?: FrameRate.DEFAULT.ordinal]
-
-    val timeSpanStart get() = props.get<Long>("TimeSpanStart") ?: 0L
-    val timeSpanStop get() = props.get<Long>("TimeSpanStop") ?: 0L
-    val customFrameRate get() = props.get<Float>("CustomFrameRate") ?: -1f
+    val timeMode get() = FrameRate.values()[props("TimeMode", FrameRate.DEFAULT.ordinal)]
+    val timeSpanStart get() = props("TimeSpanStart", 0L)
+    val timeSpanStop get() = props("TimeSpanStop", 0L)
+    val customFrameRate get() = props("CustomFrameRate", -1f)
 }
 
 /** DOM root for a FBX file */
@@ -1059,8 +1058,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
 
         animationStacksResolved.ensureCapacity(animationStacks.size)
         for (id in animationStacks) {
-            val lazy = get(id) ?: continue
-            val stack = lazy.get<AnimationStack>()
+            val stack = get(id)?.get<AnimationStack>()
             if (stack == null) {
                 domWarning("failed to read AnimationStack object")
                 continue
@@ -1072,12 +1070,12 @@ class Document(val parser: Parser, val settings: ImportSettings) {
 
     fun getConnectionsSequenced(id: Long, conns: MutableMap<Long, ArrayList<Connection>>): ArrayList<Connection> {
 
-        val range = conns[id]!!
+        val range = conns[id] ?: arrayListOf()
 
-        return ArrayList<Connection>(range.size).apply {
+        return ArrayList<Connection>(range.size).apply {// NRVO should handle this
             addAll(range)
             sort()
-        } // NRVO should handle this
+        }
     }
 
     val MAX_CLASSNAMES = 6
@@ -1085,7 +1083,7 @@ class Document(val parser: Parser, val settings: ImportSettings) {
         assert(classnames.size in 1..MAX_CLASSNAMES)
 
         val temp = ArrayList<Connection>()
-        val range = conns[id]!!
+        val range = conns[id] ?: return temp
 
         temp.ensureCapacity(range.size)
         for (it in range) {
