@@ -1,15 +1,12 @@
 package assimp
 
-import glm_.c
+import glm_.*
 import java.nio.ByteBuffer
 
 /** signed variant of strtoul10 */
-fun ByteBuffer.strtol10(beginOut: IntArray): Int {
-    val inv = get(beginOut[0]).c == '-'
-    if (inv || get(beginOut[0]).c == '+') beginOut[0]++
-    var value = strtoul10(beginOut)
-    if (inv) value = -value
-    return value
+fun ByteBuffer.strtol10(begin: Int, end: Int): Int {
+    val bytes = ByteArray(end - begin) { get(begin + it) }
+    return String(bytes).i
 }
 
 /** Convert a string in decimal format to a number */
@@ -58,12 +55,14 @@ fun ByteBuffer.strtoul10_64(beginOutMax: IntArray): Long {
 }
 
 /** signed variant of strtoul10_64 */
-fun ByteBuffer.strtol10_64(beginOutMax: IntArray): Long {
-    val inv = (get(beginOutMax[0]).c == '-')
-    if (inv || get(beginOutMax[0]).c == '+') beginOutMax[0]++
-    var value = strtoul10_64(beginOutMax)
-    if (inv) value = -value
-    return value
+fun ByteBuffer.strtol10_64(begin: Int, end: Int): Long {
+    val bytes = ByteArray(end - begin) { get(begin + it) }
+    return String(bytes).L
+}
+
+fun ByteBuffer.fast_atof(begin: Int, end: Int): Float {
+    val bytes = ByteArray(end - begin) { get(begin + it) }
+    return String(bytes).f
 }
 
 fun ByteBuffer.strncmp(string: String, ptr: Int, length: Int = string.length): Boolean {

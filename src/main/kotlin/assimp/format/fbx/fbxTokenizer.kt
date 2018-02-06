@@ -44,7 +44,7 @@ package assimp.format.fbx
 import assimp.*
 import glm_.c
 import glm_.f
-import gln.buf
+import glm_.size
 import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0
 
@@ -80,8 +80,7 @@ class Token(
         val _column: Int = BINARY_MARKER
 ) {
     init {
-        assert(begin != 0)
-        assert(end != 0)
+        assert(begin != -1 && end != -1)
 
         if (_column == BINARY_MARKER)
             assert(end >= begin) // binary tokens may have zero length because they are sometimes dummies inserted by TokenizeBinary()
@@ -158,10 +157,7 @@ class Token(
 
             assert(end - begin > 0)
 
-            val beginOut = intArrayOf(begin, 1)
-            val intVal = buffer.strtol10(beginOut)
-            if (beginOut[1] != 0) parseError("failed to parse ID", this)
-            return intVal
+            return buffer.strtol10(begin, end)
         }
 
     val parseAsId: Long
@@ -191,9 +187,29 @@ class Token(
             val length = end - begin
             assert(length > 0)
             val beginOutMax = intArrayOf(begin, 0, length)
-            val id = buffer.strtol10_64(beginOutMax)
+            val id = buffer.strtol10_64(begin, end)
             if (beginOutMax[1] > end) parseError("failed to parse Int64 (text)", this)
             return id
+        }
+
+    /** same as ID parsing, except there is a trailing asterisk  */
+    val parseAsDim: Long
+        get() {
+            if (type != TokenType.DATA) parseError("expected TOK_DATA token", this)
+            if (isBinary) {
+                TODO()
+                if (buffer[begin].c != 'L') parseError("failed to parse Int64, unexpected data type", this)
+                return buffer.getLong(begin + 1)
+            }
+            if(buffer[begin].c != '*')
+                parseError("expected asterisk before array dimension", this)
+
+            val length = end - ++begin
+
+            if(length == 0)
+                parseError("expected valid integer number after asterisk", this)
+
+            return buffer.strtol10_64(begin, end)
         }
 
     val parseAsFloat: Float
@@ -213,13 +229,11 @@ class Token(
 //            const size_t length = static_cast<size_t>(t.end() - t.begin());
 //            std::copy(t.begin(), t.end(), temp);
 //            temp[std::min(static_cast<size_t>(MAX_FLOAT_LENGTH), length)] = '\0';
-            return String(ByteArray(begin - end, { buffer.get(begin + it) })).f
+            return buffer.fast_atof(begin, end).f
         }
 //    val parseAsDim:
 }
 
-private var tokenBegin = 0
-private var tokenEnd = 0
 /** Main FBX tokenizer function. Transform input buffer into a list of preprocessed tokens.
  *
  *  Skips over comments and generates line and column numbers.
@@ -227,9 +241,9 @@ private var tokenEnd = 0
  * @param outputTokens Receives a list of all tokens in the input data.
  * @param chars Textual input buffer to be processed, 0-terminated.
  * @throw Error if something goes wrong */
-fun tokenize(outputTokens: ArrayList<Token>, chars: CharArray, input: Int) {
+fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
 
-    assert(chars.isNotEmpty())
+//    assert(input.isNotEmpty())  // TODO
 
     // line and column numbers numbers are one-based
     var line = 1
@@ -238,21 +252,30 @@ fun tokenize(outputTokens: ArrayList<Token>, chars: CharArray, input: Int) {
     var comment = false
     var inDoubleQuotes = false
     var pendingDataToken = false
+    var done: Boolean
 
+    val chars = input
 
-    var cur = input
-    var c = chars[cur]
-    while (c != '\u0000') {
+    var cur = 0
+
+    while (cur < chars.size) {
+
+        var c = chars[cur].c
+
+        done = false
 
         if (c.isLineEnd) {
             comment = false
             column = 0
             ++line
+            // if we have another lineEnd at the next position (typically \f\n), move directly to next char (\n)
+            if (chars[cur + 1].c.isLineEnd)  c = chars[++cur].c
+            done = true
         }
 
-        if (comment) continue
+        if (!done && comment) done = true
 
-        if (inDoubleQuotes) {
+        if (!done && inDoubleQuotes) {
             if (c == '\"') {
                 inDoubleQuotes = false
                 tokenEnd = cur
@@ -260,80 +283,81 @@ fun tokenize(outputTokens: ArrayList<Token>, chars: CharArray, input: Int) {
                 processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
                 pendingDataToken = false
             }
-            continue
+            done = true
         }
-        var `continue` = false
-        when (c) {
-            '\"' -> {
-                if (tokenBegin != 0) tokenizeError("unexpected double-quote", line, column)
-                tokenBegin = cur
-                inDoubleQuotes = true
-                `continue` = true
+        if (!done)
+            when (c) {
+                '\"' -> {
+                    if (tokenBegin != -1) tokenizeError("unexpected double-quote", line, column)
+                    tokenBegin = cur
+                    inDoubleQuotes = true
+                    done = true
+                }
+                ';' -> {
+                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+                    comment = true
+                    done = true
+                }
+                '{' -> {
+                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+                    outputTokens += Token(cur, cur + 1, TokenType.OPEN_BRACKET, line, column)
+                    done = true
+                }
+                '}' -> {
+                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+                    outputTokens += Token(cur, cur + 1, TokenType.CLOSE_BRACKET, line, column)
+                    done = true
+                }
+                ',' -> {
+                    if (pendingDataToken)
+                        processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.DATA, true)
+                    outputTokens += Token(cur, cur + 1, TokenType.COMMA, line, column)
+                    done = true
+                }
+                ':' -> {
+                    if (pendingDataToken)
+                        processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.KEY, true)
+                    else
+                        tokenizeError("unexpected colon", line, column)
+                    done = true
+                }
             }
-            ';' -> {
-                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                comment = true
-                `continue` = true
-            }
-            '{' -> {
-                TODO()
-                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.OPEN_BRACKET, line, column))
-                `continue` = true
-            }
-            '}' -> {
-                TODO()
-                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.CLOSE_BRACKET, line, column))
-                `continue` = true
-            }
-            ',' -> {
-                TODO()
-                if (pendingDataToken)
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.DATA, true)
-//                outputTokens.add(Token(chars, cur, cur + 1, TokenType.COMMA, line, column))
-                `continue` = true
-            }
-            ':' -> {
-                if (pendingDataToken)
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.KEY, true)
-                else
-                    tokenizeError("unexpected colon", line, column)
-                `continue` = true
-            }
-        }
-        if (!`continue`)
+        if (!done)
             if (c.isSpaceOrNewLine) {
-                if (tokenBegin != 0) {
+                if (tokenBegin != -1) {
                     // peek ahead and check if the next token is a colon in which case this counts as KEY token.
                     var type = TokenType.DATA
                     var peek = cur
-                    val p = chars[peek]
-                    while (p != '\u0000' && p.isSpaceOrNewLine) {
+                    var p = chars[peek].c
+                    while (p != NUL && p.isSpaceOrNewLine) {
                         if (p == ':') {
                             type = TokenType.KEY
                             cur = peek
                             break
                         }
-                        ++peek
+                        p = chars[++peek].c
                     }
                     processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, type)
                 }
                 pendingDataToken = false
             } else {
                 tokenEnd = cur
-                if (tokenBegin == 0) tokenBegin = cur
+                if (tokenBegin == -1) tokenBegin = cur
                 pendingDataToken = true
             }
-        column += if (c == '\t') ASSIMP_FBX_TAB_WIDTH else 1
-        c = chars[++cur]
+
+        column += if (c == HT) ASSIMP_FBX_TAB_WIDTH else 1
+        cur++
     }
 }
 
+private var tokenBegin = -1
+private var tokenEnd = -1
+
 /** signal tokenization error, this is always unrecoverable. Throws Error.  */
-fun tokenizeError(message: String, line: Int, column: Int): Nothing =
-        throw Error(Util.addLineAndColumn("FBX-Tokenize", message, line, column))
-//
+fun tokenizeError(message: String, line: Int, column: Int): Nothing = throw Error(Util.addLineAndColumn("FBX-Tokenize", message, line, column))
+
+
 //    /** Tokenizer function for binary FBX files.
 //     *
 //     *  Emits a token list suitable for direct parsing.
@@ -345,26 +369,26 @@ fun tokenizeError(message: String, line: Int, column: Int): Nothing =
 //    void TokenizeBinary(TokenList& output_tokens, const char* input, unsigned int length);
 
 /** Process a potential data token up to 'cur', adding it to 'outputTokens'.   */
-fun processDataToken(outputTokens: ArrayList<Token>, chars: CharArray, start: KMutableProperty0<Int>,
-                     end: KMutableProperty0<Int>, line: Int, column: Int, type: TokenType = TokenType.DATA,
-                     mustHaveToken: Boolean = false) {
-    if (start() != 0 && end() != 0) {
+fun processDataToken(outputTokens: ArrayList<Token>, chars: ByteBuffer, start: KMutableProperty0<Int>, end: KMutableProperty0<Int>,
+                     line: Int, column: Int, type: TokenType = TokenType.DATA, mustHaveToken: Boolean = false) {
+
+    if (start() != -1 && end() != -1) {
         // sanity check:
         // tokens should have no whitespace outside quoted text and [start,end] should properly delimit the valid range.
         var inDoubleQuotes = false
-        var c = start()
-        while (c != end() + 1) {
-            if (chars[c] == '\"') inDoubleQuotes = !inDoubleQuotes
-            if (!inDoubleQuotes && chars[c].isSpaceOrNewLine)
+        for (i in start()..end()) {
+            val c = chars[i].c
+            if (c == '\"')
+                inDoubleQuotes = !inDoubleQuotes
+            if (!inDoubleQuotes && c.isSpaceOrNewLine)
                 tokenizeError("unexpected whitespace in token", line, column)
         }
         if (inDoubleQuotes)
             tokenizeError("non-terminated double quotes", line, column)
-        TODO()
-//        outputTokens.add(Token(chars, start(), end() + 1, type, line, column))
-        ++c
+        outputTokens += Token(start(), end() + 1, type, line, column)
     } else if (mustHaveToken)
         tokenizeError("unexpected character, expected data token", line, column)
-    start.set(0)
-    end.set(0)
+
+    start.set(-1)
+    end.set(-1)
 }

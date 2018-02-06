@@ -125,15 +125,14 @@ class FbxImporter : BaseImporter() {
             key:value mappings)         */
         val tokens = ArrayList<Token>()
 //        try {
+
+            buffer = input
             var isBinary = false
             if (input.startsWith("Kaydara FBX Binary")) {
                 isBinary = true
                 tokenizeBinary(tokens, input)
             }
-            else TODO()
-//                tokenize(tokens, input)
-
-            buffer = input
+            else tokenize(tokens, input)
 
             // use this information to construct a very rudimentary parse-tree representing the FBX scope structure
             val parser = Parser (tokens, isBinary)

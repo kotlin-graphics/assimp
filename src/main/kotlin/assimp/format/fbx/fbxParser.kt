@@ -46,10 +46,7 @@ import assimp.AiMatrix4x4
 import assimp.AiVector3D
 import glm_.*
 import uno.buffer.bufferBig
-import uno.buffer.bufferOf
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.util.zip.Deflater
 import java.util.zip.Inflater
 import kotlin.reflect.KMutableProperty0
 import assimp.format.fbx.TokenType as Tt
@@ -215,19 +212,15 @@ class Element(val keyToken: Token, parser: Parser) {
             for (i in 0 until count) out += ip[i]
             return
         }
-        TODO()
-//        val dim = tokens[0].parseAsDim
+        val dim = tokens[0].parseAsDim
 
         // see notes in ParseVectorDataArray()
-//        out.reserve(dim)
+        out.ensureCapacity(dim.i)
 
-//        const Scope & scope = GetRequiredScope (el)
-//        const Element & a = GetRequiredElement (scope, "a", &el)
-//
-//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
-//            const float ival = ParseTokenAsFloat(** it ++)
-//            out.push_back(ival)
-//        }
+        val a = getRequiredElement(scope, "a", this)
+
+        for (it in a.tokens)
+            out += it.parseAsInt
     }
 
     /** read an array of int64_ts   */
@@ -310,28 +303,25 @@ class Element(val keyToken: Token, parser: Parser) {
             }
             return
         }
-        TODO()
-//        const size_t dim = ParseTokenAsDim(*tok[0])
-//
-//        // may throw bad_alloc if the input is rubbish, but this need
-//        // not to be prevented - importing would fail but we wouldn't
-//        // crash since assimp handles this case properly.
-//        out.reserve(dim)
-//
-//        const Scope & scope = GetRequiredScope (el)
-//        const Element & a = GetRequiredElement (scope, "a", &el)
-//
-//        if (a.Tokens().size() % 3 != 0) {
-//            ParseError("number of floats is not a multiple of three (3)", & el)
-//        }
-//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
-//            aiVector3D v
-//                    v.x = ParseTokenAsFloat(** it ++)
-//            v.y = ParseTokenAsFloat(** it ++)
-//            v.z = ParseTokenAsFloat(** it ++)
-//
-//            out.push_back(v)
-//        }
+
+        val dim = tokens[0].parseAsDim
+
+        // may throw bad_alloc if the input is rubbish, but this need
+        // not to be prevented - importing would fail but we wouldn't
+        // crash since assimp handles this case properly.
+        out.ensureCapacity(dim.i)
+
+        val a = getRequiredElement(scope, "a", this)
+
+        if (a.tokens.size % 3 != 0)
+            parseError("number of floats is not a multiple of three (3)", this)
+
+        var i = 0
+        while (i < a.tokens.size)
+            out += AiVector3D(
+                    x = a.tokens[i++].parseAsFloat,
+                    y = a.tokens[i++].parseAsFloat,
+                    z = a.tokens[i++].parseAsFloat)
     }
 
     /** read the type code and element count of a binary data array and stop there */

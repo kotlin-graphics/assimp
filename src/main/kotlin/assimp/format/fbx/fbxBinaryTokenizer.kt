@@ -176,9 +176,6 @@ fun ByteBuffer.readData(beginOut: KMutableProperty0<Int>, endOut: KMutableProper
     endOut.set(pos)
 }
 
-var sBeg = 0
-var sEnd = 0
-
 fun readScope(outputTokens: ArrayList<Token>, input: ByteBuffer, end: Int, is64bits: Boolean): Boolean {
 
     // the first word contains the offset at which this block ends
@@ -240,6 +237,9 @@ fun readScope(outputTokens: ArrayList<Token>, input: ByteBuffer, end: Int, is64b
 
     return true
 }
+
+private var sBeg = -1
+private var sEnd = -1
 
 // TODO: Test FBX Binary files newer than the 7500 version to check if the 64 bits address behaviour is consistent
 fun tokenizeBinary(outputTokens: ArrayList<Token>, input: ByteBuffer) {
