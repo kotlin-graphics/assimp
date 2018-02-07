@@ -269,7 +269,7 @@ fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
             column = 0
             ++line
             // if we have another lineEnd at the next position (typically \f\n), move directly to next char (\n)
-            if (chars[cur + 1].c.isLineEnd)  c = chars[++cur].c
+            if (cur + 1 < chars.size && chars[cur + 1].c.isLineEnd)  c = chars[++cur].c
             done = true
         }
 
