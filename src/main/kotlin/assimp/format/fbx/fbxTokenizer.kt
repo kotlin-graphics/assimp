@@ -201,12 +201,12 @@ class Token(
                 if (buffer[begin].c != 'L') parseError("failed to parse Int64, unexpected data type", this)
                 return buffer.getLong(begin + 1)
             }
-            if(buffer[begin].c != '*')
+            if (buffer[begin].c != '*')
                 parseError("expected asterisk before array dimension", this)
 
             val length = end - ++begin
 
-            if(length == 0)
+            if (length == 0)
                 parseError("expected valid integer number after asterisk", this)
 
             return buffer.strtol10_64(begin, end)
@@ -252,30 +252,31 @@ fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
     var comment = false
     var inDoubleQuotes = false
     var pendingDataToken = false
-    var done: Boolean
 
     val chars = input
 
     var cur = 0
+    var begin = true
 
-    while (cur < chars.size) {
+    while (cur + 1 < chars.size) {
+
+        if (!begin) column += if (chars[cur++].c == HT) ASSIMP_FBX_TAB_WIDTH else 1
+        begin = false
 
         var c = chars[cur].c
-
-        done = false
 
         if (c.isLineEnd) {
             comment = false
             column = 0
             ++line
             // if we have another lineEnd at the next position (typically \f\n), move directly to next char (\n)
-            if (cur + 1 < chars.size && chars[cur + 1].c.isLineEnd)  c = chars[++cur].c
-            done = true
+            if (cur + 1 < chars.size && chars[cur + 1].c.isLineEnd) c = chars[++cur].c
+            continue
         }
 
-        if (!done && comment) done = true
+        if (comment) continue
 
-        if (!done && inDoubleQuotes) {
+        if (inDoubleQuotes) {
             if (c == '\"') {
                 inDoubleQuotes = false
                 tokenEnd = cur
@@ -283,71 +284,59 @@ fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
                 processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
                 pendingDataToken = false
             }
-            done = true
+            continue
         }
-        if (!done)
-            when (c) {
-                '\"' -> {
-                    if (tokenBegin != -1) tokenizeError("unexpected double-quote", line, column)
-                    tokenBegin = cur
-                    inDoubleQuotes = true
-                    done = true
-                }
-                ';' -> {
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                    comment = true
-                    done = true
-                }
-                '{' -> {
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                    outputTokens += Token(cur, cur + 1, TokenType.OPEN_BRACKET, line, column)
-                    done = true
-                }
-                '}' -> {
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
-                    outputTokens += Token(cur, cur + 1, TokenType.CLOSE_BRACKET, line, column)
-                    done = true
-                }
-                ',' -> {
-                    if (pendingDataToken)
-                        processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.DATA, true)
-                    outputTokens += Token(cur, cur + 1, TokenType.COMMA, line, column)
-                    done = true
-                }
-                ':' -> {
-                    if (pendingDataToken)
-                        processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.KEY, true)
-                    else
-                        tokenizeError("unexpected colon", line, column)
-                    done = true
-                }
-            }
-        if (!done)
-            if (c.isSpaceOrNewLine) {
-                if (tokenBegin != -1) {
-                    // peek ahead and check if the next token is a colon in which case this counts as KEY token.
-                    var type = TokenType.DATA
-                    var peek = cur
-                    var p = chars[peek].c
-                    while (p != NUL && p.isSpaceOrNewLine) {
-                        if (p == ':') {
-                            type = TokenType.KEY
-                            cur = peek
-                            break
-                        }
-                        p = chars[++peek].c
-                    }
-                    processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, type)
-                }
-                pendingDataToken = false
-            } else {
-                tokenEnd = cur
-                if (tokenBegin == -1) tokenBegin = cur
-                pendingDataToken = true
-            }
+        if (c == '\"') {
+            if (tokenBegin != -1) tokenizeError("unexpected double-quote", line, column)
+            tokenBegin = cur
+            inDoubleQuotes = true
+            continue
+        } else if (c == ';') {
+            processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+            comment = true
+            continue
+        } else if (c == '{') {
+            processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+            outputTokens += Token(cur, cur + 1, TokenType.OPEN_BRACKET, line, column)
+            continue
+        } else if (c == '}') {
+            processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column)
+            outputTokens += Token(cur, cur + 1, TokenType.CLOSE_BRACKET, line, column)
+            continue
+        } else if (c == ',') {
+            if (pendingDataToken)
+                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.DATA, true)
+            outputTokens += Token(cur, cur + 1, TokenType.COMMA, line, column)
+            continue
+        } else if (c == ':') {
+            if (pendingDataToken)
+                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, TokenType.KEY, true)
+            else tokenizeError("unexpected colon", line, column)
+            continue
+        }
 
-        column += if (c == HT) ASSIMP_FBX_TAB_WIDTH else 1
-        cur++
+        if (c.isSpaceOrNewLine) {
+            if (tokenBegin != -1) {
+                // peek ahead and check if the next token is a colon in which case this counts as KEY token.
+                var type = TokenType.DATA
+                var peek = cur
+                var p = chars[peek].c
+                while (p != NUL && p.isSpaceOrNewLine) {
+                    if (p == ':') {
+                        type = TokenType.KEY
+                        cur = peek
+                        break
+                    }
+                    p = chars[++peek].c
+                }
+                processDataToken(outputTokens, chars, ::tokenBegin, ::tokenEnd, line, column, type)
+            }
+            pendingDataToken = false
+        } else {
+            tokenEnd = cur
+            if (tokenBegin == -1) tokenBegin = cur
+            pendingDataToken = true
+        }
     }
 }
 
