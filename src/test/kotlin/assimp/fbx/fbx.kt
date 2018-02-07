@@ -10,12 +10,14 @@ import io.kotlintest.specs.StringSpec
 class fbx : StringSpec() {
 
     val path = models + "/FBX/"
-    val path_ = modelsNonBsd + "/FBX/"
+    val pathNonBsd = modelsNonBsd + "/FBX/"
+    val binary = "2013_BINARY/"
+    val ascii = "2013_ASCII/"
 
     init {
-        "concavePolygon binary"  { concavePolygon(path_ + "2013_BINARY/ConcavePolygon.fbx") }
-        "concavePolygon ascii"  { concavePolygon(path_ + "2013_ASCII/ConcavePolygon.fbx") }
+        "concave polygon binary"  { concavePolygon(pathNonBsd + binary + "ConcavePolygon.fbx") }
+        "concave polygon ascii"  { concavePolygon(pathNonBsd + ascii + "ConcavePolygon.fbx") }
+        "anims with full rotations between keys"  { animFullRot(pathNonBsd + binary + "anims_with_full_rotations_between_keys.fbx") }
 //        "spider"  { spider(path + "spider.fbx") }
-//        "boar man"  { boarMan(path_ + "BoarMan.md5mesh") }
     }
 }
