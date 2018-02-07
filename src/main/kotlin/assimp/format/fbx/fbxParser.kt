@@ -373,11 +373,8 @@ class Element(val keyToken: Token, parser: Parser) {
             decompresser.end()
             for (i in 0 until resultLength)
                 buff[i] = result[i]
-        } else {
-            if (DEBUG)
-            // runtime check for this happens at tokenization stage
-                throw Error()
-        }
+        } else // runtime check for this happens at tokenization stage
+            if (DEBUG) throw Error()
 
         begin.set(begin() + compLen)
         assert(begin() == end)

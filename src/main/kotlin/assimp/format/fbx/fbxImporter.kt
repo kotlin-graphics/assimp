@@ -125,23 +125,22 @@ class FbxImporter : BaseImporter() {
             key:value mappings)         */
         val tokens = ArrayList<Token>()
 //        try {
+        buffer = input
+        var isBinary = false
+        if (input.startsWith("Kaydara FBX Binary")) {
+            isBinary = true
+            tokenizeBinary(tokens, input)
+        } else tokenize(tokens, input)
 
-            buffer = input
-            var isBinary = false
-            if (input.startsWith("Kaydara FBX Binary")) {
-                isBinary = true
-                tokenizeBinary(tokens, input)
-            }
-            else tokenize(tokens, input)
 
-            // use this information to construct a very rudimentary parse-tree representing the FBX scope structure
-            val parser = Parser (tokens, isBinary)
+        // use this information to construct a very rudimentary parse-tree representing the FBX scope structure
+        val parser = Parser(tokens, isBinary)
 
-            // take the raw parse-tree and convert it to a FBX DOM
-            val doc = Document (parser,settings)
+        // take the raw parse-tree and convert it to a FBX DOM
+        val doc = Document(parser, settings)
 
-            // convert the FBX DOM to aiScene
-            convertToAssimpScene(scene, doc)
+        // convert the FBX DOM to aiScene
+        convertToAssimpScene(scene, doc)
 //
 //            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
 //        }

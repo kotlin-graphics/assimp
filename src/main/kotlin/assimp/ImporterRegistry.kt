@@ -2,6 +2,7 @@ package assimp
 
 import assimp.format.X.XFileImporter
 import assimp.format.assbin.AssbinLoader
+import assimp.format.blender.BlenderImporter
 import assimp.format.collada.ColladaLoader
 import assimp.format.fbx.FbxImporter
 import assimp.format.md2.Md2Importer
@@ -38,6 +39,7 @@ val importerInstanceList
             if (!PLY_IMPORTER) add(PlyLoader())
             if (!STL_IMPORTER) add(StlImporter())
             if (!X_IMPORTER) add(XFileImporter())
+            if (!BLEND_IMPORTER) add(BlenderImporter())
         }
     }
 

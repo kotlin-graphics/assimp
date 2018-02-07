@@ -257,3 +257,5 @@ fun tokenizeBinary(outputTokens: ArrayList<Token>, input: ByteBuffer) {
         if (!readScope(outputTokens, input, input.capacity(), is64bits))
             break
 }
+
+
