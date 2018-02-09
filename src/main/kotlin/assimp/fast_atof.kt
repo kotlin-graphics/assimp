@@ -65,8 +65,8 @@ fun ByteBuffer.fast_atof(begin: Int, end: Int): Float {
     return String(bytes).f
 }
 
-fun ByteBuffer.strncmp(string: String, ptr: Int, length: Int = string.length): Boolean {
-    for (i in string.indices)
+fun ByteBuffer.strncmp(string: String, ptr: Int = 0, length: Int = string.length): Boolean {
+    for (i in 0 until length)
         if (get(ptr + i).c != string[i])
             return false
     return true

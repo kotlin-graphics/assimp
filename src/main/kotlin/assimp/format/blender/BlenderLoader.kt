@@ -3,6 +3,8 @@ package assimp.format.blender
 import assimp.*
 import glm_.c
 import glm_.i
+import glm_.toUnsignedInt
+import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
 import java.net.URI
@@ -12,7 +14,6 @@ import java.nio.channels.FileChannel
 import java.io.FileOutputStream
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
-
 
 
 lateinit var buffer: ByteBuffer
@@ -48,9 +49,9 @@ class BlenderImporter : BaseImporter() {
     override fun internReadFile(file: URI, scene: AiScene) {
 
         val fileChannel = RandomAccessFile(File(file), "r").channel
-        val input = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
 
-        var match = tokens.all { it == input.get().c }
+        var match = buffer.strncmp(tokens)
         if (!match) {
             // Check for presence of the gzip header. If yes, assume it is a
             // compressed blend file and try uncompressing it, else fail. This is to
@@ -69,21 +70,23 @@ class BlenderImporter : BaseImporter() {
                 })
             }
             val fc = RandomAccessFile(output, "r").channel
-            val inp = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).order(ByteOrder.nativeOrder())
+            buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).order(ByteOrder.nativeOrder())
             // .. and retry
-            match = tokens.all { it == inp.get().c }
+            match = buffer.strncmp(tokens)
             if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
         }
 
-        val f = FileDatabase().apply {
+        val db = FileDatabase().apply {
             i64bit = buffer.get().c == '-'
             little = buffer.get().c == 'v'
         }
-        logger.info("Blender version is ${buffer.get().i}.${buffer.get().i} (64bit: ${f.i64bit}, little endian: ${f.little}")
+        val major = buffer.get().c.parseInt()
+        val minor = buffer.get().c.parseInt() * 10 + buffer.get().c.parseInt()
+        logger.info("Blender version is $major.$minor (64bit: ${db.i64bit}, little endian: ${db.little}")
 
-        f.reader = input
+        db.reader = buffer
 
-        parseBlendFile(f)
+        parseBlendFile(db)
 
 //        Scene scene;
 //        ExtractScene(scene,file);
@@ -93,32 +96,30 @@ class BlenderImporter : BaseImporter() {
 
     fun parseBlendFile(out: FileDatabase) {
 
-//        val dnaReader = DN(out);
-//        const DNA* dna = NULL;
+        val dnaReader = DnaParser(out)
+        var dna: DNA? = null
+
+        out.entries.ensureCapacity(128)
+        // even small BLEND files tend to consist of many file blocks
+        val parser = SectionParser()
+
+        // first parse the file in search for the DNA and insert all other sections into the database
+//        while (true) {
+//            parser.next()
+//            val head = parser.current
 //
-//        out.entries.reserve(128); { // even small BLEND files tend to consist of many file blocks
-//        SectionParser parser(*out.reader.get(),out.i64bit);
-//
-//        // first parse the file in search for the DNA and insert all other sections into the database
-//        while ((parser.Next(),1)) {
-//            const FileBlockHead& head = parser.GetCurrent();
-//
-//            if (head.id == "ENDB") {
-//                break; // only valid end of the file
-//            }
+//            if (head.id == "ENDB") break // only valid end of the file
 //            else if (head.id == "DNA1") {
-//                dnaReader.Parse();
-//                dna = &dna_reader.GetDNA();
-//                continue;
+//                dnaReader.parse()
+//                dna = dnaReader.dna
+//                continue
 //            }
 //
-//            out.entries.push_back(head);
-//        }
-//    }
-//        if (!dna) {
-//            ThrowException("SDNA not found");
-//        }
+//            out.entries += head
 //
-//        std::sort(out.entries.begin(),out.entries.end());
+//        }
+//        if (dna == null) throw Error("SDNA not found")
+
+//        std::sort(out.entries.begin(), out.entries.end());
     }
 }

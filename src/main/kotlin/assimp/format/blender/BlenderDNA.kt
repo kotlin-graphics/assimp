@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.blender
 
+import assimp.NUL
+import assimp.pos
 import glm_.L
 import glm_.c
 import glm_.i
@@ -94,7 +96,7 @@ open class ElemBase {
 /** Represents a generic pointer to a memory location, which can be either 32 or 64 bits. These pointers are loaded from
  *  the BLEND file and finally fixed to point to the real, converted representation of the objects they used to point to.   */
 class Pointer {
-    var value = 0L
+    var value = 0
 }
 
 /** Represents a generic offset within a BLEND file */
@@ -215,10 +217,10 @@ class Structure {
                 "double" -> db.reader.double * 255f
                 else -> convertDispatcher(db)
             }
-            Float::class, Double::class -> when(name){
-                // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
+            Float::class, Double::class -> when (name) {
+            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
                 "char" -> db.reader.get() / 255f
-                // automatic rescaling from short to float and vice versa (used by normals)
+            // automatic rescaling from short to float and vice versa (used by normals)
                 "short" -> db.reader.short / 32767f
                 else -> convertDispatcher(db)
             }
@@ -520,87 +522,73 @@ class DNA {
 //template <> inline void Structure :: Convert<double>    (double& dest,const FileDatabase& db) const;
 //template <> inline void Structure :: Convert<Pointer>   (Pointer& dest,const FileDatabase& db) const;
 //
-//// -------------------------------------------------------------------------------
-///** Describes a master file block header. Each master file sections holds n
-// *  elements of a certain SDNA structure (or otherwise unspecified data). */
-//// -------------------------------------------------------------------------------
-//struct FileBlockHead
-//        {
-//            // points right after the header of the file block
-//            StreamReaderAny::pos start;
+/** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
+ *  (or otherwise unspecified data). */
+class FileBlockHead {
+    /** points right after the header of the file block */
+    var start = 0
+
+    var id = ""
+    var size = 0
+
+    // original memory address of the data
+    var address = 0L
+
+    // index into DNA
+    var dnaIndex = 0
+
+    // number of structure instances to follow
+    var num = 0
+
+
+    // file blocks are sorted by address to quickly locate specific memory addresses
+//    bool operator < (const FileBlockHead& o)
+//    const {
+//        return address.
+//                val <o.address.
+//        val;
+//    }
 //
-//            std::string id;
-//            size_t size;
-//
-//            // original memory address of the data
-//            Pointer address;
-//
-//            // index into DNA
-//            unsigned int dna_index;
-//
-//            // number of structure instances to follow
-//            size_t num;
-//
-//
-//
-//            // file blocks are sorted by address to quickly locate specific memory addresses
-//            bool operator < (const FileBlockHead& o) const {
-//                return address.val < o.address.val;
-//            }
-//
-//            // for std::upper_bound
-//            operator const Pointer& () const {
-//            return address;
-//        }
-//        };
+//    // for std::upper_bound
+//    operator const Pointer& ()
+//    const {
+//        return address;
+//    }
+}
 //
 //// for std::upper_bound
 //inline bool operator< (const Pointer& a, const Pointer& b) {
 //return a.val < b.val;
 //}
 //
-//// -------------------------------------------------------------------------------
-///** Utility to read all master file blocks in turn. */
-//// -------------------------------------------------------------------------------
-//class SectionParser
-//{
-//    public:
-//
-//    // --------------------------------------------------------
-//    /** @param stream Inout stream, must point to the
-//     *  first section in the file. Call Next() once
-//     *  to have it read.
-//     *  @param ptr64 Pointer size in file is 64 bits? */
-//    SectionParser(StreamReaderAny& stream,bool ptr64)
-//    : stream(stream)
-//    , ptr64(ptr64)
-//    {
-//        current.size = current.start = 0;
-//    }
-//
-//    public:
-//
-//    // --------------------------------------------------------
-//    const FileBlockHead& GetCurrent() const {
-//    return current;
-//}
-//
-//
-//    public:
-//
-//    // --------------------------------------------------------
-//    /** Advance to the next section.
-//     *  @throw DeadlyImportError if the last chunk was passed. */
-//    void Next();
-//
-//    public:
-//
-//    FileBlockHead current;
-//    StreamReaderAny& stream;
-//    bool ptr64;
-//};
-//
-//
+/** Utility to read all master file blocks in turn. */
+class SectionParser {
+
+    var current = FileBlockHead().apply { size = 0; start = 0 }
+    var ptr64 = false
+
+    /** Advance to the next section.
+     *  @throw DeadlyImportError if the last chunk was passed. */
+    fun next() {
+
+//        buffer.pos = current.start + current.size
+
+        val tmp = CharArray(4) { buffer.get().c }
+        current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)
+
+        current.size = buffer.int
+        current.address = if(ptr64) buffer.long else buffer.int.L
+
+        current.dnaIndex = buffer.int
+        current.num = buffer.int
+
+        current.start = buffer.pos
+        if (buffer.limit() - buffer.pos < current.size)
+            throw Error("BLEND: invalid size of file block")
+    }
+}
+
+
 //#ifndef ASSIMP_BUILD_BLENDER_NO_STATS
 //// -------------------------------------------------------------------------------
 ///** Import statistics, i.e. number of file blocks read*/
@@ -717,8 +705,8 @@ class FileDatabase {
 
     var dna = DNA()
     lateinit var reader: ByteBuffer
-//    vector< FileBlockHead > entries
-//
+    val entries = ArrayList<FileBlockHead>()
+
 //    public :
 //
 //    Statistics& stats()
@@ -764,7 +752,7 @@ class DnaParser(
      *  at the time this method is called and is undefined afterwards.
      *  @throw DeadlyImportError if the DNA cannot be read.
      *  @note The position of the stream pointer is undefined afterwards.   */
-    fun parse () {
+    fun parse() {
 //        StreamReaderAny& stream = *db.reader.get();
 //        DNA& dna = db.dna;
 //
@@ -913,5 +901,5 @@ class DnaParser(
     }
 
     /** Obtain a reference to the extracted DNA information */
-    val dna get()=db.dna
+    val dna get() = db.dna
 }
