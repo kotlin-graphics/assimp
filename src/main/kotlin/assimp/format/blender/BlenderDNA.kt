@@ -42,14 +42,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.blender
 
-import assimp.NUL
-import assimp.pos
-import glm_.L
-import glm_.c
-import glm_.i
-import glm_.s
+import assimp.*
+import glm_.*
 import java.nio.ByteBuffer
-import kotlin.reflect.KMutableProperty0
 
 /** @file  BlenderDNA.h
  *  @brief Blender `DNA` (file format specification embedded in
@@ -124,14 +119,14 @@ class FileOffset {
 //    return !empty();
 //}
 //};
-//
-//// -------------------------------------------------------------------------------
-///** Mixed flags for use in #Field */
-//// -------------------------------------------------------------------------------
-//enum FieldFlags {
-//    FieldFlag_Pointer = 0x1,
-//    FieldFlag_Array   = 0x2
-//};
+
+/** Mixed flags for use in #Field */
+enum class FieldFlags { Pointer, Array;
+
+    val i = ordinal + 1
+}
+
+infix fun Int.or(ff: FieldFlags) = or(ff.i)
 
 /** Represents a single member of a data structure in a BLEND file */
 class Field {
@@ -498,20 +493,25 @@ class DNA {
 //     *  The output file is `dna.txt` in the current working folder*/
 //    void DumpToFile()
 //    #endif
-//
-//    // --------------------------------------------------------
-//    /** Extract array dimensions from a C array declaration, such
-//     *  as `...[4][6]`. Returned string would be `...[][]`.
-//     *  @param out
-//     *  @param array_sizes Receive maximally two array dimensions,
-//     *    the second element is set to 1 if the array is flat.
-//     *    Both are set to 1 if the input is not an array.
-//     *  @throw DeadlyImportError if more than 2 dimensions are
-//     *    encountered. */
-//    static void ExtractArraySize(
-//    const std::string& out ,
-//    size_t array_sizes[2]
-//    )
+
+    companion object {
+
+        /** Extract array dimensions from a C array declaration, such as `...[4][6]`. Returned string would be `...[][]`.
+         *  @param array_sizes Receive maximally two array dimensions, the second element is set to 1 if the array is flat.
+         *    Both are set to 1 if the input is not an array.
+         *  @throw DeadlyImportError if more than 2 dimensions are encountered. */
+        fun extractArraySize(input: String, arraySizes: LongArray) {
+
+            arraySizes.fill(1)
+            var pos = input.indexOf('[')
+            if (pos++ == -1) return
+            arraySizes[0] = strtoul10(input, pos).L
+
+            pos = input.indexOf('[', pos)
+            if (pos++ == -1) return
+            arraySizes[1] = strtoul10(input, pos).L
+        }
+    }
 }
 //
 //// special converters for primitive types
@@ -524,7 +524,7 @@ class DNA {
 //
 /** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
  *  (or otherwise unspecified data). */
-class FileBlockHead {
+class FileBlockHead() {
     /** points right after the header of the file block */
     var start = 0
 
@@ -540,6 +540,14 @@ class FileBlockHead {
     // number of structure instances to follow
     var num = 0
 
+    constructor(other: FileBlockHead) : this() {
+        start = other.start
+        id = other.id
+        size = other.size
+        address = other.address
+        dnaIndex = other.dnaIndex
+        num = other.num
+    }
 
     // file blocks are sorted by address to quickly locate specific memory addresses
 //    bool operator < (const FileBlockHead& o)
@@ -562,28 +570,29 @@ class FileBlockHead {
 //}
 //
 /** Utility to read all master file blocks in turn. */
-class SectionParser {
+class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 
-    var current = FileBlockHead().apply { size = 0; start = 0 }
-    var ptr64 = false
+    val current = FileBlockHead()
 
     /** Advance to the next section.
      *  @throw DeadlyImportError if the last chunk was passed. */
     fun next() {
 
-//        buffer.pos = current.start + current.size
+        if(stream.pos + current.size >= stream.size)
+            println()
+        stream.pos += current.size
 
-        val tmp = CharArray(4) { buffer.get().c }
+        val tmp = CharArray(4) { stream.get().c }
         current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)
 
-        current.size = buffer.int
-        current.address = if(ptr64) buffer.long else buffer.int.L
+        current.size = stream.int
+        current.address = if (ptr64) stream.long else stream.int.L
 
-        current.dnaIndex = buffer.int
-        current.num = buffer.int
+        current.dnaIndex = stream.int
+        current.num = stream.int
 
-        current.start = buffer.pos
-        if (buffer.limit() - buffer.pos < current.size)
+        current.start = stream.pos
+        if (stream.limit() - stream.pos < current.size)
             throw Error("BLEND: invalid size of file block")
     }
 }
@@ -753,153 +762,122 @@ class DnaParser(
      *  @throw DeadlyImportError if the DNA cannot be read.
      *  @note The position of the stream pointer is undefined afterwards.   */
     fun parse() {
-//        StreamReaderAny& stream = *db.reader.get();
-//        DNA& dna = db.dna;
-//
-//        if(!match4(stream,"SDNA")) {
-//            throw DeadlyImportError("BlenderDNA: Expected SDNA chunk");
-//        }
-//
-//        // name dictionary
-//        if(!match4(stream,"NAME")) {
-//            throw DeadlyImportError("BlenderDNA: Expected NAME field");
-//        }
-//
-//        std::vector<std::string> names (stream.GetI4());
-//        for(std::string& s : names) {
-//            while (char c = stream.GetI1()) {
-//                s += c;
-//            }
-//        }
-//
-//        // type dictionary
-//        for (;stream.GetCurrentPos() & 0x3; stream.GetI1());
-//        if(!match4(stream,"TYPE")) {
-//            throw DeadlyImportError("BlenderDNA: Expected TYPE field");
-//        }
-//
-//        std::vector<Type> types (stream.GetI4());
-//        for(Type& s : types) {
-//            while (char c = stream.GetI1()) {
-//                s.name += c;
-//            }
-//        }
-//
-//        // type length dictionary
-//        for (;stream.GetCurrentPos() & 0x3; stream.GetI1());
-//        if(!match4(stream,"TLEN")) {
-//            throw DeadlyImportError("BlenderDNA: Expected TLEN field");
-//        }
-//
-//        for(Type& s : types) {
-//            s.size = stream.GetI2();
-//        }
-//
-//        // structures dictionary
-//        for (;stream.GetCurrentPos() & 0x3; stream.GetI1());
-//        if(!match4(stream,"STRC")) {
-//            throw DeadlyImportError("BlenderDNA: Expected STRC field");
-//        }
-//
-//        size_t end = stream.GetI4(), fields = 0;
-//
-//        dna.structures.reserve(end);
-//        for(size_t i = 0; i != end; ++i) {
-//
-//            uint16_t n = stream.GetI2();
-//            if (n >= types.size()) {
-//                throw DeadlyImportError((format(),
-//                        "BlenderDNA: Invalid type index in structure name" ,n,
-//                        " (there are only ", types.size(), " entries)"
-//                ));
-//            }
-//
-//            // maintain separate indexes
-//            dna.indices[types[n].name] = dna.structures.size();
-//
-//            dna.structures.push_back(Structure());
-//            Structure& s = dna.structures.back();
-//            s.name  = types[n].name;
-//            //s.index = dna.structures.size()-1;
-//
-//            n = stream.GetI2();
-//            s.fields.reserve(n);
-//
-//            size_t offset = 0;
-//            for (size_t m = 0; m < n; ++m, ++fields) {
-//
-//            uint16_t j = stream.GetI2();
-//            if (j >= types.size()) {
-//                throw DeadlyImportError((format(),
-//                        "BlenderDNA: Invalid type index in structure field ", j,
-//                        " (there are only ", types.size(), " entries)"
-//                ));
-//            }
-//            s.fields.push_back(Field());
-//            Field& f = s.fields.back();
-//            f.offset = offset;
-//
-//            f.type = types[j].name;
-//            f.size = types[j].size;
-//
-//            j = stream.GetI2();
-//            if (j >= names.size()) {
-//                throw DeadlyImportError((format(),
-//                        "BlenderDNA: Invalid name index in structure field ", j,
-//                        " (there are only ", names.size(), " entries)"
-//                ));
-//            }
-//
-//            f.name = names[j];
-//            f.flags = 0u;
-//
-//            // pointers always specify the size of the pointee instead of their own.
-//            // The pointer asterisk remains a property of the lookup name.
-//            if (f.name[0] == '*') {
-//                f.size = db.i64bit ? 8 : 4;
-//                f.flags |= FieldFlag_Pointer;
-//            }
-//
-//            // arrays, however, specify the size of a single element so we
-//            // need to parse the (possibly multi-dimensional) array declaration
-//            // in order to obtain the actual size of the array in the file.
-//            // Also we need to alter the lookup name to include no array
-//            // brackets anymore or size fixup won't work (if our size does
-//            // not match the size read from the DNA).
-//            if (*f.name.rbegin() == ']') {
-//            const std::string::size_type rb = f.name.find('[');
-//            if (rb == std::string::npos) {
-//                throw DeadlyImportError((format(),
-//                        "BlenderDNA: Encountered invalid array declaration ",
-//                        f.name
-//                ));
-//            }
-//
-//            f.flags |= FieldFlag_Array;
-//            DNA::ExtractArraySize(f.name,f.array_sizes);
-//            f.name = f.name.substr(0,rb);
-//
-//            f.size *= f.array_sizes[0] * f.array_sizes[1];
-//        }
-//
-//            // maintain separate indexes
-//            s.indices[f.name] = s.fields.size()-1;
-//            offset += f.size;
-//        }
-//            s.size = offset;
-//        }
-//
-//        DefaultLogger::get()->debug((format(),"BlenderDNA: Got ",dna.structures.size(),
-//        " structures with totally ",fields," fields"));
-//
-//        #ifdef ASSIMP_BUILD_BLENDER_DEBUG
+        val stream = db.reader
+        val dna = db.dna
+
+        if (stream doesntMatch "SDNA") throw Error("BlenderDNA: Expected SDNA chunk")
+        // name dictionary
+        if (stream doesntMatch "NAME") throw Error("BlenderDNA: Expected NAME field")
+
+        val names = Array(stream.int) { stream.nextWord().also { stream.consumeNUL() } }
+
+        // type dictionary
+        while (((stream.pos - 12) and 0x3) != 0) stream.get()
+        if (stream doesntMatch "TYPE") throw Error("BlenderDNA: Expected TYPE field")
+
+        val types = Array(stream.int) {
+            Type().apply {
+                name = stream.nextWord().also { stream.consumeNUL() }
+            }
+        }
+
+        // type length dictionary
+        while (((stream.pos - 12) and 0x3) != 0) stream.get()
+        if (stream doesntMatch "TLEN") throw Error("BlenderDNA: Expected TLEN field")
+
+        for (s in types) s.size = stream.short.L
+
+        // structures dictionary
+        while (((stream.pos - 12) and 0x3) != 0) stream.get()
+        if (stream doesntMatch "STRC") throw Error("BlenderDNA: Expected STRC field")
+
+        val end = stream.int
+        var fields = 0
+
+        dna.structures.ensureCapacity(end)
+        for (i in 0 until end) {
+
+            var n = stream.short.i
+            if (n >= types.size) throw Error("BlenderDNA: Invalid type index in structure name$n (there are only ${types.size} entries)")
+
+            // maintain separate indexes
+            dna.indices[types[n].name] = dna.structures.size.L
+
+            val s = Structure().apply { name = types[n].name }
+            dna.structures += s
+            //s.index = dna.structures.size()-1;
+
+            n = stream.short.i
+            s.fields.ensureCapacity(n)
+
+            var offset = 0L
+            for (m in 0 until n) {
+
+                var j = stream.short.i
+                if (j >= types.size) throw Error("BlenderDNA: Invalid type index in structure field $j (there are only ${types.size} entries)")
+
+                val f = Field()
+                s.fields += f
+                f.offset = offset
+
+                f.type = types[j].name
+                f.size = types[j].size
+
+                j = stream.short.i
+                if (j >= names.size) throw Error("BlenderDNA: Invalid name index in structure field $j (there are only ${names.size} entries)")
+
+                f.name = names[j]
+                f.flags = 0
+
+                /*  pointers always specify the size of the pointee instead of their own.
+                    The pointer asterisk remains a property of the lookup name.                 */
+                if (f.name[0] == '*') {
+                    f.size = if (db.i64bit) 8 else 4
+                    f.flags = f.flags or FieldFlags.Pointer
+                }
+
+                /*  arrays, however, specify the size of a single element so we need to parse the (possibly
+                    multi-dimensional) array declaration in order to obtain the actual size of the array in the file.
+                    Also we need to alter the lookup name to include no array brackets anymore or size fixup won't work
+                    (if our size does not match the size read from the DNA).    */
+                if (f.name.contains(']')) {
+                    val rb = f.name.indexOf('[')
+                    if (rb == -1) throw Error("BlenderDNA: Encountered invalid array declaration ${f.name}")
+
+                    f.flags = f.flags or FieldFlags.Array
+                    DNA.extractArraySize(f.name, f.arraySizes)
+                    f.name = f.name.substring(0, rb)
+
+                    f.size *= f.arraySizes[0] * f.arraySizes[1]
+                }
+
+                // maintain separate indexes
+                s.indices[f.name] = s.fields.lastIndex.L
+                offset += f.size
+
+                ++fields
+            }
+            s.size = offset
+        }
+
+        logger.debug("BlenderDNA: Got ${dna.structures.size} structures with totally $fields fields")
+
+//        #ifdef ASSIMP_BUILD_BLENDER_DEBUG TODO
 //                dna.DumpToFile();
 //        #endif
-//
-//        dna.AddPrimitiveStructures();
-//        dna.RegisterConverters();
+
+        dna.addPrimitiveStructures()
+        dna.registerConverters()
     }
 
     /** Obtain a reference to the extracted DNA information */
     val dna get() = db.dna
+}
+
+infix fun ByteBuffer.match(string: String) = get().c == string[0] && get().c == string[1] && get().c == string[2] && get().c == string[3]
+infix fun ByteBuffer.doesntMatch(string: String) = !match(string)
+
+class Type {
+    var size = 0L
+    var name = ""
 }

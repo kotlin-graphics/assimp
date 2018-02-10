@@ -74,6 +74,7 @@ class BlenderImporter : BaseImporter() {
             // .. and retry
             match = buffer.strncmp(tokens)
             if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
+            buffer.pos += tokens.length
         }
 
         val db = FileDatabase().apply {
@@ -101,24 +102,24 @@ class BlenderImporter : BaseImporter() {
 
         out.entries.ensureCapacity(128)
         // even small BLEND files tend to consist of many file blocks
-        val parser = SectionParser()
+        val parser = SectionParser(out.reader, out.i64bit)
 
         // first parse the file in search for the DNA and insert all other sections into the database
-//        while (true) {
-//            parser.next()
-//            val head = parser.current
-//
-//            if (head.id == "ENDB") break // only valid end of the file
-//            else if (head.id == "DNA1") {
-//                dnaReader.parse()
-//                dna = dnaReader.dna
-//                continue
-//            }
-//
-//            out.entries += head
-//
-//        }
-//        if (dna == null) throw Error("SDNA not found")
+        while (true) {
+            parser.next()
+            val head = FileBlockHead(parser.current)
+
+            if (head.id == "ENDB")
+                break // only valid end of the file
+            else if (head.id == "DNA1") {
+                dnaReader.parse()
+                dna = dnaReader.dna
+                continue
+            }
+
+            out.entries += head
+        }
+        if (dna == null) throw Error("SDNA not found")
 
 //        std::sort(out.entries.begin(), out.entries.end());
     }

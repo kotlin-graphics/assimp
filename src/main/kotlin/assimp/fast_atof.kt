@@ -65,9 +65,23 @@ fun ByteBuffer.fast_atof(begin: Int, end: Int): Float {
     return String(bytes).f
 }
 
-fun ByteBuffer.strncmp(string: String, ptr: Int = 0, length: Int = string.length): Boolean {
+fun ByteBuffer.strncmp(string: String, ptr: Int = pos, length: Int = string.length): Boolean {
     for (i in 0 until length)
         if (get(ptr + i).c != string[i])
             return false
     return true
+}
+
+
+fun strtoul10(input: String, ptr: Int): uint {
+
+    var value = 0
+    var i = ptr
+
+    while (true) {
+        if (input[i] < '0' || input[i] > '9') break
+        value = value * 10 + (input[i] - '0')
+        ++i
+    }
+    return value
 }

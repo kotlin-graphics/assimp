@@ -71,6 +71,10 @@ fun ByteBuffer.restOfLine(): String {
     return String(bytes.toByteArray())
 }
 
+fun ByteBuffer.consumeNUL() {
+    while (get(pos).c == NUL) get()
+}
+
 val Byte.isLineEnd get() = this == CR.b || this == LF.b || this == NUL.b || this == FF.b
 val Char.isLineEnd get () = this == CR || this == LF || this == NUL || this == FF
 
