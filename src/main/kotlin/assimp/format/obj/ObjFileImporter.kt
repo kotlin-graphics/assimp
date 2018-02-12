@@ -423,8 +423,15 @@ class ObjFileImporter : BaseImporter() {
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
                     if (file.parentFile.listFiles().any { it.name == cleaned }) {
+
                         val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
                         scene.textures[name] = gli.load(texFile.toPath())
+
+                    }else if(file.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() }){
+                        // try case insensitive
+                        val texFile = file.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
+                        scene.textures[name] = gli.load(texFile.toPath())
+
                     } else {
                         logger.warn { "OBJ/MTL: Texture image not found --> " + cleaned }
                     }
