@@ -220,17 +220,16 @@ class TFace : ElemBase() {
 //    // std::shared_ptr<Image> tpage;
 //};
 //
-//// -------------------------------------------------------------------------------
-//struct MDeformWeight : ElemBase  {
-//    int def_nr FAIL;
-//    float weight FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MDeformVert : ElemBase  {
-//    vector<MDeformWeight> dw WARN;
-//    int totweight;
-//};
+
+class MDeformWeight : ElemBase()  {
+    var defNr = 0
+    var weight = 0f
+}
+
+class MDeformVert : ElemBase()  {
+    val dw = ArrayList<MDeformWeight>()
+    var totWeight = 0
+}
 
 val MA_RAYMIRROR = 0x40000
 val MA_TRANSPARENCY = 0x10000
@@ -399,7 +398,7 @@ class Camera : ElemBase() {
     enum class Type { PERSP, ORTHO, INVALID;
 
         companion object {
-            fun of(i: Int) = values().getOrElse(i, { INVALID })
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
         }
     }
 
@@ -413,89 +412,99 @@ class Camera : ElemBase() {
     var clipEnd = 0f
 }
 
-//
-//// -------------------------------------------------------------------------------
-//struct Lamp : ElemBase {
-//
-//    enum FalloffType {
-//        FalloffType_Constant = 0x0
-//        ,FalloffType_InvLinear = 0x1
-//        ,FalloffType_InvSquare = 0x2
-//        //,FalloffType_Curve    = 0x3
-//        //,FalloffType_Sliders  = 0x4
-//    };
-//
-//    enum Type {
-//        Type_Local = 0x0
-//        ,Type_Sun = 0x1
-//        ,Type_Spot = 0x2
-//        ,Type_Hemi = 0x3
-//        ,Type_Area = 0x4
-//        //,Type_YFPhoton    = 0x5
-//    };
-//
-//    ID id FAIL;
-//    //AnimData *adt;
-//
-//    Type type FAIL;
-//    short flags;
-//
-//    //int mode;
-//
-//    short colormodel, totex;
-//    float r, g, b, k WARN;
-//    //float shdwr, shdwg, shdwb;
-//
-//    float energy, dist, spotsize, spotblend;
-//    //float haint;
-//
-//    float att1, att2;
-//    //struct CurveMapping *curfalloff;
-//    FalloffType falloff_type;
-//
-//    //float clipsta, clipend, shadspotsize;
-//    //float bias, soft, compressthresh;
-//    //short bufsize, samp, buffers, filtertype;
-//    //char bufflag, buftype;
-//
-//    //short ray_samp, ray_sampy, ray_sampz;
-//    //short ray_samp_type;
-//    short area_shape;
-//    float area_size, area_sizey, area_sizez;
-//    //float adapt_thresh;
-//    //short ray_samp_method;
-//
-//    //short texact, shadhalostep;
-//
-//    //short sun_effect_type;
-//    //short skyblendtype;
-//    //float horizon_brightness;
-//    //float spread;
-//    float sun_brightness;
-//    //float sun_size;
-//    //float backscattered_light;
-//    //float sun_intensity;
-//    //float atm_turbidity;
-//    //float atm_inscattering_factor;
-//    //float atm_extinction_factor;
-//    //float atm_distance_factor;
-//    //float skyblendfac;
-//    //float sky_exposure;
-//    //short sky_colorspace;
-//
-//    // int YF_numphotons, YF_numsearch;
-//    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
-//    // float YF_causticblur, YF_ltradius;
-//
-//    // float YF_glowint, YF_glowofs;
-//    // short YF_glowtype, YF_pad2;
-//
-//    //struct Ipo *ipo;
-//    //struct MTex *mtex[18];
-//    // short pr_texture;
-//
-//    //struct PreviewImage *preview;
-//};
+class Lamp : ElemBase() {
+
+    enum class FalloffType { Constant, InvLinear, InvSquare, INVALID;
+        //,FalloffType_Curve    = 0x3
+        //,FalloffType_Sliders  = 0x4
+        val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    enum class Type { Local, Sun, Spot, Hemi, Area, INVALID;
+        //,Type_YFPhoton    = 0x5
+        val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    var id = Id()
+    //AnimData *adt;
+
+    var type = Type.Local
+    var flags = 0.s
+
+    //int mode;
+
+    var colorModel = 0.s
+    var totex = 0.s
+    var r = 0f
+    var g = 0f
+    var b = 0f 
+    var k = 0f
+    //float shdwr, shdwg, shdwb;
+
+    var energy = 0f
+    var dist = 0f
+    var spotSize = 0f
+    var spotBlend = 0f
+    //float haint;
+
+    var att1 = 0f
+    var att2 = 0f
+    //struct CurveMapping *curfalloff;
+    var falloffType = FalloffType.Constant
+
+    //float clipsta, clipend, shadspotsize;
+    //float bias, soft, compressthresh;
+    //short bufsize, samp, buffers, filtertype;
+    //char bufflag, buftype;
+
+    //short ray_samp, ray_sampy, ray_sampz;
+    //short ray_samp_type;
+    var areaShape = 0.s
+    var areaSize = 0f
+    var areaSizeY = 0f
+    var areaSizeZ = 0f
+    //float adapt_thresh;
+    //short ray_samp_method;
+
+    //short texact, shadhalostep;
+
+    //short sun_effect_type;
+    //short skyblendtype;
+    //float horizon_brightness;
+    //float spread;
+    var sunBrightness = 0f
+    //float sun_size;
+    //float backscattered_light;
+    //float sun_intensity;
+    //float atm_turbidity;
+    //float atm_inscattering_factor;
+    //float atm_extinction_factor;
+    //float atm_distance_factor;
+    //float skyblendfac;
+    //float sky_exposure;
+    //short sky_colorspace;
+
+    // int YF_numphotons, YF_numsearch;
+    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
+    // float YF_causticblur, YF_ltradius;
+
+    // float YF_glowint, YF_glowofs;
+    // short YF_glowtype, YF_pad2;
+
+    //struct Ipo *ipo;
+    //struct MTex *mtex[18];
+    // short pr_texture;
+
+    //struct PreviewImage *preview;
+}
 
 class ModifierData : ElemBase() {
 
@@ -572,7 +581,7 @@ class Object : ElemBase() {
         LATTICE(22);
 
         companion object {
-            fun of(i: Int) = values().first { it.i == i }
+            infix fun of(i: Int) = values().first { it.i == i }
         }
     }
 
@@ -720,7 +729,7 @@ class MTex : ElemBase() {
         val i = ordinal
 
         companion object {
-            fun of(i: Int) = values()[i]
+            infix fun of(i: Int) = values()[i]
         }
     }
 
@@ -731,7 +740,7 @@ class MTex : ElemBase() {
         val i = ordinal
 
         companion object {
-            fun of(i: Int) = values()[i]
+            infix fun of(i: Int) = values()[i]
         }
     }
 
@@ -740,7 +749,7 @@ class MTex : ElemBase() {
         val i = 1 shl ordinal
 
         companion object {
-            fun of(i: Int) = values()[i]
+            infix fun of(i: Int) = values()[i]
         }
     }
 

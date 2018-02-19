@@ -1,11 +1,11 @@
 package assimp.format.blender
 
 import assimp.*
-import assimp.format.blender.ErrorPolicy as Ep
 import glm_.*
 import kotlin.math.min
 import kotlin.reflect.KFunction0
 import kotlin.reflect.KMutableProperty0
+import assimp.format.blender.ErrorPolicy as Ep
 
 /** Represents a data structure in a BLEND file. A Structure defines n fields and their locations and encodings the input stream. Usually, every
  *  Structure instance pertains to one equally-named data structure in the
@@ -163,7 +163,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if(!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
     }
 
     /** field parsing for 1d arrays */
@@ -194,7 +194,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if(!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
     }
 
     /** field parsing for 2d arrays */
@@ -556,8 +556,8 @@ class Structure {
         val d = dest() ?: Object().also { dest.set(it) }
 
         readField(Ep.Fail, d.id, "id")
-        readField(Ep.Fail, ::_e, "type")
-        d.type = Object.Type.of(_e)
+        readField(Ep.Fail, ::e, "type")
+        d.type = Object.Type of e
         readFieldArray2(Ep.Warn, d.obmat, "obmat")
         readFieldArray2(Ep.Warn, d.parentinv, "parentinv")
         d.parSubstr = readFieldString(Ep.Warn, "parsubstr")
@@ -589,19 +589,19 @@ class Structure {
 
         val d = dest() ?: MTex().also { dest.set(it) }
 
-        readField(Ep.Igno, ::_e, "mapto")
-        d.mapTo = MTex.MapType.of(_e)
-        readField(Ep.Igno, ::_e, "blendtype")
-        d.blendType = MTex.BlendType.of(_e)
+        readField(Ep.Igno, ::e, "mapto")
+        d.mapTo = MTex.MapType of e
+        readField(Ep.Igno, ::e, "blendtype")
+        d.blendType = MTex.BlendType of e
         readFieldPtr(Ep.Igno, d::object_, "*object")
         readFieldPtr(Ep.Igno, d::tex, "*tex")
         d.uvName = readFieldString(Ep.Igno, "uvname")
-        readField(Ep.Igno, ::_e, "projx")
-        d.projX = MTex.Projection.of(_e)
-        readField(Ep.Igno, ::_e, "projy")
-        d.projY = MTex.Projection.of(_e)
-        readField(Ep.Igno, ::_e, "projz")
-        d.projZ = MTex.Projection.of(_e)
+        readField(Ep.Igno, ::e, "projx")
+        d.projX = MTex.Projection of e
+        readField(Ep.Igno, ::e, "projy")
+        d.projY = MTex.Projection of e
+        readField(Ep.Igno, ::e, "projz")
+        d.projZ = MTex.Projection of e
         d.mapping = readFieldString(Ep.Igno, "mapping")
         readFieldFloatArray(Ep.Igno, d.ofs, "ofs")
         readFieldFloatArray(Ep.Igno, d.size, "size")
@@ -626,107 +626,99 @@ class Structure {
         db.reader.pos += size.i
     }
 
-    fun convertTFace(dest: KMutableProperty0<TFace>) {
+    fun convertTFace(dest: KMutableProperty0<TFace?>) {
 
-        val d = dest()
+        val d = dest() ?: TFace().also { dest.set(it) }
 
-        readFieldArray2(Ep.Fail, d.uv,"uv")
-        readFieldIntArray(Ep.Fail, d.col,"col")
-        readField(Ep.Igno, d::flag,"flag")
-        readField(Ep.Igno, d::mode,"mode")
-        readField(Ep.Igno, d::tile,"tile")
-        readField(Ep.Igno, d::unwrap,"unwrap")
+        readFieldArray2(Ep.Fail, d.uv, "uv")
+        readFieldIntArray(Ep.Fail, d.col, "col")
+        readField(Ep.Igno, d::flag, "flag")
+        readField(Ep.Igno, d::mode, "mode")
+        readField(Ep.Igno, d::tile, "tile")
+        readField(Ep.Igno, d::unwrap, "unwrap")
 
         db.reader.pos += size.i
     }
 
-    fun convertSubsurfModifierData(dest: KMutableProperty0<SubsurfModifierData>) {
+    fun convertSubsurfModifierData(dest: KMutableProperty0<SubsurfModifierData?>) {
 
-        val d = dest()
+        val d = dest() ?: SubsurfModifierData().also { dest.set(it) }
 
-        readField(Ep.Fail, d.modifier,"modifier")
-        readField(Ep.Warn, d::subdivType,"subdivType")
-        readField(Ep.Fail, d::levels,"levels")
-        readField(Ep.Igno, d::renderLevels,"renderLevels")
+        readField(Ep.Fail, d.modifier, "modifier")
+        readField(Ep.Warn, d::subdivType, "subdivType")
+        readField(Ep.Fail, d::levels, "levels")
+        readField(Ep.Igno, d::renderLevels, "renderLevels")
+        readField(Ep.Igno, d::flags, "flags")
+
+        db.reader.pos += size.i
+    }
+
+    fun convertMFace(dest: KMutableProperty0<MFace? >) {
+
+        val d = dest() ?: MFace().also { dest.set(it) }
+
+        readField(Ep.Fail, d::v1, "v1")
+        readField(Ep.Fail, d::v2, "v2")
+        readField(Ep.Fail, d::v3, "v3")
+        readField(Ep.Fail, d::v4, "v4")
+        readField(Ep.Fail, d::matNr, "mat_nr")
+        readField(Ep.Igno, d::flag, "flag")
+
+        db.reader.pos += size.i
+    }
+
+    fun convertLamp(dest: KMutableProperty0<Lamp?>) {
+
+        val d = dest() ?: Lamp().also { dest.set(it) }
+
+        readField(Ep.Fail, d::id,"id")
+        readField(Ep.Fail, ::e,"type")
+        d.type = Lamp.Type of e
         readField(Ep.Igno, d::flags,"flags")
+        readField(Ep.Igno, d::colorModel,"colormodel")
+        readField(Ep.Igno, d::totex,"totex")
+        readField(Ep.Warn, d::r,"r")
+        readField(Ep.Warn, d::g,"g")
+        readField(Ep.Warn, d::b,"b")
+        readField(Ep.Warn, d::k,"k")
+        readField(Ep.Igno, d::energy,"energy")
+        readField(Ep.Igno, d::dist,"dist")
+        readField(Ep.Igno, d::spotSize,"spotsize")
+        readField(Ep.Igno, d::spotBlend,"spotblend")
+        readField(Ep.Igno, d::att1,"att1")
+        readField(Ep.Igno, d::att2,"att2")
+        readField(Ep.Igno, ::e,"falloff_type")
+        d.falloffType = Lamp.FalloffType of e
+        readField(Ep.Igno, d::sunBrightness,"sun_brightness")
+        readField(Ep.Igno, d::areaSize,"area_size")
+        readField(Ep.Igno, d::areaSizeY,"area_sizey")
+        readField(Ep.Igno, d::areaSizeZ,"area_sizez")
+        readField(Ep.Igno, d::areaShape,"area_shape")
 
         db.reader.pos += size.i
     }
 
-    fun convertMFace (dest: KMutableProperty0<MFace>) {
+    fun convertMDeformWeight(dest: KMutableProperty0<MDeformWeight?>) {
 
-        ReadField<ErrorPolicy_Fail>(dest.v1,"v1",db);
-        ReadField<ErrorPolicy_Fail>(dest.v2,"v2",db);
-        ReadField<ErrorPolicy_Fail>(dest.v3,"v3",db);
-        ReadField<ErrorPolicy_Fail>(dest.v4,"v4",db);
-        ReadField<ErrorPolicy_Fail>(dest.mat_nr,"mat_nr",db);
-        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
+        val d = dest() ?: MDeformWeight().also { dest.set(it) }
 
-        db.reader->IncPtr(size);
+        readField(Ep.Fail, d::defNr,"def_nr")
+        readField(Ep.Fail, d::weight,"weight")
+
+        db.reader.pos += size.i
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Lamp> (
-//    Lamp& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        int temp = 0;
-//        ReadField<ErrorPolicy_Fail>(temp,"type",db);
-//        dest.type = static_cast<Assimp::Blender::Lamp::Type>(temp);
-//        ReadField<ErrorPolicy_Igno>(dest.flags,"flags",db);
-//        ReadField<ErrorPolicy_Igno>(dest.colormodel,"colormodel",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totex,"totex",db);
-//        ReadField<ErrorPolicy_Warn>(dest.r,"r",db);
-//        ReadField<ErrorPolicy_Warn>(dest.g,"g",db);
-//        ReadField<ErrorPolicy_Warn>(dest.b,"b",db);
-//        ReadField<ErrorPolicy_Warn>(dest.k,"k",db);
-//        ReadField<ErrorPolicy_Igno>(dest.energy,"energy",db);
-//        ReadField<ErrorPolicy_Igno>(dest.dist,"dist",db);
-//        ReadField<ErrorPolicy_Igno>(dest.spotsize,"spotsize",db);
-//        ReadField<ErrorPolicy_Igno>(dest.spotblend,"spotblend",db);
-//        ReadField<ErrorPolicy_Igno>(dest.att1,"att1",db);
-//        ReadField<ErrorPolicy_Igno>(dest.att2,"att2",db);
-//        ReadField<ErrorPolicy_Igno>(temp,"falloff_type",db);
-//        dest.falloff_type = static_cast<Assimp::Blender::Lamp::FalloffType>(temp);
-//        ReadField<ErrorPolicy_Igno>(dest.sun_brightness,"sun_brightness",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_size,"area_size",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_sizey,"area_sizey",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_sizez,"area_sizez",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_shape,"area_shape",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MDeformWeight> (
-//    MDeformWeight& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.def_nr,"def_nr",db);
-//        ReadField<ErrorPolicy_Fail>(dest.weight,"weight",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<PackedFile> (
-//    PackedFile& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Warn>(dest.size,"size",db);
-//        ReadField<ErrorPolicy_Warn>(dest.seek,"seek",db);
-//        ReadFieldPtr<ErrorPolicy_Warn>(dest.data,"*data",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+
+    fun convertPackedFile(dest: KMutableProperty0<PackedFile?>) {
+
+        val d = dest() ?: PackedFile().also { dest.set(it) }
+
+        readField(Ep.Warn, d::size,"size")
+        readField(Ep.Warn, d::seek,"seek")
+        readFieldPtr(Ep.Warn, d::data,"*data")
+
+        db.reader.pos += size.i
+    }
+
 
     fun convertBase(dest: KMutableProperty0<Base?>) {
         /*  note: as per https://github.com/assimp/assimp/issues/128, reading the Object linked list recursively is
@@ -736,7 +728,7 @@ class Structure {
         val initialPos = db.reader.pos
 
         var todo = (dest() ?: Base().also { dest.set(it) }) to initialPos
-        while(true) {
+        while (true) {
 
             val curDest = todo.first
             db.reader.pos = todo.second
@@ -745,11 +737,11 @@ class Structure {
                 so don't bother resolving the back links.             */
             curDest.prev = null
 
-            readFieldPtr(Ep.Warn, curDest::object_,"*object")
+            readFieldPtr(Ep.Warn, curDest::object_, "*object")
 
             /*  the return value of ReadFieldPtr indicates whether the object was already cached.
                 In this case, we don't need to resolve it again.    */
-            if(!readFieldPtr(Ep.Warn, curDest::next,"*next", true) && curDest.next != null) {
+            if (!readFieldPtr(Ep.Warn, curDest::next, "*next", true) && curDest.next != null) {
                 todo = (curDest.next ?: Base().also { curDest.next = it }) to db.reader.pos
                 continue
             }
@@ -969,7 +961,8 @@ class Structure {
     fun convertWorld(dest: KMutableProperty0<World?>) {
 
         val d = dest() ?: World().also { dest.set(it) }
-        readField(Ep.Fail, d.id,"id")
+
+        readField(Ep.Fail, d.id, "id")
 
         db.reader.pos += size.i
     }
@@ -1035,12 +1028,13 @@ class Structure {
 //    }
 //
 
-    fun convertGroupObject (dest: KMutableProperty0<GroupObject?>) {
+    fun convertGroupObject(dest: KMutableProperty0<GroupObject?>) {
 
         val d = dest() ?: GroupObject().also { dest.set(it) }
-        readFieldPtr(Ep.Fail, d::prev,"*prev")
-        readFieldPtr(Ep.Fail, d::next,"*next")
-        readFieldPtr(Ep.Igno, d::ob,"*ob")
+
+        readFieldPtr(Ep.Fail, d::prev, "*prev")
+        readFieldPtr(Ep.Fail, d::next, "*next")
+        readFieldPtr(Ep.Igno, d::ob, "*ob")
 
         db.reader.pos += size.i
     }
@@ -1131,9 +1125,9 @@ class Structure {
 
         readField(Ep.Fail, dest.id, "id")
         readFieldPtr(Ep.Warn, dest::camera, "*camera")
-        readFieldPtr(Ep.Warn, dest::world,"*world")
-        readFieldPtr(Ep.Warn, dest::basact,"*basact")
-        readField(Ep.Igno, dest.base,"base")
+        readFieldPtr(Ep.Warn, dest::world, "*world")
+        readFieldPtr(Ep.Warn, dest::basact, "*basact")
+        readField(Ep.Igno, dest.base, "base")
 
         db.reader.pos += size.i
 
@@ -1178,10 +1172,10 @@ class Structure {
         val d = dest() ?: Camera().also { dest.set(it) }
 
         readField(Ep.Fail, d.id, "id")
-        readField(Ep.Warn, ::_e, "type")
-        d.type = Camera.Type.of(_e)
-        readField(Ep.Warn, ::_e, "flag")
-        d.flag = Camera.Type.of(_e)
+        readField(Ep.Warn, ::e, "type")
+        d.type = Camera.Type of e
+        readField(Ep.Warn, ::e, "flag")
+        d.flag = Camera.Type of e
         readField(Ep.Warn, d::lens, "lens")
         readField(Ep.Warn, d::sensorX, "sensor_x")
         readField(Ep.Igno, d::clipSta, "clipsta")
@@ -1240,7 +1234,7 @@ class Structure {
 //    }
 
     companion object {
-        var _e = 0
+        var e = 0
         var isElem = false
     }
 }
