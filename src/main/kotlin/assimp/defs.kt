@@ -145,3 +145,7 @@ fun scaling( v:Vec3) = AiMatrix4x4().apply {
     b1 = v.y
     c2 = v.z
 }
+
+operator fun StringBuilder.plusAssign(c: Char) {
+    append(c)
+}

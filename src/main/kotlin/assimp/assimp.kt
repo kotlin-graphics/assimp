@@ -59,9 +59,11 @@ object ASSIMP {
 
         var DEBUG = true
 
-        var BLENDER_DEBUG = true
+        object BLENDER {
 
-        var BLENDER_NO_STATS = false
+            var DEBUG = true
+            var NO_STATS = false
+        }
 
         object NO {
 

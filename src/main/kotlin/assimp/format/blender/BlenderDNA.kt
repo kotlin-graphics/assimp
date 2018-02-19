@@ -45,6 +45,11 @@ package assimp.format.blender
 import assimp.*
 import glm_.*
 import java.nio.ByteBuffer
+import kotlin.reflect.KFunction0
+import kotlin.reflect.KFunction2
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
 
 /** @file  BlenderDNA.h
  *  @brief Blender `DNA` (file format specification embedded in
@@ -121,12 +126,13 @@ class FileOffset {
 //};
 
 /** Mixed flags for use in #Field */
-enum class FieldFlags { Pointer, Array;
+enum class FieldFlag { Pointer, Array;
 
     val i = ordinal + 1
 }
 
-infix fun Int.or(ff: FieldFlags) = or(ff.i)
+infix fun Int.or(ff: FieldFlag) = or(ff.i)
+infix fun Int.hasnt(ff: FieldFlag) = and(ff.i) == 0
 
 /** Represents a single member of a data structure in a BLEND file */
 class Field {
@@ -143,209 +149,17 @@ class Field {
     var flags = 0
 }
 
-//// -------------------------------------------------------------------------------
-///** Range of possible behaviours for fields absend in the input file. Some are
-// *  mission critical so we need them, while others can silently be default
-// *  initialized and no animations are harmed. */
-//// -------------------------------------------------------------------------------
-//enum ErrorPolicy {
-//    /** Substitute default value and ignore */
-//    ErrorPolicy_Igno,
-//            /** Substitute default value and write to log */
-//    ErrorPolicy_Warn,
-//            /** Substitute a massive error message and crash the whole matrix. Its time for another zion */
-//    ErrorPolicy_Fail
-//};
-//
-//#ifdef ASSIMP_BUILD_BLENDER_DEBUG
-//#   define ErrorPolicy_Igno ErrorPolicy_Warn
-//#endif
-//
-/** Represents a data structure in a BLEND file. A Structure defines n fields and their locations and encodings the input stream. Usually, every
- *  Structure instance pertains to one equally-named data structure in the
- *  BlenderScene.h header. This class defines various utilities to map a
- *  binary `blob` read from the file to such a structure instance with
- *  meaningful contents. */
-// -------------------------------------------------------------------------------
-class Structure {
-
-    // publicly accessible members
-    var name = ""
-    val fields = ArrayList<Field>()
-    val indices = mutableMapOf<String, Long>()
-
-    var size = 0L
-
-    var cacheIdx = -1L
-
-    /** Access a field of the structure by its canonical name. The pointer version returns NULL on failure while
-     *  the reference version raises an import error. */
-    operator fun get(ss: String) = indices[ss]
-            ?: throw Error("BlendDNA: Did not find a field named `$ss` in structure `$name`")
-//    fun get_(ss:String) =
-
-    /** Access a field of the structure by its index */
-    operator fun get(i: Long) = fields.getOrElse(i.i) { throw Error("BlendDNA: There is no field with index `$i` in structure `$name`") }
-
-    override fun equals(other: Any?) = other is Structure && name == other.name // name is meant to be an unique identifier
-
-    /** Try to read an instance of the structure from the stream and attempt to convert to `T`. This is done by an
-     *  appropriate specialization. If none is available, a compiler complain is the result.
-     *  @param dest Destination value to be written
-     *  @param db File database, including input stream. */
-    inline fun <reified T> convert(db: FileDatabase): T {
-        return when (T::class) {
-            Int::class -> convertDispatcher(db)
-            Short::class -> when (name) {
-            // automatic rescaling from short to float and vice versa (seems to be used by normals)
-                "float" -> {
-                    var f = db.reader.float
-                    if (f > 1f) f = 1f
-                    (f * 32767f).s
-                }
-                "double" -> db.reader.double * 32767.0
-                else -> convertDispatcher(db)
-            }
-            Char::class -> when (name) {
-            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
-                "float" -> db.reader.float * 255f
-                "double" -> db.reader.double * 255f
-                else -> convertDispatcher(db)
-            }
-            Float::class, Double::class -> when (name) {
-            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
-                "char" -> db.reader.get() / 255f
-            // automatic rescaling from short to float and vice versa (used by normals)
-                "short" -> db.reader.short / 32767f
-                else -> convertDispatcher(db)
-            }
-            else -> Unit
-        } as T
-    }
-
-    fun <T> convertDispatcher(db: FileDatabase): T = when (name) {
-        "int" -> db.reader.int as T
-        "short" -> db.reader.short as T
-        "char" -> db.reader.get().c as T
-        "float" -> db.reader.float as T
-        "double" -> db.reader.double as T
-        else -> throw Error("Unknown source for conversion to primitive data type: $name")
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + fields.hashCode()
-        result = 31 * result + indices.hashCode()
-        result = 31 * result + size.hashCode()
-        result = 31 * result + cacheIdx.hashCode()
-        return result
-    }
-
-//    // --------------------------------------------------------
-//    // field parsing for 1d arrays
-//    template <int error_policy, typename T, size_t M>
-//    void ReadFieldArray(T (& out )[M], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for 2d arrays
-//    template <int error_policy, typename T, size_t M, size_t N>
-//    void ReadFieldArray2(T (& out )[M][N], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for pointer or dynamic array types
-//    // (std::shared_ptr)
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, template <typename>
-//    class TOUT, typename T>
-//    bool ReadFieldPtr(TOUT<T>& out , const char* name,
-//    const FileDatabase& db,
-//    bool non_recursive = false) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for static arrays of pointer or dynamic
-//    // array types (std::shared_ptr[])
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, template <typename>
-//    class TOUT, typename T, size_t N>
-//    bool ReadFieldPtr(TOUT<T> (&out )[N], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for `normal` values
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, typename T>
-//    void ReadField(T& out , const char* name,
-//    const FileDatabase& db) const
-//
-//    private :
-//
-//    // --------------------------------------------------------
-//    template <template <typename>
-//    class TOUT, typename T>
-//    bool ResolvePointer(TOUT<T>& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f,
-//    bool non_recursive = false) const
-//
-//    // --------------------------------------------------------
-//    template <template <typename>
-//    class TOUT, typename T>
-//    bool ResolvePointer(vector< TOUT<T> >& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f, bool) const
-//
-//    // --------------------------------------------------------
-//    bool ResolvePointer( std::shared_ptr< FileOffset >& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f, bool) const
-//
-//    // --------------------------------------------------------
-//    inline const FileBlockHead* LocateFileBlockForAddress(
-//    const Pointer & ptrval,
-//    const FileDatabase& db) const
-//
-//    private :
-//
-//    // ------------------------------------------------------------------------------
-//    template <typename T> T* _allocate(std::shared_ptr<T>& out , size_t& s)
-//    const {
-//        out = std::shared_ptr<T>(new T ())
-//        s = 1
-//        return out.get()
-//    }
-//
-//    template <typename T> T* _allocate(vector<T>& out , size_t& s)
-//    const {
-//        out.resize(s)
-//        return s ? &out.front() : NULL
-//    }
-//
-//    // --------------------------------------------------------
-//    template <int error_policy>
-//    struct _defaultInitializer
-//    {
-//
-//        template < typename T, unsigned int N>
-//        void operator ()(T(& out)[N], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        out[i] = T()
-//    }
-//    }
-//
-//        template < typename T, unsigned int N, unsigned int M>
-//        void operator ()(T(& out)[N][M], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        for (unsigned int j = 0; j < M; ++j) {
-//        out[i][j] = T()
-//    }
-//    }
-//    }
-//
-//        template < typename T >
-//        void operator ()(T& out, const char* = NULL) {
-//        out = T()
-//    }
-//    }
+/** Range of possible behaviours for fields absend in the input file. Some are mission critical so we need them,
+ *  while others can silently be default initialized and no animations are harmed.  */
+enum class ErrorPolicy {
+    /** Substitute default value and write to log */
+    Warn,
+    /** Substitute a massive error message and crash the whole matrix. Its time for another zion */
+    Fail,
+    /** Substitute default value and ignore */
+    Igno
 }
+
 //
 //// --------------------------------------------------------
 //template <>  struct Structure :: _defaultInitializer<ErrorPolicy_Warn> {
@@ -384,13 +198,15 @@ class Structure {
  *  #DnaParser does the reading and represents currently the only place where DNA is altered.*/
 class DNA {
 
-    val converters = mutableMapOf<String, Pair<ElemBase, (ElemBase, FileDatabase) -> Unit>>()
     val structures = ArrayList<Structure>()
     val indices = mutableMapOf<String, Long>()
 
     /** Access a structure by its canonical name, the pointer version returns NULL on failure while the reference
      *  version raises an error. */
-    operator fun get(ss: String) = indices.get(ss) ?: throw Error("BlendDNA: Did not find a structure named `$ss`")
+    operator fun get(ss: String): Structure {
+        val index = indices[ss] ?: throw Exception("BlendDNA: Did not find a structure named `$ss`")
+        return structures[index.i]
+    }
 
     /** Access a structure by its index */
     operator fun get(i: Long) = structures.getOrElse(i.i) { throw Error("BlendDNA: There is no structure with index `$i`") }
@@ -425,7 +241,7 @@ class DNA {
      *  Converters are used to quickly handle objects whose exact data type is a runtime-property and not yet known
      *  at compile time (consier Object::data).*/
     fun registerConverters() {
-//        converters["Object"] = Pair(Object(), Structure::Convert<Object>);
+//        converters["Object"] = ::Object to ::convertObject
 //        converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
 //        converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
 //        converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
@@ -455,7 +271,9 @@ class DNA {
 //        converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
 //        converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //        converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-//        converters["Camera"] = DNA::FactoryPair( &Structure::Allocate<Camera>, &Structure::Convert<Camera> );
+//        converters["Camera"] = ::Camera to Structure::convertCamera
+//        converters["Camera"] = 0 to Structure::convertCamera
+//        converters["Camera"] = ::Camera to 0
 //        converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
 //        converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
     }
@@ -473,19 +291,50 @@ class DNA {
 //    const FileDatabase& db
 //    ) const
 //
-//    // --------------------------------------------------------
-//    /** Find a suitable conversion function for a given Structure.
-//     *  Such a converter function takes a blob from the input
-//     *  stream, reads as much as it needs, and builds up a
-//     *  complete object in intermediate representation.
-//     *  @param structure Destination structure definition
-//     *  @param db File database.
-//     *  @return A null pointer in .first if no appropriate converter is available.*/
-//    FactoryPair GetBlobToStructureConverter(
-//    const Structure& structure,
-//    const FileDatabase& db
-//    ) const
-//
+
+    /** Find a suitable conversion function for a given Structure.
+     *  Such a converter function takes a blob from the input stream, reads as much as it needs, and builds up a
+     *  complete object in intermediate representation.
+     *  @param structure Destination structure definition
+     *  @param db File database.
+     *  @return A null pointer in .first if no appropriate converter is available.  */
+    fun getBlobToStructureConverter(structure: Structure) = when (structure.name) {
+        "Object" -> ::Object to Structure::convertObject
+//            converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
+//            converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
+//            converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
+//            converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
+//            converters["MFace"] = DNA::FactoryPair( &Structure::Allocate<MFace>, &Structure::Convert<MFace> );
+//            converters["Lamp"] = DNA::FactoryPair( &Structure::Allocate<Lamp>, &Structure::Convert<Lamp> );
+//            converters["MDeformWeight"] = DNA::FactoryPair( &Structure::Allocate<MDeformWeight>, &Structure::Convert<MDeformWeight> );
+//            converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
+//            converters["Base"] = DNA::FactoryPair( &Structure::Allocate<Base>, &Structure::Convert<Base> );
+//            converters["MTFace"] = DNA::FactoryPair( &Structure::Allocate<MTFace>, &Structure::Convert<MTFace> );
+//            converters["Material"] = DNA::FactoryPair( &Structure::Allocate<Material>, &Structure::Convert<Material> );
+//            converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
+//            converters["Mesh"] = DNA::FactoryPair( &Structure::Allocate<Mesh>, &Structure::Convert<Mesh> );
+//            converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
+//            converters["World"] = DNA::FactoryPair( &Structure::Allocate<World>, &Structure::Convert<World> );
+//            converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
+//            converters["MVert"] = DNA::FactoryPair( &Structure::Allocate<MVert>, &Structure::Convert<MVert> );
+//            converters["MEdge"] = DNA::FactoryPair( &Structure::Allocate<MEdge>, &Structure::Convert<MEdge> );
+//            converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
+//            converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
+//            converters["ListBase"] = DNA::FactoryPair( &Structure::Allocate<ListBase>, &Structure::Convert<ListBase> );
+//            converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
+//            converters["ModifierData"] = DNA::FactoryPair( &Structure::Allocate<ModifierData>, &Structure::Convert<ModifierData> );
+//            converters["ID"] = DNA::FactoryPair( &Structure::Allocate<ID>, &Structure::Convert<ID> );
+//            converters["MCol"] = DNA::FactoryPair( &Structure::Allocate<MCol>, &Structure::Convert<MCol> );
+//            converters["MPoly"] = DNA::FactoryPair( &Structure::Allocate<MPoly>, &Structure::Convert<MPoly> );
+//            converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
+//            converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
+//            converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
+//        "Camera" -> ::Camera to Structure::convertCamera
+//            converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
+//            converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
+        else -> null to null
+    }
+
 //
 //    #ifdef ASSIMP_BUILD_BLENDER_DEBUG
 //    // --------------------------------------------------------
@@ -524,7 +373,7 @@ class DNA {
 //
 /** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
  *  (or otherwise unspecified data). */
-class FileBlockHead() {
+class FileBlockHead() : Comparable<FileBlockHead> {
     /** points right after the header of the file block */
     var start = 0
 
@@ -550,12 +399,7 @@ class FileBlockHead() {
     }
 
     // file blocks are sorted by address to quickly locate specific memory addresses
-//    bool operator < (const FileBlockHead& o)
-//    const {
-//        return address.
-//                val <o.address.
-//        val;
-//    }
+    override fun compareTo(other: FileBlockHead) = address.compareTo(other.address)
 //
 //    // for std::upper_bound
 //    operator const Pointer& ()
@@ -570,17 +414,20 @@ class FileBlockHead() {
 //}
 //
 /** Utility to read all master file blocks in turn. */
-class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
+class SectionParser {
 
-    val current = FileBlockHead()
+    val stream = db.reader
+    val ptr64 = db.i64bit
+
+    val current = FileBlockHead().apply { start = 12 }
 
     /** Advance to the next section.
      *  @throw DeadlyImportError if the last chunk was passed. */
     fun next() {
 
-        if(stream.pos + current.size >= stream.size)
-            println()
-        stream.pos += current.size
+//        if(stream.pos + current.size >= stream.size)
+//            println()
+        stream.pos = current.start + current.size
 
         val tmp = CharArray(4) { stream.get().c }
         current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)
@@ -598,96 +445,70 @@ class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 }
 
 
-//#ifndef ASSIMP_BUILD_BLENDER_NO_STATS
-//// -------------------------------------------------------------------------------
-///** Import statistics, i.e. number of file blocks read*/
-//// -------------------------------------------------------------------------------
-//class Statistics {
-//
-//    public:
-//
-//    Statistics ()
-//    : fields_read       ()
-//    , pointers_resolved ()
-//    , cache_hits        ()
-////      , blocks_read       ()
-//    , cached_objects    ()
-//    {}
-//
-//    public:
-//
-//    /** total number of fields we read */
-//    unsigned int fields_read;
-//
-//    /** total number of resolved pointers */
-//    unsigned int pointers_resolved;
-//
-//    /** number of pointers resolved from the cache */
-//    unsigned int cache_hits;
-//
-//    /** number of blocks (from  FileDatabase::entries)
-//    we did actually read from. */
-//    // unsigned int blocks_read;
-//
-//    /** objects in FileData::cache */
-//    unsigned int cached_objects;
-//};
-//#endif
-//
-//// -------------------------------------------------------------------------------
-///** The object cache - all objects addressed by pointers are added here. This
-// *  avoids circular references and avoids object duplication. */
-//// -------------------------------------------------------------------------------
-//template <template <typename> class TOUT>
-//class ObjectCache
-//{
-//    public:
-//
-//    typedef std::map< Pointer, TOUT<ElemBase> > StructureCache;
-//
-//    public:
-//
-//    ObjectCache(const FileDatabase& db)
-//    : db(db)
-//    {
-//        // currently there are only ~400 structure records per blend file.
-//        // we read only a small part of them and don't cache objects
-//        // which we don't need, so this should suffice.
-//        caches.reserve(64);
-//    }
-//
-//    public:
-//
-//    // --------------------------------------------------------
-//    /** Check whether a specific item is in the cache.
-//     *  @param s Data type of the item
-//     *  @param out Output pointer. Unchanged if the
-//     *   cache doens't know the item yet.
-//     *  @param ptr Item address to look for. */
-//    template <typename T> void get (
-//    const Structure& s,
-//    TOUT<T>& out,
-//    const Pointer& ptr) const;
-//
-//    // --------------------------------------------------------
-//    /** Add an item to the cache after the item has
-//     * been fully read. Do not insert anything that
-//     * may be faulty or might cause the loading
-//     * to abort.
-//     *  @param s Data type of the item
-//     *  @param out Item to insert into the cache
-//     *  @param ptr address (cache key) of the item. */
-//    template <typename T> void set
-//    (const Structure& s,
-//    const TOUT<T>& out,
-//    const Pointer& ptr);
-//
-//    private:
-//
-//    mutable vector<StructureCache> caches;
-//    const FileDatabase& db;
-//};
-//
+/** Import statistics, i.e. number of file blocks read*/
+class Statistics {
+
+    /** total number of fields we read */
+    var fieldsRead = 0
+
+    /** total number of resolved pointers */
+    var pointersResolved = 0
+
+    /** number of pointers resolved from the cache */
+    var cacheHits = 0
+
+    /** number of blocks (from  FileDatabase::entries) we did actually read from. */
+    var blocksRead = 0
+
+    /** objects in FileData::cache */
+    var cachedObjects = 0
+}
+
+/** The object cache - all objects addressed by pointers are added here. This avoids circular references and avoids
+ *  object duplication. */
+class ObjectCache(val db: FileDatabase) {
+
+    /** Currently there are only ~400 structure records per blend file. We read only a small part of them and don't
+     *  cache objects which we don't need, so this should suffice.  */
+    val caches = ArrayList<MutableMap<Long, ElemBase>>(64)
+
+    /** Check whether a specific item is in the cache.
+     *  @param s Data type of the item
+     *  @param out Output pointer. Unchanged if the cache doens't know the item yet.
+     *  @param ptr Item address to look for. */
+    fun <T> get(s: Structure, out: KMutableProperty0<T>, ptr: Long) {
+
+        if (s.cacheIdx == -1L) {
+            s.cacheIdx = db.nextCacheIdx++
+            caches += mutableMapOf()
+            return
+        }
+
+        caches[s.cacheIdx.i][ptr]?.let {
+
+            out.set(it as T)
+
+            if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.cacheHits
+        }
+        // otherwise, out remains untouched
+    }
+
+    /** Add an item to the cache after the item has been fully read. Do not insert anything that may be faulty or might
+     *  cause the loading to abort.
+     *  @param s Data type of the item
+     *  @param out Item to insert into the cache
+     *  @param ptr address (cache key) of the item. */
+    fun <T> set(s: Structure, out: KMutableProperty0<T>, ptr: Long) {
+        if (s.cacheIdx == -1L) {
+            s.cacheIdx = db.nextCacheIdx++
+            caches.ensureCapacity(db.nextCacheIdx.i)
+        }
+        caches[s.cacheIdx.i][ptr] = out() as ElemBase
+
+        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.cachedObjects
+    }
+}
+
 //// -------------------------------------------------------------------------------
 //// -------------------------------------------------------------------------------
 //template <> class ObjectCache<Blender::vector>
@@ -716,46 +537,19 @@ class FileDatabase {
     lateinit var reader: ByteBuffer
     val entries = ArrayList<FileBlockHead>()
 
-//    public :
-//
-//    Statistics& stats()
-//    const {
-//        return _stats
-//    }
-//
-//    // For all our templates to work on both shared_ptr's and vector's
-//    // using the same code, a dummy cache for arrays is provided. Actually,
-//    // arrays of objects are never cached because we can't easily
-//    // ensure their proper destruction.
-//    template <typename T>
-//    ObjectCache<std::shared_ptr>& cache(std::shared_ptr<T>& /*in*/)
-//    const {
-//        return _cache
-//    }
-//
-//    template <typename T>
-//    ObjectCache<vector>& cache(vector<T>& /*in*/)
-//    const {
-//        return _cacheArrays
-//    }
-//
-//    private :
-//
-//
-//    #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
-//    mutable Statistics _stats
-//    #endif
-//
-//    mutable ObjectCache<vector> _cacheArrays
-//    mutable ObjectCache<std::shared_ptr> _cache
-//
-//    mutable size_t next_cache_idx
+    val stats = Statistics()
+
+    /** For all our templates to work on both shared_ptr's and vector's using the same code, a dummy cache for arrays is
+     *  provided. Actually, arrays of objects are never cached because we can't easily ensure their proper destruction. */
+    val cache = ObjectCache(this)
+
+    val cacheArrays = ArrayList<ObjectCache>()
+
+    var nextCacheIdx = 0L
 }
 
 /** Factory to extract a #DNA from the DNA1 file block in a BLEND file. */
-class DnaParser(
-        /** Bind the parser to a empty DNA and an input stream */
-        val db: FileDatabase) {
+class DnaParser {
 
     /** Locate the DNA in the file and parse it. The input stream is expected to point to the beginning of the DN1 chunk
      *  at the time this method is called and is undefined afterwards.
@@ -833,7 +627,7 @@ class DnaParser(
                     The pointer asterisk remains a property of the lookup name.                 */
                 if (f.name[0] == '*') {
                     f.size = if (db.i64bit) 8 else 4
-                    f.flags = f.flags or FieldFlags.Pointer
+                    f.flags = f.flags or FieldFlag.Pointer
                 }
 
                 /*  arrays, however, specify the size of a single element so we need to parse the (possibly
@@ -844,7 +638,7 @@ class DnaParser(
                     val rb = f.name.indexOf('[')
                     if (rb == -1) throw Error("BlenderDNA: Encountered invalid array declaration ${f.name}")
 
-                    f.flags = f.flags or FieldFlags.Array
+                    f.flags = f.flags or FieldFlag.Array
                     DNA.extractArraySize(f.name, f.arraySizes)
                     f.name = f.name.substring(0, rb)
 

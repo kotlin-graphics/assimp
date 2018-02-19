@@ -20,6 +20,8 @@ lateinit var buffer: ByteBuffer
 
 val tokens = "BLENDER"
 
+lateinit var db: FileDatabase
+
 class BlenderImporter : BaseImporter() {
 
     /** Returns whether the class can handle the format of the given file.  */
@@ -46,7 +48,7 @@ class BlenderImporter : BaseImporter() {
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: URI, aiScene: AiScene) {
 
         val fileChannel = RandomAccessFile(File(file), "r").channel
         buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
@@ -77,7 +79,7 @@ class BlenderImporter : BaseImporter() {
             buffer.pos += tokens.length
         }
 
-        val db = FileDatabase().apply {
+        db = FileDatabase().apply {
             i64bit = buffer.get().c == '-'
             little = buffer.get().c == 'v'
         }
@@ -87,22 +89,21 @@ class BlenderImporter : BaseImporter() {
 
         db.reader = buffer
 
-        parseBlendFile(db)
+        parseBlendFile()
 
-//        Scene scene;
-//        ExtractScene(scene,file);
-//
+        val scene = extractScene()
+
 //        ConvertBlendFile(pScene,scene,file);
     }
 
-    fun parseBlendFile(out: FileDatabase) {
+    fun parseBlendFile() {
 
-        val dnaReader = DnaParser(out)
+        val dnaReader = DnaParser()
         var dna: DNA? = null
 
-        out.entries.ensureCapacity(128)
+        db.entries.ensureCapacity(128)
         // even small BLEND files tend to consist of many file blocks
-        val parser = SectionParser(out.reader, out.i64bit)
+        val parser = SectionParser()
 
         // first parse the file in search for the DNA and insert all other sections into the database
         while (true) {
@@ -117,10 +118,44 @@ class BlenderImporter : BaseImporter() {
                 continue
             }
 
-            out.entries += head
+            db.entries += head
         }
         if (dna == null) throw Error("SDNA not found")
 
-//        std::sort(out.entries.begin(), out.entries.end());
+        db.entries.sort()
     }
+
+    fun extractScene(): Scene {
+
+        val index = db.dna.indices["Scene"]?.i ?: throw Error("There is no `Scene` structure record")
+
+        val ss = db.dna.structures[index]
+
+        // we need a scene somewhere to start with.
+        val block = db.entries.find {
+            // Fix: using the DNA index is more reliable to locate scenes
+            //if (bl.id == "SC") {
+            it.dnaIndex == index
+        } ?: throw Error("There is not a single `Scene` record to load")
+
+        db.reader.pos = block.start
+        val out = ss.convertScene()
+//
+//        #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
+//                DefaultLogger::get()->info((format(),
+//        "(Stats) Fields read: " , file.stats().fields_read,
+//        ", pointers resolved: " , file.stats().pointers_resolved,
+//        ", cache hits: "        , file.stats().cache_hits,
+//        ", cached objects: "    , file.stats().cached_objects
+//        ));
+//        #endif
+
+        return out
+    }
+}
+
+fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {
+    ErrorPolicy.Warn -> logger.warn { "value: $value, $message" }
+    ErrorPolicy.Fail -> throw Error( "value: $value, $message" )
+    ErrorPolicy.Igno -> if (ASSIMP.BUILD.BLENDER.DEBUG) error(ErrorPolicy.Warn, value, message) else Unit
 }

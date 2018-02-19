@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.blender
 
 import assimp.NUL
+import glm_.s
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.
@@ -97,7 +98,7 @@ var maxNameLen = 1024
 
 class Id : ElemBase() {
     var name = ""
-    var flag = 0
+    var flag = 0.s
 }
 
 class ListBase : ElemBase() {
@@ -181,23 +182,25 @@ class World : ElemBase() {
 //    char r, g, b, a FAIL;
 //};
 //
-//// -------------------------------------------------------------------------------
-//struct MFace : ElemBase {
-//    int v1, v2, v3, v4 FAIL;
-//    int mat_nr FAIL;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct TFace : ElemBase {
-//    float uv [4][2] FAIL;
-//    int col [4] FAIL;
-//    char flag;
-//    short mode;
-//    short tile;
-//    short unwrap;
-//};
-//
+class MFace : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var v3 = 0
+    var v4 = 0
+    var matNr = 0
+    var flag = '\u0000'
+}
+
+
+class TFace : ElemBase() {
+    var uv = Array(4) { FloatArray(2) }
+    var col = IntArray(4)
+    var flag = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var unwrap = 0.s
+}
+
 //// -------------------------------------------------------------------------------
 //struct MTFace : ElemBase {
 //    MTFace()
@@ -235,6 +238,7 @@ val MA_RAYTRANSP = 0x20000
 val MA_ZTRANSP = 0x00040
 
 class Material : ElemBase() {
+
     var id = Id()
 
     var r = 0f
@@ -390,21 +394,25 @@ class Material : ElemBase() {
 //    std::shared_ptr<Library> parent WARN;
 //};
 //
-//// -------------------------------------------------------------------------------
-//struct Camera : ElemBase {
-//    enum Type {
-//        Type_PERSP = 0
-//        ,Type_ORTHO = 1
-//    };
-//
-//    ID id FAIL;
-//
-//    Type type, flag WARN;
-//    float lens WARN;
-//    float sensor_x WARN;
-//    float clipsta, clipend;
-//};
-//
+
+class Camera : ElemBase() {
+    enum class Type { PERSP, ORTHO, INVALID;
+
+        companion object {
+            fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    var id = Id()
+
+    var type = Type.PERSP
+    var flag = Type.PERSP
+    var lens = 0f
+    var sensorX = 0f
+    var clipSta = 0f
+    var clipEnd = 0f
+}
+
 //
 //// -------------------------------------------------------------------------------
 //struct Lamp : ElemBase {
@@ -506,27 +514,25 @@ class ModifierData : ElemBase() {
     var name = ""
 }
 
-// -------------------------------------------------------------------------------
-//struct SubsurfModifierData : ElemBase  {
-//
-//    enum Type {
-//
-//        TYPE_CatmullClarke = 0x0,
-//        TYPE_Simple = 0x1
-//    };
-//
-//    enum Flags {
-//        // some omitted
-//        FLAGS_SubsurfUV = 1 < <3
-//    };
-//
-//    ModifierData modifier FAIL;
-//    short subdivType WARN;
-//    short levels FAIL;
-//    short renderLevels;
-//    short flags;
-//};
-//
+class SubsurfModifierData : ElemBase()  {
+
+    enum class Type { CatmullClarke, Simple;
+
+        val i = ordinal
+    }
+
+    enum class Flags(val i: Int) {
+        // some omitted
+        SubsurfUV (1 shl 3)
+    }
+
+    var modifier = ModifierData()
+    var subdivType = 0.s
+    var levels = 0.s
+    var renderLevels = 0.s
+    var flags = 0.s
+}
+
 //// -------------------------------------------------------------------------------
 //struct MirrorModifierData : ElemBase {
 //
@@ -563,13 +569,17 @@ class Object : ElemBase() {
         CAMERA(11),
 
         WAVE(21),
-        LATTICE(22),
+        LATTICE(22);
+
+        companion object {
+            fun of(i: Int) = values().first { it.i == i }
+        }
     }
 
     var type = Type.EMPTY
     val obmat = Array(4) { FloatArray(4) }
     val parentinv = Array(4) { FloatArray(4) }
-    var parsubstr = ""
+    var parSubstr = ""
 
     var parent: Object? = null
     var track: Object? = null
@@ -580,7 +590,7 @@ class Object : ElemBase() {
     var dupGroup: Group? = null
     var data: ElemBase? = null
 
-    var modifiers: ListBase? = null
+    var modifiers = ListBase()
 }
 
 
@@ -598,7 +608,7 @@ class Scene : ElemBase() {
     var world: World? = null
     var basact: Base? = null
 
-    var base: ListBase? = null
+    var base = ListBase()
 }
 
 class Image : ElemBase() {
@@ -708,6 +718,10 @@ class MTex : ElemBase() {
     enum class Projection { N, X, Y, Z;
 
         val i = ordinal
+
+        companion object {
+            fun of(i: Int) = values()[i]
+        }
     }
 
     enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10) }
@@ -715,17 +729,25 @@ class MTex : ElemBase() {
     enum class BlendType { BLEND, MUL, ADD, SUB, DIV, DARK, DIFF, LIGHT, SCREEN, OVERLAY, BLEND_HUE, BLEND_SAT, BLEND_VAL, BLEND_COLOR;
 
         val i = ordinal
+
+        companion object {
+            fun of(i: Int) = values()[i]
+        }
     }
 
     enum class MapType { COL, NORM, COLSPEC, COLMIR, REF, SPEC, EMIT, ALPHA, HAR, RAYMIRR, TRANSLU, AMB, DISPLACE, WARP;
 
         val i = 1 shl ordinal
+
+        companion object {
+            fun of(i: Int) = values()[i]
+        }
     }
 
     // short texco, maptoneg;
     var mapTo = MapType.COL
 
-    var blendtype = BlendType.BLEND
+    var blendType = BlendType.BLEND
     var object_: Object? = null
     var tex: Tex? = null
     var uvName = ""
