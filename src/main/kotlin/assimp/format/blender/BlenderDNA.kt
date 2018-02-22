@@ -299,7 +299,7 @@ class DNA {
      *  @param db File database.
      *  @return A null pointer in .first if no appropriate converter is available.  */
     fun getBlobToStructureConverter(structure: Structure) = when (structure.name) {
-        "Object" -> ::Object to Structure::convertObject
+        "Object" -> ::Object to (Structure::convertObject as Structure.(KMutableProperty0<ElemBase>) -> Unit)
 //            converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
 //            converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
 //            converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
@@ -329,7 +329,7 @@ class DNA {
 //            converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
 //            converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //            converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-//        "Camera" -> ::Camera to Structure::convertCamera
+        "Camera" -> ::Camera to (Structure::convertCamera as Structure.(KMutableProperty0<ElemBase>) -> Unit)
 //            converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
 //            converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
         else -> null to null
