@@ -653,52 +653,52 @@ class Structure {
         db.reader.pos += size.i
     }
 
-    fun convertMFace (dest: KMutableProperty0<MFace>) {
+    fun convertMFace (dest: KMutableProperty0<MFace?>) {
 
-        ReadField<ErrorPolicy_Fail>(dest.v1,"v1",db);
-        ReadField<ErrorPolicy_Fail>(dest.v2,"v2",db);
-        ReadField<ErrorPolicy_Fail>(dest.v3,"v3",db);
-        ReadField<ErrorPolicy_Fail>(dest.v4,"v4",db);
-        ReadField<ErrorPolicy_Fail>(dest.mat_nr,"mat_nr",db);
-        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
+        val d = dest() ?: MFace().also { dest.set(it) }
+
+        readField(Ep.Fail, d::v1,"v1")
+        readField(Ep.Fail, d::v2,"v2")
+        readField(Ep.Fail, d::v3,"v3")
+        readField(Ep.Fail, d::v4,"v4")
+        readField(Ep.Fail, d::matNr,"mat_nr")
+        readField(Ep.Igno, d::flag,"flag")
+
+        db.reader.pos += size.i
+    }
+
+    fun convertLamp(dest: KMutableProperty0<Lamp?>,
+    const FileDatabase& db
+    ) const
+    {
+
+        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
+        int temp = 0;
+        ReadField<ErrorPolicy_Fail>(temp,"type",db);
+        dest.type = static_cast<Assimp::Blender::Lamp::Type>(temp);
+        ReadField<ErrorPolicy_Igno>(dest.flags,"flags",db);
+        ReadField<ErrorPolicy_Igno>(dest.colormodel,"colormodel",db);
+        ReadField<ErrorPolicy_Igno>(dest.totex,"totex",db);
+        ReadField<ErrorPolicy_Warn>(dest.r,"r",db);
+        ReadField<ErrorPolicy_Warn>(dest.g,"g",db);
+        ReadField<ErrorPolicy_Warn>(dest.b,"b",db);
+        ReadField<ErrorPolicy_Warn>(dest.k,"k",db);
+        ReadField<ErrorPolicy_Igno>(dest.energy,"energy",db);
+        ReadField<ErrorPolicy_Igno>(dest.dist,"dist",db);
+        ReadField<ErrorPolicy_Igno>(dest.spotsize,"spotsize",db);
+        ReadField<ErrorPolicy_Igno>(dest.spotblend,"spotblend",db);
+        ReadField<ErrorPolicy_Igno>(dest.att1,"att1",db);
+        ReadField<ErrorPolicy_Igno>(dest.att2,"att2",db);
+        ReadField<ErrorPolicy_Igno>(temp,"falloff_type",db);
+        dest.falloff_type = static_cast<Assimp::Blender::Lamp::FalloffType>(temp);
+        ReadField<ErrorPolicy_Igno>(dest.sun_brightness,"sun_brightness",db);
+        ReadField<ErrorPolicy_Igno>(dest.area_size,"area_size",db);
+        ReadField<ErrorPolicy_Igno>(dest.area_sizey,"area_sizey",db);
+        ReadField<ErrorPolicy_Igno>(dest.area_sizez,"area_sizez",db);
+        ReadField<ErrorPolicy_Igno>(dest.area_shape,"area_shape",db);
 
         db.reader->IncPtr(size);
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Lamp> (
-//    Lamp& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        int temp = 0;
-//        ReadField<ErrorPolicy_Fail>(temp,"type",db);
-//        dest.type = static_cast<Assimp::Blender::Lamp::Type>(temp);
-//        ReadField<ErrorPolicy_Igno>(dest.flags,"flags",db);
-//        ReadField<ErrorPolicy_Igno>(dest.colormodel,"colormodel",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totex,"totex",db);
-//        ReadField<ErrorPolicy_Warn>(dest.r,"r",db);
-//        ReadField<ErrorPolicy_Warn>(dest.g,"g",db);
-//        ReadField<ErrorPolicy_Warn>(dest.b,"b",db);
-//        ReadField<ErrorPolicy_Warn>(dest.k,"k",db);
-//        ReadField<ErrorPolicy_Igno>(dest.energy,"energy",db);
-//        ReadField<ErrorPolicy_Igno>(dest.dist,"dist",db);
-//        ReadField<ErrorPolicy_Igno>(dest.spotsize,"spotsize",db);
-//        ReadField<ErrorPolicy_Igno>(dest.spotblend,"spotblend",db);
-//        ReadField<ErrorPolicy_Igno>(dest.att1,"att1",db);
-//        ReadField<ErrorPolicy_Igno>(dest.att2,"att2",db);
-//        ReadField<ErrorPolicy_Igno>(temp,"falloff_type",db);
-//        dest.falloff_type = static_cast<Assimp::Blender::Lamp::FalloffType>(temp);
-//        ReadField<ErrorPolicy_Igno>(dest.sun_brightness,"sun_brightness",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_size,"area_size",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_sizey,"area_sizey",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_sizez,"area_sizez",db);
-//        ReadField<ErrorPolicy_Igno>(dest.area_shape,"area_shape",db);
-//
-//        db.reader->IncPtr(size);
-//    }
 //
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MDeformWeight> (
