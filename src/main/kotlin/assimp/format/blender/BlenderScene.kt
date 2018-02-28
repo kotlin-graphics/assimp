@@ -129,59 +129,63 @@ class World : ElemBase() {
     var id = Id()
 }
 
-// -------------------------------------------------------------------------------
-//struct MVert : ElemBase {
-//    float co [3] FAIL;
-//    float no [3] FAIL;
-//    char flag;
-//    int mat_nr WARN;
-//    int bweight;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MEdge : ElemBase {
-//    int v1, v2 FAIL;
-//    char crease, bweight;
-//    short flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoop : ElemBase {
-//    int v, e;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoopUV : ElemBase {
-//    float uv [2];
-//    int flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//// Note that red and blue are not swapped, as with MCol
-//struct MLoopCol : ElemBase {
-//    unsigned char r, g, b, a;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MPoly : ElemBase {
-//    int loopstart;
-//    int totloop;
-//    short mat_nr;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MTexPoly : ElemBase {
-//    Image * tpage;
-//    char flag, transp;
-//    short mode, tile, pad;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MCol : ElemBase {
-//    char r, g, b, a FAIL;
-//};
-//
+class MVert : ElemBase() {
+    val co = FloatArray(3)
+    val no = FloatArray(3)
+    var flag = '\u0000'
+    var matNr = 0
+    var weight = 0
+}
+
+class MEdge : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var crease = '\u0000'
+    var weight = '\u0000'
+    var flag = 0.s
+}
+
+class MLoop : ElemBase() {
+    var v = 0
+    var e = 0
+}
+
+class MLoopUV : ElemBase() {
+    val uv = FloatArray(2)
+    var flag = 0
+}
+
+/** Note that red and blue are not swapped, as with MCol    */
+class MLoopCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
+class MPoly : ElemBase() {
+    var loopStart = 0
+    var totLoop = 0
+    var matNr = 0.s
+    var flag = '\u0000'
+}
+
+class MTexPoly : ElemBase() {
+    var tpage: Image? = null
+    var flag = '\u0000'
+    var transp = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var pad = 0.s
+}
+
+class MCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
 class MFace : ElemBase() {
     var v1 = 0
     var v2 = 0
