@@ -437,7 +437,7 @@ class ObjFileImporter : BaseImporter() {
                     }
 
                 } else {
-                    logger.warn { "OBJ/MTL: Scene contains no --> " + name }
+                    logger.warn { "OBJ/MTL: Scene contains  --> " + name  + " already"}
                 }
             }
         }

@@ -3,6 +3,7 @@ package assimp.format.obj
 import assimp.*
 import glm_.f
 import glm_.i
+import java.io.BufferedReader
 import java.io.File
 import assimp.AiPrimitiveType as Pt
 
@@ -28,14 +29,29 @@ class ObjFileParser(private val file: File) {
         m_pModel.m_MaterialMap.put(DEFAULT_MATERIAL, m_pModel.m_pDefaultMaterial!!)
 
         // Start parsing the file
-        parseFile(file.readLines())
+
+        //parseFile(file.readLines())
+        BufferedReader(file.bufferedReader()).use {
+            parseFile(it)
+        }
+
+
     }
 
     // -------------------------------------------------------------------
     //  File parsing method.
-    fun parseFile(streamBuffer: List<String>) {
+//    fun parseFile(streamBuffer: List<String>) {
+    fun parseFile(streamBuffer: BufferedReader) {
 
-        for (line in streamBuffer) {
+
+        var line : String? = ""
+        do{
+            //Support for continuationToken
+            line = ObjTools.getNextDataLine(streamBuffer,"\\")
+
+            //End of stream
+            if (line == null)
+                return
 
             if (line.isEmpty()) continue
 
@@ -83,7 +99,7 @@ class ObjFileParser(private val file: File) {
             // Parse object name
                 'o' -> getObjectName(line)
             }
-        }
+        }while(line != null)
     }
 
     // -------------------------------------------------------------------
@@ -118,7 +134,7 @@ class ObjFileParser(private val file: File) {
                             hasNormal = true
                         }
                         else -> {
-                            logger.error { "OBJ: Not supported token in face description detected" }
+                            logger.error { "OBJ: Not supported token in face description detected --> "+ line }
                             skip = true
                         }
                     }
@@ -130,7 +146,7 @@ class ObjFileParser(private val file: File) {
                             hasNormal = true
                         }
                         else -> {
-                            logger.error { "OBJ: Not supported token in face description detected" }
+                            logger.error { "OBJ: Not supported token in face description detected -- >"+ line }
                             skip = true
                         }
                     }
