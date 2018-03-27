@@ -8,6 +8,7 @@ import glm_.*
 import java.io.File
 import java.io.InputStream
 import java.net.URI
+import java.net.URL
 
 class AssbinLoader : BaseImporter() {
 
@@ -21,12 +22,12 @@ class AssbinLoader : BaseImporter() {
     var compressed = false
     private val be = false // big endian TODO glm global?
 
-    override fun canRead(file: URI, checkSig: Boolean) =
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean) =
             File(file).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
 
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        file.toURL().openStream().use {
+        URL(file).openStream().use {
 
             it.skip(44) // signature
 

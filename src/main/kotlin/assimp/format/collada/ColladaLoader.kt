@@ -31,7 +31,7 @@ class ColladaLoader : BaseImporter() {
     }
 
     /** Filename, for a verbose error message */
-    lateinit var mFileName: URI
+    lateinit var mFileName: String
 
     /** Which mesh-material compound was stored under which mesh ID */
     val mMeshIndexByID = mutableMapOf<ColladaMeshIndex, Int>()
@@ -68,10 +68,10 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
         // check file extension
-        val extension = file.s.substring(file.s.lastIndexOf('.') + 1).toLowerCase()
+        val extension = file.substring(file.lastIndexOf('.') + 1).toLowerCase()
 
         if (extension == "dae")
             return true
@@ -84,10 +84,10 @@ class ColladaLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
         mFileName = file
         // parse the input file
-        val parser = ColladaParser(file)
+        val parser = ColladaParser(ioSystem.Open(file))
         if (parser.mRootNode == null) throw Error("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)

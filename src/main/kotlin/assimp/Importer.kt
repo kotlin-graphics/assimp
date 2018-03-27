@@ -191,6 +191,11 @@ constructor() {
             }
         }
 
+    var ioHandler: IOSystem
+        get() = impl.ioSystem
+
+        set(value) { if(value != null) impl.ioSystem = value}
+
     /** Checks whether a default progress handler is active
      *  A default handler is active as long the application doesn't supply its own custom progress handler via
      *  setProgressHandler().
@@ -221,6 +226,8 @@ constructor() {
     /** Get the currently set progress handler  */
     val progressHandler get() = impl.progressHandler
 
+    fun readFile(uri: URI, flags: Int = 0) = readFile(uri.path, flags)
+
     /** Reads the given file and returns its contents if successful.
      *
      *  If the call succeeds, the contents of the file are returned as a pointer to an AiScene object. The returned data
@@ -238,11 +245,10 @@ constructor() {
      *
      * @note Assimp is able to determine the file format of a file automatically.
      */
-    fun readFile(file: String, flags: Int = 0) = readFile(file.uri, flags)
+    //fun readFile(file: URI, flags: Int = 0): AiScene? {
+    fun readFile(file: String, flags: Int = 0): AiScene? {
 
-    fun readFile(file: URI, flags: Int = 0): AiScene? {
-
-        writeLogOpening(file.path)
+        writeLogOpening(file)
 
         // Check whether this Importer instance has already loaded a scene. In this case we need to delete the old one
         if (impl.scene != null) {
@@ -251,11 +257,12 @@ constructor() {
         }
 
         // First check if the file is accessible at all
-        if (!file.exists()) {
+        // handled by exception in IOSystem
+        /*if (!file.exists()) {
             impl.errorString = "Unable to open file \"$file\"."
             logger.error { impl.errorString }
             return null
-        }
+        }*/
 
 //        TODO std::unique_ptr<Profiler> profiler(GetPropertyInteger(AI_CONFIG_GLOB_MEASURE_TIME,0)?new Profiler():NULL);
 //        if (profiler) {
@@ -263,7 +270,7 @@ constructor() {
 //        }
 
         // Find an worker class which can handle the file
-        val imp = impl.importer.find { it.canRead(file, false) }
+        val imp = impl.importer.find { it.canRead(file, ioHandler,false) }
 
         if (imp == null) {
             // not so bad yet ... try format auto detection.
@@ -300,7 +307,7 @@ constructor() {
 //            profiler->BeginRegion("import");
 //        }
 
-        impl.scene = imp.readFile(this, file)
+        impl.scene = imp.readFile(this, ioHandler, file)
         impl.progressHandler.updateFileRead(fileSize, fileSize)
 
 //        if (profiler) { TODO

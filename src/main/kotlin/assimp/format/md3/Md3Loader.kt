@@ -338,8 +338,8 @@ class Md3Importer : BaseImporter() {
 
     /** Returns whether the class can handle the format of the given file.
      * See BaseImporter.canRead() for details.  */
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
-        val extension = file.extension
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
+        val extension = getExtension(file)
         if (extension == "md3") return true
         // if check for extension is not enough, check for the magic tokens
         if (extension.isNotEmpty() || checkSig) {
@@ -378,9 +378,9 @@ class Md3Importer : BaseImporter() {
 
     /** Imports the given file into the given scene structure.
      *  See BaseImporter.internReadFile() for details     */
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        this.file = file.path
+        this.file = file
         this.scene = scene
 
         // get base path and file name

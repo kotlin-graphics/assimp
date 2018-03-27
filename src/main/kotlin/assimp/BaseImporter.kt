@@ -33,7 +33,7 @@ abstract class BaseImporter {
      *  time to examine the contents of the file to be loaded for magic bytes, keywords, etc to be able to load files
      *  with unknown/not existent file extensions.
      *  @return true if the class can read this file, false if not. */
-    abstract fun canRead(file: URI, checkSig: Boolean): Boolean
+    abstract fun canRead(file: String, pIOHandler: IOSystem, checkSig: Boolean): Boolean
 
     /** Imports the given file and returns the imported data.
      *  If the import succeeds, ownership of the data is transferred to the caller. If the import fails, null is
@@ -48,7 +48,7 @@ abstract class BaseImporter {
      *  exception is thrown somewhere in internReadFile(), this function will catch it and transform it into a suitable
      *  response to the caller.
      */
-    fun readFile(imp: Importer, file: URI): AiScene? {
+    fun readFile(imp: Importer, pIOHandler: IOSystem, filePath: String): AiScene? {
         progress = imp.progressHandler
         assert(progress != null)
 
@@ -60,7 +60,7 @@ abstract class BaseImporter {
 
         // dispatch importing
         try {
-            internReadFile(file, sc)
+            internReadFile(filePath, pIOHandler, sc)
         } catch (err: Exception) {
             // extract error description
             err.printStackTrace()
@@ -120,9 +120,9 @@ abstract class BaseImporter {
      *  @param file Path of the file to be imported.
      *  @param scene The scene object to hold the imported data. Null is not a valid parameter.
      *  */
-    open fun internReadFile(file: String, scene: AiScene) = internReadFile(file.uri, scene)
+    open fun internReadFile(file: String, pIOHandler: IOSystem, scene: AiScene) = Unit//internReadFile(file.uri, scene)
 
-    open fun internReadFile(file: URI, scene: AiScene) = Unit
+    //open fun internReadFile(file: URI, pIOHandler: IOSystem, scene: AiScene) = Unit
 
     companion object {
         /** Extract file extension from a string

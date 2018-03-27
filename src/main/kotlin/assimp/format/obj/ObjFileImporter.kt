@@ -21,31 +21,31 @@ class ObjFileImporter : BaseImporter() {
             fileExtensions = listOf("obj"))
 
     /**  Returns true, if file is an obj file.  */
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
         if (!checkSig)   //Check File Extension
-            return file.s.substring(file.s.lastIndexOf('.') + 1) == "obj"
+            return file.substring(file.lastIndexOf('.') + 1) == "obj"
         else //Check file Header
             return false
     }
 
     //  reference to load textures later
-    private lateinit var file: File
+    private lateinit var file: String
 
     /** Obj-file import implementation  */
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         // Read file into memory
-        this.file = File(file)
-        if (!this.file.canRead()) throw IOException("Failed to open file $file.")
+        this.file = file//File(file)
+        if (!ioSystem.Exists(file)) throw IOException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = this.file.length()
+        //val fileSize = this.file.length()
 
-        if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
+        //if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(this.file)
+        val parser = ObjFileParser(ioSystem.Open(file), ioSystem)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, scene)
@@ -409,7 +409,8 @@ class ObjFileImporter : BaseImporter() {
 
     /**  Load textures   */
     fun loadTextures(scene: AiScene) {
-
+        TODO()
+        /*
         scene.materials.forEach { mtl ->
 
             mtl.textures.forEach { tex ->
@@ -440,7 +441,7 @@ class ObjFileImporter : BaseImporter() {
                     logger.warn { "OBJ/MTL: Scene contains  --> " + name  + " already"}
                 }
             }
-        }
+        }*/
     }
 }
 

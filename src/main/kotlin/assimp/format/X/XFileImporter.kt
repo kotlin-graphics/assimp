@@ -17,14 +17,14 @@ class XFileImporter : BaseImporter() {
 
     var mBuffer: Pointer<Char> = Pointer<Char>(arrayOf())
 
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(pFile: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
         if (!checkSig)   //Check File Extension
-            return pFile.s.substring(pFile.s.lastIndexOf('.') + 1).toLowerCase() == "x"
+            return pFile.substring(pFile.lastIndexOf('.') + 1).toLowerCase() == "x"
         else //Check file Header
             return false
     }
 
-    override fun internReadFile(pFile: URI, pScene: AiScene) {
+    override fun internReadFile(pFile: String, ioSystem: IOSystem, pScene: AiScene) {
         // Read file into memory
         var file = File(pFile)
         if (!file.canRead()) throw FileSystemException(file, null, "Failed to open file \$pFile.")

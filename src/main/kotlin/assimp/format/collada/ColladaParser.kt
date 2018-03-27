@@ -43,7 +43,7 @@ typealias ChannelMap = MutableMap<String, AnimationChannel>
  *  Does all the XML reading and builds data structures from it,
  *  but leaves the resolving of all the references to the loader.
  */
-class ColladaParser(pFile: URI) {
+class ColladaParser(pFile: IOStream) {
 
     /** Filename, for a verbose error message */
     var mFileName = pFile
@@ -93,9 +93,9 @@ class ColladaParser(pFile: URI) {
 
     init {
 
-        val file = File(pFile)
+        //val file = File(pFile)
         // open the file
-        if (!file.exists()) throw Error("Failed to open file: $pFile")
+        //if (!file.exists()) throw Error("Failed to open file: $pFile")
 
 //        val dbFactory = DocumentBuilderFactory.newInstance()
 //        val dBuilder = dbFactory.newDocumentBuilder()
@@ -117,7 +117,7 @@ class ColladaParser(pFile: URI) {
         // generate a XML reader for it
         val factory = XMLInputFactory.newInstance()
 
-        reader = factory.createXMLEventReader(FileReader(file))
+        reader = factory.createXMLEventReader(pFile.read())
 
         // start reading
         readContents()

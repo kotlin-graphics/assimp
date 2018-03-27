@@ -87,6 +87,10 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+test {
+	workingDir = "src/test/resources"
+}
+
 artifacts {
     archives sourcesJar
     archives javadocJar

@@ -79,9 +79,9 @@ class StlImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: URI, checkSig: Boolean): Boolean {
+    override fun canRead(pFile: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
-        val extension = pFile.s.substring(pFile.s.lastIndexOf('.') + 1)
+        val extension = pFile.substring(pFile.lastIndexOf('.') + 1)
 
         if (extension == "stl") {
             return true
@@ -100,7 +100,7 @@ class StlImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: URI, scene: AiScene) {
+    override fun internReadFile(pFile: String, ioSystem: IOSystem, scene: AiScene) {
 
         val file = File(pFile)
 
