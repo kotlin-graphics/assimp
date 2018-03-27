@@ -21,7 +21,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
     init {
         // Create the model instance to store all the data
-        m_pModel.m_ModelName = file.name
+        m_pModel.m_ModelName = file.filename
 
         // create default material and store it
         m_pModel.m_pDefaultMaterial = Material(DEFAULT_MATERIAL)
@@ -258,7 +258,8 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         // get the name of the mat file with spaces
         var filename = ObjTools.getNameWithSpace(words,1)
 
-        val pFile = file.parentPath() + filename
+        val pFile = file.parentPath() + "/" + filename //windows can just suck it
+        println(pFile)
 
         if (!ioSystem.Exists(pFile)) {
             System.err.println("OBJ: Unable to locate material file $filename")
@@ -272,7 +273,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = pFile.reader().readLines().filter(String::isNotBlank)
+        val buffer = ioSystem.Open(pFile).read().readLines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }

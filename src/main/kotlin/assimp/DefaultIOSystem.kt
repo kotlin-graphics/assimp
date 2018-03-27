@@ -18,9 +18,12 @@ class DefaultIOSystem : IOSystem{
     class FileIOStream(val file: File) : IOStream{
         override fun read() = BufferedReader(FileReader(file))
 
-        override val name: String
+        override val path: String
             get() = file.absolutePath
 
-        override fun parentPath() = file.parentFile.path
+        override val filename: String
+            get() = file.name
+
+        override fun parentPath() = file.parentFile.absolutePath
     }
 }

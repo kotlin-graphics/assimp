@@ -4,7 +4,9 @@ import java.io.BufferedReader
 import java.io.Reader
 
 interface IOStream {
-    val name : String
+    val path : String
+
+    val filename: String
 
     fun read() : BufferedReader
 
