@@ -30,7 +30,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // Start parsing the file
 
-        parseFile(file.read())
+        parseFile(file.reader())
     }
 
     // -------------------------------------------------------------------
@@ -273,7 +273,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = ioSystem.Open(pFile).read().readLines().filter(String::isNotBlank)
+        val buffer = ioSystem.Open(pFile).reader().readLines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }

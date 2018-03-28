@@ -286,7 +286,7 @@ class MD5CameraParser {
 }
 
 /** Parses the block structure of MD5MESH and MD5ANIM files (but does no further processing) */
-class MD5Parser(val lines: ArrayList<String>, val fileSize: Int) {
+class MD5Parser(val lines: ArrayList<String>) {
 
     var lineNumber = 0
     var line = ""
@@ -294,7 +294,7 @@ class MD5Parser(val lines: ArrayList<String>, val fileSize: Int) {
     val sections = ArrayList<Section>()
 
     init {
-        assert(lines.isNotEmpty() && 0 != fileSize)
+        assert(lines.isNotEmpty())
         logger.debug { "MD5Parser begin" }
         // parse the file header
         parseHeader()

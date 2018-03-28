@@ -516,7 +516,7 @@ class ColladaLoader : BaseImporter() {
             val dstBones = MutableList(numBones, { mutableListOf<AiVertexWeight>() })
 
             // build a temporary array of pointers to the start of each vertex's weights
-            val weightStartPerVertex = ArrayList<Long>()
+            val weightStartPerVertex = LongArray(pSrcController.weightCounts.size)
 
             var pit = 0L
             pSrcController.weightCounts.forEachIndexed { i, a ->
@@ -651,7 +651,8 @@ class ColladaLoader : BaseImporter() {
                         0
                     }
 
-        mat.textures.add(idx, tex)
+        if(idx != -1)
+            mat.textures.add(idx, tex)
     }
 
     /** Fills materials from the collada material definitions   */

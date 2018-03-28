@@ -9,14 +9,16 @@ class DefaultIOSystem : IOSystem{
         var file = File(pFile)
         println(File(".").absolutePath)
         if(!file.exists())
-            throw IOException("File doesn't exist")
+            throw IOException("File doesn't exist: "+pFile)
 
 
         return FileIOStream(file)
     }
 
     class FileIOStream(val file: File) : IOStream{
-        override fun read() = BufferedReader(FileReader(file))
+        override fun read() = FileInputStream(file)
+
+        override fun reader() = BufferedReader(FileReader(file))
 
         override val path: String
             get() = file.absolutePath

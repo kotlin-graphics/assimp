@@ -161,11 +161,11 @@ class Md5Importer : BaseImporter() {
             logger.warn { "Failed to access MD5MESH file: $file" }
             return
         }
-        loadFileIntoMemory(ioFile.read())
+        loadFileIntoMemory(ioFile.reader())
         hadMD5Mesh = true
 
         // now construct a parser and parse the file
-        val parser = MD5Parser(buffer, fileSize)
+        val parser = MD5Parser(buffer)
 
         // load the mesh information from it
         val meshParser = MD5MeshParser(parser.sections)
@@ -330,10 +330,10 @@ class Md5Importer : BaseImporter() {
             logger.warn { "Failed to access MD5ANIM file: $file" }
             return
         }
-        loadFileIntoMemory(ioFile.read())
+        loadFileIntoMemory(ioFile.reader())
 
         // parse the basic file structure
-        val parser = MD5Parser(buffer, fileSize)
+        val parser = MD5Parser(buffer)
         TODO()
         // load the animation information from the parse tree
 //        val animParser = MD5AnimParser (parser.sections)

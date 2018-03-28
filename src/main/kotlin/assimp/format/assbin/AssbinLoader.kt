@@ -23,11 +23,11 @@ class AssbinLoader : BaseImporter() {
     private val be = false // big endian TODO glm global?
 
     override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean) =
-            File(file).inputStream().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
+            ioSystem.Open(file).read().use { i -> "ASSIMP.binary-dump.".all { it.i == i.read() } }
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        URL(file).openStream().use {
+        ioSystem.Open(file).read().use {
 
             it.skip(44) // signature
 

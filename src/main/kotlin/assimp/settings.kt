@@ -5,4 +5,4 @@ package assimp
  */
 
 
-var ASSIMP_LOAD_TEXTURES = false //don't want that actually
+var ASSIMP_LOAD_TEXTURES = true

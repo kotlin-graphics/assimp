@@ -117,7 +117,7 @@ class ColladaParser(pFile: IOStream) {
         // generate a XML reader for it
         val factory = XMLInputFactory.newInstance()
 
-        reader = factory.createXMLEventReader(pFile.read())
+        reader = factory.createXMLEventReader(pFile.reader())
 
         // start reading
         readContents()
