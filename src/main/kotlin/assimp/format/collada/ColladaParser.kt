@@ -496,6 +496,7 @@ class ColladaParser(pFile: IOStream) {
                         for (i in 0 until controller.weightCounts.size) {
                             if (i == ints.size) throw Exception("Out of data while reading <vcount>")
                             val int = ints[i]
+                            controller.weightCounts[i] = int.toLong()
                             numWeights += int
                         }
                         testClosing("vcount")

@@ -517,11 +517,10 @@ class ColladaLoader : BaseImporter() {
 
             // build a temporary array of pointers to the start of each vertex's weights
             val weightStartPerVertex = LongArray(pSrcController.weightCounts.size)
-
             var pit = 0L
             pSrcController.weightCounts.forEachIndexed { i, a ->
-                weightStartPerVertex[a.i] = pit
-                pit += pSrcController.weightCounts[a.i]
+                weightStartPerVertex[i] = pit
+                pit += a
             }
 
             // now for each vertex put the corresponding vertex weights into each bone's weight collection
