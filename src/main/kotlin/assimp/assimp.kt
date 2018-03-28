@@ -55,6 +55,8 @@ val Vec3.isBlack get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilo
 
 object ASSIMP {
 
+    val defaultIOSystem = DefaultIOSystem()
+
     object BUILD {
 
         var DEBUG = true

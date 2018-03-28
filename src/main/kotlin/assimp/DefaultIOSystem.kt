@@ -3,9 +3,9 @@ package assimp
 import java.io.*
 
 class DefaultIOSystem : IOSystem{
-    override fun Exists(pFile: String) = File(pFile).exists()
+    override fun exists(pFile: String) = File(pFile).exists()
 
-    override fun Open(pFile: String): IOStream {
+    override fun open(pFile: String): IOStream {
         var file = File(pFile)
         println(File(".").absolutePath)
         if(!file.exists())

@@ -1,12 +1,14 @@
 package assimp
 
+import java.io.File
+
 /** Interface to the file system. */
 interface IOSystem {
-    fun Exists(pFile: String): Boolean
+    fun exists(pFile: String): Boolean
 
-    fun Open(pFile : String): IOStream
+    fun open(pFile : String): IOStream
 
-    fun Close(ioStream: IOStream) = Unit //unused ?
+    fun close(ioStream: IOStream) = Unit //unused ?
 
-    fun getOsSeperator() = "/"
+    fun getOsSeperator() = File.separator
 }

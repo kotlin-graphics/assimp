@@ -87,7 +87,7 @@ class ColladaLoader : BaseImporter() {
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
         mFileName = file
         // parse the input file
-        val parser = ColladaParser(ioSystem.Open(file))
+        val parser = ColladaParser(ioSystem.open(file))
         if (parser.mRootNode == null) throw Error("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)

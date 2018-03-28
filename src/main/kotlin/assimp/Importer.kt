@@ -246,7 +246,9 @@ constructor() {
      * @note Assimp is able to determine the file format of a file automatically.
      */
     //fun readFile(file: URI, flags: Int = 0): AiScene? {
-    fun readFile(file: String, flags: Int = 0): AiScene? {
+    fun readFile(file: String, flags: Int = 0) = readFile(file, ioHandler, flags)
+
+    fun readFile(file: String, ioSystem: IOSystem = this.ioHandler, flags: Int = 0): AiScene? {
 
         writeLogOpening(file)
 

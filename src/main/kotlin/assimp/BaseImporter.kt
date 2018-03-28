@@ -21,6 +21,7 @@ abstract class BaseImporter {
     /** Currently set progress handler. */
     var progress: ProgressHandler? = null
 
+    var ioSystem: IOSystem = ASSIMP.defaultIOSystem
     /** Returns whether the class can handle the format of the given file.
      *.
      *  The implementation should be as quick as possible. A check for the file extension is enough. If no suitable
@@ -48,7 +49,7 @@ abstract class BaseImporter {
      *  exception is thrown somewhere in internReadFile(), this function will catch it and transform it into a suitable
      *  response to the caller.
      */
-    fun readFile(imp: Importer, pIOHandler: IOSystem, filePath: String): AiScene? {
+    fun readFile(imp: Importer, pIOHandler: IOSystem = ioSystem, filePath: String): AiScene? {
         progress = imp.progressHandler
         assert(progress != null)
 
@@ -120,7 +121,7 @@ abstract class BaseImporter {
      *  @param file Path of the file to be imported.
      *  @param scene The scene object to hold the imported data. Null is not a valid parameter.
      *  */
-    open fun internReadFile(file: String, pIOHandler: IOSystem, scene: AiScene) = Unit//internReadFile(file.uri, scene)
+    open fun internReadFile(file: String, pIOHandler: IOSystem = ioSystem, scene: AiScene) = Unit//internReadFile(file.uri, scene)
 
     //open fun internReadFile(file: URI, pIOHandler: IOSystem, scene: AiScene) = Unit
 

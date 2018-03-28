@@ -155,7 +155,7 @@ class Md5Importer : BaseImporter() {
         //val file = File(file + "md5mesh")
         val ioFile : IOStream
         try {
-            ioFile = ioSystem.Open(file + "md5mesh")
+            ioFile = ioSystem.open(file + "md5mesh")
         } catch(e : IOException) {
             // Check whether we can read from the file
             logger.warn { "Failed to access MD5MESH file: $file" }
@@ -324,7 +324,7 @@ class Md5Importer : BaseImporter() {
     fun loadMD5AnimFile(ioSystem: IOSystem) {
         val ioFile : IOStream
         try {
-            ioFile = ioSystem.Open(file + "md5anim")
+            ioFile = ioSystem.open(file + "md5anim")
         } catch(e : IOException) {
             // Check whether we can read from the file
             logger.warn { "Failed to access MD5ANIM file: $file" }

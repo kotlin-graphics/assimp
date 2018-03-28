@@ -261,7 +261,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         val pFile = file.parentPath() + "/" + filename //windows can just suck it
         println(pFile)
 
-        if (!ioSystem.Exists(pFile)) {
+        if (!ioSystem.exists(pFile)) {
             System.err.println("OBJ: Unable to locate material file $filename")
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
@@ -273,7 +273,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = ioSystem.Open(pFile).reader().readLines().filter(String::isNotBlank)
+        val buffer = ioSystem.open(pFile).reader().readLines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }

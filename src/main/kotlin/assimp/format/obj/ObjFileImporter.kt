@@ -2,9 +2,7 @@ package assimp.format.obj
 
 import assimp.*
 import gli_.gli
-import java.io.File
 import java.io.IOException
-import java.net.URI
 
 /**
  * Created by elect on 21/11/2016.
@@ -37,7 +35,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Read file into memory
         this.file = file//File(file)
-        if (!ioSystem.Exists(file)) throw IOException("Failed to open file $file.")
+        if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
         //val fileSize = this.file.length()
@@ -45,7 +43,7 @@ class ObjFileImporter : BaseImporter() {
         //if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(ioSystem.Open(file), ioSystem)
+        val parser = ObjFileParser(ioSystem.open(file), ioSystem)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, scene, ioSystem)
@@ -408,7 +406,7 @@ class ObjFileImporter : BaseImporter() {
     }
 
     /**  Load textures   */
-    fun loadTextures(scene: AiScene, ioSystem: IOSystem) {
+    fun loadTextures(scene: AiScene, ioSystem: IOSystem = this.ioSystem) {
 
         scene.materials.forEach { mtl ->
 
@@ -427,7 +425,7 @@ class ObjFileImporter : BaseImporter() {
                         //to match files even where case is mangled
 
                         val dios = ioSystem as DefaultIOSystem
-                        val actualFile = (dios.Open(file) as DefaultIOSystem.FileIOStream).file
+                        val actualFile = (dios.open(file) as DefaultIOSystem.FileIOStream).file
 
                         if (actualFile.parentFile.listFiles().any { it.name == cleaned }) {
 
