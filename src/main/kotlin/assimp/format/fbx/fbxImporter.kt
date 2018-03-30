@@ -70,9 +70,9 @@ class FbxImporter : BaseImporter() {
 
     val settings = ImportSettings()
 
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
-        val extension = file.extension
+        val extension = getExtension(file)
         if (extension == info.fileExtensions[0]) return true
         else if (extension.isEmpty() || checkSig) {
             TODO()
@@ -110,7 +110,7 @@ class FbxImporter : BaseImporter() {
         }
     }
 
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         val f = File(file)
         if (!f.canRead()) throw Error("Could not open file for reading")

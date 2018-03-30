@@ -15,7 +15,6 @@ import java.io.FileOutputStream
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
 
-
 lateinit var buffer: ByteBuffer
 
 val tokens = "BLENDER"
@@ -23,9 +22,9 @@ val tokens = "BLENDER"
 class BlenderImporter : BaseImporter() {
 
     /** Returns whether the class can handle the format of the given file.  */
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
-        val extension = file.extension
+        val extension = getExtension(file)
         if (extension == "blend") return true
         else if (extension.isEmpty() || checkSig) {
             TODO()
@@ -46,7 +45,7 @@ class BlenderImporter : BaseImporter() {
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         val fileChannel = RandomAccessFile(File(file), "r").channel
         buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())

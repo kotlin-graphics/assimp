@@ -12,6 +12,8 @@ class ImporterPimpl {
     var progressHandler: ProgressHandler = DefaultProgressHandler()
     var isDefaultProgressHandler = true
 
+    var ioSystem: IOSystem = DefaultIOSystem()
+
     /** Format-specific importer worker objects - one for each format we can read.*/
     val importer = importerInstanceList
 

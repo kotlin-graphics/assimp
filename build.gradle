@@ -29,20 +29,22 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    compile "org.jetbrains.kotlin:kotlin-reflect"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:641ec79aa3d5cf696590276f75b8b89804dc9d09'
+    implementation 'com.github.kotlin-graphics:uno-sdk:641ec79aa3d5cf696590276f75b8b89804dc9d09'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
-    compile 'io.github.microutils:kotlin-logging:1.4.6'
+    implementation 'io.github.microutils:kotlin-logging:1.4.6'
 
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
 
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-
+    //implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+	testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+	
     switch (OperatingSystem.current()) {
         case OperatingSystem.WINDOWS:
             ext.lwjglNatives = "natives-windows"
@@ -54,19 +56,21 @@ dependencies {
             ext.lwjglNatives = "natives-macos"
             break
     }
+
     ext.lwjglVersion = "3.1.5-SNAPSHOT"
-    compile "org.lwjgl:lwjgl:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-openal:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
-    compile "org.lwjgl:lwjgl-stb:${lwjglVersion}"
-    runtime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${lwjglNatives}"
-    runtime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-openal:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}"
+	
+    testRuntime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
 }
 
 repositories {
@@ -84,6 +88,10 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
+}
+
+test {
+	workingDir = "src/test/resources"
 }
 
 artifacts {

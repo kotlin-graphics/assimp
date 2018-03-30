@@ -26,9 +26,9 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
-        val extension = file.s.substring(file.s.lastIndexOf('.') + 1)
+        val extension = file.substring(file.lastIndexOf('.') + 1)
 
         if (extension == "ply")
             return true
@@ -38,7 +38,7 @@ class PlyLoader : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         val file = File(file)
 

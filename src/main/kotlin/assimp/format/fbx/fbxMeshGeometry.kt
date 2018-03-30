@@ -42,8 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.fbx
 
 import assimp.*
-import glm_.vec2.Vec2
-import org.lwjgl.openal.AL
 import kotlin.reflect.KMutableProperty0
 
 /** @file  FBXImporter.h

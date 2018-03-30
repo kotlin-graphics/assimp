@@ -46,8 +46,11 @@ import assimp.format.AiConfig
 import glm_.detail.Random.int
 import glm_.i
 import uno.buffer.destroy
+import java.io.BufferedReader
 import java.io.File
+import java.io.IOException
 import java.net.URI
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import kotlin.math.sqrt
 
@@ -76,8 +79,8 @@ class Md5Importer : BaseImporter() {
     /** configuration option: prevent anim autoload */
     var configNoAutoLoad = false
 
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
-        val extension = file.extension
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
+        val extension = getExtension(file)
         if (extension == "md5anim" || extension == "md5mesh" || extension == "md5camera") return true
         else if (extension.isNotEmpty() || checkSig) {
 //            TODO() silented to pass tests
@@ -105,29 +108,29 @@ class Md5Importer : BaseImporter() {
 
     /** Imports the given file into the given scene structure.
      *  See BaseImporter::internReadFile() for details     */
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         this.scene = scene
         hadMD5Mesh = false // TODO remove?
         hadMD5Anim = false
         hadMD5Camera = false
 
-        // remove the file extension
-        val pos = file.path.lastIndexOf('.')
-        this.file = if (pos == -1) file.path else file.path.substring(0, pos + 1)
+        val extension = getExtension(file)
 
-        val extension = file.extension
+        // remove the file extension
+        val pos = file.lastIndexOf('.')
+        this.file = if (pos == -1) file else file.substring(0, pos + 1)
 
         try {
-            if (extension == "md5camera") loadMD5CameraFile()
+            if (extension == "md5camera") loadMD5CameraFile(ioSystem)
             else if (configNoAutoLoad || extension == "md5anim") {
                 // determine file extension and process just *one* file
                 if (extension.isEmpty()) throw Error("Failure, need file extension to determine MD5 part type")
-                if (extension == "md5anim") loadMD5AnimFile()
-                else if (extension == "md5mesh") loadMD5MeshFile()
+                if (extension == "md5anim") loadMD5AnimFile(ioSystem)
+                else if (extension == "md5mesh") loadMD5MeshFile(ioSystem)
             } else {
-                loadMD5MeshFile()
-                loadMD5AnimFile()
+                loadMD5MeshFile(ioSystem)
+                loadMD5AnimFile(ioSystem)
             }
         } catch (exc: Exception) { // std::exception, Assimp::DeadlyImportError
             unloadFileFromMemory()
@@ -148,19 +151,21 @@ class Md5Importer : BaseImporter() {
     }
 
     /** Load a *.MD5MESH file.     */
-    fun loadMD5MeshFile() {
-        val file = File(file + "md5mesh")
-
-        // Check whether we can read from the file
-        if (!file.exists() || !file.canRead() || file.length() == 0L) {
+    fun loadMD5MeshFile(ioSystem: IOSystem) {
+        //val file = File(file + "md5mesh")
+        val ioFile : IOStream
+        try {
+            ioFile = ioSystem.open(file + "md5mesh")
+        } catch(e : IOException) {
+            // Check whether we can read from the file
             logger.warn { "Failed to access MD5MESH file: $file" }
             return
         }
+        loadFileIntoMemory(ioFile.reader())
         hadMD5Mesh = true
-        loadFileIntoMemory(file)
 
         // now construct a parser and parse the file
-        val parser = MD5Parser(buffer, fileSize)
+        val parser = MD5Parser(buffer)
 
         // load the mesh information from it
         val meshParser = MD5MeshParser(parser.sections)
@@ -316,19 +321,19 @@ class Md5Importer : BaseImporter() {
     }
 
     /** Load a *.MD5ANIM file.     */
-    fun loadMD5AnimFile() {
-        val file = file + "md5anim"
-        val f = File(file)
-
-        // Check whether we can read from the file
-        if (!f.exists() || !f.canRead() || f.length() == 0L) {
-            logger.warn { "Failed to read MD5ANIM file: $file" }
+    fun loadMD5AnimFile(ioSystem: IOSystem) {
+        val ioFile : IOStream
+        try {
+            ioFile = ioSystem.open(file + "md5anim")
+        } catch(e : IOException) {
+            // Check whether we can read from the file
+            logger.warn { "Failed to access MD5ANIM file: $file" }
             return
         }
-        loadFileIntoMemory(f)
+        loadFileIntoMemory(ioFile.reader())
 
         // parse the basic file structure
-        val parser = MD5Parser(buffer, fileSize)
+        val parser = MD5Parser(buffer)
         TODO()
         // load the animation information from the parse tree
 //        val animParser = MD5AnimParser (parser.sections)
@@ -426,7 +431,7 @@ class Md5Importer : BaseImporter() {
     }
 
     /** Load a *.MD5CAMERA file.     */
-    fun loadMD5CameraFile(): Nothing = TODO()
+    fun loadMD5CameraFile(ioSystem: IOSystem): Nothing = TODO()
 
     /** Construct node hierarchy from a given MD5ANIM
      *  @param iParentID Current parent ID
@@ -515,12 +520,12 @@ class Md5Importer : BaseImporter() {
      *  mBuffer is modified to point to this buffer.
      *  @param pFile File stream to be read
      */
-    fun loadFileIntoMemory(file: File) {
+    fun loadFileIntoMemory(file: BufferedReader) {
         // unload the previous buffer, if any
         unloadFileFromMemory()
 
-        fileSize = file.length().i
-        assert(fileSize != 0)
+        //fileSize = file.length().i
+        //assert(fileSize != 0)
 
         // allocate storage and copy the contents of the file to a memory buffer
         file.readLines()

@@ -2,9 +2,7 @@ package assimp.format.obj
 
 import assimp.*
 import gli_.gli
-import java.io.File
 import java.io.IOException
-import java.net.URI
 
 /**
  * Created by elect on 21/11/2016.
@@ -21,38 +19,38 @@ class ObjFileImporter : BaseImporter() {
             fileExtensions = listOf("obj"))
 
     /**  Returns true, if file is an obj file.  */
-    override fun canRead(file: URI, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
         if (!checkSig)   //Check File Extension
-            return file.s.substring(file.s.lastIndexOf('.') + 1) == "obj"
+            return file.substring(file.lastIndexOf('.') + 1) == "obj"
         else //Check file Header
             return false
     }
 
     //  reference to load textures later
-    private lateinit var file: File
+    private lateinit var file: String
 
     /** Obj-file import implementation  */
-    override fun internReadFile(file: URI, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         // Read file into memory
-        this.file = File(file)
-        if (!this.file.canRead()) throw IOException("Failed to open file $file.")
+        this.file = file//File(file)
+        if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = this.file.length()
+        //val fileSize = this.file.length()
 
-        if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
+        //if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(this.file)
+        val parser = ObjFileParser(ioSystem.open(file), ioSystem)
 
         // And create the proper return structures out of it
-        createDataFromImport(parser.m_pModel, scene)
+        createDataFromImport(parser.m_pModel, scene, ioSystem)
     }
 
     /**  Create the data from parsed obj-file   */
-    fun createDataFromImport(pModel: Model, pScene: AiScene) {
+    fun createDataFromImport(pModel: Model, pScene: AiScene, ioSystem: IOSystem) {
 
         // Create the root node of the scene
         pScene.rootNode = AiNode()
@@ -75,7 +73,7 @@ class ObjFileImporter : BaseImporter() {
         createMaterials(pModel, pScene)
 
         if (ASSIMP_LOAD_TEXTURES)
-            loadTextures(pScene)
+            loadTextures(pScene, ioSystem)
     }
 
     /**  Creates all nodes of the model */
@@ -408,7 +406,7 @@ class ObjFileImporter : BaseImporter() {
     }
 
     /**  Load textures   */
-    fun loadTextures(scene: AiScene) {
+    fun loadTextures(scene: AiScene, ioSystem: IOSystem = this.ioSystem) {
 
         scene.materials.forEach { mtl ->
 
@@ -422,18 +420,29 @@ class ObjFileImporter : BaseImporter() {
                     while (!name[i].isLetter()) i++
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
-                    if (file.parentFile.listFiles().any { it.name == cleaned }) {
+                    if(ioSystem is DefaultIOSystem) {
+                        //If the default io system is in place, we can use the java.io.File api and list directories
+                        //to match files even where case is mangled
 
-                        val texFile = file.parentFile.listFiles().first { it.name == cleaned }!!
-                        scene.textures[name] = gli.load(texFile.toPath())
+                        val dios = ioSystem as DefaultIOSystem
+                        val actualFile = (dios.open(file) as DefaultIOSystem.FileIOStream).file
 
-                    }else if(file.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() }){
-                        // try case insensitive
-                        val texFile = file.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
-                        scene.textures[name] = gli.load(texFile.toPath())
+                        if (actualFile.parentFile.listFiles().any { it.name == cleaned }) {
 
+                            val texFile = actualFile.parentFile.listFiles().first { it.name == cleaned }!!
+                            scene.textures[name] = gli.load(texFile.toPath())
+
+                        } else if(actualFile.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() }){
+                            // try case insensitive
+                            val texFile = actualFile.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
+                            scene.textures[name] = gli.load(texFile.toPath())
+
+                        } else {
+                            logger.warn { "OBJ/MTL: Texture image not found --> " + cleaned }
+                        }
                     } else {
-                        logger.warn { "OBJ/MTL: Texture image not found --> " + cleaned }
+                        //no such luck with custom io systems i'm afraid
+                        //TODO gli load from bytebuf ?
                     }
 
                 } else {

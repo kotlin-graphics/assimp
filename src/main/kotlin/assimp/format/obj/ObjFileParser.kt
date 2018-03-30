@@ -14,14 +14,14 @@ import assimp.AiPrimitiveType as Pt
 val DEFAULT_MATERIAL = AI_DEFAULT_MATERIAL_NAME
 val DefaultObjName = "defaultobject"
 
-class ObjFileParser(private val file: File) {
+class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
     //! Pointer to model instance
     val m_pModel = Model()
 
     init {
         // Create the model instance to store all the data
-        m_pModel.m_ModelName = file.name
+        m_pModel.m_ModelName = file.filename
 
         // create default material and store it
         m_pModel.m_pDefaultMaterial = Material(DEFAULT_MATERIAL)
@@ -30,12 +30,7 @@ class ObjFileParser(private val file: File) {
 
         // Start parsing the file
 
-        //parseFile(file.readLines())
-        BufferedReader(file.bufferedReader()).use {
-            parseFile(it)
-        }
-
-
+        parseFile(file.reader())
     }
 
     // -------------------------------------------------------------------
@@ -263,9 +258,10 @@ class ObjFileParser(private val file: File) {
         // get the name of the mat file with spaces
         var filename = ObjTools.getNameWithSpace(words,1)
 
-        val pFile = file.parentFile + filename
+        val pFile = file.parentPath() + "/" + filename //windows can just suck it
+        println(pFile)
 
-        if (!pFile.exists()) {
+        if (!ioSystem.exists(pFile)) {
             System.err.println("OBJ: Unable to locate material file $filename")
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
@@ -277,7 +273,7 @@ class ObjFileParser(private val file: File) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = pFile.readLines().filter(String::isNotBlank)
+        val buffer = ioSystem.open(pFile).reader().readLines().filter(String::isNotBlank)
 
         ObjFileMtlImporter(buffer, m_pModel)
     }
