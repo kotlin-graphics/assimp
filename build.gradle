@@ -9,7 +9,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.21'
+    ext.kotlinVersion = '1.2.40-eap-51'
 
     repositories {
         jcenter()
@@ -32,7 +32,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:0446f661345134ff6aac460096d9fe38f2183662'
+    compile 'com.github.kotlin-graphics:uno-sdk:c3462559f303b6dd3a9e7f94f548406ac98df4e3'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
@@ -69,6 +69,16 @@ repositories {
     maven { setUrl("https://dl.bintray.com/kotlin/kotlin-dev") }
     maven { setUrl("https://oss.sonatype.org/content/repositories/snapshots/") }
     maven { setUrl('https://jitpack.io') }
+}
+
+// https://stackoverflow.com/a/47458666/1047713
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        outputs.upToDateWhen {false}
+        showStandardStreams = true
+    }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
