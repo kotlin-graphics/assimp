@@ -5,10 +5,7 @@ import assimp.format.X.reserve
 import gli_.has
 import gli_.hasnt
 import glm_.*
-import java.io.File
 import java.io.InputStream
-import java.net.URI
-import java.net.URL
 
 class AssbinLoader : BaseImporter() {
 

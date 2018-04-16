@@ -3,8 +3,6 @@ package assimp
 import assimp.format.ProgressHandler
 import glm_.plus
 import glm_.shl
-import uno.kotlin.uri
-import java.net.URI
 
 /**
  * Created by elect on 13/11/2016.
@@ -34,7 +32,7 @@ abstract class BaseImporter {
      *  time to examine the contents of the file to be loaded for magic bytes, keywords, etc to be able to load files
      *  with unknown/not existent file extensions.
      *  @return true if the class can read this file, false if not. */
-    abstract fun canRead(file: String, pIOHandler: IOSystem, checkSig: Boolean): Boolean
+    abstract fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean
 
     /** Imports the given file and returns the imported data.
      *  If the import succeeds, ownership of the data is transferred to the caller. If the import fails, null is
@@ -121,7 +119,7 @@ abstract class BaseImporter {
      *  @param file Path of the file to be imported.
      *  @param scene The scene object to hold the imported data. Null is not a valid parameter.
      *  */
-    open fun internReadFile(file: String, pIOHandler: IOSystem = ioSystem, scene: AiScene) = Unit//internReadFile(file.uri, scene)
+    open fun internReadFile(file: String, ioSystem: IOSystem = this.ioSystem, scene: AiScene) = Unit//internReadFile(file.uri, scene)
 
     //open fun internReadFile(file: URI, pIOHandler: IOSystem, scene: AiScene) = Unit
 

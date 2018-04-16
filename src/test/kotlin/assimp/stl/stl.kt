@@ -13,7 +13,7 @@ import io.kotlintest.specs.StringSpec
  */
 class stl : StringSpec() {
 
-    val path = models + "/STL/"
+    val path = "$models/STL/"
 
     init {
         "triangle"  { triangle(path + "triangle.stl") }

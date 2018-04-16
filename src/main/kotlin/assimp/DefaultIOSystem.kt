@@ -3,13 +3,14 @@ package assimp
 import java.io.*
 
 class DefaultIOSystem : IOSystem{
+
     override fun exists(pFile: String) = File(pFile).exists()
 
     override fun open(pFile: String): IOStream {
-        var file = File(pFile)
+        val file = File(pFile)
         println(File(".").absolutePath)
         if(!file.exists())
-            throw IOException("File doesn't exist: "+pFile)
+            throw IOException("File doesn't exist: $pFile")
 
 
         return FileIOStream(file)
