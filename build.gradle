@@ -9,7 +9,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.21'
+    ext.kotlinVersion = '1.2.40-eap-51'
 
     repositories {
         jcenter()
@@ -32,7 +32,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    implementation 'com.github.kotlin-graphics:uno-sdk:641ec79aa3d5cf696590276f75b8b89804dc9d09'
+    implementation 'com.github.kotlin-graphics:uno-sdk:b885fad02bbcced22aa2ef4958050e871bc6e219'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
 
@@ -57,7 +57,7 @@ dependencies {
             break
     }
 
-    ext.lwjglVersion = "3.1.5-SNAPSHOT"
+    ext.lwjglVersion = "3.1.7-SNAPSHOT"
     implementation "org.lwjgl:lwjgl:${lwjglVersion}"
     implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     implementation "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"

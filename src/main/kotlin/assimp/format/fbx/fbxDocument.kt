@@ -409,11 +409,14 @@ class Model(id: Long, element: Element, doc: Document, name: String) : Object(id
                 continue
             }
 
+            var `continue` = true
             when (ob) {
                 is Material -> materials += ob
                 is Geometry -> geometry += ob
                 is NodeAttribute -> attributes += ob
+                else -> `continue` = false
             }
+            if(`continue`) continue
 
             domWarning("source object for model link is neither Material, NodeAttribute nor Geometry, ignoring", element)
             continue

@@ -181,13 +181,13 @@ class Converter(val out: AiScene, val doc: Document) {
                 // ignore object-property links
                 if (con.prop.isNotEmpty()) continue
 
-                val object_ = con.sourceObject
-                if (object_ == null) {
+                val `object` = con.sourceObject
+                if (`object` == null) {
                     logger.warn("failed to convert source object for Model link")
                     continue
                 }
 
-                val model = object_ as? Model
+                val model = `object` as? Model
 
                 if (model != null) {
                     nodesChain.clear()
