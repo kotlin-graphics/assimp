@@ -1,6 +1,7 @@
 package X
 
 import assimp.Importer
+import assimp.getResource
 import io.kotlintest.specs.StringSpec
 import assimp.models
 
@@ -8,7 +9,7 @@ class test : StringSpec() {
     init {
         val test = "test.x"
         test {
-            with(Importer().readFile(x + "test.x")!!) {
+            with(Importer().readFile(getResource("$x/$test"))!!) {
                 printNodeNames(rootNode)
             }
         }

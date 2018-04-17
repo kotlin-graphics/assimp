@@ -9,7 +9,7 @@ import io.kotlintest.specs.StringSpec
 
 class md2 : StringSpec() {
 
-    val path = models + "/MD2/"
+    val path = "$models/MD2/"
 
     init {
         "faerie"  { faerie(path + "faerie.md2") }

@@ -2,6 +2,7 @@ package assimp.assbin
 
 import assimp.Importer
 import assimp.assbin
+import assimp.getResource
 import io.kotlintest.specs.StringSpec
 
 // TODO
@@ -24,7 +25,7 @@ class `boblampclean assbin` : StringSpec() {
 
         boblampclean {
 
-            val scene = Importer().readFile(assbin + boblampclean)
+            val scene = Importer().readFile(getResource("$assbin/$boblampclean"))
 
             println()
         }
@@ -33,7 +34,7 @@ class `boblampclean assbin` : StringSpec() {
 
         minigun {
 
-            val scene = Importer().readFile(assbin + minigun)
+            val scene = Importer().readFile(getResource("$assbin/$minigun"))
 
             println()
         }

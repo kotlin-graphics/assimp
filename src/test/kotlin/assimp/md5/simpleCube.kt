@@ -3,6 +3,7 @@ package assimp.md5
 import assimp.AiShadingMode
 import assimp.AiTexture
 import assimp.Importer
+import assimp.getResource
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
@@ -11,7 +12,7 @@ object simpleCube {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(getResource(fileName))!!) {
 
             flags shouldBe 0
 

@@ -385,9 +385,9 @@ class Md3Importer : BaseImporter() {
 
         // get base path and file name
         // todo ... move to PathConverter
-        filename = this.file.substringAfterLast('/').toLowerCase()
-        val last = this.file.lastIndexOf('/')
-        path = if (last == -1) this.file else this.file.substring(0, last + 1)
+        filename = file.substringAfterLast(File.separatorChar).toLowerCase()
+        val last = file.lastIndexOf(File.separatorChar)
+        path = if (last == -1) file else file.substring(0, last + 1)
 
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
@@ -522,7 +522,7 @@ class Md3Importer : BaseImporter() {
                 textureCoords.add(mutableListOf())
             }
 
-            // Fill in all pTriangles
+            // Fill in all triangles
             var iCurrent = 0
             for (i in 0 until surfaces.numTriangles) {
                 mesh.faces.add(MutableList(3, { 0 }))
@@ -749,7 +749,7 @@ class Md3Importer : BaseImporter() {
      *  @param fill Receives output information     */
     fun readShader(fill: Q3Shader.ShaderData) {
         // Determine Q3 model name from given path
-        val last = path.substring(0, path.length - 2).lastIndexOf('/')
+        val last = path.substring(0, path.length - 2).lastIndexOf(File.separatorChar)
         val modelFile = path.substring(last + 1, path.length - 1)
 
         // If no specific dir or file is given, use our default search behaviour

@@ -9,8 +9,8 @@ import io.kotlintest.specs.StringSpec
 
 class fbx : StringSpec() {
 
-    val path = models + "/FBX/"
-    val pathNonBsd = modelsNonBsd + "/FBX/"
+    val path = "$models/FBX/"
+    val pathNonBsd = "$modelsNonBsd/FBX/"
     val binary = "2013_BINARY/"
     val ascii = "2013_ASCII/"
 

@@ -6,12 +6,13 @@ import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
+import java.net.URL
 
 object animFullRot {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(url: URL) {
 
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(url)!!) {
 
             flags shouldBe 0
 

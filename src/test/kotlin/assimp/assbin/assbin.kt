@@ -1,12 +1,13 @@
 package assimp.assbin
 
 import assimp.Importer
+import assimp.getResource
 import assimp.models
 import io.kotlintest.specs.StringSpec
 
 class assbin : StringSpec() {
 
-    val assbin = models + "/Assbin/"
+    val assbin = "$models/Assbin/"
 
     init {
 
@@ -23,7 +24,7 @@ class assbin : StringSpec() {
 
         boblampclean {
 
-            val scene = Importer().readFile(assbin + boblampclean)
+            val scene = Importer().readFile(getResource("$assbin/$boblampclean"))
 
             println()
         }
@@ -32,7 +33,7 @@ class assbin : StringSpec() {
 
         minigun {
 
-            val scene = Importer().readFile(assbin + minigun)
+            val scene = Importer().readFile(getResource("$assbin/$minigun"))
 
             println()
         }

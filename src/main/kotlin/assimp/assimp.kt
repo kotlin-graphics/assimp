@@ -3,7 +3,10 @@ package assimp
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import mu.KotlinLogging
+import java.net.URL
 import java.nio.ByteBuffer
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.math.abs
 
 val logger = KotlinLogging.logger {}

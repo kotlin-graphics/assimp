@@ -5,8 +5,8 @@ import gli_.Cache
 import gli_.Texture
 import io.kotlintest.matchers.*
 
-val x = models + "/X/"
-val x_ass = models + "/models-assbin-db/X/"
+val x = "$models/X/"
+val x_ass = "$models/models-assbin-db/X/"
 
 fun printNodeNames(n : AiNode, done : MutableList<AiNode> = MutableList<AiNode>(0, { AiNode() })) {
     println(n.name); done.add(n)

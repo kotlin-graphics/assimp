@@ -1,9 +1,6 @@
 package assimp.ply
 
-import assimp.AiPrimitiveType
-import assimp.AiShadingMode
-import assimp.Importer
-import assimp.models
+import assimp.*
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
@@ -13,7 +10,7 @@ object pond0 {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(getResource(fileName))!!) {
 
             numMeshes shouldBe 1
             with(meshes[0]) {

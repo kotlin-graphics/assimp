@@ -10,10 +10,10 @@ import io.kotlintest.specs.StringSpec
 
 class md3 : StringSpec() {
 
-    val path = modelsNonBsd + "/MD3/"
+    val path = "$modelsNonBsd/MD3/"
 
     init {
-        "watercan"  { watercan(path + "watercan.md3") }
+//        "watercan"  { watercan(path + "watercan.md3") }
         "european font"  { europeanFnt(path + "q3root/models/mapobjects/kt_kubalwagon/european_fnt_v2.md3") }
     }
 }

@@ -44,18 +44,16 @@ package assimp
 
 import assimp.format.ProgressHandler
 import glm_.BYTES
-import glm_.bool
 import glm_.i
-import glm_.mat4x4.Mat4
 import glm_.size
 import assimp.AiPostProcessSteps as Pps
-import uno.kotlin.uri
 import java.io.File
-import java.io.FileNotFoundException
 import java.net.URI
+import java.net.URL
 import java.nio.ByteBuffer
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KMutableProperty1
 
 /** CPP-API: The Importer class forms an C++ interface to the functionality of the Open Asset Import Library.
  *
@@ -226,7 +224,10 @@ constructor() {
     /** Get the currently set progress handler  */
     val progressHandler get() = impl.progressHandler
 
-    fun readFile(uri: URI, flags: Int = 0) = readFile(uri.path, flags)
+    fun readFile(url: URL, flags: Int = 0) = readFile(url.toURI(), flags)
+    fun readFile(uri: URI, flags: Int = 0) = readFile(Paths.get(uri), flags)
+    fun readFile(path: Path, flags: Int = 0) = readFile(path.toAbsolutePath().toString(), flags)
+    fun readFile(file: String, flags: Int = 0) = readFile(file, ioHandler, flags)
 
     /** Reads the given file and returns its contents if successful.
      *
@@ -245,9 +246,6 @@ constructor() {
      *
      * @note Assimp is able to determine the file format of a file automatically.
      */
-    //fun readFile(file: URI, flags: Int = 0): AiScene? {
-    fun readFile(file: String, flags: Int = 0) = readFile(file, ioHandler, flags)
-
     fun readFile(file: String, ioSystem: IOSystem = this.ioHandler, flags: Int = 0): AiScene? {
 
         writeLogOpening(file)

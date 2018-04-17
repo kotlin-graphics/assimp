@@ -1,9 +1,6 @@
 package assimp.obj
 
-import assimp.AiPrimitiveType
-import assimp.AiShadingMode
-import assimp.AiTexture
-import assimp.Importer
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
@@ -12,7 +9,7 @@ import java.util.*
 object nanosuit {
 
     operator fun invoke(fileName: String) {
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(getResource(fileName))!!) {
 
             with(rootNode) {
 

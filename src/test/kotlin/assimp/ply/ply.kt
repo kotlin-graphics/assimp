@@ -15,7 +15,7 @@ import java.util.*
 
 class ply : StringSpec() {
 
-    val path = models + "/PLY/"
+    val path = "$models/PLY/"
 
     init {
 

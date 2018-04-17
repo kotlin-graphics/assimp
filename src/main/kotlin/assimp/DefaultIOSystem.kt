@@ -1,32 +1,33 @@
 package assimp
 
 import java.io.*
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
-class DefaultIOSystem : IOSystem{
+class DefaultIOSystem : IOSystem {
 
     override fun exists(pFile: String) = File(pFile).exists()
 
     override fun open(pFile: String): IOStream {
-        val file = File(pFile)
-        println(File(".").absolutePath)
-        if(!file.exists())
+
+        val path: Path = Paths.get(pFile)
+        if (!Files.exists(path))
             throw IOException("File doesn't exist: $pFile")
 
 
-        return FileIOStream(file)
+        return FileIOStream(path)
     }
 
-    class FileIOStream(val file: File) : IOStream{
-        override fun read() = FileInputStream(file)
+    class FileIOStream(override val path: Path) : IOStream {
 
-        override fun reader() = BufferedReader(FileReader(file))
+        override fun read() = FileInputStream(path.toFile())
 
-        override val path: String
-            get() = file.absolutePath
+        override fun reader() = BufferedReader(FileReader(path.toFile()))
 
         override val filename: String
-            get() = file.name
+            get() = path.fileName.toString()
 
-        override fun parentPath() = file.parentFile.absolutePath
+        override fun parentPath() = path.parent.toAbsolutePath().toString()
     }
 }

@@ -421,24 +421,26 @@ class ObjFileImporter : BaseImporter() {
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
                     if(ioSystem is DefaultIOSystem) {
+
                         //If the default io system is in place, we can use the java.io.File api and list directories
                         //to match files even where case is mangled
 
-                        val dios = ioSystem as DefaultIOSystem
-                        val actualFile = (dios.open(file) as DefaultIOSystem.FileIOStream).file
+                        val actualFile = (ioSystem.open(file) as DefaultIOSystem.FileIOStream).path.toFile()
 
-                        if (actualFile.parentFile.listFiles().any { it.name == cleaned }) {
+                        when {
+                            actualFile.parentFile.listFiles().any { it.name == cleaned } -> {
 
-                            val texFile = actualFile.parentFile.listFiles().first { it.name == cleaned }!!
-                            scene.textures[name] = gli.load(texFile.toPath())
+                                val texFile = actualFile.parentFile.listFiles().first { it.name == cleaned }!!
+                                scene.textures[name] = gli.load(texFile.toPath())
 
-                        } else if(actualFile.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() }){
-                            // try case insensitive
-                            val texFile = actualFile.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
-                            scene.textures[name] = gli.load(texFile.toPath())
+                            }
+                            actualFile.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() } -> {
+                                // try case insensitive
+                                val texFile = actualFile.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
+                                scene.textures[name] = gli.load(texFile.toPath())
 
-                        } else {
-                            logger.warn { "OBJ/MTL: Texture image not found --> " + cleaned }
+                            }
+                            else -> logger.warn { "OBJ/MTL: Texture image not found --> $cleaned" }
                         }
                     } else {
                         //no such luck with custom io systems i'm afraid
@@ -446,7 +448,7 @@ class ObjFileImporter : BaseImporter() {
                     }
 
                 } else {
-                    logger.warn { "OBJ/MTL: Scene contains  --> " + name  + " already"}
+                    logger.warn { "OBJ/MTL: Scene contains  --> $name already" }
                 }
             }
         }

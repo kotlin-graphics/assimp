@@ -2,10 +2,11 @@ package assimp
 
 import java.io.BufferedReader
 import java.io.InputStream
-import java.io.Reader
+import java.nio.file.Path
 
 interface IOStream {
-    val path : String
+
+    val path : Path
 
     val filename: String
 

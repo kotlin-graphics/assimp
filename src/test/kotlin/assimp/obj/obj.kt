@@ -5,7 +5,7 @@ import io.kotlintest.specs.StringSpec
 
 class obj : StringSpec() {
 
-    val path = models + "/OBJ/"
+    val path = "$models/OBJ/"
 
     init {
         "box"{ box(path + "box.obj") }

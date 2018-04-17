@@ -1,9 +1,6 @@
 package assimp.obj
 
-import assimp.AI_DEFAULT_MATERIAL_NAME
-import assimp.AiPrimitiveType
-import assimp.AiShadingMode
-import assimp.Importer
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
@@ -18,7 +15,7 @@ object box {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(getResource(fileName))!!) {
 
             with(rootNode) {
 
