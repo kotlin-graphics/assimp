@@ -6,7 +6,7 @@ import assimp.Importer
 import assimp.getResource
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.matchers.shouldBe
+import io.kotlintest.shouldBe
 
 object boarMan {
 

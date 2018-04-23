@@ -324,13 +324,12 @@ constructor() {
                     if (impl.scene == null) return null
                 }
             // Preprocess the scene and prepare it for post-processing
-//            if (profiler) { profiler ->
-//                BeginRegion("preprocess");
-//            }
+//            if (profiler) profiler.BeginRegion("preprocess")
+
             ScenePreprocessor.processScene(impl.scene!!)
-//            if (profiler) { profiler ->
-//                EndRegion("preprocess");
-//            }
+
+//            if (profiler) profiler.EndRegion("preprocess")
+
             // Ensure that the validation process won't be called twice
             applyPostProcessing(flags wo Pps.ValidateDataStructure)
         }

@@ -3,7 +3,7 @@ package X
 import assimp.*
 import gli_.Cache
 import gli_.Texture
-import io.kotlintest.matchers.*
+import io.kotlintest.*
 
 val x = "$models/X/"
 val x_ass = "$models/models-assbin-db/X/"

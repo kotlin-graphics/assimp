@@ -6,7 +6,7 @@ import assimp.getResource
 import assimp.models
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.matchers.shouldBe
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 
 object sphereWithHole {

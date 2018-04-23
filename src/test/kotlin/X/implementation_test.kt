@@ -4,7 +4,7 @@ import assimp.format.X.Pointer
 import assimp.format.X.XFileParser
 import io.kotlintest.specs.StringSpec
 import assimp.format.X.fast_atoreal_move
-import io.kotlintest.matchers.shouldBe
+import io.kotlintest.shouldBe
 
 class implementation_test : StringSpec() {
 

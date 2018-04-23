@@ -8,6 +8,7 @@ class obj : StringSpec() {
     val path = "$models/OBJ/"
 
     init {
+        "wall"{ wall(path + "wall.obj") }
         "box"{ box(path + "box.obj") }
         "spider"{ spider(path + "spider.obj") }
         "nanosuit" { nanosuit(path + "nanosuit/nanosuit.obj") }
