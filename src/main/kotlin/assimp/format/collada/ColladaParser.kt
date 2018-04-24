@@ -1249,7 +1249,7 @@ class ColladaParser(pFile: IOStream) {
                 if (endElement.name_ != elementName) throw Exception("Expected end of <$elementName> element.")
                 break
             }
-        if (ASSIMP.BUILD.DEBUG)
+        if (ASSIMP.DEBUG)
             if (primType != Pt.TriFans && primType != Pt.TriStrips && primType != Pt.LineStrip && primType != Pt.Lines)
             /*  this is ONLY to workaround a bug in SketchUp 15.3.331 where it writes the wrong 'count' when it writes out
                 the 'lines'.         */

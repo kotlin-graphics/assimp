@@ -46,7 +46,6 @@ import assimp.format.ProgressHandler
 import glm_.BYTES
 import glm_.i
 import glm_.size
-import assimp.AiPostProcessSteps as Pps
 import java.io.File
 import java.net.URI
 import java.net.URL
@@ -54,6 +53,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.reflect.KMutableProperty0
+import assimp.AiPostProcessStep as Pps
 
 /** CPP-API: The Importer class forms an C++ interface to the functionality of the Open Asset Import Library.
  *
@@ -78,11 +78,6 @@ class Importer
  * Call readFile() to start the import process. The configuration property table is initially empty.
  */
 constructor() {
-
-    companion object {
-        /** The upper limit for hints. */
-        val MaxLenHint = 200
-    }
 
     // Just because we don't want you to know how we're hacking around.
     internal val impl = ImporterPimpl() // allocate the pimpl first
@@ -115,7 +110,7 @@ constructor() {
         val st = imp.extensionList
         var baked = ""
         st.forEach {
-            if (ASSIMP.BUILD.DEBUG && isExtensionSupported(it))
+            if (ASSIMP.DEBUG && isExtensionSupported(it))
                 logger.warn { "The file extension $it is already in use" }
             baked += "$it "
         }
@@ -191,8 +186,9 @@ constructor() {
 
     var ioHandler: IOSystem
         get() = impl.ioSystem
-
-        set(value) { if(value != null) impl.ioSystem = value}
+        set(value) {
+            if (value != null) impl.ioSystem = value
+        }
 
     /** Checks whether a default progress handler is active
      *  A default handler is active as long the application doesn't supply its own custom progress handler via
@@ -224,10 +220,13 @@ constructor() {
     /** Get the currently set progress handler  */
     val progressHandler get() = impl.progressHandler
 
-    fun readFile(url: URL, flags: Int = 0) = readFile(url.toURI(), flags)
-    fun readFile(uri: URI, flags: Int = 0) = readFile(Paths.get(uri), flags)
-    fun readFile(path: Path, flags: Int = 0) = readFile(path.toAbsolutePath().toString(), flags)
-    fun readFile(file: String, flags: Int = 0) = readFile(file, ioHandler, flags)
+    @JvmOverloads
+    fun readFile(url: URL, flags: AiPostProcessStepsFlags = 0) = readFile(url.toURI(), flags)
+    @JvmOverloads
+    fun readFile(uri: URI, flags: AiPostProcessStepsFlags = 0) = readFile(Paths.get(uri), flags)
+    @JvmOverloads
+    fun readFile(path: Path, flags: AiPostProcessStepsFlags = 0) = readFile(path.toAbsolutePath().toString(), flags)
+    fun readFile(file: String, flags: AiPostProcessStepsFlags = 0) = readFile(file, ioHandler, flags)
 
     /** Reads the given file and returns its contents if successful.
      *
@@ -246,7 +245,8 @@ constructor() {
      *
      * @note Assimp is able to determine the file format of a file automatically.
      */
-    fun readFile(file: String, ioSystem: IOSystem = this.ioHandler, flags: Int = 0): AiScene? {
+    @JvmOverloads
+    fun readFile(file: String, ioSystem: IOSystem = this.ioHandler, flags: AiPostProcessStepsFlags = 0): AiScene? {
 
         writeLogOpening(file)
 
@@ -270,7 +270,7 @@ constructor() {
 //        }
 
         // Find an worker class which can handle the file
-        val imp = impl.importer.find { it.canRead(file, ioHandler,false) }
+        val imp = impl.importer.find { it.canRead(file, ioHandler, false) }
 
         if (imp == null) {
             // not so bad yet ... try format auto detection.
@@ -317,7 +317,7 @@ constructor() {
         // If successful, apply all active post processing steps to the imported data
         if (impl.scene != null) {
 
-            if (!ASSIMP.BUILD.NO.VALIDATEDS_PROCESS)
+            if (!ASSIMP.NO.VALIDATEDS_PROCESS)
             // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
                 if (flags has Pps.ValidateDataStructure) {
                     ValidateDSProcess.executeOnScene(this)
@@ -405,7 +405,7 @@ constructor() {
         // In debug builds: run basic flag validation
         assert(_validateFlags(flags))
         logger.info("Entering post processing pipeline")
-        if (!ASSIMP.BUILD.NO.VALIDATEDS_PROCESS)
+        if (!ASSIMP.NO.VALIDATEDS_PROCESS)
         /*  The ValidateDS process plays an exceptional role. It isn't contained in the global list of post-processing
             steps, so we need to call it manually.         */
             if (flags has Pps.ValidateDataStructure) {
@@ -417,9 +417,9 @@ constructor() {
             if (impl.scene == null) return null
         }
         var flags = flags
-        if (ASSIMP.BUILD.DEBUG) {
+        if (ASSIMP.DEBUG) {
             if (impl.extraVerbose) {
-                if (ASSIMP.BUILD.NO.VALIDATEDS_PROCESS)
+                if (ASSIMP.NO.VALIDATEDS_PROCESS)
                     logger.error { "Verbose Import is not available due to build settings" }
                 flags = flags or Pps.ValidateDataStructure
             }
@@ -427,7 +427,7 @@ constructor() {
             logger.warn("Not a debug build, ignoring extra verbose setting")
 
 //        std::unique_ptr<Profiler> profiler (GetPropertyInteger(AI_CONFIG_GLOB_MEASURE_TIME, 0)?new Profiler():NULL); TODO
-        for (a in 0 until impl.postProcessingSteps.size) {
+        for (a in impl.postProcessingSteps.indices) {
             val process = impl.postProcessingSteps[a]
             impl.progressHandler.updatePostProcess(a, impl.postProcessingSteps.size)
             if (process.isActive(flags)) {
@@ -440,8 +440,8 @@ constructor() {
 //                }
             }
             if (impl.scene == null) break
-            if (ASSIMP.BUILD.DEBUG) {
-                if (ASSIMP.BUILD.NO.VALIDATEDS_PROCESS) continue
+            if (ASSIMP.DEBUG) {
+                if (ASSIMP.NO.VALIDATEDS_PROCESS) continue
                 // If the extra verbose mode is active, execute the ValidateDataStructureStep again - after each step
                 if (impl.extraVerbose) {
                     logger.debug { "Verbose Import: revalidating data structures" }
@@ -468,7 +468,7 @@ constructor() {
         if (null == rootProcess) return impl.scene
         // In debug builds: run basic flag validation
         logger.info { "Entering customized post processing pipeline" }
-        if (!ASSIMP.BUILD.NO.VALIDATEDS_PROCESS) {
+        if (!ASSIMP.NO.VALIDATEDS_PROCESS) {
             // The ValidateDS process plays an exceptional role. It isn't contained in the global
             // list of post-processing steps, so we need to call it manually.
             if (requestValidation) {
@@ -476,7 +476,7 @@ constructor() {
                 if (impl.scene == null) return null
             }
         }
-        if (ASSIMP.BUILD.DEBUG && impl.extraVerbose && ASSIMP.BUILD.NO.VALIDATEDS_PROCESS)
+        if (ASSIMP.DEBUG && impl.extraVerbose && ASSIMP.NO.VALIDATEDS_PROCESS)
             logger.error { "Verbose Import is not available due to build settings" }
         else if (impl.extraVerbose)
             logger.warn { "Not a debug build, ignoring extra verbose setting" }
@@ -701,7 +701,7 @@ constructor() {
         val flags = compileFlags
         logger.debug {
             var message = "Assimp $versionMajor.$versionMinor.$versionRevision"
-            if (ASSIMP.BUILD.DEBUG) message += " debug"
+            if (ASSIMP.DEBUG) message += " debug"
         }
     }
 
@@ -723,6 +723,11 @@ constructor() {
         scene.set(scene() + Int.BYTES * node.numMeshes)
         for (i in 0 until node.numChildren)
             addNodeWeight(scene, node.children[i])
+    }
+
+    companion object {
+        /** The upper limit for hints. */
+        val MaxLenHint = 200
     }
 }
 

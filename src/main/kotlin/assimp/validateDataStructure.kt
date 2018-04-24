@@ -45,7 +45,7 @@ import gli_.hasnt
 import kotlin.math.PI
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.memberProperties
-import assimp.AiPostProcessSteps as Pps
+import assimp.AiPostProcessStep as Pps
 import assimp.AiShadingMode as Sm
 
 /** @file Defines a (dummy) post processing step to validate the loader's

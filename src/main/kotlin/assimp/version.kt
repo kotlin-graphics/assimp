@@ -75,4 +75,4 @@ val branch = "master"
 /** @brief Returns assimp's compile flags
  *  @return Any bitwise combination of the ASSIMP_CFLAGS_xxx constants.
  */
-val compileFlags = ASSIMP.BUILD.DEBUG.i
+val compileFlags = ASSIMP.DEBUG.i

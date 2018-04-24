@@ -42,4 +42,76 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
-val postProcessingStepInstanceList get() = ArrayList<BaseProcess>()
+import assimp.postProcess.FlipUVsProcess
+import assimp.postProcess.FlipWindingOrderProcess
+import assimp.postProcess.MakeLeftHandedProcess
+
+val postProcessingStepInstanceList: ArrayList<BaseProcess>
+    get() = ArrayList<BaseProcess>().apply {
+
+        // ----------------------------------------------------------------------------
+        // Add an instance of each post processing step here in the order
+        // of sequence it is executed. Steps that are added here are not
+        // validated - as RegisterPPStep() does - all dependencies must be given.
+        // ----------------------------------------------------------------------------
+        if (!ASSIMP.NO.PROCESS.MAKELEFTHANDED)
+            add(MakeLeftHandedProcess())
+
+        if (!ASSIMP.NO.PROCESS.FLIPUVS)
+            add(FlipUVsProcess())
+
+        if (!ASSIMP.NO.PROCESS.FLIPWINDINGORDER)
+            add(FlipWindingOrderProcess ())
+
+//        #if (!defined ASSIMP_BUILD_NO_REMOVEVC_PROCESS)
+//        out.push_back(new RemoveVCProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_REMOVE_REDUNDANTMATERIALS_PROCESS)
+//        out.push_back(new RemoveRedundantMatsProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_EMBEDTEXTURES_PROCESS)
+//        out.push_back(new EmbedTexturesProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_FINDINSTANCES_PROCESS)
+//        out.push_back(new FindInstancesProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_OPTIMIZEGRAPH_PROCESS)
+//        out.push_back(new OptimizeGraphProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_FINDDEGENERATES_PROCESS)
+//        out.push_back(new FindDegeneratesProcess ());
+//        #endif
+//        #ifndef ASSIMP_BUILD_NO_GENUVCOORDS_PROCESS
+//            out.push_back(new ComputeUVMappingProcess ());
+//        #endif
+//        #ifndef ASSIMP_BUILD_NO_TRANSFORMTEXCOORDS_PROCESS
+//            out.push_back(new TextureTransformStep ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_PRETRANSFORMVERTICES_PROCESS)
+//        out.push_back(new PretransformVertices ());
+//        #endif
+//        if (!ASSIMP.NO.PROCESS.TRIANGULATE)
+//            add(TriangulateProcess ())
+
+//        #if (!defined ASSIMP_BUILD_NO_SORTBYPTYPE_PROCESS)
+//        out.push_back(new SortByPTypeProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_FINDINVALIDDATA_PROCESS)
+//        out.push_back(new FindInvalidDataProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_OPTIMIZEMESHES_PROCESS)
+//        out.push_back(new OptimizeMeshesProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_FIXINFACINGNORMALS_PROCESS)
+//        out.push_back(new FixInfacingNormalsProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_SPLITBYBONECOUNT_PROCESS)
+//        out.push_back(new SplitByBoneCountProcess ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_SPLITLARGEMESHES_PROCESS)
+//        out.push_back(new SplitLargeMeshesProcess_Triangle ());
+//        #endif
+//        #if (!defined ASSIMP_BUILD_NO_GENFACENORMALS_PROCESS)
+//        out.push_back(new GenFaceNormalsProcess ());
+//        #endif
+    }

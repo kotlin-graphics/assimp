@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
-import assimp.ASSIMP.BUILD.DEBUG
+import assimp.ASSIMP.DEBUG
 import assimp.AiMatrix4x4
 import assimp.AiVector3D
 import glm_.*

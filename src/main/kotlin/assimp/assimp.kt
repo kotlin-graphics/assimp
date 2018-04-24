@@ -3,10 +3,6 @@ package assimp
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import mu.KotlinLogging
-import java.net.URL
-import java.nio.ByteBuffer
-import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.math.abs
 
 val logger = KotlinLogging.logger {}
@@ -60,64 +56,84 @@ object ASSIMP {
 
     val defaultIOSystem = DefaultIOSystem()
 
-    object BUILD {
+    var DEBUG = true
 
-        var DEBUG = true
+    var BLENDER_DEBUG = true
 
-        var BLENDER_DEBUG = true
+    var BLENDER_NO_STATS = false
 
-        var BLENDER_NO_STATS = false
+    object NO {
 
-        object NO {
+        var VALIDATEDS_PROCESS = true
 
-            var VALIDATEDS_PROCESS = true
+        var X_IMPORTER = false
+        var OBJ_IMPORTER = false
+        var AMF_IMPORTER = false
+        var _3DS_IMPORTER = false
+        var MD3_IMPORTER = false
+        var MD2_IMPORTER = false
+        var PLY_IMPORTER = false
+        var MDL_IMPORTER = false
+        var ASE_IMPORTER = false
+        var HMP_IMPORTER = false
+        var SMD_IMPORTER = false
+        var MDC_IMPORTER = false
+        var MD5_IMPORTER = false
+        var STL_IMPORTER = false
+        var LWO_IMPORTER = false
+        var DXF_IMPORTER = false
+        var NFF_IMPORTER = false
+        var RAW_IMPORTER = false
+        var SIB_IMPORTER = false
+        var OFF_IMPORTER = false
+        var AC_IMPORTER = false
+        var BVH_IMPORTER = false
+        var IRRMESH_IMPORTER = false
+        var IRR_IMPORTER = false
+        var Q3D_IMPORTER = false
+        var B3D_IMPORTER = false
+        var COLLADA_IMPORTER = false
+        var TERRAGEN_IMPORTER = false
+        var CSM_IMPORTER = false
+        var _3D_IMPORTER = false
+        var LWS_IMPORTER = false
+        var OGRE_IMPORTER = false
+        var OPENGEX_IMPORTER = false
+        var MS3D_IMPORTER = false
+        var COB_IMPORTER = false
+        var BLEND_IMPORTER = false
+        var Q3BSP_IMPORTER = false
+        var NDO_IMPORTER = false
+        var IFC_IMPORTER = false
+        var XGL_IMPORTER = false
+        var FBX_IMPORTER = false
+        var ASSBIN_IMPORTER = false
+        var GLTF_IMPORTER = false
+        var C4D_IMPORTER = false
+        var _3MF_IMPORTER = false
+        var X3D_IMPORTER = false
 
-            var X_IMPORTER = false
-            var OBJ_IMPORTER = false
-            var AMF_IMPORTER = false
-            var _3DS_IMPORTER = false
-            var MD3_IMPORTER = false
-            var MD2_IMPORTER = false
-            var PLY_IMPORTER = false
-            var MDL_IMPORTER = false
-            var ASE_IMPORTER = false
-            var HMP_IMPORTER = false
-            var SMD_IMPORTER = false
-            var MDC_IMPORTER = false
-            var MD5_IMPORTER = false
-            var STL_IMPORTER = false
-            var LWO_IMPORTER = false
-            var DXF_IMPORTER = false
-            var NFF_IMPORTER = false
-            var RAW_IMPORTER = false
-            var SIB_IMPORTER = false
-            var OFF_IMPORTER = false
-            var AC_IMPORTER = false
-            var BVH_IMPORTER = false
-            var IRRMESH_IMPORTER = false
-            var IRR_IMPORTER = false
-            var Q3D_IMPORTER = false
-            var B3D_IMPORTER = false
-            var COLLADA_IMPORTER = false
-            var TERRAGEN_IMPORTER = false
-            var CSM_IMPORTER = false
-            var _3D_IMPORTER = false
-            var LWS_IMPORTER = false
-            var OGRE_IMPORTER = false
-            var OPENGEX_IMPORTER = false
-            var MS3D_IMPORTER = false
-            var COB_IMPORTER = false
-            var BLEND_IMPORTER = false
-            var Q3BSP_IMPORTER = false
-            var NDO_IMPORTER = false
-            var IFC_IMPORTER = false
-            var XGL_IMPORTER = false
-            var FBX_IMPORTER = false
-            var ASSBIN_IMPORTER = false
-            var GLTF_IMPORTER = false
-            var C4D_IMPORTER = false
-            var _3MF_IMPORTER = false
-            var X3D_IMPORTER = false
+        object PROCESS {
+            var MAKELEFTHANDED = false
+            var FLIPUVS = false
+            var FLIPWINDINGORDER = false
+            var REMOVEVC = false
+            var REMOVE_REDUNDANTMATERIALS = false
+            var EMBEDTEXTURES = false
+            var FINDINSTANCES = false
+            var OPTIMIZEGRAPH = false
+            var FINDDEGENERATES = false
+            var GENUVCOORDS = false
+            var TRANSFORMTEXCOORDS = false
+            var PRETRANSFORMVERTICES = false
+            var TRIANGULATE = false
+            var SORTBYPTYPE = false
+            var FINDINVALIDDATA = false
+            var OPTIMIZEMESHES = false
+            var FIXINFACINGNORMALS = false
+            var SPLITBYBONECOUNT = false
+            var SPLITLARGEMESHES = false
+            var GENFACENORMALS = false
         }
     }
 }

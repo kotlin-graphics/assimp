@@ -1,6 +1,6 @@
 package assimp
 
-import assimp.AiPostProcessSteps as Pps
+import assimp.AiPostProcessStep as Pps
 import assimp.AiShadingMode as Sm
 
 object OptimizeMeshes : BaseProcess(){

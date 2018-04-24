@@ -1607,7 +1607,7 @@ class Converter(val out: AiScene, val doc: Document) {
         val nodePropertyMap = mutableMapOf<String, ArrayList<AnimationCurveNode>>()
         assert(curves.isNotEmpty())
 
-        if (ASSIMP.BUILD.DEBUG)
+        if (ASSIMP.DEBUG)
             validateAnimCurveNodes(curves, doc.settings.strictMode)
 
         var curveNode: AnimationCurveNode? = null

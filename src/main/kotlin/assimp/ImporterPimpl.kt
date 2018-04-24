@@ -1,6 +1,5 @@
 package assimp
 
-import assimp.format.AiConfig
 import assimp.format.ProgressHandler
 
 /** Internal PIMPL implementation for Assimp::Importer   */
@@ -100,7 +99,7 @@ class BatchLoader(validate: Boolean = true) {
             // force validation in debug builds
             var pp = it.flags
             if (data.validate)
-                pp = pp or AiPostProcessSteps.ValidateDataStructure
+                pp = pp or AiPostProcessStep.ValidateDataStructure
 
             // setup config properties if necessary
             data.importer.impl.properties += it.map

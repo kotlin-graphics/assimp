@@ -4,7 +4,7 @@ package assimp
  * Created by GBarbieri on 02.05.2017.
  */
 
-enum class AiPostProcessSteps(@JvmField val i: Int) {
+enum class AiPostProcessStep(@JvmField val i: Int) {
 
     /** <hr>Calculates the tangents and bitangents for the imported meshes.
      *
@@ -397,7 +397,9 @@ enum class AiPostProcessSteps(@JvmField val i: Int) {
     TargetRealtime_MaxQuality(TargetRealtime_Quality.i or FindInstances.i or ValidateDataStructure.i or OptimizeMeshes.i)
 }
 
-infix fun Int.has(b: AiPostProcessSteps) = and(b.i) != 0
-infix fun Int.hasnt(b: AiPostProcessSteps) = and(b.i) == 0
-infix fun Int.or(b: AiPostProcessSteps) = or(b.i)
-infix fun Int.wo(b: AiPostProcessSteps) = and(b.i.inv())
+infix fun Int.has(b: AiPostProcessStep) = and(b.i) != 0
+infix fun Int.hasnt(b: AiPostProcessStep) = and(b.i) == 0
+infix fun Int.or(b: AiPostProcessStep) = or(b.i)
+infix fun Int.wo(b: AiPostProcessStep) = and(b.i.inv())
+
+typealias AiPostProcessStepsFlags = Int

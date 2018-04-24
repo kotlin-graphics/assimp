@@ -4,7 +4,7 @@ import assimp.*
 
 object MakeLeftHandedProcess {
     fun IsActive(pFlags: Int): Boolean {
-        return 0 != (pFlags.and(AiPostProcessSteps.MakeLeftHanded.i))
+        return 0 != (pFlags.and(AiPostProcessStep.MakeLeftHanded.i))
     }
 
     fun Execute(pScene: AiScene) {
@@ -123,7 +123,7 @@ object MakeLeftHandedProcess {
 
 object FlipWindingOrderProcess {
     fun IsActive(pFlags : Int) : Boolean {
-        return 0 != (pFlags.and(AiPostProcessSteps.FlipWindingOrder.i))
+        return 0 != (pFlags.and(AiPostProcessStep.FlipWindingOrder.i))
     }
 
     fun Execute(pScene : AiScene) {

@@ -15,7 +15,7 @@ class anim_test : StringSpec() {
         test1 {
             Importer().readFile(getResource("$x/anim_test.x"))!!.let { f1 ->
                 FlipWindingOrderProcess.Execute(f1)
-                MakeLeftHandedProcess.Execute(f1)
+                MakeLeftHandedProcess.Execute(f1) // TODO switch to flag
 
                 StringBuilder().let { out ->
                     AssxmlExporter().ExportSceneAssxml(out, f1)

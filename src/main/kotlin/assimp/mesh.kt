@@ -143,6 +143,7 @@ enum class AiPrimitiveType(val i: Int) {
 }
 
 infix fun Int.or(other: AiPrimitiveType) = or(other.i)
+infix fun Int.wo(other: AiPrimitiveType) = and(other.i.inv())
 infix fun Int.has(other: AiPrimitiveType) = and(other.i) != 0
 infix fun Int.hasnt(other: AiPrimitiveType) = and(other.i) == 0
 
