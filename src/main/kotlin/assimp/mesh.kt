@@ -105,7 +105,7 @@ data class AiBone(
     }
 }
 
-// ---------------------------------------------------------------------------
+typealias AiPrimitiveTypeMask = Int
 /** @brief Enumerates the types of geometric primitives supported by Assimp.
  * 1 1
  *  @see aiFace Face data structure
@@ -142,6 +142,7 @@ enum class AiPrimitiveType(val i: Int) {
     }
 }
 
+infix fun AiPrimitiveType.or(other: AiPrimitiveType) = i or other.i
 infix fun Int.or(other: AiPrimitiveType) = or(other.i)
 infix fun Int.wo(other: AiPrimitiveType) = and(other.i.inv())
 infix fun Int.has(other: AiPrimitiveType) = and(other.i) != 0
@@ -189,7 +190,7 @@ open class AiMesh(
         /** Bitwise combination of the members of the #aiPrimitiveType enum.
          * This specifies which types of primitives are present in the mesh.
          * The "SortByPrimitiveType"-Step can be used to make sure the output meshes consist of one primitive Type each.         */
-        var primitiveTypes: Int = 0,
+        var primitiveTypes: AiPrimitiveTypeMask = 0,
 
         /** The number of vertices in this mesh.
          * This is also the size of all of the per-vertex data arrays.

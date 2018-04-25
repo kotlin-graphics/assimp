@@ -1,290 +1,294 @@
-///*
-//Open Asset Import Library (assimp)
-//----------------------------------------------------------------------
-//
-//Copyright (c) 2006-2018, assimp team
-//
-//
-//All rights reserved.
-//
-//Redistribution and use of this software in source and binary forms,
-//with or without modification, are permitted provided that the
-//following conditions are met:
-//
-//* Redistributions of source code must retain the above
-//  copyright notice, this list of conditions and the
-//  following disclaimer.
-//
-//* Redistributions in binary form must reproduce the above
-//  copyright notice, this list of conditions and the
-//  following disclaimer in the documentation and/or other
-//  materials provided with the distribution.
-//
-//* Neither the name of the assimp team, nor the names of its
-//  contributors may be used to endorse or promote products
-//  derived from this software without specific prior
-//  written permission of the assimp team.
-//
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-//A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-//OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-//SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-//DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-//THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//----------------------------------------------------------------------
-//*/
-//
-//package assimp.postProcess
-//
-//import assimp.*
-//import glm_.max
-//import glm_.vec2.Vec2
-//import glm_.vec3.Vec3
-//
-///** @file Defines a post processing step to triangulate all faces
-//with more than three vertices.
-// */
-//
-///** The TriangulateProcess splits up all faces with more than three indices
-// * into triangles. You usually want this to happen because the graphics cards
-// * need their data as triangles.
-// */
-//class TriangulateProcess : BaseProcess() {
-//
-//
-//    /** Returns whether the processing step is present in the given flag field.
-//     *  @param flags The processing flags the importer was called with. A bitwise combination of AiPostProcessStep.
-//     *  @return true if the process is present in this flag fields, false if not.     */
-//    override fun isActive(flags: AiPostProcessStepsFlags): Boolean = flags has AiPostProcessStep.Triangulate
-//
-//    /** Executes the post processing step on the given imported data.
-//     *  At the moment a process is not supposed to fail.
-//     *  @param scene The imported data to work at.     */
-//    override fun execute(scene: AiScene) {
-//
-//        logger.debug("TriangulateProcess begin")
-//
-//        var has = false
-//        for (a in 0 until scene.numMeshes)
-//            if (scene.meshes[a].triangulate()) {
-//                has = true
-//            }
-//        if (has)
-//            logger.info("TriangulateProcess finished. All polygons have been triangulated.")
-//        else
-//            logger.debug("TriangulateProcess finished. There was nothing to be done.")
-//    }
-//
-//    /** Triangulates the given mesh.
-//     *  @param pMesh The mesh to triangulate.     */
-//    fun AiMesh.triangulate(): Boolean {
-//
-//        // Now we have aiMesh::mPrimitiveTypes, so this is only here for test cases
-//        if (primitiveTypes == 0) {
-//
-//            var need = false
-//
-//            for (a in 0 until numFaces)
-//                if (faces[a].size != 3)
-//                    need = true
-//            if (!need)
-//                return false
-//        } else if (primitiveTypes hasnt AiPrimitiveType.POLYGON)
-//            return false
-//
-//        // Find out how many output faces we'll get
-//        var numOut = 0
-//        var maxOut = 0
-//        var getNormals = true
-//        for (a in 0 until numFaces) {
-//            val face = faces[a]
-//            if (face.size <= 4)
-//                getNormals = false
-//            if (face.size <= 3)
-//                numOut++
-//            else {
-//                numOut += face.size - 2
-//                maxOut = maxOut max face.size
-//            }
-//        }
-//
-//        // Just another check whether aiMesh::mPrimitiveTypes is correct
-//        assert(numOut != numFaces)
-//
-//        aiVector3D * nor_out = NULL
+/*
+Open Asset Import Library (assimp)
+----------------------------------------------------------------------
+
+Copyright (c) 2006-2018, assimp team
+
+
+All rights reserved.
+
+Redistribution and use of this software in source and binary forms,
+with or without modification, are permitted provided that the
+following conditions are met:
+
+* Redistributions of source code must retain the above
+  copyright notice, this list of conditions and the
+  following disclaimer.
+
+* Redistributions in binary form must reproduce the above
+  copyright notice, this list of conditions and the
+  following disclaimer in the documentation and/or other
+  materials provided with the distribution.
+
+* Neither the name of the assimp team, nor the names of its
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior
+  written permission of the assimp team.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------------------------------------------------------------------
+*/
+
+package assimp.postProcess
+
+import assimp.*
+import glm_.glm
+import glm_.max
+import glm_.vec2.Vec2
+import glm_.vec3.Vec3
+import kotlin.math.abs
+import kotlin.math.acos
+
+/** @file Defines a post processing step to triangulate all faces
+with more than three vertices.
+ */
+
+/** The TriangulateProcess splits up all faces with more than three indices
+ * into triangles. You usually want this to happen because the graphics cards
+ * need their data as triangles.
+ */
+class TriangulateProcess : BaseProcess() {
+
+
+    /** Returns whether the processing step is present in the given flag field.
+     *  @param flags The processing flags the importer was called with. A bitwise combination of AiPostProcessStep.
+     *  @return true if the process is present in this flag fields, false if not.     */
+    override fun isActive(flags: AiPostProcessStepsFlags): Boolean = flags has AiPostProcessStep.Triangulate
+
+    /** Executes the post processing step on the given imported data.
+     *  At the moment a process is not supposed to fail.
+     *  @param scene The imported data to work at.     */
+    override fun execute(scene: AiScene) {
+
+        logger.debug("TriangulateProcess begin")
+
+        var has = false
+        for (a in 0 until scene.numMeshes)
+            if (scene.meshes[a].triangulate()) {
+                has = true
+            }
+        if (has)
+            logger.info("TriangulateProcess finished. All polygons have been triangulated.")
+        else
+            logger.debug("TriangulateProcess finished. There was nothing to be done.")
+    }
+
+    fun triangulateMesh(mesh: AiMesh) = mesh.triangulate()
+
+    /** Triangulates the given mesh.
+     *  @param pMesh The mesh to triangulate.     */
+    fun AiMesh.triangulate(): Boolean {
+
+        // Now we have aiMesh::mPrimitiveTypes, so this is only here for test cases
+        if (primitiveTypes == 0) {
+
+            var need = false
+
+            for (a in 0 until numFaces)
+                if (faces[a].size != 3)
+                    need = true
+            if (!need)
+                return false
+        } else if (primitiveTypes hasnt AiPrimitiveType.POLYGON)
+            return false
+
+        // Find out how many output faces we'll get
+        var numOut = 0
+        var maxOut = 0
+        var getNormals = true
+        for (a in 0 until numFaces) {
+            val face = faces[a]
+            if (face.size <= 4)
+                getNormals = false
+            if (face.size <= 3)
+                numOut++
+            else {
+                numOut += face.size - 2
+                maxOut = maxOut max face.size
+            }
+        }
+
+        // Just another check whether aiMesh::mPrimitiveTypes is correct
+        assert(numOut != numFaces)
+
+        var norOut: Array<Vec3>? = null
 //
 //        // if we don't have normals yet, but expect them to be a cheap side product of triangulation anyway, allocate storage for them.
 //        if (!pMesh->mNormals && get_normals) {
 //            // XXX need a mechanism to inform the GenVertexNormals process to treat these normals as preprocessed per-face normals
 //            //  nor_out = pMesh->mNormals = new aiVector3D[pMesh->mNumVertices];
 //        }
+
+        // the output mesh will contain triangles, but no polys anymore
+        primitiveTypes = primitiveTypes or AiPrimitiveType.TRIANGLE
+        primitiveTypes = primitiveTypes wo AiPrimitiveType.POLYGON
+
+        val out: Array<AiFace> = Array(numOut) { mutableListOf<Int>() }
+        var curOut = 0
+        val tempVerts3d = Array(maxOut + 2) { Vec3() } /* temporary storage for vertices */
+        val tempVerts = Array(maxOut + 2) { Vec2() }
+
+        // Apply vertex colors to represent the face winding?
+//        #ifdef AI_BUILD_TRIANGULATE_COLOR_FACE_WINDING TODO
+//                if (!pMesh->mColors[0])
+//        pMesh->mColors[0] = new aiColor4D[pMesh->mNumVertices]
+//        else
+//        new(pMesh->mColors[0]) aiColor4D[pMesh->mNumVertices]
 //
-//        // the output mesh will contain triangles, but no polys anymore
-//        primitiveTypes = primitiveTypes or AiPrimitiveType.TRIANGLE
-//        primitiveTypes = primitiveTypes wo AiPrimitiveType.POLYGON
+//        aiColor4D * clr = pMesh->mColors[0]
+//        #endif
 //
-//        val out: Array<AiFace> = Array(numOut) { mutableListOf<Int>() }
-//        var curOut = 0
-//        val tempVerts3d = Array(maxOut + 2) { Vec3() } /* temporary storage for vertices */
-//        val tempVerts = Array(maxOut + 2) { Vec2() }
-//
-//        // Apply vertex colors to represent the face winding?
-////        #ifdef AI_BUILD_TRIANGULATE_COLOR_FACE_WINDING TODO
-////                if (!pMesh->mColors[0])
-////        pMesh->mColors[0] = new aiColor4D[pMesh->mNumVertices]
-////        else
-////        new(pMesh->mColors[0]) aiColor4D[pMesh->mNumVertices]
-////
-////        aiColor4D * clr = pMesh->mColors[0]
-////        #endif
-////
-////        #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
-////                FILE * fout = fopen(POLY_OUTPUT_FILE, "a")
-////        #endif
-//
-//        val verts = vertices
-//
-//        // use std::unique_ptr to avoid slow std::vector<bool> specialiations
-//        val done = BooleanArray(maxOut)
-//        for (a in 0 until numFaces) {
-//            val face = faces[a]
-//
-//            val idx = face.indices
-//            val num = face.size
-//            var ear = 0
-//            var tmp = 0
-//            var prev = num - 1
-//            var next = 0
-//            var max = num
-//
-//            // Apply vertex colors to represent the face winding?
-////            #ifdef AI_BUILD_TRIANGULATE_COLOR_FACE_WINDING
-////                for (unsigned int i = 0; i < face.mNumIndices; ++i) {
-////            aiColor4D& c = clr[idx[i]]
-////            c.r = (i + 1) / (float) max
-////                    c.b = 1.f - c.r
-////        }
-////            #endif
-//
-//            val lastFace = out[curOut]
-//
-//            // if it's a simple point,line or triangle: just copy it
-//            if (face.size <= 3) {
-//                val nface = out[curOut++]
-//                nface.mNumIndices = face.mNumIndices
-//                nface.mIndices = face.mIndices
-//
-//                face.mIndices = NULL
-//                continue
-//            }
-//            // optimized code for quadrilaterals
-//            else if (face.mNumIndices == 4) {
-//
-//                // quads can have at maximum one concave vertex. Determine
-//                // this vertex (if it exists) and start tri-fanning from
-//                // it.
-//                unsigned int start_vertex = 0
-//                for (unsigned int i = 0; i < 4; ++i) {
-//                    const aiVector3D & v0 = verts [face.mIndices[(i + 3) % 4]]
-//                    const aiVector3D & v1 = verts [face.mIndices[(i + 2) % 4]]
-//                    const aiVector3D & v2 = verts [face.mIndices[(i + 1) % 4]]
-//
-//                    const aiVector3D & v = verts [face.mIndices[i]]
-//
-//                    aiVector3D left =(v0 - v)
-//                    aiVector3D diag =(v1 - v)
-//                    aiVector3D right =(v2 - v)
-//
-//                    left.Normalize()
-//                    diag.Normalize()
-//                    right.Normalize()
-//
-//                    const float angle = std::acos(left * diag) + std::acos(right * diag)
-//                    if (angle > AI_MATH_PI_F) {
-//                        // this is the concave point
-//                        start_vertex = i
-//                        break
-//                    }
-//                }
-//
-//                const unsigned int temp [] = { face.mIndices[0], face.mIndices[1], face.mIndices[2], face.mIndices[3] }
-//
-//                aiFace& nface = *curOut++
-//                nface.mNumIndices = 3
-//                nface.mIndices = face.mIndices
-//
-//                nface.mIndices[0] = temp[start_vertex]
-//                nface.mIndices[1] = temp[(start_vertex + 1) % 4]
-//                nface.mIndices[2] = temp[(start_vertex + 2) % 4]
-//
-//                aiFace& sface = *curOut++
-//                sface.mNumIndices = 3
-//                sface.mIndices = new unsigned int[3]
-//
-//                sface.mIndices[0] = temp[start_vertex]
-//                sface.mIndices[1] = temp[(start_vertex + 2) % 4]
-//                sface.mIndices[2] = temp[(start_vertex + 3) % 4]
-//
-//                // prevent double deletion of the indices field
-//                face.mIndices = NULL
-//                continue
-//            } else {
-//                // A polygon with more than 3 vertices can be either concave or convex.
-//                // Usually everything we're getting is convex and we could easily
-//                // triangulate by tri-fanning. However, LightWave is probably the only
-//                // modeling suite to make extensive use of highly concave, monster polygons ...
-//                // so we need to apply the full 'ear cutting' algorithm to get it right.
-//
-//                // RERQUIREMENT: polygon is expected to be simple and *nearly* planar.
-//                // We project it onto a plane to get a 2d triangle.
-//
-//                // Collect all vertices of of the polygon.
-//                for (tmp = 0; tmp < max; ++tmp) {
-//                    tempVerts3d[tmp] = verts[idx[tmp]]
-//                }
-//
-//                // Get newell normal of the polygon. Store it for future use if it's a polygon-only mesh
-//                aiVector3D n
-//                        NewellNormal < 3, 3, 3>(n, max, &temp_verts3d.front().x, &temp_verts3d.front().y, &temp_verts3d.front().z)
-//                if (nor_out) {
-//                    for (tmp = 0; tmp < max; ++tmp)
-//                    nor_out[idx[tmp]] = n
-//                }
-//
-//                // Select largest normal coordinate to ignore for projection
-//                const float ax = (n.x > 0 ? n.x :-n.x)
-//                const float ay = (n.y > 0 ? n.y :-n.y)
-//                const float az = (n.z > 0 ? n.z :-n.z)
-//
-//                unsigned int ac = 0, bc = 1 /* no z coord. projection to xy */
-//                float inv = n . z
-//                        if (ax > ay) {
-//                            if (ax > az) { /* no x coord. projection to yz */
-//                                ac = 1; bc = 2
-//                                inv = n.x
-//                            }
-//                        } else if (ay > az) { /* no y coord. projection to zy */
-//                            ac = 2; bc = 0
-//                            inv = n.y
-//                        }
-//
-//                // Swap projection axes to take the negated projection vector into account
-//                if (inv < 0.f) {
-//                    std::swap(ac, bc)
-//                }
-//
-//                for (tmp = 0; tmp < max; ++tmp) {
-//                    tempVerts[tmp].x = verts[idx[tmp]][ac]
-//                    tempVerts[tmp].y = verts[idx[tmp]][bc]
-//                    done[tmp] = false
-//                }
-//
+//        #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
+//                FILE * fout = fopen(POLY_OUTPUT_FILE, "a")
+//        #endif
+
+        val verts = vertices
+
+        // use std::unique_ptr to avoid slow std::vector<bool> specialiations
+        val done = BooleanArray(maxOut)
+        for (a in 0 until numFaces) {
+            val face = faces[a]
+
+            val idx = face
+            var num = face.size
+            var next = 0
+            var tmp = 0
+            var prev = num - 1
+            val max = num
+
+            // Apply vertex colors to represent the face winding?
+//            #ifdef AI_BUILD_TRIANGULATE_COLOR_FACE_WINDING
+//                for (unsigned int i = 0; i < face.mNumIndices; ++i) {
+//            aiColor4D& c = clr[idx[i]]
+//            c.r = (i + 1) / (float) max
+//                    c.b = 1.f - c.r
+//        }
+//            #endif
+
+            val lastFace = curOut
+
+            // if it's a simple point,line or triangle: just copy it
+            if (face.size <= 3) {
+                val nFace = out[curOut++]
+                nFace.clear()
+                nFace += face
+                face.clear()
+                continue
+            }
+            // optimized code for quadrilaterals
+            else if (face.size == 4) {
+
+                /*  quads can have at maximum one concave vertex.
+                    Determine this vertex (if it exists) and start tri-fanning from it.                 */
+                var startVertex = 0
+                for (i in 0..3) {
+                    val v0 = verts[face[(i + 3) % 4]]
+                    val v1 = verts[face[(i + 2) % 4]]
+                    val v2 = verts[face[(i + 1) % 4]]
+
+                    val v = verts[face[i]]
+
+                    val left = v0 - v
+                    val diag = v1 - v
+                    val right = v2 - v
+
+                    left.normalizeAssign()
+                    diag.normalizeAssign()
+                    right.normalizeAssign()
+
+                    val angle = acos(left dot diag) + acos(right dot diag)
+                    if (angle > glm.PIf) {
+                        // this is the concave point
+                        startVertex = i
+                        break
+                    }
+                }
+
+                val temp = IntArray(4) { face[it] }
+
+                val nFace = out[curOut++]
+                nFace.clear()
+
+                nFace += temp[startVertex]
+                nFace += temp[(startVertex + 1) % 4]
+                nFace += temp[(startVertex + 2) % 4]
+
+                val sFace = out[curOut++]
+                sFace.clear()
+
+                sFace += temp[startVertex]
+                sFace += temp[(startVertex + 2) % 4]
+                sFace += temp[(startVertex + 3) % 4]
+
+                // prevent double deletion of the indices field
+                face.clear()
+                continue
+            } else {
+                /*  A polygon with more than 3 vertices can be either concave or convex.
+                    Usually everything we're getting is convex and we could easily triangulate by tri-fanning.
+                    However, LightWave is probably the only modeling suite to make extensive use of highly concave,
+                    monster polygons ...
+                    so we need to apply the full 'ear cutting' algorithm to get it right.
+
+                    REQUIREMENT: polygon is expected to be simple and *nearly* planar.
+                    We project it onto a plane to get a 2d triangle.    */
+
+                // Collect all vertices of of the polygon.
+                tmp = 0
+                while (tmp < max)
+                    tempVerts3d[tmp] = verts[idx[tmp++]]
+                // Get newell normal of the polygon. Store it for future use if it's a polygon-only mesh
+                val n = Vec3()
+                newellNormal(n, max, tempVerts3d)
+                norOut?.let {
+                    tmp = 0
+                    while (tmp < max)
+                        it[idx[tmp++]] = n
+                }
+
+                // Select largest normal coordinate to ignore for projection
+                val aX = if (n.x > 0) n.x else -n.x
+                val aY = if (n.y > 0) n.y else -n.y
+                val aZ = if (n.z > 0) n.z else -n.z
+
+                var ac = 0
+                var bc = 1 /* no z coord. projection to xy */
+                var inv = n.z
+                if (aX > aY) {
+                    if (aX > aZ) { /* no x coord. projection to yz */
+                        ac = 1; bc = 2
+                        inv = n.x
+                    }
+                } else if (aY > aZ) { /* no y coord. projection to zy */
+                    ac = 2; bc = 0
+                    inv = n.y
+                }
+
+                // Swap projection axes to take the negated projection vector into account
+                if (inv < 0f) {
+                    val t = ac
+                    ac = bc
+                    bc = t
+                }
+
+                tmp = 0
+                while (tmp < max) {
+                    tempVerts[tmp].x = verts[idx[tmp]][ac]
+                    tempVerts[tmp].y = verts[idx[tmp]][bc]
+                    done[tmp++] = false
+                }
+
 //                #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
 //                        // plot the plane onto which we mapped the polygon to a 2D ASCII pic
 //                        aiVector2D bmin, bmax
@@ -312,70 +316,73 @@
 //
 //                fprintf(fout, "\ntriangulation sequence: ")
 //                #endif
-//
-//                //
-//                // FIXME: currently this is the slow O(kn) variant with a worst case
-//                // complexity of O(n^2) (I think). Can be done in O(n).
-//                while (num > 3) {
-//
-//                    // Find the next ear of the polygon
-//                    int num_found = 0
-//                    for (ear = next;;prev = ear, ear = next) {
-//
-//                        // break after we looped two times without a positive match
-//                        for (next= ear + 1;done[(next >= max?next = 0:next)];++next)
-//                        if (next < ear) {
-//                            if (++num_found == 2) {
-//                                break
-//                            }
-//                        }
-//                        const aiVector2D * pnt1 = &temp_verts[ear],
-//                        *pnt0 = & temp_verts [prev],
-//                        *pnt2 = & temp_verts [next]
-//
-//                        // Must be a convex point. Assuming ccw winding, it must be on the right of the line between p-1 and p+1.
-//                        if (OnLeftSideOfLine2D(*pnt0, *pnt2, *pnt1)) {
-//                            continue
-//                        }
-//
-//                        // and no other point may be contained in this triangle
-//                        for (tmp = 0; tmp < max; ++tmp) {
-//
-//                        // We need to compare the actual values because it's possible that multiple indexes in
-//                        // the polygon are referring to the same position. concave_polygon.obj is a sample
-//                        //
-//                        // FIXME: Use 'epsiloned' comparisons instead? Due to numeric inaccuracies in
-//                        // PointInTriangle() I'm guessing that it's actually possible to construct
-//                        // input data that would cause us to end up with no ears. The problem is,
-//                        // which epsilon? If we chose a too large value, we'd get wrong results
-//                        const aiVector2D & vtmp = temp_verts [tmp]
-//                        if (vtmp != * pnt1 && vtmp != * pnt2 && vtmp != * pnt0 && PointInTriangle2D ( * pnt0, *pnt1, *pnt2, vtmp)) {
-//                        break
-//                    }
-//                    }
-//                        if (tmp != max) {
-//                            continue
-//                        }
-//
-//                        // this vertex is an ear
-//                        break
-//                    }
-//                    if (num_found == 2) {
-//
-//                        // Due to the 'two ear theorem', every simple polygon with more than three points must
-//                        // have 2 'ears'. Here's definitely something wrong ... but we don't give up yet.
-//                        //
-//
-//                        // Instead we're continuing with the standard tri-fanning algorithm which we'd
-//                        // use if we had only convex polygons. That's life.
-//                        DefaultLogger::get()->error("Failed to triangulate polygon (no ear found). Probably not a simple polygon?")
-//
+
+                // FIXME: currently this is the slow O(kn) variant with a worst case
+                // complexity of O(n^2) (I think). Can be done in O(n).
+                while (num > 3) {
+
+                    // Find the next ear of the polygon
+                    var numFound = 0
+                    var ear = next
+                    while (true) {
+
+                        // break after we looped two times without a positive match
+                        next = ear + 1
+                        while (done[if (next >= max) 0.also { next = 0 } else next])
+                            ++next
+                        if (next < ear)
+                            if (++numFound == 2)
+                                break
+                        val pnt1 = tempVerts[ear]
+                        val pnt0 = tempVerts[prev]
+                        val pnt2 = tempVerts[next]
+
+                        // Must be a convex point. Assuming ccw winding, it must be on the right of the line between p-1 and p+1.
+                        if (onLeftSideOfLine2D(pnt0, pnt2, pnt1)) {
+                            prev = ear
+                            ear = next
+                            continue
+                        }
+
+                        // and no other point may be contained in this triangle
+                        tmp = 0
+                        while (tmp < max) {
+
+                            /*  We need to compare the actual values because it's possible that multiple indexes in
+                                the polygon are referring to the same position. concave_polygon.obj is a sample
+
+                                FIXME: Use 'epsiloned' comparisons instead? Due to numeric inaccuracies in
+                                PointInTriangle() I'm guessing that it's actually possible to construct
+                                input data that would cause us to end up with no ears. The problem is,
+                                which epsilon? If we chose a too large value, we'd get wrong results    */
+                            val vtmp = tempVerts[tmp]
+                            if (vtmp !== pnt1 && vtmp !== pnt2 && vtmp !== pnt0 && pointInTriangle2D(pnt0, pnt1, pnt2, vtmp))
+                                break
+                            ++tmp
+                        }
+                        if (tmp != max) {
+                            prev = ear
+                            ear = next
+                            continue
+                        }
+                        // this vertex is an ear
+                        break
+                    }
+                    if (numFound == 2) {
+
+                        /*  Due to the 'two ear theorem', every simple polygon with more than three points must
+                            have 2 'ears'. Here's definitely something wrong ... but we don't give up yet.
+
+                            Instead we're continuing with the standard tri-fanning algorithm which we'd
+                            use if we had only convex polygons. That's life. */
+                        logger.error("Failed to triangulate polygon (no ear found). Probably not a simple polygon?")
+
 //                        #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
 //                                fprintf(fout, "critical error here, no ear found! ")
 //                        #endif
-//                        num = 0
-//                        break
-//
+                        num = 0
+                        break
+//                      TODO unreachable
 //                        curOut -= (max - num) /* undo all previous work */
 //                        for (tmp = 0; tmp < max - 2; ++tmp) {
 //                            aiFace& nface = *curOut++
@@ -391,44 +398,45 @@
 //                        }
 //                        num = 0
 //                        break
-//                    }
-//
-//                    aiFace& nface = *curOut++
-//                    nface.mNumIndices = 3
-//
-//                    if (!nface.mIndices) {
-//                        nface.mIndices = new unsigned int[3]
-//                    }
-//
-//                    // setup indices for the new triangle ...
-//                    nface.mIndices[0] = prev
-//                    nface.mIndices[1] = ear
-//                    nface.mIndices[2] = next
-//
-//                    // exclude the ear from most further processing
-//                    done[ear] = true
-//                    --num
-//                }
-//                if (num > 0) {
-//                    // We have three indices forming the last 'ear' remaining. Collect them.
-//                    aiFace& nface = *curOut++
-//                    nface.mNumIndices = 3
-//                    if (!nface.mIndices) {
-//                        nface.mIndices = new unsigned int[3]
-//                    }
-//
-//                    for (tmp = 0; done[tmp]; ++tmp)
-//                    nface.mIndices[0] = tmp
-//
-//                    for (++tmp; done[tmp]; ++tmp)
-//                    nface.mIndices[1] = tmp
-//
-//                    for (++tmp; done[tmp]; ++tmp)
-//                    nface.mIndices[2] = tmp
-//
-//                }
-//            }
-//
+                    }
+
+                    val nFace = out[curOut++]
+
+                    if (nFace.isEmpty())
+                        for (i in 0..2)
+                            nFace += 0
+
+                    // setup indices for the new triangle ...
+                    nFace[0] = prev
+                    nFace[1] = ear
+                    nFace[2] = next
+
+                    // exclude the ear from most further processing
+                    done[ear] = true
+                    --num
+                }
+                if (num > 0) {
+                    // We have three indices forming the last 'ear' remaining. Collect them.
+                    val nFace = out[curOut++]
+                    if (nFace.isEmpty())
+                        for (i in 0..2)
+                            nFace += 0
+
+                    tmp = 0
+                    while (done[tmp]) ++tmp
+                    nFace[0] = tmp
+
+                    ++tmp
+                    while (done[tmp]) ++tmp
+                    nFace[1] = tmp
+
+                    ++tmp
+                    while (done[tmp]) ++tmp
+                    nFace[2] = tmp
+
+                }
+            }
+
 //            #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
 //
 //                    for (aiFace* f = lastFace; f != curOut; ++f) {
@@ -440,46 +448,48 @@
 //            fflush(fout)
 //
 //            #endif
-//
-//            for (aiFace* f = lastFace; f != curOut; ) {
-//                unsigned int * i = f->mIndices
-//
-//                //  drop dumb 0-area triangles
-//                if (std::fabs(GetArea2D(temp_verts[i[0]], temp_verts[i[1]], temp_verts[i[2]])) < 1e-5f) {
-//                    DefaultLogger::get()->debug("Dropping triangle with area 0")
-//                    --curOut
-//
-//                    delete[] f->mIndices
-//                    f->mIndices = NULL
-//
-//                    for (aiFace* ff = f; ff != curOut; ++ff) { ff ->
-//                        mNumIndices = (ff + 1)->mNumIndices
-//                        ff->mIndices = (ff+1)->mIndices
-//                        (ff + 1)->mIndices = NULL
-//                    }
-//                    continue
-//                }
-//
-//                i[0] = idx[i[0]]
-//                i[1] = idx[i[1]]
-//                i[2] = idx[i[2]]
-//                ++f
-//            }
-//
-//            delete[] face . mIndices
-//                    face.mIndices = NULL
-//        }
-//
-//        #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS
+
+            var f = lastFace
+            while (f != curOut) {
+                val i = out[f]
+
+                //  drop dumb 0-area triangles
+                val abs = abs(getArea2D(tempVerts[i[0]], tempVerts[i[1]], tempVerts[i[2]]))
+                if (abs < 1e-5f) {
+                    logger.debug("Dropping triangle with area 0")
+                    --curOut
+
+                    out[f].clear()
+
+                    var ff = f
+                    while (ff != curOut) {
+                        out[ff].clear()
+                        out[ff].addAll(out[ff + 1])
+                        out[ff + 1].clear()
+                        ++ff
+                    }
+                    continue
+                }
+
+                i[0] = idx[i[0]]
+                i[1] = idx[i[1]]
+                i[2] = idx[i[2]]
+                ++f
+            }
+
+            face.clear()
+        }
+
+//        #ifdef AI_BUILD_TRIANGULATE_DEBUG_POLYS TODO
 //                fclose(fout)
 //        #endif
-//
-//        // kill the old faces
-//        delete[] pMesh->mFaces
-//
-//        // ... and store the new ones
-//        pMesh->mFaces = out
-//        pMesh->mNumFaces = (unsigned int)(curOut-out) /* not necessarily equal to numOut */
-//        return true
-//    }
-//}
+
+        // kill the old faces
+        faces.clear()
+
+        // ... and store the new ones
+        faces.addAll(out)
+        numFaces = curOut /* not necessarily equal to numOut */
+        return true
+    }
+}
