@@ -4,10 +4,11 @@ import assimp.Importer
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
+import java.net.URL
 
 object cameras {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(fileName: URL) {
 
         with(Importer().readFile(fileName)!!) {
 
