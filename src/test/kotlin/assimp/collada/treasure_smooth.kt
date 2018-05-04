@@ -1,10 +1,10 @@
 package assimp.collada
 
-import assimp.AiShadingMode
+import assimp.AiPrimitiveType
 import assimp.Importer
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
+import io.kotlintest.matchers.shouldBe
 import java.net.URL
 
 object treasure_smooth {
@@ -14,36 +14,94 @@ object treasure_smooth {
         with(Importer().readFile(fileName)!!) {
 
             flags shouldBe 0
-//            with(rootNode) {
-//                name shouldBe "VisualSceneNode"
-//                transformation shouldBe Mat4()
-//                parent shouldBe null
-//                numChildren shouldBe 1
-//
-//                with(children[0]) {
-//                    name shouldBe "Mesh_Object"
-//                    transformation shouldBe Mat4()
-//                    (parent === rootNode) shouldBe true
-//                    numChildren shouldBe 0
-//                    children.isEmpty() shouldBe true
-//                    numMeshes shouldBe 1
-//                    meshes[0] shouldBe 0
-//                    metaData.isEmpty() shouldBe true
-//                }
-//            }
-//
-//            numMeshes shouldBe 1
-//            with(meshes[0]) {
-//                primitiveTypes shouldBe 8
-//                numVertices shouldBe 66
-//                numFaces shouldBe 1
-//                vertices[0] shouldBe Vec3(-1.14600003f, 2.25515008f, 3.07623005f)
-//                vertices[32] shouldBe Vec3(-1.14600003f,2.40000010f,3.03749990f)
-//                vertices[65] shouldBe Vec3(-1.14600003f, 2.40000010f, 3.0905f)
-//                faces[0].forEachIndexed { i, it -> it shouldBe i }
-//                name shouldBe "Mesh_Object"
-//            }
-//
+            with(rootNode) {
+                name shouldBe "Scene"
+                transformation shouldBe Mat4(
+                        1f, 0f, 0f, 0f,
+                        0f, 0f, -1f, 0f,
+                        0f, 1f, 0f, 0f,
+                        0f, 0f, 0f, 1f)
+                parent shouldBe null
+                numChildren shouldBe 68
+
+                with(children[0]) {
+                    name shouldBe "Plane"
+                    transformation shouldBe Mat4()
+                    (parent === rootNode) shouldBe true
+                    numChildren shouldBe 0
+                    children.isEmpty() shouldBe true
+                    numMeshes shouldBe 2
+                    meshes[0] shouldBe 0
+                    meshes[1] shouldBe 1
+                    metaData.isEmpty() shouldBe true
+                }
+
+                with(children[34]) {
+                    name shouldBe "Cube_015"
+                    transformation shouldBe Mat4(
+                            0.122561797f, 0.0853303894f, -0.0305411592f, 1.10377395f,
+                            -0.0906103402f, 0.116471097f, -0.0382059515f, -4.13784218f,
+                            0.00194863102f, 0.0488739200f, 0.144371003f, 0.766323626f,
+                            0f, 0f, 0f, 1f)
+                    (parent === rootNode) shouldBe true
+                    numChildren shouldBe 0
+                    children.isEmpty() shouldBe true
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 48
+                    metaData.isEmpty() shouldBe true
+                }
+
+                with(children[67]) {
+                    name shouldBe "Cylinder_027"
+                    transformation shouldBe Mat4(
+                            0.0158306006f, -0.0440383293f, 0.0162486192f, -0.724227428f,
+                            0.0467648916f, 0.0133153200f, -0.00947351381f, -2.80546498f,
+                            0.00405431492f, 0.0183664802f, 0.0458283201f, 0.661597490f,
+                            0f, 0f, 0f, 1f)
+                    (parent === rootNode) shouldBe true
+                    numChildren shouldBe 0
+                    children.isEmpty() shouldBe true
+                    numMeshes shouldBe 2
+                    meshes[0] shouldBe 84
+                    meshes[1] shouldBe 85
+                    metaData.isEmpty() shouldBe true
+                }
+            }
+
+            numMeshes shouldBe 86
+            with(meshes[0]) {
+                primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                numVertices shouldBe 1554
+                numFaces shouldBe 518
+                vertices[0] shouldBe Vec3(7.50098801f, 6.56336403f, 0f)
+                vertices[776] shouldBe Vec3(-1.62673700f, -3.29218197f, 0.503621578f)
+                vertices[1553] shouldBe Vec3(-1.15598500f, -3.56582594f, 0.488107890f)
+                normals[0] shouldBe Vec3(0.00296032405f, 0.000976616982f, 0.999995172f)
+                normals[776] shouldBe Vec3(0.600491107f, 0.295148909f, 0.743167281f)
+                normals[1553] shouldBe Vec3(0.254105508f, 0.335226387f, 0.907223225f)
+                for(i in 0 until numFaces)
+                    for(j in 0..2)
+                        faces[i][j] shouldBe i * 3 + j
+                name shouldBe "Plane"
+            }
+
+            with(meshes[1]) {
+                primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                numVertices shouldBe 342
+                numFaces shouldBe 114
+                vertices.isNotEmpty() shouldBe true
+//                vertices[0] shouldBe Vec3(7.50098801f, 6.56336403f, 0f)
+//                vertices[776] shouldBe Vec3(-1.62673700f, -3.29218197f, 0.503621578f)
+//                vertices[1553] shouldBe Vec3(-1.15598500f, -3.56582594f, 0.488107890f)
+//                normals[0] shouldBe Vec3(0.00296032405f, 0.000976616982f, 0.999995172f)
+//                normals[776] shouldBe Vec3(0.600491107f, 0.295148909f, 0.743167281f)
+//                normals[1553] shouldBe Vec3(0.254105508f, 0.335226387f, 0.907223225f)
+//                for(i in 0 until numFaces)
+//                    for(j in 0..2)
+//                        faces[i][j] shouldBe i * 3 + j
+//                name shouldBe "Plane"
+            }
+
 //            numMaterials shouldBe 1
 //            with(materials[0]) {
 //                name shouldBe "test_Smoothing"

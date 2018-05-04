@@ -8,6 +8,7 @@ import glm_.vec3.Vec3
 import java.io.File
 import java.io.FileReader
 import java.net.URI
+import java.util.*
 import javax.xml.namespace.QName
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.XMLInputFactory
@@ -23,17 +24,17 @@ import assimp.format.collada.PrimitiveType as Pt
  * Created by elect on 23/01/2017.
  */
 
-typealias DataLibrary = HashMap<String, Data>
-typealias AccessorLibrary = HashMap<String, Accessor>
-typealias MeshLibrary = HashMap<String, Mesh>
-typealias NodeLibrary = HashMap<String, Node>
-typealias ImageLibrary = HashMap<String, Image>
-typealias EffectLibrary = HashMap<String, Effect>
-typealias MaterialLibrary = HashMap<String, Material>
-typealias LightLibrary = HashMap<String, Light>
-typealias CameraLibrary = HashMap<String, Camera>
-typealias ControllerLibrary = HashMap<String, Controller>
-typealias AnimationLibrary = HashMap<String, Animation>
+typealias DataLibrary = SortedMap<String, Data>
+typealias AccessorLibrary = SortedMap<String, Accessor>
+typealias MeshLibrary = SortedMap<String, Mesh>
+typealias NodeLibrary = SortedMap<String, Node>
+typealias ImageLibrary = SortedMap<String, Image>
+typealias EffectLibrary = SortedMap<String, Effect>
+typealias MaterialLibrary = SortedMap<String, Material>
+typealias LightLibrary = SortedMap<String, Light>
+typealias CameraLibrary = SortedMap<String, Camera>
+typealias ControllerLibrary = SortedMap<String, Controller>
+typealias AnimationLibrary = SortedMap<String, Animation>
 typealias AnimationClipLibrary = ArrayList<Pair<String, ArrayList<String>>>
 
 typealias ChannelMap = MutableMap<String, AnimationChannel>
@@ -54,27 +55,27 @@ class ColladaParser(pFile: IOStream) {
     lateinit var endElement: EndElement
     /** All data arrays found in the file by ID. Might be referred to by actually everyone. Collada, you are a steaming
      *  pile of indirection. */
-    var mDataLibrary: DataLibrary = HashMap()
+    var mDataLibrary: DataLibrary = sortedMapOf()
     /** Same for accessors which define how the data in a data array is accessed. */
-    var mAccessorLibrary: AccessorLibrary = HashMap()
+    var mAccessorLibrary: AccessorLibrary = sortedMapOf()
     /** Mesh library: mesh by ID */
-    var mMeshLibrary: MeshLibrary = HashMap()
+    var mMeshLibrary: MeshLibrary = sortedMapOf()
     /** node library: root node of the hierarchy part by ID */
-    var mNodeLibrary: NodeLibrary = HashMap()
+    var mNodeLibrary: NodeLibrary = sortedMapOf()
     /** Image library: stores texture properties by ID */
-    var mImageLibrary: ImageLibrary = HashMap()
+    var mImageLibrary: ImageLibrary = sortedMapOf()
     /** Effect library: surface attributes by ID */
-    var mEffectLibrary: EffectLibrary = HashMap()
+    var mEffectLibrary: EffectLibrary = sortedMapOf()
     /** Material library: surface material by ID */
-    var mMaterialLibrary: MaterialLibrary = HashMap()
+    var mMaterialLibrary: MaterialLibrary = sortedMapOf()
     /** Light library: surface light by ID */
-    var mLightLibrary: LightLibrary = HashMap()
+    var mLightLibrary: LightLibrary = sortedMapOf()
     /** Camera library: surface material by ID */
-    var mCameraLibrary: CameraLibrary = HashMap()
+    var mCameraLibrary: CameraLibrary = sortedMapOf()
     /** Controller library: joint controllers by ID */
-    var mControllerLibrary: ControllerLibrary = HashMap()
+    var mControllerLibrary: ControllerLibrary = sortedMapOf()
     /** Animation library: animation references by ID */
-    var mAnimationLibrary: AnimationLibrary = HashMap()
+    var mAnimationLibrary: AnimationLibrary = sortedMapOf()
     /** Animation clip library: clip animation references by ID */
     var mAnimationClipLibrary: AnimationClipLibrary = ArrayList()
     /** Pointer to the root node. Don't delete, it just points to one of the nodes in the node library. */
@@ -1828,6 +1829,6 @@ class ColladaParser(pFile: IOStream) {
     }
 
     /** Finds the item in the given library by its reference, throws if not found   */
-    fun <T> resolveLibraryReference(pLibrary: HashMap<String, T>, pURL: String): T =
+    fun <T> resolveLibraryReference(pLibrary: SortedMap<String, T>, pURL: String): T =
             pLibrary[pURL] ?: throw Exception("Unable to resolve library reference \"$pURL\".")
 }

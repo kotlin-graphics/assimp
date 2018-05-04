@@ -88,7 +88,8 @@ class ColladaLoader : BaseImporter() {
         mFileName = file
         // parse the input file
         val parser = ColladaParser(ioSystem.open(file))
-        if (parser.mRootNode == null) throw Error("Collada: File came out empty. Something is wrong here.")
+        if (parser.mRootNode == null)
+            throw Error("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)
         // build the node hierarchy from it
@@ -301,7 +302,7 @@ class ColladaLoader : BaseImporter() {
 
                 if (srcMesh == null) {
                     logger.warn { "Collada: Unable to find geometry for ID \"${mid.mMeshOrController}\". Skipping." }
-                    return
+                    return@forEach
                 }
             }
             // else ID found in the mesh library -> direct reference to an unskinned mesh
@@ -314,7 +315,7 @@ class ColladaLoader : BaseImporter() {
                 val submesh = srcMesh!!.mSubMeshes[sm]
 
                 if (submesh.mNumFaces == 0)
-                    return
+                    return@forEach
 
                 // find material assigned to this submesh
                 var meshMaterial = ""
@@ -351,8 +352,8 @@ class ColladaLoader : BaseImporter() {
 
                 // if we already have the mesh at the library, just add its index to the node's array
                 mMeshIndexByID[index]?.let {
-                    newMeshRefs.add(it)
-                    return
+                    newMeshRefs += it
+                    return@forEach
                 }
 
                 // else we have to add the mesh to the collection and store its newly assigned index at the node
