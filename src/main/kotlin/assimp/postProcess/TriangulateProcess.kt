@@ -75,40 +75,37 @@ class TriangulateProcess : BaseProcess() {
 
         var has = false
         for (a in 0 until scene.numMeshes)
-            if (scene.meshes[a].triangulate()) {
+            if (triangulateMesh(scene.meshes[a]))
                 has = true
-            }
         if (has)
             logger.info("TriangulateProcess finished. All polygons have been triangulated.")
         else
             logger.debug("TriangulateProcess finished. There was nothing to be done.")
     }
 
-    fun triangulateMesh(mesh: AiMesh) = mesh.triangulate()
-
     /** Triangulates the given mesh.
      *  @param pMesh The mesh to triangulate.     */
-    fun AiMesh.triangulate(): Boolean {
+    fun triangulateMesh(mesh: AiMesh): Boolean { // TODO bug
 
         // Now we have aiMesh::mPrimitiveTypes, so this is only here for test cases
-        if (primitiveTypes == 0) {
+        if (mesh.primitiveTypes == 0) {
 
             var need = false
 
-            for (a in 0 until numFaces)
-                if (faces[a].size != 3)
+            for (a in 0 until mesh.numFaces)
+                if (mesh.faces[a].size != 3)
                     need = true
             if (!need)
                 return false
-        } else if (primitiveTypes hasnt AiPrimitiveType.POLYGON)
+        } else if (mesh.primitiveTypes hasnt AiPrimitiveType.POLYGON)
             return false
 
         // Find out how many output faces we'll get
         var numOut = 0
         var maxOut = 0
         var getNormals = true
-        for (a in 0 until numFaces) {
-            val face = faces[a]
+        for (a in 0 until mesh.numFaces) {
+            val face = mesh.faces[a]
             if (face.size <= 4)
                 getNormals = false
             if (face.size <= 3)
@@ -120,9 +117,9 @@ class TriangulateProcess : BaseProcess() {
         }
 
         // Just another check whether aiMesh::mPrimitiveTypes is correct
-        assert(numOut != numFaces)
+        assert(numOut != mesh.numFaces)
 
-        var norOut: Array<Vec3>? = null
+        val norOut: Array<Vec3>? = null
 //
 //        // if we don't have normals yet, but expect them to be a cheap side product of triangulation anyway, allocate storage for them.
 //        if (!pMesh->mNormals && get_normals) {
@@ -131,8 +128,8 @@ class TriangulateProcess : BaseProcess() {
 //        }
 
         // the output mesh will contain triangles, but no polys anymore
-        primitiveTypes = primitiveTypes or AiPrimitiveType.TRIANGLE
-        primitiveTypes = primitiveTypes wo AiPrimitiveType.POLYGON
+        mesh.primitiveTypes = mesh.primitiveTypes or AiPrimitiveType.TRIANGLE
+        mesh.primitiveTypes = mesh.primitiveTypes wo AiPrimitiveType.POLYGON
 
         val out: Array<AiFace> = Array(numOut) { mutableListOf<Int>() }
         var curOut = 0
@@ -153,12 +150,12 @@ class TriangulateProcess : BaseProcess() {
 //                FILE * fout = fopen(POLY_OUTPUT_FILE, "a")
 //        #endif
 
-        val verts = vertices
+        val verts = mesh.vertices
 
         // use std::unique_ptr to avoid slow std::vector<bool> specialiations
         val done = BooleanArray(maxOut)
-        for (a in 0 until numFaces) {
-            val face = faces[a]
+        for (a in 0 until mesh.numFaces) {
+            val face = mesh.faces[a]
 
             val idx = face
             var num = face.size
@@ -234,7 +231,8 @@ class TriangulateProcess : BaseProcess() {
                 // prevent double deletion of the indices field
                 face.clear()
                 continue
-            } else {
+            }
+            else {
                 /*  A polygon with more than 3 vertices can be either concave or convex.
                     Usually everything we're getting is convex and we could easily triangulate by tri-fanning.
                     However, LightWave is probably the only modeling suite to make extensive use of highly concave,
@@ -284,8 +282,8 @@ class TriangulateProcess : BaseProcess() {
 
                 tmp = 0
                 while (tmp < max) {
-                    tempVerts[tmp].x = verts[idx[tmp]][ac]
-                    tempVerts[tmp].y = verts[idx[tmp]][bc]
+                    tempVerts[tmp][0] = verts[idx[tmp]][ac]
+                    tempVerts[tmp][1] = verts[idx[tmp]][bc]
                     done[tmp++] = false
                 }
 
@@ -433,7 +431,6 @@ class TriangulateProcess : BaseProcess() {
                     ++tmp
                     while (done[tmp]) ++tmp
                     nFace[2] = tmp
-
                 }
             }
 
@@ -485,11 +482,11 @@ class TriangulateProcess : BaseProcess() {
 //        #endif
 
         // kill the old faces
-        faces.clear()
+        mesh.faces.clear()
 
         // ... and store the new ones
-        faces.addAll(out)
-        numFaces = curOut /* not necessarily equal to numOut */
+        mesh.faces.addAll(out)
+        mesh.numFaces = curOut /* not necessarily equal to numOut */
         return true
     }
 }

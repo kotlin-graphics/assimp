@@ -63,7 +63,7 @@ import glm_.mat4x4.Mat4
  *
  * @note RH-LH and LH-RH is the same, so this class can be used for both
  */
-class MakeLeftHandedProcess : BaseProcess() {
+object MakeLeftHandedProcess : BaseProcess() {
 
     /** Returns whether the processing step is present in the given flag field. */
     override fun isActive(flags: AiPostProcessStepsFlags): Boolean = flags has AiPostProcessStep.MakeLeftHanded
@@ -183,7 +183,7 @@ class MakeLeftHandedProcess : BaseProcess() {
 // ---------------------------------------------------------------------------
 /** Postprocessing step to flip the face order of the imported data
  */
-class FlipWindingOrderProcess : BaseProcess() {
+object FlipWindingOrderProcess : BaseProcess() {
 
     /** Returns whether the processing step is present in the given flag field. */
     override fun isActive(flags: AiPostProcessStepsFlags): Boolean = flags has AiPostProcessStep.FlipWindingOrder
@@ -210,7 +210,7 @@ class FlipWindingOrderProcess : BaseProcess() {
 }
 
 /** Postprocessing step to flip the UV coordinate system of the import data */
-class FlipUVsProcess : BaseProcess() {
+object FlipUVsProcess : BaseProcess() {
 
     override fun isActive(flags: AiPostProcessStepsFlags): Boolean = flags has AiPostProcessStep.FlipUVs
 

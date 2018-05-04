@@ -702,14 +702,44 @@ object SceneCombiner {
 //    static void CopySceneFlat(aiScene * * dest, const aiScene * source)
 //
 //
-//// -------------------------------------------------------------------
-//    /** Get a deep copy of a mesh
-//     *
-//     *  @param dest Receives a pointer to the destination mesh
-//     *  @param src Source mesh - remains unmodified.
-//     */
-//    static void Copy(aiMesh * * dest, const aiMesh * src)
+
+    // use Mesh constructor
+    /** Get a deep copy of a mesh
+     *
+     *  @param dest Receives a pointer to the destination mesh
+     *  @param src Source mesh - remains unmodified.     */
+//    fun copy(dest: AiMesh, src: AiMesh?) {
 //
+//        if (null == src) return
+//
+//        // get a flat copy
+//        ::memcpy(dest, src, sizeof(aiMesh));
+//
+//        // and reallocate all arrays
+//        GetArrayCopy(dest->mVertices, dest->mNumVertices);
+//        GetArrayCopy(dest->mNormals, dest->mNumVertices);
+//        GetArrayCopy(dest->mTangents, dest->mNumVertices);
+//        GetArrayCopy(dest->mBitangents, dest->mNumVertices);
+//
+//        unsigned int n = 0;
+//        while (dest->HasTextureCoords(n))
+//        GetArrayCopy(dest->mTextureCoords[n++], dest->mNumVertices);
+//
+//        n = 0;
+//        while (dest->HasVertexColors(n))
+//        GetArrayCopy(dest->mColors[n++], dest->mNumVertices);
+//
+//        // make a deep copy of all bones
+//        CopyPtrArray(dest->mBones, dest->mBones, dest->mNumBones);
+//
+//        // make a deep copy of all faces
+//        GetArrayCopy(dest->mFaces, dest->mNumFaces);
+//        for (unsigned int i = 0; i < dest->mNumFaces;++i) {
+//            aiFace& f = dest->mFaces[i];
+//            GetArrayCopy(f.mIndices, f.mNumIndices);
+//        }
+//    }
+
 //// similar to Copy():
 //    static void Copy(aiMaterial * * dest, const aiMaterial * src)
 //    static void Copy(aiTexture * * dest, const aiTexture * src)

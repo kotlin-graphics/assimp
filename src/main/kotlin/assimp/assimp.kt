@@ -10,15 +10,15 @@ val logger = KotlinLogging.logger {}
 fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiVector3D) {
 
     /* extract translation */
-    pPosition.x = this[0][3]
-    pPosition.y = this[1][3]
-    pPosition.z = this[2][3]
+    pPosition[0] = this[0][3]
+    pPosition[1] = this[1][3]
+    pPosition[2] = this[2][3]
 
     /* extract the columns of the matrix. */
     val vCols = listOf(
-            AiVector3D(this[0][0], this[1][0], this[2][0]),
-            AiVector3D(this[0][1], this[1][1], this[2][1]),
-            AiVector3D(this[0][2], this[1][2], this[2][2]))
+            AiVector3D(this[0, 0], this[1, 0], this[2, 0]),
+            AiVector3D(this[0, 1], this[1, 1], this[2, 1]),
+            AiVector3D(this[0 ,2], this[1, 2], this[2, 2]))
 
     /* extract the scaling factors */
     pScaling.x = vCols[0].length

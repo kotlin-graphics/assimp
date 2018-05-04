@@ -9,7 +9,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.40'
+    ext.kotlinVersion = '1.2.41'
 
     repositories {
         jcenter()
@@ -33,9 +33,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    implementation 'com.github.kotlin-graphics:uno-sdk:f97f9853e6158a86550268b63ad2800e0e08737f'
+    implementation 'com.github.kotlin-graphics:uno-sdk:6db5c2919e60af45389b5f255d1c0a29c29f7ef6'
 
-    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.0.6'
+    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.0.5'
 
     implementation 'io.github.microutils:kotlin-logging:1.4.6'
 
@@ -65,6 +65,7 @@ dependencies {
     implementation "org.lwjgl:lwjgl-openal:${lwjglVersion}"
     implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
     implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-tootle:$lwjglVersion"
 	
     testRuntime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
     testRuntime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
@@ -72,6 +73,7 @@ dependencies {
     testRuntime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
     testRuntime "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${lwjglNatives}"
     testRuntime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
+    testRuntime "org.lwjgl:lwjgl-tootle:$lwjglVersion:$lwjglNatives"
 }
 
 repositories {

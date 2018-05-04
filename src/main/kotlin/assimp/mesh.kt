@@ -328,26 +328,30 @@ open class AiMesh(
     //! Check whether the mesh contains a vertex color set
     //! \param index Index of the vertex color set
     fun hasVertexColors(index: Int) =
-            if (index >= assimp.AI_MAX_NUMBER_OF_COLOR_SETS) false
-            else index < colors.size && numVertices > 0
+            if (index >= AI_MAX_NUMBER_OF_COLOR_SETS)
+                false
+            else
+                index < colors.size && numVertices > 0
 
     //! Check whether the mesh contains a texture coordinate set
     //! \param index Index of the texture coordinates set
     fun hasTextureCoords(index: Int) =
-            if (index >= assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS) false
-            else textureCoords[index].isNotEmpty() && numVertices > 0
+            if (index >= AI_MAX_NUMBER_OF_TEXTURECOORDS || index >= textureCoords.size)
+                false
+            else
+                textureCoords[index].isNotEmpty() && numVertices > 0
 
     //! Get the number of UV channels the mesh contains
     fun getNumUVChannels(): Int {
         var n = 0
-        while (n < assimp.AI_MAX_NUMBER_OF_TEXTURECOORDS && n < textureCoords.size && textureCoords[n].isNotEmpty()) ++n
+        while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && n < textureCoords.size && textureCoords[n].isNotEmpty()) ++n
         return n
     }
 
     //! Get the number of vertex color channels the mesh contains
     fun getNumColorChannels(): Int {
         var n = 0
-        while (n < assimp.AI_MAX_NUMBER_OF_COLOR_SETS && n < colors.size) ++n
+        while (n < AI_MAX_NUMBER_OF_COLOR_SETS && n < colors.size) ++n
         return n
     }
 

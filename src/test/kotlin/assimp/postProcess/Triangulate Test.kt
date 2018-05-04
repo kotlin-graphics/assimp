@@ -14,7 +14,6 @@ class TriangulateTest : StringSpec() {
 
     init {
 
-
         val count = 1000
         val piProcess = TriangulateProcess()
         val mesh = AiMesh().apply {

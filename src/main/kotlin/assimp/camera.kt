@@ -43,6 +43,7 @@ package assimp
 
 import glm_.BYTES
 import glm_.f
+import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
@@ -129,7 +130,7 @@ class AiCamera(
          *  line of the screen and the left or right border.
          *  The default value is 1/4PI.
          */
-        var horizontalFOV: Float = .25f * Math.PI.f, // TODO glm
+        var horizontalFOV: Float = .25f * glm.PIf,
 
         /** Distance of the near clipping plane from the camera.
          *

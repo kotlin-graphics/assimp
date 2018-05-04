@@ -1,9 +1,11 @@
-package assimp
+package assimp.postProcess
 
+import assimp.*
 import assimp.AiPostProcessStep as Pps
 import assimp.AiShadingMode as Sm
 
-object OptimizeMeshes : BaseProcess(){
+class OptimizeMeshes : BaseProcess(){
+
     private val NotSet = 0xffffffff
     private val DeadBeef = 0xdeadbeef
     private lateinit var mScene : AiScene
@@ -37,14 +39,14 @@ object OptimizeMeshes : BaseProcess(){
         mScene = scene
 
         findInstancedMeshes(mScene.rootNode)
-        if( maxVerts == DeadBeef ) /* undo the magic hack */
+        if( maxVerts == DeadBeef) /* undo the magic hack */
             maxVerts = NotSet
 
         var n : Long = 0
         for (i in 0 until mScene.numMeshes) {
             meshes[i].vertex_format = ProcessHelper.getMeshVFormatUnique(mScene.meshes[i])
 
-            if (meshes[i].instance_cnt > 1 && meshes[i].output_id == NotSet ) {
+            if (meshes[i].instance_cnt > 1 && meshes[i].output_id == NotSet) {
                 meshes[i].output_id = n++
                 output.add(mScene.meshes[i])
             }
@@ -59,10 +61,10 @@ object OptimizeMeshes : BaseProcess(){
         assert(output.size <= oldNum)
 
         mScene.numMeshes = output.size
-        System.arraycopy(output,0,mScene.meshes,0,output.size)
+        System.arraycopy(output,0, mScene.meshes,0, output.size)
 
         if (output.size != oldNum) {
-            logger.info("OptimizeMeshesProcess finished. Input meshes: %d, Output meshes: %d",oldNum,mScene.numMeshes)
+            logger.info("OptimizeMeshesProcess finished. Input meshes: %d, Output meshes: %d",oldNum, mScene.numMeshes)
         } else {
             logger.debug( "OptimizeMeshesProcess finished" )
         }
@@ -82,7 +84,7 @@ object OptimizeMeshes : BaseProcess(){
             ++meshes[ pNode.meshes[ i ] ].instance_cnt
         }
         for(i in 0 until pNode.numChildren) {
-            findInstancedMeshes( pNode.children[ i ] )
+            findInstancedMeshes(pNode.children[i])
         }
     }
 
@@ -102,8 +104,8 @@ object OptimizeMeshes : BaseProcess(){
                 // Find meshes to merge with us
                 var a = 0
                 while(a < pNode.numMeshes){
-                    var am = pNode.meshes[a]
-                    if (meshes[am].instance_cnt == 1 && canJoin(im,am,verts,faces)) {
+                    val am = pNode.meshes[a]
+                    if (meshes[am].instance_cnt == 1 && canJoin(im, am, verts, faces)) {
 
                         merge_list.add(mScene.meshes[am])
                         verts += mScene.meshes[am].numVertices
@@ -120,8 +122,8 @@ object OptimizeMeshes : BaseProcess(){
                 if (merge_list.size != 0 ){
                     merge_list.add(mScene.meshes[im])
 
-                    var out = ArrayList<AiMesh>()
-                    SceneCombiner.mergeMeshes(out,0,merge_list,0,merge_list.size)
+                    val out = ArrayList<AiMesh>()
+                    SceneCombiner.mergeMeshes(out, 0, merge_list, 0, merge_list.size)
                     for(oMesh in out){
                         output.add(oMesh)
                     }
@@ -134,7 +136,7 @@ object OptimizeMeshes : BaseProcess(){
 
 
         for(i in 0 until pNode.numChildren) {
-            processNode( pNode.children[ i ] )
+            processNode(pNode.children[i])
         }
     }
 
@@ -143,8 +145,8 @@ object OptimizeMeshes : BaseProcess(){
         if (meshes[a].vertex_format != meshes[b].vertex_format)
             return false
 
-        var ma = mScene.meshes[a]
-        var mb = mScene.meshes[b]
+        val ma = mScene.meshes[a]
+        val mb = mScene.meshes[b]
 
         if ((NotSet != maxVerts && verts+mb.numVertices > maxVerts) || (NotSet != maxFaces && faces+mb.numFaces    > maxFaces)) {
             return false

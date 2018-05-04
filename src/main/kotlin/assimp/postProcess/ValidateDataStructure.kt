@@ -39,8 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
-package assimp
+package assimp.postProcess
 
+import assimp.*
 import gli_.hasnt
 import kotlin.math.PI
 import kotlin.reflect.KMutableProperty1
@@ -54,7 +55,7 @@ import assimp.AiShadingMode as Sm
  *      Validates the whole ASSIMP scene data structure for correctness.
  *      ImportErrorException is thrown of the scene is corrupt.
  *  --------------------------------------------------------------------------------------  */
-object ValidateDSProcess : BaseProcess() {
+class ValidateDSProcess : BaseProcess() {
 
     lateinit var scene: AiScene
 

@@ -45,6 +45,7 @@ package assimp
 import assimp.postProcess.FlipUVsProcess
 import assimp.postProcess.FlipWindingOrderProcess
 import assimp.postProcess.MakeLeftHandedProcess
+import assimp.postProcess.TriangulateProcess
 
 val postProcessingStepInstanceList: ArrayList<BaseProcess>
     get() = ArrayList<BaseProcess>().apply {
@@ -55,13 +56,13 @@ val postProcessingStepInstanceList: ArrayList<BaseProcess>
         // validated - as RegisterPPStep() does - all dependencies must be given.
         // ----------------------------------------------------------------------------
         if (!ASSIMP.NO.PROCESS.MAKELEFTHANDED)
-            add(MakeLeftHandedProcess())
+            add(MakeLeftHandedProcess)
 
         if (!ASSIMP.NO.PROCESS.FLIPUVS)
-            add(FlipUVsProcess())
+            add(FlipUVsProcess)
 
         if (!ASSIMP.NO.PROCESS.FLIPWINDINGORDER)
-            add(FlipWindingOrderProcess ())
+            add(FlipWindingOrderProcess)
 
 //        #if (!defined ASSIMP_BUILD_NO_REMOVEVC_PROCESS)
 //        out.push_back(new RemoveVCProcess ());
@@ -90,8 +91,8 @@ val postProcessingStepInstanceList: ArrayList<BaseProcess>
 //        #if (!defined ASSIMP_BUILD_NO_PRETRANSFORMVERTICES_PROCESS)
 //        out.push_back(new PretransformVertices ());
 //        #endif
-//        if (!ASSIMP.NO.PROCESS.TRIANGULATE)
-//            add(TriangulateProcess ())
+        if (!ASSIMP.NO.PROCESS.TRIANGULATE)
+            add(TriangulateProcess())
 
 //        #if (!defined ASSIMP_BUILD_NO_SORTBYPTYPE_PROCESS)
 //        out.push_back(new SortByPTypeProcess ());

@@ -43,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp
 
 import assimp.format.ProgressHandler
+import assimp.postProcess.OptimizeMeshes
+import assimp.postProcess.ValidateDSProcess
 import glm_.BYTES
 import glm_.i
 import glm_.size
@@ -320,7 +322,7 @@ constructor() {
             if (!ASSIMP.NO.VALIDATEDS_PROCESS)
             // The ValidateDS process is an exception. It is executed first, even before ScenePreprocessor is called.
                 if (flags has Pps.ValidateDataStructure) {
-                    ValidateDSProcess.executeOnScene(this)
+                    ValidateDSProcess().executeOnScene(this)
                     if (impl.scene == null) return null
                 }
             // Preprocess the scene and prepare it for post-processing
@@ -409,11 +411,11 @@ constructor() {
         /*  The ValidateDS process plays an exceptional role. It isn't contained in the global list of post-processing
             steps, so we need to call it manually.         */
             if (flags has Pps.ValidateDataStructure) {
-                ValidateDSProcess.executeOnScene(this)
+                ValidateDSProcess().executeOnScene(this)
                 if (impl.scene == null) return null
             }
         if (flags has Pps.OptimizeMeshes) {
-            OptimizeMeshes.executeOnScene(this)
+            OptimizeMeshes().executeOnScene(this)
             if (impl.scene == null) return null
         }
         var flags = flags
@@ -445,7 +447,7 @@ constructor() {
                 // If the extra verbose mode is active, execute the ValidateDataStructureStep again - after each step
                 if (impl.extraVerbose) {
                     logger.debug { "Verbose Import: revalidating data structures" }
-                    ValidateDSProcess.executeOnScene(this)
+                    ValidateDSProcess().executeOnScene(this)
                     if (impl.scene == null) {
                         logger.error { "Verbose Import: failed to revalidate data structures" }
                         break
@@ -472,7 +474,7 @@ constructor() {
             // The ValidateDS process plays an exceptional role. It isn't contained in the global
             // list of post-processing steps, so we need to call it manually.
             if (requestValidation) {
-                ValidateDSProcess.executeOnScene(this)
+                ValidateDSProcess().executeOnScene(this)
                 if (impl.scene == null) return null
             }
         }
@@ -492,7 +494,7 @@ constructor() {
         // If the extra verbose mode is active, execute the ValidateDataStructureStep again - after each step
         if (impl.extraVerbose || requestValidation) {
             logger.debug { "Verbose Import: revalidating data structures" }
-            ValidateDSProcess.executeOnScene(this)
+            ValidateDSProcess().executeOnScene(this)
             if (impl.scene == null)
                 logger.error { "Verbose Import: failed to revalidate data structures" }
         }

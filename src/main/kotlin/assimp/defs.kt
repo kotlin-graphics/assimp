@@ -91,9 +91,9 @@ val String.words get() = trim().split("\\s+".toRegex())
 //////////////////////////////////////////////////////////////////////////
 
 /* This is PI. Hi PI. */
-val AI_MATH_TWO_PI = glm.PI * 2   // TODO glm?
-val AI_MATH_TWO_PIf = glm.PIf * 2   // TODO glm?
-val AI_MATH_HALF_PI = glm.PIf * 0.5
+val AI_MATH_TWO_PI = glm.PI2
+val AI_MATH_TWO_PIf = glm.PI2f
+val AI_MATH_HALF_PI = glm.HPIf
 
 val AiVector3D.squareLength get() = x * x + y * y + z * z
 
