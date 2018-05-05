@@ -95,7 +95,7 @@ class PretransformVertices : BaseProcess() {
 
         // Delete aiMesh::mBones for all meshes. The bones are removed during this step and we need the pointer as temporary storage
         for (i in 0 until scene.numMeshes)
-            scene.meshes[i].bones.clear()
+            absTransform.clear()
 
         // now build a list of output meshes
         val outMeshes = ArrayList<AiMesh>()
@@ -119,7 +119,7 @@ class PretransformVertices : BaseProcess() {
                 applyTransform(scene.meshes[i], absTransform[scene.meshes[i]]!!)
 
                 // prevent improper destruction
-                scene.meshes[i].bones.clear()
+                absTransform -= scene.meshes[i]
                 scene.meshes[i].numBones = 0
             }
         } else {
@@ -135,9 +135,8 @@ class PretransformVertices : BaseProcess() {
                 aiVFormats.clear()
                 getVFormatList(scene, i, aiVFormats)
                 aiVFormats.sort()
-                aiVFormats.distinct()
-                aiVFormats.forEach {
-                    val (iFaces, iVertices) = countVerticesAndFaces(scene, scene.rootNode, i, it)
+                aiVFormats.distinct().forEach {
+                    var (iFaces, iVertices) = countVerticesAndFaces(scene, scene.rootNode, i, it)
                     if (0 != iFaces && 0 != iVertices) {
                         val mesh = AiMesh().apply {
                             outMeshes += this
@@ -152,7 +151,7 @@ class PretransformVertices : BaseProcess() {
                                 tangents = MutableList(iVertices) { Vec3() }
                                 bitangents = MutableList(iVertices) { Vec3() }
                             }
-                            var iFaces = 0
+                            iFaces = 0
                             while (it has (0x100 shl iFaces)) {
                                 val components = if (it has (0x10000 shl iFaces)) 3 else 2
                                 textureCoords.add(MutableList(iVertices) { FloatArray(components) })
@@ -175,10 +174,9 @@ class PretransformVertices : BaseProcess() {
             } else {
                 // now delete all meshes in the scene and build a new mesh list
                 for (i in 0 until scene.numMeshes) {
-                    val mesh = scene.meshes[i].apply {
-                        numBones = 0
-                        bones.clear()
-                    }
+                    val mesh = scene.meshes[i].apply { numBones = 0 }
+                    absTransform -= mesh
+
                     // we're reusing the face index arrays. avoid destruction
                     for (a in 0 until mesh.numFaces)
                         mesh.faces[a].clear()
@@ -388,18 +386,18 @@ class PretransformVertices : BaseProcess() {
                 if (identity) {
                     // copy positions without modifying them
                     for (j in 0 until mesh.numVertices)
-                        meshOut.vertices.add(Vec3(mesh.vertices[aiCurrent[AI_PTVS_VERTEX] + j]))
+                        meshOut.vertices.add(aiCurrent[AI_PTVS_VERTEX] + j, Vec3(mesh.vertices[j]))
 
                     if (iVFormat has 0x2)
                     // copy normals without modifying them
                         for (j in 0 until mesh.numVertices)
-                            meshOut.normals.add(Vec3(mesh.normals[aiCurrent[AI_PTVS_VERTEX] + j]))
+                            meshOut.normals.add(aiCurrent[AI_PTVS_VERTEX] + j, Vec3(mesh.normals[j]))
 
                     if (iVFormat has 0x4)
                     // copy tangents and bitangents without modifying them
                         for (j in 0 until mesh.numVertices) {
-                            meshOut.tangents.add(Vec3(mesh.tangents[aiCurrent[AI_PTVS_VERTEX] + j]))
-                            meshOut.bitangents.add(Vec3(mesh.bitangents[aiCurrent[AI_PTVS_VERTEX] + j]))
+                            meshOut.tangents.add(aiCurrent[AI_PTVS_VERTEX] + j, Vec3(mesh.tangents[j]))
+                            meshOut.bitangents.add(aiCurrent[AI_PTVS_VERTEX] + j, Vec3(mesh.bitangents[j]))
                         }
                 } else {
                     // copy positions, transform them to worldspace
@@ -515,7 +513,7 @@ class PretransformVertices : BaseProcess() {
             val mesh = `in`[node.meshes[i]]
 
             // check whether we can operate on this mesh
-            if (mesh.bones.isEmpty() || absTransform[mesh] == node.transformation) {
+            if (!absTransform.contains(mesh) || absTransform[mesh] == node.transformation) {
                 // yes, we can.
                 absTransform[mesh] = node.transformation
                 mesh.numBones = Uint.MAX_VALUE.i

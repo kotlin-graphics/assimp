@@ -62,9 +62,9 @@
     <orderEntry type="library" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" name="Gradle: org.jogamp.gluegen:gluegen-rt:2.3.2" level="project" />
     <orderEntry type="library" name="Gradle: org.jogamp.jogl:jogl-all:2.3.2" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-runner-junit5:3.0.5" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-core:3.0.5" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-assertions:3.0.5" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-runner-junit5:3.0.6" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-core:3.0.6" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: io.kotlintest:kotlintest-assertions:3.0.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.slf4j:slf4j-simple:1.7.25" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.reflections:reflections:0.9.11" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.junit.platform:junit-platform-engine:1.1.0" level="project" />

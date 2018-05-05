@@ -42,10 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp
 
-import assimp.postProcess.FlipUVsProcess
-import assimp.postProcess.FlipWindingOrderProcess
-import assimp.postProcess.MakeLeftHandedProcess
-import assimp.postProcess.TriangulateProcess
+import assimp.postProcess.*
 
 val postProcessingStepInstanceList: ArrayList<BaseProcess>
     get() = ArrayList<BaseProcess>().apply {
@@ -88,9 +85,8 @@ val postProcessingStepInstanceList: ArrayList<BaseProcess>
 //        #ifndef ASSIMP_BUILD_NO_TRANSFORMTEXCOORDS_PROCESS
 //            out.push_back(new TextureTransformStep ());
 //        #endif
-//        #if (!defined ASSIMP_BUILD_NO_PRETRANSFORMVERTICES_PROCESS)
-//        out.push_back(new PretransformVertices ());
-//        #endif
+        if (!ASSIMP.NO.PROCESS.PRETRANSFORMVERTICES)
+            add(PretransformVertices())
         if (!ASSIMP.NO.PROCESS.TRIANGULATE)
             add(TriangulateProcess())
 
