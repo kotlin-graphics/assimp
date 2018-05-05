@@ -12,6 +12,6 @@ class collada  : StringSpec() {
         "anims full rot"  { animFullRot(getResource("$path/anims_with_full_rotations_between_keys.DAE")) }
         "cameras"  { cameras(getResource("$path/cameras.dae")) }
         "concave poly"  { concavePoly(getResource("$path/ConcavePolygon.dae")) }
-//        "treasure smooth"  { treasure_smooth(getResource("$path/treasure_smooth.dae")) }
+        "treasure smooth"  { treasure_smooth(getResource("$path/treasure_smooth.dae")) }
     }
 }

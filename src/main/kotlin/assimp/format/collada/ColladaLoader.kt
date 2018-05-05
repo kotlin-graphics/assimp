@@ -285,7 +285,7 @@ class ColladaLoader : BaseImporter() {
         var srcController: Controller? = null
 
         // accumulated mesh references by this node
-        val newMeshRefs = ArrayList<Int>()
+        val newMeshRefs = ArrayList<Int>(pNode.mMeshes.size)
 
         // add a mesh for each subgroup in each collada mesh
         pNode.mMeshes.forEach { mid ->
@@ -387,24 +387,24 @@ class ColladaLoader : BaseImporter() {
         val dstMesh = AiMesh(name = pSrcMesh.mName)
 
         // count the vertices addressed by its faces
-        val numVertices = pSrcMesh.mFaceSize.filterIndexed { i, value -> i in pStartFace until (pStartFace + pSubMesh.mNumFaces) }.sum()
+        val numVertices = pSrcMesh.mFaceSize.slice(pStartFace until (pStartFace + pSubMesh.mNumFaces)).sum()
 
         // copy positions
         dstMesh.numVertices = numVertices
-        dstMesh.vertices = pSrcMesh.mPositions.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+        dstMesh.vertices.addAll(pSrcMesh.mPositions.slice(pStartVertex until (pStartVertex + numVertices)))
 
         // normals, if given. HACK: (thom) Due to the glorious Collada spec we never know if we have the same number of normals as there are positions. So we
         // also ignore any vertex attribute if it has a different count
         if (pSrcMesh.mNormals.size >= pStartVertex + numVertices)
-            dstMesh.normals = pSrcMesh.mNormals.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.normals.addAll(pSrcMesh.mNormals.slice(pStartVertex until (pStartVertex + numVertices)))
 
         // tangents, if given.
         if (pSrcMesh.mTangents.size >= pStartVertex + numVertices)
-            dstMesh.tangents = pSrcMesh.mTangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.tangents.addAll(pSrcMesh.mTangents.slice(pStartVertex until (pStartVertex + numVertices)))
 
         // bitangents, if given.
         if (pSrcMesh.mBitangents.size >= pStartVertex + numVertices)
-            dstMesh.bitangents = pSrcMesh.mBitangents.filterIndexed { i, vec3 -> i in pStartVertex until (pStartFace + numVertices) }.toMutableList()
+            dstMesh.bitangents.addAll(pSrcMesh.mBitangents.slice(pStartVertex until (pStartVertex + numVertices)))
 
         // same for texturecoords, as many as we have empty slots are not allowed, need to pack and adjust UV indexes accordingly
         for (texNumber in 0 until pSrcMesh.mTexCoords.size) {
@@ -429,9 +429,7 @@ class ColladaLoader : BaseImporter() {
         dstMesh.numFaces = pSubMesh.mNumFaces
         for (a in 0 until dstMesh.numFaces) {
             val s = pSrcMesh.mFaceSize[pStartFace + a]
-            dstMesh.faces.add(
-                    MutableList(s, { vertex++ })
-            )
+            dstMesh.faces.add(MutableList(s, { vertex++ }))
         }
 
         // create morph target meshes if any
@@ -761,7 +759,7 @@ class ColladaLoader : BaseImporter() {
     /** Resolves the texture name for the given effect texture entry    */
     fun findFilenameForEffectTexture(pParser: ColladaParser, pEffect: Effect, pName: String): String {
 
-        var result = ""
+        var result: String
 
         // recurse through the param references until we end up at an image
         var name = pName
@@ -1249,7 +1247,7 @@ class ColladaLoader : BaseImporter() {
                     ticksPerSecond = 1.0).apply {
                 if (numChannels > 0) channels = anims.filterNotNullTo(ArrayList())
                 if (numMorphMeshChannels > 0) morphMeshChannels = morphAnims
-                anims.forEachIndexed { i, it ->
+                anims.forEach{
                     duration = duration max it.positionKeys[it.numPositionKeys - 1].time
                     duration = duration max it.rotationKeys[it.numPositionKeys - 1].time
                     duration = duration max it.scalingKeys[it.numPositionKeys - 1].time

@@ -79,27 +79,26 @@ object treasure_smooth {
                 normals[0] shouldBe Vec3(0.00296032405f, 0.000976616982f, 0.999995172f)
                 normals[776] shouldBe Vec3(0.600491107f, 0.295148909f, 0.743167281f)
                 normals[1553] shouldBe Vec3(0.254105508f, 0.335226387f, 0.907223225f)
-                for(i in 0 until numFaces)
-                    for(j in 0..2)
+                for (i in 0 until numFaces)
+                    for (j in 0..2)
                         faces[i][j] shouldBe i * 3 + j
                 name shouldBe "Plane"
             }
-
+            // submesh
             with(meshes[1]) {
                 primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                 numVertices shouldBe 342
                 numFaces shouldBe 114
-                vertices.isNotEmpty() shouldBe true
-//                vertices[0] shouldBe Vec3(7.50098801f, 6.56336403f, 0f)
-//                vertices[776] shouldBe Vec3(-1.62673700f, -3.29218197f, 0.503621578f)
-//                vertices[1553] shouldBe Vec3(-1.15598500f, -3.56582594f, 0.488107890f)
-//                normals[0] shouldBe Vec3(0.00296032405f, 0.000976616982f, 0.999995172f)
-//                normals[776] shouldBe Vec3(0.600491107f, 0.295148909f, 0.743167281f)
-//                normals[1553] shouldBe Vec3(0.254105508f, 0.335226387f, 0.907223225f)
-//                for(i in 0 until numFaces)
-//                    for(j in 0..2)
-//                        faces[i][j] shouldBe i * 3 + j
-//                name shouldBe "Plane"
+                vertices[0] shouldBe Vec3(0.860741317f, -3.45404100f, 0.648772180f)
+                vertices[170] shouldBe Vec3(-0.884529710f, -1.541123f, -0.220538393f)
+                vertices[341] shouldBe Vec3(-0.593643427f, -1.76318300f, -0.361052006f)
+                normals[0] shouldBe Vec3(-0.639659882f, 0.316945910f, 0.700271904f)
+                normals[170] shouldBe Vec3(0.697514117f, -0.194711894f, 0.689609706f)
+                normals[341] shouldBe Vec3(0.263714999f, 0.0831033513f, 0.961014211f)
+                for(i in 0 until numFaces)
+                    for(j in 0..2)
+                        faces[i][j] shouldBe i * 3 + j
+                name shouldBe "Plane"
             }
 
 //            numMaterials shouldBe 1
