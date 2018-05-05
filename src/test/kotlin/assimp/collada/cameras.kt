@@ -26,10 +26,10 @@ object cameras {
                 with(children[0]) {
                     name shouldBe "Camera"
                     transformation shouldBe Mat4(
-                            7.54979013e-08f, 0f, 1f, 10f,
+                            7.54979013e-08f, 0f, -1f, 0f,
                             0f, 1f, 0f, 0f,
-                            -1f, 0f, 7.54979013e-08f, 0f,
-                            0f, 0f, 0f, 1f)
+                            1f, 0f, 7.54979013e-08f, 0f,
+                            10f, 0f, 0f, 1f)
                     (parent === rootNode) shouldBe true
                     numChildren shouldBe 0
                     children.isEmpty() shouldBe true
@@ -40,10 +40,10 @@ object cameras {
                 with(children[1]) {
                     name shouldBe "Camera_002"
                     transformation shouldBe Mat4(
-                            7.54979013e-08f, 0f, -1f, -10f,
+                            7.54979013e-08f, 0f, 1f, 0f,
                             0f, 1f, 0f, 0f,
-                            1f, 0f, 7.54979013e-08f, 0f,
-                            0f, 0f, 0f, 1f)
+                            -1f, 0f, 7.54979013e-08f, 0f,
+                            -10f, 0f, 0f, 1f)
                     (parent === rootNode) shouldBe true
                     numChildren shouldBe 0
                     children.isEmpty() shouldBe true
@@ -54,10 +54,10 @@ object cameras {
                 with(children[2]) {
                     name shouldBe "Camera_003"
                     transformation shouldBe Mat4(
-                            3.09085983e-08f, -1f, 1.58932991e-08, 0f,
-                            -3.09085983e-08f, 1.58932991e-08f, 1f, 5f,
-                            -1f, -3.09085983e-08f, -3.09085983e-08f, 0f,
-                            0f, 0f, 0f, 1f)
+                            3.09085983e-08f, -3.09085983e-08f, -1f, 0f,
+                            -1f, 1.58932991e-08f, -3.09085983e-08f, 0f,
+                            1.58932991e-08, 1f, -3.09085983e-08f, 0f,
+                            0f, 5f, 0f, 1f)
                     (parent === rootNode) shouldBe true
                     numChildren shouldBe 0
                     children.isEmpty() shouldBe true

@@ -25,6 +25,7 @@ import assimp.format.collada.PrimitiveType as Pt
  */
 
 typealias DataLibrary = SortedMap<String, Data>
+
 typealias AccessorLibrary = SortedMap<String, Accessor>
 typealias MeshLibrary = SortedMap<String, Mesh>
 typealias NodeLibrary = SortedMap<String, Node>
@@ -1474,7 +1475,7 @@ class ColladaParser(pFile: IOStream) {
                 // up to 4 texture coord sets are fine, ignore the others
                 if (input.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                     // pad to current vertex count if necessary
-                    while(input.mIndex >= pMesh.mTexCoords.size) pMesh.mTexCoords.add(arrayListOf())
+                    while (input.mIndex >= pMesh.mTexCoords.size) pMesh.mTexCoords.add(arrayListOf())
                     if (0L != acc.mSubOffset[2] || 0L != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
                         pMesh.mNumUVComponents[input.mIndex] = 3
                     while (pMesh.mTexCoords[input.mIndex].size < pMesh.mPositions.size - 1)
@@ -1609,10 +1610,23 @@ class ColladaParser(pFile: IOStream) {
         // read SID
         element["sid"]?.let { tf.mID = it }
         // how many parameters to read per transformation type
-        val sNumParameters = intArrayOf(9, 4, 3, 3, 7, 16)
         val floats = getTextContent().words.map { it.f }
         // read as many parameters and store in the transformation
-        tf.f = FloatArray(sNumParameters[pType.ordinal], { floats[it] })
+        tf.f = when (pType) {
+            TransformType.LOOKAT -> floatArrayOf(
+                    floats[0], floats[3], floats[6],
+                    floats[1], floats[4], floats[7],
+                    floats[2], floats[5], floats[8])
+            TransformType.ROTATE -> FloatArray(4) { floats[it] }
+            TransformType.TRANSLATE -> FloatArray(3) { floats[it] }
+            TransformType.SCALE -> FloatArray(3) { floats[it] }
+            TransformType.SKEW -> TODO()
+            TransformType.MATRIX -> floatArrayOf(
+                    floats[0], floats[4], floats[8], floats[12],
+                    floats[1], floats[5], floats[9], floats[13],
+                    floats[2], floats[6], floats[10], floats[14],
+                    floats[3], floats[7], floats[11], floats[15])
+        }
         // place the transformation at the queue of the node
         pNode.mTransforms.add(tf)
         // and consume the closing tag
@@ -1680,8 +1694,8 @@ class ColladaParser(pFile: IOStream) {
                     val url = element["url"]!!
                     if (url[0] != '#') throw Exception("Unknown reference format in <instance_visual_scene> element")
                     // find the referred scene, skip the leading #
-                    val sit = mNodeLibrary[url.substring(1)] ?:
-                            throw Exception("Unable to resolve visual_scene reference \"$url\" in <instance_visual_scene> element.")
+                    val sit = mNodeLibrary[url.substring(1)]
+                            ?: throw Exception("Unable to resolve visual_scene reference \"$url\" in <instance_visual_scene> element.")
                     mRootNode = sit
                 } else skipElement()
             else if (event is EndElement) break
@@ -1695,19 +1709,22 @@ class ColladaParser(pFile: IOStream) {
                 TransformType.LOOKAT -> {
                     val pos = AiVector3D(tf.f)
                     val dstPos = AiVector3D(tf.f, 3)
-                    val up = AiVector3D(tf.f, 6).normalize()
-                    val dir = (dstPos - pos).normalize()
-                    val right = (dir cross up).normalize()
-                    res *= Mat4(right, 0f, up, 0f, -dir, 0f, pos, 1f)
+                    val up = AiVector3D(tf.f, 6).normalizeAssign()
+                    val dir = (dstPos - pos).normalizeAssign()
+                    val right = (dir cross up).normalizeAssign()
+                    res *= Mat4(
+                            right, 0f,
+                            up, 0f,
+                            -dir, 0f,
+                            pos, 1f)
                 }
                 TransformType.ROTATE -> {
                     val angle = tf.f[3].rad
                     val axis = AiVector3D(tf.f)
-                    val rot = if (angle == 0f && axis == Vec3()) Mat4() else glm.rotate(Mat4(), angle, axis) // TODO move check to glm?
-//                    val rot = glm.rotate(Mat4(), angle, axis)
-                    res *= rot
+                    if (axis != Vec3())
+                        res.rotateAssign(angle, axis)
                 }
-                TransformType.TRANSLATE -> res *= glm.translate(Mat4(), AiVector3D(tf.f))
+                TransformType.TRANSLATE -> res.translateAssign(AiVector3D(tf.f))
                 TransformType.SCALE -> res *= Mat4(tf.f[0], tf.f[1], tf.f[2])
                 TransformType.SKEW -> assert(false) // TODO: (thom)
                 TransformType.MATRIX -> res *= Mat4(tf.f)

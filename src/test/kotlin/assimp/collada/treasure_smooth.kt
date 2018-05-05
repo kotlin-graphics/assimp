@@ -39,10 +39,10 @@ object treasure_smooth {
                 with(children[34]) {
                     name shouldBe "Cube_015"
                     transformation shouldBe Mat4(
-                            0.122561797f, 0.0853303894f, -0.0305411592f, 1.10377395f,
-                            -0.0906103402f, 0.116471097f, -0.0382059515f, -4.13784218f,
-                            0.00194863102f, 0.0488739200f, 0.144371003f, 0.766323626f,
-                            0f, 0f, 0f, 1f)
+                            0.122561797f, -0.0906103402f, 0.00194863102f, 0f,
+                            0.0853303894f, 0.116471097f, 0.0488739200f, 0f,
+                            -0.0305411592f, -0.0382059515f, 0.144371003f, 0f,
+                            1.10377395f, -4.13784218f, 0.766323626f, 1f)
                     (parent === rootNode) shouldBe true
                     numChildren shouldBe 0
                     children.isEmpty() shouldBe true
@@ -54,10 +54,10 @@ object treasure_smooth {
                 with(children[67]) {
                     name shouldBe "Cylinder_027"
                     transformation shouldBe Mat4(
-                            0.0158306006f, -0.0440383293f, 0.0162486192f, -0.724227428f,
-                            0.0467648916f, 0.0133153200f, -0.00947351381f, -2.80546498f,
-                            0.00405431492f, 0.0183664802f, 0.0458283201f, 0.661597490f,
-                            0f, 0f, 0f, 1f)
+                            0.0158306006f, 0.0467648916f, 0.00405431492f, 0f,
+                            -0.0440383293f, 0.0133153200f, 0.0183664802f, 0f,
+                            0.0162486192f, -0.00947351381f, 0.0458283201f, 0f,
+                            -0.724227428f, -2.80546498f, 0.661597490f, 1f)
                     (parent === rootNode) shouldBe true
                     numChildren shouldBe 0
                     children.isEmpty() shouldBe true
