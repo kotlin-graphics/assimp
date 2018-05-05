@@ -13,5 +13,6 @@ class collada  : StringSpec() {
         "cameras"  { cameras(getResource("$path/cameras.dae")) }
         "concave poly"  { concavePoly(getResource("$path/ConcavePolygon.dae")) }
         "treasure smooth"  { treasure_smooth(getResource("$path/treasure_smooth.dae")) }
+        "treasure smooth Pretransform"  { `treasure_smooth Pretransform`(getResource("$path/treasure_smooth.dae")) }
     }
 }

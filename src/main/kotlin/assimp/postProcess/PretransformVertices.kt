@@ -177,9 +177,9 @@ class PretransformVertices : BaseProcess() {
                     val mesh = scene.meshes[i].apply { numBones = 0 }
                     absTransform -= mesh
 
-                    // we're reusing the face index arrays. avoid destruction
-                    for (a in 0 until mesh.numFaces)
-                        mesh.faces[a].clear()
+                    // we're reusing the face index arrays. avoid destruction. Invalid for JVM
+//                    for (a in 0 until mesh.numFaces)
+//                        mesh.faces[a].clear()
 
                     /*  Invalidate the contents of the old mesh array. We will most likely have less output meshes now,
                         so the last entries of the mesh array are not overridden. We set them to NULL to make sure
@@ -246,7 +246,7 @@ class PretransformVertices : BaseProcess() {
 
                     // setup mesh indices
                     pcNode.numMeshes = 1
-                    pcNode.meshes = IntArray(i)
+                    pcNode.meshes = intArrayOf(i)
                 }
                 // generate light nodes
                 for (i in 0 until scene.numLights) {

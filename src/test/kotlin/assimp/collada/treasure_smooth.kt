@@ -12,7 +12,7 @@ object treasure_smooth {
 
     operator fun invoke(fileName: URL) {
 
-        with(Importer().readFile(fileName, AiPostProcessStep.PreTransformVertices.i)!!) {
+        with(Importer().readFile(fileName)!!) {
 
             flags shouldBe 0
             with(rootNode) {
