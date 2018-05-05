@@ -1,5 +1,6 @@
 package assimp.collada
 
+import assimp.AiPostProcessStep
 import assimp.AiPrimitiveType
 import assimp.Importer
 import glm_.mat4x4.Mat4
@@ -11,7 +12,7 @@ object treasure_smooth {
 
     operator fun invoke(fileName: URL) {
 
-        with(Importer().readFile(fileName)!!) {
+        with(Importer().readFile(fileName, AiPostProcessStep.PreTransformVertices.i)!!) {
 
             flags shouldBe 0
             with(rootNode) {

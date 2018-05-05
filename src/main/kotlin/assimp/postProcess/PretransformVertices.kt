@@ -169,9 +169,9 @@ class PretransformVertices : BaseProcess() {
             }
 
             // If no meshes are referenced in the node graph it is possible that we get no output meshes.
-            if (outMeshes.isEmpty()) {
+            if (outMeshes.isEmpty())
                 throw Error("No output meshes: all meshes are orphaned and are not referenced by any nodes")
-            } else {
+            else {
                 // now delete all meshes in the scene and build a new mesh list
                 for (i in 0 until scene.numMeshes) {
                     val mesh = scene.meshes[i].apply { numBones = 0 }
@@ -441,14 +441,15 @@ class PretransformVertices : BaseProcess() {
                 for (planck in 0 until mesh.numFaces) {
 
                     val fSrc = mesh.faces[planck]
-                    var fDst = meshOut.faces[aiCurrent[AI_PTVS_FACE] + planck]
+                    val fDst = meshOut.faces[aiCurrent[AI_PTVS_FACE] + planck]
 
                     val numIdx = fSrc.size
 
                     var pi: AiFace
                     if (numRef == 0) { /* if last time the mesh is referenced -> no reallocation */
-                        fDst = fSrc
-                        pi = fDst
+//                        fDst = fSrc
+                        meshOut.faces[aiCurrent[AI_PTVS_FACE] + planck] = mesh.faces[planck]
+                        pi = meshOut.faces[aiCurrent[AI_PTVS_FACE] + planck]
 
                         // offset all vertex indices
                         for (hahn in 0 until numIdx)

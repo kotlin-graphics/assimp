@@ -8,17 +8,17 @@ import io.kotlintest.specs.StringSpec
 class `PretransformVertices Test` : StringSpec() {
 
     init {
-//        "PretransformVertices Test 0"{
-//
-//            val scene = setUp()
-//            val process = PretransformVertices()
-//
-//            process.keepHierarchy = false
-//            process.execute(scene)
-//
-//            scene.numMaterials shouldBe 5
-//            scene.numMeshes shouldBe 10 // every second mesh has normals
-//        }
+        "PretransformVertices Test 0"{
+
+            val scene = setUp()
+            val process = PretransformVertices()
+
+            process.keepHierarchy = false
+            process.execute(scene)
+
+            scene.numMaterials shouldBe 5
+            scene.numMeshes shouldBe 10 // every second mesh has normals
+        }
 
         "PretransformVertices Test 1"{
 
