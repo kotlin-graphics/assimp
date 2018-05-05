@@ -36,6 +36,22 @@ object treasure_smooth {
                     metaData.isEmpty() shouldBe true
                 }
 
+                with(children[16]) {
+                    name shouldBe "Cylinder_015"
+                    transformation shouldBe Mat4(
+                            0.0866885632f, -0.0170170404f, 0.01285674f, 0f,
+                            0.0152270300f, 0.08706335f, 0.01256552f,0f,
+                    -0.01493363f, -0.01000874f,0.08744479f,0f,
+                    1.314583f,-5.515009f,0.4121983f,1f)
+                    (parent === rootNode) shouldBe true
+                    numChildren shouldBe 0
+                    children.isEmpty() shouldBe true
+                    numMeshes shouldBe 2
+                    meshes[0] shouldBe 26
+                    meshes[1] shouldBe 27
+                    metaData.isEmpty() shouldBe true
+                }
+
                 with(children[34]) {
                     name shouldBe "Cube_015"
                     transformation shouldBe Mat4(
