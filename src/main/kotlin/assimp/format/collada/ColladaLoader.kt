@@ -407,12 +407,16 @@ class ColladaLoader : BaseImporter() {
             dstMesh.bitangents.addAll(pSrcMesh.mBitangents.slice(pStartVertex until (pStartVertex + numVertices)))
 
         // same for texturecoords, as many as we have empty slots are not allowed, need to pack and adjust UV indexes accordingly
-        for (texNumber in 0 until pSrcMesh.mTexCoords.size) {
-            dstMesh.textureCoords.add(mutableListOf())
-            if (pSrcMesh.mTexCoords[texNumber].size >= pStartVertex + numVertices) {
-                dstMesh.textureCoords[texNumber] = mutableListOf()
+        var real = 0
+        for (a in pSrcMesh.mTexCoords.indices) {
+            if (pSrcMesh.mTexCoords[a].size >= pStartVertex + numVertices) {
+                if (real >= dstMesh.textureCoords.size)
+                    dstMesh.textureCoords.add(mutableListOf())
+                dstMesh.textureCoords[real] = mutableListOf()
                 for (v in 0 until numVertices)
-                    dstMesh.textureCoords[texNumber].add(pSrcMesh.mTexCoords[texNumber][pStartVertex + v])
+                    dstMesh.textureCoords[real].add(pSrcMesh.mTexCoords[a][pStartVertex + v])
+
+                ++real
             }
         }
 

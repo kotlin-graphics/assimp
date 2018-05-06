@@ -1475,12 +1475,17 @@ class ColladaParser(pFile: IOStream) {
                 // up to 4 texture coord sets are fine, ignore the others
                 if (input.mIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                     // pad to current vertex count if necessary
-                    while (input.mIndex >= pMesh.mTexCoords.size) pMesh.mTexCoords.add(arrayListOf())
-                    if (0L != acc.mSubOffset[2] || 0L != acc.mSubOffset[3]) /* hack ... consider cleaner solution */
-                        pMesh.mNumUVComponents[input.mIndex] = 3
+                    while (input.mIndex >= pMesh.mTexCoords.size)
+                        pMesh.mTexCoords.add(arrayListOf())
+                    val comps = when {
+                        0L != acc.mSubOffset[2] || 0L != acc.mSubOffset[3] -> 3 /* hack ... consider cleaner solution */
+                        else -> 2
+                    }
                     while (pMesh.mTexCoords[input.mIndex].size < pMesh.mPositions.size - 1)
-                        pMesh.mTexCoords[input.mIndex].add(FloatArray(pMesh.mNumUVComponents[input.mIndex]))
-                    pMesh.mTexCoords[input.mIndex].add(FloatArray(pMesh.mNumUVComponents[input.mIndex], { obj[it] }))
+                        pMesh.mTexCoords[input.mIndex].add(FloatArray(comps))
+
+                    pMesh.mTexCoords[input.mIndex].add(FloatArray(comps, { obj[it] }))
+                    pMesh.mNumUVComponents[input.mIndex] = comps
                 } else logger.error { "Collada: too many texture coordinate sets. Skipping." }
             }
             InputType.Color -> {
