@@ -39,10 +39,10 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     fun parseFile(streamBuffer: BufferedReader) {
 
 
-        var line : String? = ""
-        do{
+        var line: String? = ""
+        do {
             //Support for continuationToken
-            line = ObjTools.getNextDataLine(streamBuffer,"\\")
+            line = ObjTools.getNextDataLine(streamBuffer, "\\")
 
             //End of stream
             if (line == null)
@@ -94,7 +94,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
             // Parse object name
                 'o' -> getObjectName(line)
             }
-        }while(line != null)
+        } while (line != null)
     }
 
     // -------------------------------------------------------------------
@@ -129,7 +129,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
                             hasNormal = true
                         }
                         else -> {
-                            logger.error { "OBJ: Not supported token in face description detected --> "+ line }
+                            logger.error { "OBJ: Not supported token in face description detected --> " + line }
                             skip = true
                         }
                     }
@@ -141,7 +141,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
                             hasNormal = true
                         }
                         else -> {
-                            logger.error { "OBJ: Not supported token in face description detected -- >"+ line }
+                            logger.error { "OBJ: Not supported token in face description detected -- >" + line }
                             skip = true
                         }
                     }
@@ -256,7 +256,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         if (words.size < 2) throw Error("File name of the material is absent.")
 
         // get the name of the mat file with spaces
-        var filename = ObjTools.getNameWithSpace(words,1)
+        var filename = ObjTools.getNameWithSpace(words, 1)
 
         val pFile = file.parentPath() + "/" + filename //windows can just suck it
         println(pFile)
@@ -282,7 +282,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     //  Getter for a group name.
     fun getGroupName(line: String) {
 
-        val groupName = line.split("\\s+".toRegex())[1]
+        val groupName = line.split("\\s+".toRegex()).getOrElse(1) { "" }
         // Change active group, if necessary
         if (m_pModel.m_strActiveGroup != groupName) {
 
