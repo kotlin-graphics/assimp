@@ -154,9 +154,9 @@ class XFileImporter : BaseImporter() {
 
                         // extract scaling
                         val scale = AiVector3D()
-                        scale.x = AiVector3D(trafo.a0, trafo.a1, trafo.a2).length
-                        scale.y = AiVector3D(trafo.b0, trafo.b1, trafo.b2).length
-                        scale.z = AiVector3D(trafo.c0, trafo.c1, trafo.c2).length
+                        scale.x = AiVector3D(trafo.a0, trafo.a1, trafo.a2).length()
+                        scale.y = AiVector3D(trafo.b0, trafo.b1, trafo.b2).length()
+                        scale.z = AiVector3D(trafo.c0, trafo.c1, trafo.c2).length()
                         nbone.scalingKeys[c].time = time
                         nbone.scalingKeys[c].value = scale
 
