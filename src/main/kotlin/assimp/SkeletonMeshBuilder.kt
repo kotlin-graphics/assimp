@@ -104,7 +104,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
                 // find a suitable coordinate system
                 val childTransform = node.children[a].transformation
                 val childpos = AiVector3D(childTransform.a3, childTransform.b3, childTransform.c3)
-                val distanceToChild = childpos.length
+                val distanceToChild = childpos.length()
                 if (distanceToChild < 0.0001f) continue
                 val up = AiVector3D(childpos).normalizeAssign()
 
@@ -136,7 +136,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
         else {
             // if the node has no children, it's an end node. Put a little knob there instead
             val ownpos = AiVector3D(node.transformation.a3, node.transformation.b3, node.transformation.c3)
-            val sizeEstimate = ownpos.length * 0.18f
+            val sizeEstimate = ownpos.length() * 0.18f
 
             vertices.add(AiVector3D(-sizeEstimate, 0f, 0f))
             vertices.add(AiVector3D(0f, sizeEstimate, 0f))
@@ -219,7 +219,7 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
             val nor = (vertices[it.indices[2]] - vertices[it.indices[0]]) cross
                     (vertices[it.indices[1]] - vertices[it.indices[0]])
 
-            if (nor.length < 1e-5) /* ensure that FindInvalidData won't remove us ...*/
+            if (nor.length() < 1e-5) /* ensure that FindInvalidData won't remove us ...*/
                 nor.put(1f, 0f, 0f)
 
             for (n in 0..2) mesh.normals[it.indices[n]] put nor

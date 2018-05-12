@@ -619,7 +619,7 @@ class ColladaParser(pFile: IOStream) {
             if (event is StartElement) {
                 if (element.name_ == "light") {
                     // read ID. By now you probably know my opinion about this "specification"
-                    val id = element["light"]!!
+                    val id = element["id"]!!
                     val light = Light() // create an entry and store it in the library under its ID
                     mLightLibrary[id] = Light()
                     readLight(light)
