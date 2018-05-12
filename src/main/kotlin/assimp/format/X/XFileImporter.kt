@@ -3,7 +3,6 @@ package assimp.format.X
 import assimp.*
 import assimp.AiFace
 import java.io.File
-import java.net.URI
 
 class XFileImporter : BaseImporter() {
 
@@ -17,32 +16,32 @@ class XFileImporter : BaseImporter() {
 
     var mBuffer: Pointer<Char> = Pointer<Char>(arrayOf())
 
-    override fun canRead(pFile: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
         if (!checkSig)   //Check File Extension
-            return pFile.substring(pFile.lastIndexOf('.') + 1).toLowerCase() == "x"
+            return file.substring(file.lastIndexOf('.') + 1).toLowerCase() == "x"
         else //Check file Header
             return false
     }
 
-    override fun internReadFile(pFile: String, ioSystem: IOSystem, pScene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
         // Read file into memory
-        var file = File(pFile)
-        if (!file.canRead()) throw FileSystemException(file, null, "Failed to open file \$pFile.")
+        val file_ = File(file)
+        if (!file_.canRead()) throw FileSystemException(file_, null, "Failed to open file \$pFile.")
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = file.length()
+        val fileSize = file_.length()
 
         if (fileSize < 16) throw Error("XFile is too small.")
 
-        val bytes = file.readBytes()
+        val bytes = file_.readBytes()
         mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i -> bytes[i].toChar() })) //Assuming every byte is a char.
         // parse the file into a temporary representation
         val parser = XFileParser(mBuffer)
 
         // And create the proper return structures out of it
-        CreateDataRepresentationFromImport(pScene, parser.mScene)
+        CreateDataRepresentationFromImport(scene, parser.mScene)
 
-        if (pScene.rootNode == null)
+        if (scene.rootNode == null)
             throw Error("XFile is ill-formatted - no content imported.")
     }
 
