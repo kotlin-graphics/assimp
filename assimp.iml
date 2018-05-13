@@ -37,8 +37,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Gradle: com.github.kotlin-graphics:uno-sdk:4f00f5f4a69720be1906f88305d190280da04fb1" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.kotlin-graphics:vkk:2c3593c914165b6078f5a711eacd3ce75e4b63b2" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.kotlin-graphics:uno-sdk:0f05f0e622e1a7d99c1ceee6705dba9ded1c7fec" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.kotlin-graphics:vkk:025fbeb4f164117685ecccef27dbc4e6202af15f" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-reflect:1.2.41" level="project" />
     <orderEntry type="library" name="Gradle: io.github.microutils:kotlin-logging:1.4.6" level="project" />
     <orderEntry type="library" name="Gradle: com.github.kotlin-graphics:gln:b6f92bf107aa87046bccb5d35edcccb50e767770" level="project" />
