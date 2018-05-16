@@ -33,7 +33,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    implementation 'com.github.kotlin-graphics:uno-sdk:dea48060cb85ebaa456ce6c06891f47b76fff287'
+    implementation 'com.github.kotlin-graphics:uno-sdk:a4bc98637e04a660fd89ce586abd19cfd11f9d1c'
 
     testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.0'
 
