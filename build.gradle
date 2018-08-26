@@ -33,7 +33,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    implementation 'com.github.kotlin-graphics:uno-sdk:e706ec1'
+    implementation 'com.github.kotlin-graphics:uno-sdk:v0.7.3'
 
     testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.0'
 
@@ -47,7 +47,7 @@ dependencies {
     testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
 
 
-    ext.lwjglVersion = "3.1.7-SNAPSHOT"
+    ext.lwjglVersion = "3.2.0"
     switch (OperatingSystem.current()) {
         case OperatingSystem.WINDOWS:
             ext.lwjglNatives = "natives-windows"
