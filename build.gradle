@@ -47,7 +47,7 @@ dependencies {
     testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
 
 
-    ext.lwjglVersion = "3.1.7-SNAPSHOT"
+    ext.lwjglVersion = "3.2.0"
     switch (OperatingSystem.current()) {
         case OperatingSystem.WINDOWS:
             ext.lwjglNatives = "natives-windows"
