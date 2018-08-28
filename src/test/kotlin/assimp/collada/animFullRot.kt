@@ -1,7 +1,6 @@
 package assimp.collada
 
-import assimp.AiAnimBehaviour
-import assimp.Importer
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec3.Vec3
@@ -12,7 +11,7 @@ object animFullRot {
 
     operator fun invoke(url: URL) {
 
-        with(Importer().readFile(url)!!) {
+        Importer().testFile(url) {
 
             flags shouldBe 0
 

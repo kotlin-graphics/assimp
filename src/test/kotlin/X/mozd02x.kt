@@ -1,7 +1,6 @@
 package X
 
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import io.kotlintest.specs.StringSpec
 
 
@@ -16,7 +15,7 @@ class mozd02x : StringSpec() {
         val mozd02x_a = "mozd02.assbin"
 
         mozd02x {
-            with(Importer().readFile(getResource("$x/$mozd02x"))!!) {
+            Importer().testFile(getResource("$x/$mozd02x")) {
                 printNodeNames(rootNode)
                 with(rootNode) {
 

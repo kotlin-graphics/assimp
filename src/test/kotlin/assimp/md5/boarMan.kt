@@ -1,9 +1,6 @@
 package assimp.md5
 
-import assimp.AiShadingMode
-import assimp.AiTexture
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
@@ -12,7 +9,7 @@ object boarMan {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
 
             flags shouldBe 0
 
@@ -77,7 +74,7 @@ object boarMan {
                 textureCoords[0][8435][0] shouldBe 0.303604007f
                 textureCoords[0][8435][1] shouldBe 1.94788897f
 
-                faces.asSequence().filterIndexed { i, f -> i in 0..7 }.forEachIndexed { i, f ->
+                faces.asSequence().filterIndexed { i, _ -> i in 0..7 }.forEachIndexed { i, f ->
                     val idx = i * 3
                     f shouldBe mutableListOf(idx + 1, idx + 2, idx)
                 }

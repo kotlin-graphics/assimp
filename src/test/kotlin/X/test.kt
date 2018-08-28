@@ -1,22 +1,20 @@
 package X
 
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import io.kotlintest.specs.StringSpec
-import assimp.models
 
 class test : StringSpec() {
     init {
         val test = "test.x"
         test {
-            with(Importer().readFile(getResource("$x/$test"))!!) {
+            Importer().testFile(getResource("$x/$test")) {
                 printNodeNames(rootNode)
             }
         }
         val test_c = "test.assbin"
         test_c {
-//            val model2 = Importer().readFile(x_ass + "test.assbin")!!
-//            val model1 = Importer().readFile(x + "test.x")!!
+//            val model2 = Importer().testFile(x_ass + "test.assbin")
+//            val model1 = Importer().testFile(x + "test.x")!!
 //
 //            compareScenes(model1, model2)
         }

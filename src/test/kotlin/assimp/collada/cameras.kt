@@ -1,6 +1,6 @@
 package assimp.collada
 
-import assimp.Importer
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
@@ -10,7 +10,7 @@ object cameras {
 
     operator fun invoke(fileName: URL) {
 
-        with(Importer().readFile(fileName)!!) {
+        Importer().testFile(fileName) {
 
             flags shouldBe 1
             with(rootNode) {

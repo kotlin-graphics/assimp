@@ -1,9 +1,6 @@
 package assimp.stl
 
-import assimp.AiPrimitiveType
-import assimp.Importer
-import assimp.getResource
-import assimp.models
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
@@ -13,7 +10,7 @@ object spiderBinary {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
 
             flags shouldBe 0
 

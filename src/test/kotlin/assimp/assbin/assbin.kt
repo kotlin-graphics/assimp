@@ -1,8 +1,6 @@
 package assimp.assbin
 
-import assimp.Importer
-import assimp.getResource
-import assimp.models
+import assimp.*
 import io.kotlintest.specs.StringSpec
 
 class assbin : StringSpec() {
@@ -15,7 +13,7 @@ class assbin : StringSpec() {
 //
 //        anims_with_full_rotations_between_keys {
 //
-//            val scene = Importer().readFile(assbin + anims_with_full_rotations_between_keys)!!
+//            val scene = Importer().testFile(assbin + anims_with_full_rotations_between_keys)!!
 //            println()
 ////            scene.flags shouldBe 0
 //        }
@@ -24,7 +22,7 @@ class assbin : StringSpec() {
 
         boblampclean {
 
-            val scene = Importer().readFile(getResource("$assbin/$boblampclean"))
+            val scene = Importer().testFile(getResource("$assbin/$boblampclean"))
 
             println()
         }
@@ -33,7 +31,7 @@ class assbin : StringSpec() {
 
         minigun {
 
-            val scene = Importer().readFile(getResource("$assbin/$minigun"))
+            val scene = Importer().testFile(getResource("$assbin/$minigun"))
 
             println()
         }
