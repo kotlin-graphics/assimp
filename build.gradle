@@ -82,9 +82,10 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-//test {
+test {
 //	workingDir = "src/test/resources"
-//}
+    useJUnitPlatform()
+}
 
 artifacts {
     archives sourcesJar
