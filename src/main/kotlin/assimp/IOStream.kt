@@ -6,7 +6,7 @@ import java.nio.file.Path
 
 interface IOStream {
 
-    val path : Path
+    val path : Path?
 
     val filename: String
 

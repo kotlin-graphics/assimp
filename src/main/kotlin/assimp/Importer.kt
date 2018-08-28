@@ -189,7 +189,13 @@ constructor() {
     var ioHandler: IOSystem
         get() = impl.ioSystem
         set(value) {
-            if (value != null) impl.ioSystem = value
+            if (value != null) {
+                impl.ioSystem = value
+                impl.isDefaultHandler = false
+            } else {
+                impl.ioSystem = DefaultIOSystem()
+                impl.isDefaultHandler = true
+            }
         }
 
     /** Checks whether a default progress handler is active
@@ -375,16 +381,18 @@ constructor() {
             impl.errorString = "Invalid parameters passed to ReadFileFromMemory()"
             return null
         }
-        TODO()
-        // read the file and recover the previous IOSystem
-//        static const size_t BufferSize(Importer::MaxLenHint + 28);
-//        char fbuff[ BufferSize ];
-//        ai_snprintf(fbuff, BufferSize, "%s.%s",AI_MEMORYIO_MAGIC_FILENAME,pHint);
-//        ReadFile(fbuff, pFlags)
-//        SetIOHandler(io)
-//
-//        ASSIMP_END_EXCEPTION_REGION(const aiScene *)
-//        return pimpl->mScene
+
+        // prevent deletion of previous IOSystem
+        val io = impl.ioSystem
+
+        ioHandler = MemoryIOSystem(buffer)
+
+        val fileName = "$AI_MEMORYIO_MAGIC_FILENAME.$hint"
+        readFile(fileName, flags)
+
+        impl.ioSystem = io
+
+        return impl.scene
     }
 
     /** Apply post-processing to an already-imported scene.
