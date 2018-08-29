@@ -1,8 +1,6 @@
 package assimp.collada
 
-import assimp.AiPostProcessStep
-import assimp.AiPrimitiveType
-import assimp.Importer
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.matchers.shouldBe
@@ -12,7 +10,7 @@ object `treasure_smooth Pretransform` {
 
     operator fun invoke(fileName: URL) {
 
-        with(Importer().readFile(fileName, AiPostProcessStep.PreTransformVertices.i)!!) {
+        Importer().testFile(fileName, AiPostProcessStep.PreTransformVertices.i){
 
             flags shouldBe 0
             with(rootNode) {

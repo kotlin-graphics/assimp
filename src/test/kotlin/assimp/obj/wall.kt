@@ -9,7 +9,7 @@ object wall {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
             println()
 //            with(rootNode) {
 //

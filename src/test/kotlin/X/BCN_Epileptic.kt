@@ -1,7 +1,6 @@
 package X
 
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import io.kotlintest.specs.StringSpec
 
 
@@ -12,7 +11,7 @@ class BCN_Epileptic : StringSpec() {
         val BCN_Epileptic = "BCN_Epileptic.X"
 
         BCN_Epileptic {
-            with(Importer().readFile(getResource("$x/$BCN_Epileptic"))!!) {
+            Importer().testFile(getResource("$x/$BCN_Epileptic")) {
                 println("Node names: ")
                 printNodeNames(rootNode)
                 with(rootNode) {

@@ -1,7 +1,6 @@
 package assimp.fbx
 
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
@@ -10,7 +9,7 @@ object animFullRot {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
 
             flags shouldBe 0
 

@@ -1,9 +1,6 @@
 package assimp.obj
 
-import assimp.AiPrimitiveType
-import assimp.AiShadingMode
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
@@ -13,7 +10,7 @@ object spider {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)){
 
             with(rootNode) {
 

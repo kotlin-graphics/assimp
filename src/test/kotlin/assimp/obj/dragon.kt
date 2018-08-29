@@ -1,13 +1,13 @@
 package assimp.obj
 
-import assimp.Importer
+import assimp.*
 
 // TODO
 object dragon {
 
     operator fun invoke(fileName: String) {
 
-        with(Importer().readFile(fileName)!!) {
+        Importer().testFile(fileName) {
 
             with(rootNode) {
 

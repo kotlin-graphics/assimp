@@ -9,7 +9,7 @@ import java.util.*
 object cube {
 
     operator fun invoke(fileName: String) {
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
 
             numMeshes shouldBe 1
             with(meshes[0]) {

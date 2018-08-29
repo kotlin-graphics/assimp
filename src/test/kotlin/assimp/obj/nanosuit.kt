@@ -9,7 +9,7 @@ import java.util.*
 object nanosuit {
 
     operator fun invoke(fileName: String) {
-        with(Importer().readFile(getResource(fileName))!!) {
+        Importer().testFile(getResource(fileName)) {
 
             with(rootNode) {
 

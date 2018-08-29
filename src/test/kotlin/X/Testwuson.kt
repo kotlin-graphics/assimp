@@ -1,7 +1,6 @@
 package X
 
-import assimp.Importer
-import assimp.getResource
+import assimp.*
 import io.kotlintest.specs.StringSpec
 
 class Testwuson : StringSpec() {
@@ -9,7 +8,7 @@ class Testwuson : StringSpec() {
         val testwuson = "Testwuson.X"
 
         testwuson {
-            with(Importer().readFile(getResource("$x/$testwuson"))!!) {
+            Importer().testFile(getResource("$x/$testwuson")) {
                 with(rootNode) {
                     X.printNodeNames(rootNode)
                 }
