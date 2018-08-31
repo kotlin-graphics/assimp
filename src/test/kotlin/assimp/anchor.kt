@@ -49,8 +49,6 @@ fun Importer.testFile(path: String, flags: AiPostProcessStepsFlags = 0, failOnNu
 		scene?.verify()
 	}
 
-	/*
-	TODO enable tests once read from memory is properly implemented
 	// test readFileFromMemory
 	val bytes = FileInputStream(File(path)).readBytes()
 	val buffer = BufferUtils.createByteBuffer(bytes.size).also { it.put(bytes); it.flip() }
@@ -64,7 +62,6 @@ fun Importer.testFile(path: String, flags: AiPostProcessStepsFlags = 0, failOnNu
 	} else {
 		memScene?.verify()
 	}
-	*/
 
 	return scene
 }
