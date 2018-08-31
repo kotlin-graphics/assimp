@@ -23,7 +23,7 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 		// I guess it should never happen anyways so an exception is fine
 		if(!pFile.startsWith(AI_MEMORYIO_MAGIC_FILENAME)) throw IOException("File does not exist! $pFile")
 
-		return MemoryIOStream(buffer, pFile)
+		return MemoryIOStream(buffer.duplicate(), pFile)
 	}
 
 	class MemoryIOStream(val buffer: ByteBuffer, override val filename: String = "") : IOStream {

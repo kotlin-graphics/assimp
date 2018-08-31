@@ -110,15 +110,13 @@ class FbxImporter : BaseImporter() {
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // TODO not working with fromMemory
-        val f = File(file)
-        if (!f.canRead()) throw Error("Could not open file for reading")
-
         /*  read entire file into memory - no streaming for this, fbx files can grow large, but the assimp output data
             structure then becomes very large, too. Assimp doesn't support streaming for its output data structures so
             the net win with streaming input data would be very low. */
-        val fileChannel = RandomAccessFile(f, "r").channel
-        val input = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        val input = ioSystem.open(file).read().use {
+            val bytes = it.readBytes()
+            ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder())
+        }
 
         /*  broadphase tokenizing pass in which we identify the core syntax elements of FBX (brackets, commas,
             key:value mappings)         */
