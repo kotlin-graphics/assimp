@@ -35,7 +35,7 @@ dependencies {
 
     implementation 'com.github.kotlin-graphics:uno-sdk:v0.7.3'
 
-    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.0'
+    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.5'
 
     implementation 'io.github.microutils:kotlin-logging:1.4.6'
 
