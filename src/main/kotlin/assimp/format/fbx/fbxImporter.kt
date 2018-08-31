@@ -46,9 +46,7 @@ import assimp.format.AiConfig
 import tokenizeBinary
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.nio.*
 import java.nio.channels.FileChannel
 
 /** @file  FbxImporter.h
@@ -112,6 +110,7 @@ class FbxImporter : BaseImporter() {
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
+        // TODO not working with fromMemory
         val f = File(file)
         if (!f.canRead()) throw Error("Could not open file for reading")
 
