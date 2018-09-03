@@ -40,6 +40,9 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 		}
 
 		override fun parentPath(): String = ""
+
+		override val length: Long
+			get() = buffer.size.toLong()
 	}
 }
 

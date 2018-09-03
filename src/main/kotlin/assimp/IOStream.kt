@@ -15,4 +15,9 @@ interface IOStream {
     fun reader() : BufferedReader
 
     fun parentPath() : String
+
+    /**
+     * length of the IOStream in bytes
+     */
+    val length: Long
 }

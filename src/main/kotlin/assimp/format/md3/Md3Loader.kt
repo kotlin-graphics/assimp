@@ -393,6 +393,7 @@ class Md3Importer : BaseImporter() {
         if (configHandleMP && readMultipartFile()) return
 
         // Check whether we can read from the file
+        // TODO read mem file
         val f = File(file)
         if (!f.canRead()) throw Error("Failed to open MD3 file $file.")
 

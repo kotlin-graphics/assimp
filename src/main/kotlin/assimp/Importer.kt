@@ -303,7 +303,7 @@ constructor() {
         }
 
         // Get file size for progress handler
-        val fileSize = File(file).length().i    // TODO not working with fromMemory
+        val fileSize = ioSystem.open(file).length.i
 
         // Dispatch the reading to the worker class for this format
         val desc = imp.info

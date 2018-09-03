@@ -29,5 +29,8 @@ class DefaultIOSystem : IOSystem {
             get() = path.fileName.toString()
 
         override fun parentPath() = path.parent.toAbsolutePath().toString()
+
+        override val length: Long
+            get() = path.toFile().length()
     }
 }

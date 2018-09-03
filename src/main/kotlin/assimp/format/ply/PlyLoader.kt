@@ -40,6 +40,7 @@ class PlyLoader : BaseImporter() {
     // Imports the given file into the given scene structure.
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
+        // TODO read mem file
         val file = File(file)
 
         // Check whether we can read from the file

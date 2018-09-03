@@ -102,6 +102,7 @@ class StlImporter : BaseImporter() {
     // Imports the given file into the given scene structure.
     override fun internReadFile(pFile: String, ioSystem: IOSystem, scene: AiScene) {
 
+        // TODO read mem file
         val file = File(pFile)
 
         // Check whether we can read from the file

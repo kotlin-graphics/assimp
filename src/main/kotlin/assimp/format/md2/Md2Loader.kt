@@ -109,6 +109,7 @@ class Md2Importer : BaseImporter() {
      *  See BaseImporter.internReadFile() for details     */
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
+        // TODO read mem file
         val file = File(file)
 
         // Check whether we can read from the file
