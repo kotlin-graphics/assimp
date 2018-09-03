@@ -52,7 +52,6 @@ import glm_.f
 import glm_.i
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 

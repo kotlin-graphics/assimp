@@ -265,7 +265,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
             System.err.println("OBJ: Unable to locate material file $filename")
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
-            if (!File(strMatFallbackName).exists()) {
+            if (!File(strMatFallbackName).exists()) {   // TODO read file from mem
                 System.err.println("OBJ: Unable to locate fallback material file $strMatFallbackName")
                 return
             }

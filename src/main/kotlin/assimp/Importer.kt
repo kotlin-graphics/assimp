@@ -48,7 +48,6 @@ import assimp.postProcess.ValidateDSProcess
 import glm_.BYTES
 import glm_.i
 import glm_.size
-import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.ByteBuffer

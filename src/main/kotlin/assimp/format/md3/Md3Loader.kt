@@ -48,7 +48,6 @@ import glm_.i
 import glm_.size
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -120,6 +119,7 @@ object Q3Shader {
      *  @return false if file is not accessible
      */
     fun loadShader(fill: ShaderData, file: String): Boolean {
+	    // TODO load from mem
         val f = File(file)
         if (!f.exists()) return false // if we can't access the file, don't worry and return
 
@@ -273,6 +273,7 @@ object Q3Shader {
      *  @return false if file is not accessible
      */
     fun loadSkin(fill: SkinData, file: String): Boolean {
+	    // TODO load from mem
         val f = File(file)
         if (!f.canRead()) return false // if we can't access the file, don't worry and return
 

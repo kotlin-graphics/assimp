@@ -6,7 +6,6 @@ import assimp.*
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 

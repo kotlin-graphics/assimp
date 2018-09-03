@@ -44,10 +44,7 @@ package assimp.format.fbx
 import assimp.*
 import assimp.format.AiConfig
 import tokenizeBinary
-import java.io.File
-import java.io.RandomAccessFile
 import java.nio.*
-import java.nio.channels.FileChannel
 
 /** @file  FbxImporter.h
  *  @brief Declaration of the FBX main importer class */
