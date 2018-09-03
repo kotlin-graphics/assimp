@@ -2,7 +2,7 @@ package assimp.format.X
 
 import assimp.*
 import assimp.AiFace
-import java.io.File
+import java.io.*
 
 class XFileImporter : BaseImporter() {
 
@@ -24,16 +24,19 @@ class XFileImporter : BaseImporter() {
     }
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
+
         // Read file into memory
-        val file_ = File(file)
-        if (!file_.canRead()) throw FileSystemException(file_, null, "Failed to open file \$pFile.")
+        if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
+
+	    val stream = ioSystem.open(file).read()
+	    val bytes = stream.readBytes()
 
         // Get the file-size and validate it, throwing an exception when fails
-        val fileSize = file_.length()
+	    val fileSize = bytes.size
 
         if (fileSize < 16) throw Error("XFile is too small.")
 
-        val bytes = file_.readBytes()
+        //val bytes = file_.readBytes()
         mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i -> bytes[i].toChar() })) //Assuming every byte is a char.
         // parse the file into a temporary representation
         val parser = XFileParser(mBuffer)
