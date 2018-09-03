@@ -22,5 +22,9 @@ interface IOStream {
      */
     val length: Long
 
+    /**
+     * reads the ioStream into a byte buffer.
+     * The byte order of the buffer is be [ByteOrder.nativeOrder].
+     */
     fun readBytes(): ByteBuffer
 }

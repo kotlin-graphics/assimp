@@ -2,6 +2,7 @@ package assimp.fbx
 
 import assimp.*
 import io.kotlintest.specs.StringSpec
+import java.nio.*
 
 /**
  * Created by elect on 24/01/2017.

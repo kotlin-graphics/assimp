@@ -72,16 +72,16 @@ Working:
 - Direct X
 - collada
 - ply
+- fbx
+- stl
 
 Failing:
 
 - assbin
-- fbx
 - md2
 - md3
 - md5
 - obj
-- stl
 
 Disabled:
 

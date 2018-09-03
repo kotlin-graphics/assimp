@@ -1,9 +1,9 @@
 package assimp
 
 import io.kotlintest.*
-import org.lwjgl.BufferUtils
 import java.io.*
 import java.net.URL
+import java.nio.*
 
 /**
  * Created by elect on 14/01/2017.
@@ -62,7 +62,7 @@ fun Importer.testFile(path: String, flags: AiPostProcessStepsFlags = 0, failOnNu
 		logger.info { "reading from memory:" }
 		// test readFileFromMemory
 		val bytes = FileInputStream(File(path)).readBytes()
-		val buffer = BufferUtils.createByteBuffer(bytes.size).also { it.put(bytes); it.flip() }
+		val buffer = ByteBuffer.wrap(bytes)
 
 		val hintStart = path.indexOfLast { it == '.' }
 		val hint = path.substring(hintStart + 1)

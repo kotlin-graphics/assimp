@@ -23,7 +23,7 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 		// I guess it should never happen anyways so an exception is fine
 		if(!file.startsWith(AI_MEMORYIO_MAGIC_FILENAME)) throw IOException("File does not exist! $file")
 
-		return MemoryIOStream(buffer, file)
+		return MemoryIOStream(buffer.duplicate().order(ByteOrder.nativeOrder()), file)
 	}
 
 	class MemoryIOStream(val buffer: ByteBuffer, override val filename: String = "") : IOStream {
@@ -44,7 +44,12 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 		override val length: Long
 			get() = buffer.size.toLong()
 
-		override fun readBytes(): ByteBuffer = buffer.duplicate()
+		// TODO figure out whether or not I should call dup here
+		// do multiple calls of read() on the default implementation generate input streams
+		// with positions that match each other or not?
+		// If I move duplicate back here I need to also adjust the byte order here
+		// Then I no longer need to change it in MemoryIOSystem.open
+		override fun readBytes(): ByteBuffer = buffer
 	}
 }
 
