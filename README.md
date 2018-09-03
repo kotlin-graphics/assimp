@@ -60,3 +60,29 @@ Disadvantages:
 - code needs to be ported from cpp to java
 - code needs to be maintained
 - a little slower compared to cpp when loading big meshes if not using assbin
+
+### Read from memory status
+
+TODO remove before final push to kotlin-graphics/master
+
+#### Format tests:
+
+Working:
+
+- Direct X
+- collada
+- ply
+
+Failing:
+
+- assbin
+- fbx
+- md2
+- md3
+- md5
+- obj
+- stl
+
+Disabled:
+
+- blender

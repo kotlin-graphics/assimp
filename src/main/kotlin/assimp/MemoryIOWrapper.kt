@@ -14,16 +14,16 @@ const val AI_MEMORYIO_MAGIC_FILENAME_LENGTH = 17
 class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 
 	/** Tests for the existence of a file at the given path. */
-	override fun exists(pFile: String): Boolean = pFile.startsWith(AI_MEMORYIO_MAGIC_FILENAME)
+	override fun exists(file: String): Boolean = file.startsWith(AI_MEMORYIO_MAGIC_FILENAME)
 
 
-	override fun open(pFile: String): IOStream {
+	override fun open(file: String): IOStream {
 
 		// TODO assimp originally returns null, but this would be against the current interface.
 		// I guess it should never happen anyways so an exception is fine
-		if(!pFile.startsWith(AI_MEMORYIO_MAGIC_FILENAME)) throw IOException("File does not exist! $pFile")
+		if(!file.startsWith(AI_MEMORYIO_MAGIC_FILENAME)) throw IOException("File does not exist! $file")
 
-		return MemoryIOStream(buffer.duplicate(), pFile)
+		return MemoryIOStream(buffer, file)
 	}
 
 	class MemoryIOStream(val buffer: ByteBuffer, override val filename: String = "") : IOStream {
@@ -32,7 +32,7 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 			get() = null
 
 		override fun read(): InputStream {
-			return ByteBufferBackedInputStream(buffer)
+			return ByteBufferBackedInputStream(readBytes())
 		}
 
 		override fun reader(): BufferedReader {
@@ -43,6 +43,8 @@ class MemoryIOSystem(val buffer: ByteBuffer) : IOSystem{
 
 		override val length: Long
 			get() = buffer.size.toLong()
+
+		override fun readBytes(): ByteBuffer = buffer.duplicate()
 	}
 }
 

@@ -46,10 +46,7 @@ class BlenderImporter : BaseImporter() {
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // TODO read file from mem
-
-        val fileChannel = RandomAccessFile(File(file), "r").channel
-        buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        buffer = ioSystem.open(file).readBytes()
 
         var match = buffer.strncmp(tokens)
         if (!match) {

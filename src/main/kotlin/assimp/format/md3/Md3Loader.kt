@@ -395,16 +395,14 @@ class Md3Importer : BaseImporter() {
 
         // Check whether we can read from the file
         // TODO read mem file
-        val f = File(file)
-        if (!f.canRead()) throw Error("Failed to open MD3 file $file.")
+        if (!ioSystem.exists(file)) throw Error("Failed to open MD3 file $file.")
+        val stream = ioSystem.open(file)
 
         // Check whether the md3 file is large enough to contain the header
-        fileSize = f.length().i
+        fileSize = stream.length.i
         if (fileSize < MD3.Header.size) throw Error("MD3 File is too small.")
 
-        // Allocate storage and copy the contents of the file to a memory buffer
-        val fileChannel = RandomAccessFile(f, "r").channel
-        val buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        val buffer = stream.readBytes()
 
         header = MD3.Header(buffer)
         // Validate the file header

@@ -38,12 +38,13 @@ class ObjFileImporter : BaseImporter() {
         if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
 
         // Get the file-size and validate it, throwing an exception when fails
-        //val fileSize = this.file.length()
+        val stream = ioSystem.open(file)
+        val fileSize = stream.length
 
-        //if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
+        if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
 
         // parse the file into a temporary representation
-        val parser = ObjFileParser(ioSystem.open(file), ioSystem)
+        val parser = ObjFileParser(stream, ioSystem)
 
         // And create the proper return structures out of it
         createDataFromImport(parser.m_pModel, scene, ioSystem)
