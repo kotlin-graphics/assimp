@@ -18,27 +18,33 @@ class DefaultIOSystem : IOSystem {
             throw IOException("File doesn't exist: $file")
 
 
-        return FileIOStream(path)
+        return FileIOStream(path, this)
     }
 
-    class FileIOStream(override val path: Path) : IOStream {
+    class FileIOStream(private val pathObject: Path, override val osSystem: DefaultIOSystem) : IOStream {
 
-        override fun read() = FileInputStream(path.toFile())
+        override val path: String
+            get() =  pathObject.toString()
 
-        override fun reader() = BufferedReader(FileReader(path.toFile()))
+        override fun read() = FileInputStream(file)
+
+        override fun reader() = BufferedReader(FileReader(file))
 
         override val filename: String
-            get() = path.fileName.toString()
+            get() = pathObject.fileName.toString()
 
-        override fun parentPath() = path.parent.toAbsolutePath().toString()
+        override val parentPath = pathObject.parent.toAbsolutePath().toString()
 
         override val length: Long
-            get() = path.toFile().length()
+            get() = file.length()
 
         override fun readBytes(): ByteBuffer {
-            RandomAccessFile(path.toFile(), "r").channel.use {fileChannel ->
+            RandomAccessFile(file, "r").channel.use {fileChannel ->
                 return fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
             }
         }
+
+        val file: File
+            get() = pathObject.toFile()
     }
 }

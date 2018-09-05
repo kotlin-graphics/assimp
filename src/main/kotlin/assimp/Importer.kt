@@ -372,8 +372,7 @@ constructor() {
      *
      *  @note This is a straightforward way to decode models from memory buffers, but it doesn't handle model formats
      *  that spread their data across multiple files or even directories. Examples include OBJ or MD3, which outsource
-     *  parts of their material info into external scripts. If you need full functionality, provide a custom IOSystem
-     *  to make Assimp find these files and use the regular readFile() API.
+     *  parts of their material info into external scripts. If you need full functionality you can use [readFilesFromMemory]
      */
     fun readFileFromMemory(buffer: ByteBuffer, flags: Int, hint: String = ""): AiScene? {
         if (buffer.size == 0 || hint.length > MaxLenHint) {
@@ -384,14 +383,79 @@ constructor() {
         // prevent deletion of previous IOSystem
         val io = impl.ioSystem
 
-        ioHandler = MemoryIOSystem(buffer)
-
         val fileName = "$AI_MEMORYIO_MAGIC_FILENAME.$hint"
+        ioHandler = MemoryIOSystem(fileName to buffer)
+
         readFile(fileName, flags)
 
         impl.ioSystem = io
 
         return impl.scene
+    }
+
+    /**Reads the given file from a memory buffer and returns its contents if successful.
+     *
+     *  If the call succeeds, the contents of the file are returned as a pointer to an AiScene object. The returned data
+     *  is intended to be read-only, the importer object keeps ownership of the data and will destroy it upon
+     *  destruction. If the import fails, null is returned.
+     *  A human-readable error description can be retrieved by accessing errorString. The previous scene will be deleted
+     *  during this call.
+     *  Calling this method doesn't affect the active IOSystem.
+     *
+     *  @param fileName name of the base file
+     *  @param files a map containing the names and all the files required to read the scene (base file, materials,
+     *  textures, etc).
+     *  @param flags Optional post processing steps to be executed after a successful import. Provide a bitwise
+     *  combination of the AiPostProcessSteps flags. If you wish to inspect the imported scene first in order to
+     *  fine-tune your post-processing setup, consider to use applyPostProcessing().
+     *  @return A pointer to the imported data, null if the import failed.
+     *  The pointer to the scene remains in possession of the Importer instance. Use getOrphanedScene() to take
+     *  ownership of it.
+     */
+    fun readFilesFromMemory(fileName: String, files: Map<String, ByteBuffer>, flags: Int): AiScene? {
+
+        for((name, buffer) in files) {
+            if(buffer.size == 0){
+                impl.errorString = "buffer $name is empty"
+                return null
+            }
+        }
+        if(!files.containsKey(fileName)){
+            impl.errorString = "fileName ($fileName) not in files"
+            return null
+        }
+
+        val io = impl.ioSystem
+
+        ioHandler = MemoryIOSystem(files)
+
+        readFile(fileName, flags)
+
+        impl.ioSystem = io
+
+        return impl.scene
+    }
+
+    /**Reads the given file from a memory buffer and returns its contents if successful.
+     *
+     *  If the call succeeds, the contents of the file are returned as a pointer to an AiScene object. The returned data
+     *  is intended to be read-only, the importer object keeps ownership of the data and will destroy it upon
+     *  destruction. If the import fails, null is returned.
+     *  A human-readable error description can be retrieved by accessing errorString. The previous scene will be deleted
+     *  during this call.
+     *  Calling this method doesn't affect the active IOSystem.
+     *
+     *  @param fileName name of the base file
+     *  @param flags Optional post processing steps to be executed after a successful import. Provide a bitwise
+     *  combination of the AiPostProcessSteps flags. If you wish to inspect the imported scene first in order to
+     *  fine-tune your post-processing setup, consider to use applyPostProcessing().
+     *  @param files the files required to read the scene (base file, materials, textures, etc) as a pair with their name.
+     *  @return A pointer to the imported data, null if the import failed.
+     *  The pointer to the scene remains in possession of the Importer instance. Use getOrphanedScene() to take
+     *  ownership of it.
+     */
+    fun readFilesFromMemory(fileName: String, flags: Int, vararg files: Pair<String, ByteBuffer>): AiScene? {
+        return readFilesFromMemory(fileName, files.toMap(), flags)
     }
 
     /** Apply post-processing to an already-imported scene.

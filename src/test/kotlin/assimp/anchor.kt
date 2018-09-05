@@ -29,7 +29,11 @@ fun getResource(resource: String): URL = ClassLoader.getSystemResource(resource)
  *
  * @return the result of [Importer.readFile]
  */
-fun Importer.testFile(path: URL, flags: AiPostProcessStepsFlags = 0, failOnNull: Boolean = true, verify: AiScene.() -> Unit = {}): AiScene? {
+fun Importer.testFile(path: URL,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {})
+		: AiScene? {
 	return testFile(path.file, flags, failOnNull, verify)
 }
 
@@ -44,7 +48,11 @@ var testReadFromMemory = true
  *
  * @return the result of [Importer.readFile]
  */
-fun Importer.testFile(path: String, flags: AiPostProcessStepsFlags = 0, failOnNull: Boolean = true, verify: AiScene.() -> Unit = {}): AiScene? {
+fun Importer.testFile(path: String,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+
 	logger.info { "Testing read $path:" }
 	var scene: AiScene? = null
 	if(testReadFile) {
@@ -73,6 +81,100 @@ fun Importer.testFile(path: String, flags: AiPostProcessStepsFlags = 0, failOnNu
 		} else {
 			memScene?.verify()
 		}
+
+		if(scene == null) scene = memScene
+	}
+
+	return scene
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testURLs(vararg paths: URL,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testURLs(listOf(*paths), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testURLs(paths: List<URL>,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testFiles(paths.map(URL::getPath), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testFiles(vararg paths: String,
+                       flags: AiPostProcessStepsFlags = 0,
+                       failOnNull: Boolean = true,
+                       verify: AiScene.() -> Unit = {}): AiScene? {
+	return testFiles(listOf(*paths), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testFiles(paths: List<String>,
+                       flags: AiPostProcessStepsFlags = 0,
+                       failOnNull: Boolean = true,
+                       verify: AiScene.() -> Unit = {}): AiScene? {
+
+	val baseFile = paths[0]
+
+	logger.info { "Testing read $baseFile:" }
+
+	var scene: AiScene? = null
+	if(testReadFile){
+		logger.info { "reading from file:"}
+		// test readFile
+		scene = readFile(baseFile, flags)
+		if (scene == null && failOnNull) {
+			fail("readFile returned 'null' for $baseFile")
+		} else {
+			scene?.verify()
+		}
+	}
+
+	if(testReadFromMemory) {
+		logger.info { "reading from memory:" }
+
+		val files = paths.map { it to ByteBuffer.wrap(FileInputStream(File(it)).readBytes()) }.toMap()
+
+		val memScene = readFilesFromMemory(baseFile, files, flags)
+		if (memScene == null && failOnNull) {
+			fail("readFileFromMemory returned 'null' for $baseFile")
+		} else {
+			memScene?.verify()
+		}
+
+		if(scene == null) scene = memScene
 	}
 
 	return scene

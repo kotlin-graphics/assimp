@@ -11,5 +11,5 @@ interface IOSystem {
 
     fun close(ioStream: IOStream) = Unit // TODO unused ?
 
-    fun getOsSeperator(): String = File.separator
+    val osSeparator: String get() = File.separator
 }

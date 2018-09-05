@@ -74,6 +74,7 @@ Working:
 - ply
 - fbx
 - stl
+- obj
 
 Failing:
 
@@ -81,7 +82,6 @@ Failing:
 - md2
 - md3
 - md5
-- obj
 
 Disabled:
 
