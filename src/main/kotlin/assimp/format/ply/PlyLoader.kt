@@ -36,9 +36,6 @@ class PlyLoader : BaseImporter() {
     // Imports the given file into the given scene structure.
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // Check whether we can read from the file
-        if (!ioSystem.exists(file)) throw IOException("Failed to open PLY file $file.")
-
         // allocate storage and copy the contents of the file to a memory buffer
         val buffer = ioSystem.open(file).readBytes()
 

@@ -393,9 +393,7 @@ class Md3Importer : BaseImporter() {
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
 
-        // Check whether we can read from the file
         // TODO read mem file
-        if (!ioSystem.exists(file)) throw Error("Failed to open MD3 file $file.")
         val stream = ioSystem.open(file)
 
         // Check whether the md3 file is large enough to contain the header

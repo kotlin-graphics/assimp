@@ -25,9 +25,6 @@ class XFileImporter : BaseImporter() {
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // Read file into memory
-        if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
-
 	    val stream = ioSystem.open(file).read()
 	    val bytes = stream.readBytes()
 

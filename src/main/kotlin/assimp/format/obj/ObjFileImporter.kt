@@ -38,8 +38,7 @@ class ObjFileImporter : BaseImporter() {
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         // Read file into memory
-        this.file = file//File(file)
-        if (!ioSystem.exists(file)) throw IOException("Failed to open file $file.")
+        this.file = file
 
         // Get the file-size and validate it, throwing an exception when fails
         val stream = ioSystem.open(file)

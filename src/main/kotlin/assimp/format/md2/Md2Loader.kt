@@ -108,10 +108,6 @@ class Md2Importer : BaseImporter() {
      *  See BaseImporter.internReadFile() for details     */
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // Check whether we can read from the file
-        if (!ioSystem.exists(file))
-            throw Error("Failed to open MD2 file $file")
-
 	    val stream = ioSystem.open(file)
 
         // check whether the md3 file is large enough to contain at least the file header

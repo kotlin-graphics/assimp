@@ -97,9 +97,6 @@ class StlImporter : BaseImporter() {
     // Imports the given file into the given scene structure.
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        // Check whether we can read from the file
-        if (!ioSystem.exists(file)) throw IOException("Failed to open STL file $file.")
-
 	    val stream = ioSystem.open(file)
 
         fileSize = stream.length.i
