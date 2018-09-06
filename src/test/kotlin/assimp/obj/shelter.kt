@@ -11,9 +11,9 @@ import io.kotlintest.shouldBe
 
 object shelter {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(fileName: String, matName: String) {
 
-        Importer().testFile(getResource(fileName)) {
+        Importer().testURLs(getResource(fileName), getResource(matName)) {
 
             with(rootNode) {
 

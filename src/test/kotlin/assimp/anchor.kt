@@ -2,8 +2,9 @@ package assimp
 
 import io.kotlintest.*
 import java.io.*
-import java.net.URL
+import java.net.*
 import java.nio.*
+import java.nio.file.*
 
 /**
  * Created by elect on 14/01/2017.
@@ -32,9 +33,21 @@ fun getResource(resource: String): URL = ClassLoader.getSystemResource(resource)
 fun Importer.testFile(path: URL,
                       flags: AiPostProcessStepsFlags = 0,
                       failOnNull: Boolean = true,
-                      verify: AiScene.() -> Unit = {})
-		: AiScene? {
-	return testFile(path.file, flags, failOnNull, verify)
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testFile(path.toURI(), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFileFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testFile(path: URI,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testFile(Paths.get(path).toAbsolutePath().toString(), flags, failOnNull, verify)
 }
 
 
@@ -115,7 +128,37 @@ fun Importer.testURLs(paths: List<URL>,
                       flags: AiPostProcessStepsFlags = 0,
                       failOnNull: Boolean = true,
                       verify: AiScene.() -> Unit = {}): AiScene? {
-	return testFiles(paths.map(URL::getPath), flags, failOnNull, verify)
+	return testURIs(paths.map(URL::toURI), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testURIs(vararg paths: URI,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testURIs(listOf(*paths), flags, failOnNull, verify)
+}
+
+/**
+ * calls both [Importer.readFile] and [Importer.readFilesFromMemory] and verifies it using [verify].
+ * This fails if [failOnNull] is set and either of the above returns null.
+ *
+ * The first path in [paths] will be used for the base path
+ *
+ * @return the result of [Importer.readFile]
+ */
+fun Importer.testURIs(paths: List<URI>,
+                      flags: AiPostProcessStepsFlags = 0,
+                      failOnNull: Boolean = true,
+                      verify: AiScene.() -> Unit = {}): AiScene? {
+	return testFiles(paths.map { Paths.get(it).toAbsolutePath().toString() }, flags, failOnNull, verify)
 }
 
 /**

@@ -46,6 +46,6 @@ class obj : StringSpec() {
                               path + "nanosuit/leg_dif.png",
                               path + "nanosuit/leg_showroom_spec.png") }
 
-        "shelter".config(enabled = false) { shelter(path + "statie B01.obj")} // TODO this file exists, but there is a problem with finding it, I guess due to the space in the filename
+        "shelter" { shelter(path + "statie B01.obj",path + "statie B01.mtl")}
     }
 }
