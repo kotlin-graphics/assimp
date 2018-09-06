@@ -33,7 +33,6 @@ class XFileImporter : BaseImporter() {
 
         if (fileSize < 16) throw Error("XFile is too small.")
 
-        //val bytes = file_.readBytes()
         mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i -> bytes[i].toChar() })) //Assuming every byte is a char.
         // parse the file into a temporary representation
         val parser = XFileParser(mBuffer)

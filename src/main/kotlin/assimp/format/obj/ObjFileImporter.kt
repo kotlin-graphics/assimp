@@ -424,52 +424,28 @@ class ObjFileImporter : BaseImporter() {
                     while (!name[i].isLetter()) i++
                     val cleaned = name.substring(i) //  e.g: .\wal67ar_small.jpg -> wal67ar_small.jpg
 
-                    if(ioSystem is DefaultIOSystem) {
+                    val parentPath = ioSystem.open(file).parentPath + ioSystem.osSeparator
 
-                        //If the default io system is in place, we can use the java.io.File api and list directories
-                        //to match files even where case is mangled
+                    when {
+                        ioSystem.exists(parentPath + cleaned) -> {
 
-                        val actualFile = (ioSystem.open(file) as DefaultIOSystem.FileIOStream).file
+                            val texFile = ioSystem.open(parentPath + cleaned)
 
-                        when {
-                            actualFile.parentFile.listFiles().any { it.name == cleaned } -> {
+                            val typeStart = texFile.filename.lastIndexOf(".") + 1
+                            val type = texFile.filename.substring(typeStart)
 
-                                val texFile = actualFile.parentFile.listFiles().first { it.name == cleaned }!!
-                                scene.textures[name] = gli.load(texFile.toPath())
-
-                            }
-                            actualFile.parentFile.listFiles().any { it.name.toUpperCase() == cleaned.toUpperCase() } -> {
-                                // try case insensitive
-                                val texFile = actualFile.parentFile.listFiles().first { it.name.toUpperCase() == cleaned.toUpperCase() }!!
-                                scene.textures[name] = gli.load(texFile.toPath())
-
-                            }
-                            else -> logger.warn { "OBJ/MTL: Texture image not found --> $cleaned" }
+                            scene.textures[name] = loadImageFromMemory(texFile, type)
                         }
-                    } else {
-                        val parentPath = ioSystem.open(file).parentPath + ioSystem.osSeparator
+                        ioSystem.exists(parentPath + cleaned.toUpperCase()) -> {
+                            // try case insensitive
+                            val texFile = ioSystem.open(parentPath + cleaned.toUpperCase())
 
-                        when {
-                            ioSystem.exists(parentPath + cleaned) -> {
+                            val typeStart = texFile.filename.lastIndexOf(".") + 1
+                            val type = texFile.filename.substring(typeStart).toLowerCase()
 
-                                val texFile = ioSystem.open(parentPath + cleaned)
-
-                                val typeStart = texFile.filename.lastIndexOf(".") + 1
-                                val type = texFile.filename.substring(typeStart)
-
-                                scene.textures[name] = loadImageFromMemory(texFile, type)
-                            }
-                            ioSystem.exists(parentPath + cleaned.toUpperCase()) -> {
-                                // try case insensitive
-                                val texFile = ioSystem.open(parentPath + cleaned.toUpperCase())
-
-                                val typeStart = texFile.filename.lastIndexOf(".") + 1
-                                val type = texFile.filename.substring(typeStart).toLowerCase()
-
-                                scene.textures[name] = loadImageFromMemory(texFile, type)
-                            }
-                            else -> logger.warn { "OBJ/MTL: Texture image not found --> $cleaned" }
+                            scene.textures[name] = loadImageFromMemory(texFile, type)
                         }
+                        else -> logger.warn { "OBJ/MTL: Texture image not found --> $cleaned" }
                     }
 
                 } else {

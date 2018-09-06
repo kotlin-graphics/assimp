@@ -165,7 +165,6 @@ class Md2Importer : BaseImporter() {
             // apply a default material
             helper.color = AiMaterial.Color(diffuse = AiColor3D(0.6f), specular = AiColor3D(0.6f), ambient = AiColor3D(0.05f))
             helper.name = AI_DEFAULT_MATERIAL_NAME
-	        // TODO read from memory, does not yet support multiple files in one read
             val fileName = file.substringAfterLast('\\').substringBeforeLast('.')
             helper.textures.add(AiMaterial.Texture(file = "$fileName.bmp", type = AiTexture.Type.diffuse))
         }

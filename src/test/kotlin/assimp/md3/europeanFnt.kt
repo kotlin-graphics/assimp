@@ -14,6 +14,7 @@ object europeanFnt {
 
         Importer().readFile(getResource(fileName))?.verify() ?: fail("could not load $fileName")
 
+	    // TODO temp workaround for relative paths in load from memory
 	    fun String.loadFile(): ByteBuffer {
 		    val file = Paths.get(getResource(this).toURI()).toAbsolutePath().toFile()
 		    return ByteBuffer.wrap(FileInputStream(file).readBytes())

@@ -60,7 +60,6 @@ object faerie {
                     ambient shouldBe Vec3(0.0500000007)
                 }
                 textures[0].type shouldBe AiTexture.Type.diffuse
-                //textures[0].file shouldBe "faerie.bmp"
                 textures[0].file!! should endWith("faerie.bmp")
                 name shouldBe "DefaultMaterial"
             }
