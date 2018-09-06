@@ -50,11 +50,6 @@ fun Importer.testFile(path: URI,
 	return testFile(Paths.get(path).toAbsolutePath().toString(), flags, failOnNull, verify)
 }
 
-
-// TODO temp
-var testReadFile = true
-var testReadFromMemory = true
-
 /**
  * calls both [Importer.readFile] and [Importer.readFileFromMemory] and verifies it using [verify].
  * This fails if [failOnNull] is set and either of the above returns null.
@@ -68,35 +63,32 @@ fun Importer.testFile(path: String,
 
 	logger.info { "Testing read $path:" }
 	var scene: AiScene? = null
-	if(testReadFile) {
-		logger.info { "reading from file:"}
-		// test readFile
-		scene = readFile(path, flags)
-		if (scene == null && failOnNull) {
-			fail("readFile returned 'null' for $path")
-		} else {
-			scene?.verify()
-		}
+
+	logger.info { "reading from file:"}
+
+	scene = readFile(path, flags)
+	if (scene == null && failOnNull) {
+		fail("readFile returned 'null' for $path")
+	} else {
+		scene?.verify()
 	}
 
-	if(testReadFromMemory) {
-		logger.info { "reading from memory:" }
-		// test readFileFromMemory
-		val bytes = FileInputStream(File(path)).readBytes()
-		val buffer = ByteBuffer.wrap(bytes)
+	logger.info { "reading from memory:" }
 
-		val hintStart = path.indexOfLast { it == '.' }
-		val hint = path.substring(hintStart + 1)
+	val bytes = FileInputStream(File(path)).readBytes()
+	val buffer = ByteBuffer.wrap(bytes)
 
-		val memScene = readFileFromMemory(buffer, flags, hint)
-		if (memScene == null && failOnNull) {
-			fail("readFileFromMemory returned 'null' for $path")
-		} else {
-			memScene?.verify()
-		}
+	val hintStart = path.indexOfLast { it == '.' }
+	val hint = path.substring(hintStart + 1)
 
-		if(scene == null) scene = memScene
+	val memScene = readFileFromMemory(buffer, flags, hint)
+	if (memScene == null && failOnNull) {
+		fail("readFileFromMemory returned 'null' for $path")
+	} else {
+		memScene?.verify()
 	}
+
+	if(scene == null) scene = memScene
 
 	return scene
 }
@@ -193,32 +185,28 @@ fun Importer.testFiles(paths: List<String>,
 
 	logger.info { "Testing read $baseFile:" }
 
-	var scene: AiScene? = null
-	if(testReadFile){
-		logger.info { "reading from file:"}
-		// test readFile
-		scene = readFile(baseFile, flags)
-		if (scene == null && failOnNull) {
-			fail("readFile returned 'null' for $baseFile")
-		} else {
-			scene?.verify()
-		}
+	logger.info { "reading from file:"}
+	// test readFile
+	var scene = readFile(baseFile, flags)
+	if (scene == null && failOnNull) {
+		fail("readFile returned 'null' for $baseFile")
+	} else {
+		scene?.verify()
 	}
 
-	if(testReadFromMemory) {
-		logger.info { "reading from memory:" }
 
-		val files = paths.map { it to ByteBuffer.wrap(FileInputStream(File(it)).readBytes()) }.toMap()
+	logger.info { "reading from memory:" }
 
-		val memScene = readFilesFromMemory(baseFile, files, flags)
-		if (memScene == null && failOnNull) {
-			fail("readFileFromMemory returned 'null' for $baseFile")
-		} else {
-			memScene?.verify()
-		}
+	val files = paths.map { it to ByteBuffer.wrap(FileInputStream(File(it)).readBytes()) }.toMap()
 
-		if(scene == null) scene = memScene
+	val memScene = readFilesFromMemory(baseFile, files, flags)
+	if (memScene == null && failOnNull) {
+		fail("readFileFromMemory returned 'null' for $baseFile")
+	} else {
+		memScene?.verify()
 	}
+
+	if(scene == null) scene = memScene
 
 	return scene
 }
