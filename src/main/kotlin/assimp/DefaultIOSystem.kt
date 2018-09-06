@@ -3,7 +3,6 @@ package assimp
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -14,9 +13,8 @@ class DefaultIOSystem : IOSystem {
     override fun open(file: String): IOStream {
 
         val path: Path = Paths.get(file)
-        if (!Files.exists(path))
+        if (!exists(file))
             throw IOException("File doesn't exist: $file")
-
 
         return FileIOStream(path, this)
     }

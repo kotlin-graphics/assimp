@@ -258,7 +258,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         // get the name of the mat file with spaces
         val filename = ObjTools.getNameWithSpace(words, 1)
 
-        val pFile = file.parentPath + ioSystem.osSeparator + filename //windows can just suck it
+        val pFile = "${file.parentPath}${ioSystem.osSeparator}$filename"
         println(pFile)
 
         if (!ioSystem.exists(pFile)) {
