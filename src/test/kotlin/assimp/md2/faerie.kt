@@ -3,13 +3,14 @@ package assimp.md2
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
+import io.kotlintest.*
+import io.kotlintest.matchers.endWith
 
 object faerie {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(fileName: String, imgFile: String) {
 
-        Importer().testFile(getResource(fileName)){
+        Importer().testURLs(getResource(fileName), getResource(imgFile)){
 
             flags shouldBe 0
 
@@ -59,7 +60,8 @@ object faerie {
                     ambient shouldBe Vec3(0.0500000007)
                 }
                 textures[0].type shouldBe AiTexture.Type.diffuse
-                textures[0].file shouldBe "faerie.bmp"
+                //textures[0].file shouldBe "faerie.bmp"
+                textures[0].file!! should endWith("faerie.bmp")
                 name shouldBe "DefaultMaterial"
             }
         }

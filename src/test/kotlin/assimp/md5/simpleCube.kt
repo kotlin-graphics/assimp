@@ -9,7 +9,7 @@ object simpleCube {
 
     operator fun invoke(fileName: String) {
 
-        Importer().testFile(getResource(fileName)) {
+        Importer().testURLs(getResource(fileName)) {
 
             flags shouldBe 0
 

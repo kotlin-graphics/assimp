@@ -12,6 +12,6 @@ class md2 : StringSpec() {
     val path = "$models/MD2/"
 
     init {
-        "faerie"  { faerie(path + "faerie.md2") }
+        "faerie"  { faerie(path + "faerie.md2", path + "faerie2.bmp") }
     }
 }

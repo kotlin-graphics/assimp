@@ -118,14 +118,15 @@ object Q3Shader {
      *  @param io IOSystem to be used for reading
      *  @return false if file is not accessible
      */
-    fun loadShader(fill: ShaderData, file: String): Boolean {
-	    // TODO load from mem
-        val f = File(file)
-        if (!f.exists()) return false // if we can't access the file, don't worry and return
+    fun loadShader(fill: ShaderData, file: String, ioSystem: IOSystem): Boolean {
+
+        if (!ioSystem.exists(file)) return false // if we can't access the file, don't worry and return
+
+        val reader = ioSystem.open(file).reader()
 
         logger.info { "Loading Quake3 shader file $file" }
         // read file in memory and remove comments from it (C++ style) and empty or blank lines
-        val lines = f.readLines().filter { !it.startsWith("//") && it.isNotEmpty() && it.isNotBlank() }
+        val lines = reader.readLines().filter { !it.startsWith("//") && it.isNotEmpty() && it.isNotBlank() }
                 .map { it.trim() } // and trim it
 
         var curData: Q3Shader.ShaderDataBlock? = null
@@ -272,15 +273,16 @@ object Q3Shader {
      *  @param io IOSystem to be used for reading
      *  @return false if file is not accessible
      */
-    fun loadSkin(fill: SkinData, file: String): Boolean {
-	    // TODO load from mem
-        val f = File(file)
-        if (!f.canRead()) return false // if we can't access the file, don't worry and return
+    fun loadSkin(fill: SkinData, file: String, ioSystem: IOSystem): Boolean {
+
+        if (!ioSystem.exists(file)) return false // if we can't access the file, don't worry and return
 
         logger.info { "Loading Quake3 skin file $file" }
 
+        val ioStream = ioSystem.open(file)
+
         // read file in memory
-        val s = f.length()
+        val s = ioStream.length
         TODO()
 //        std::vector<char> _buff(s+1);const char* buff = &_buff[0];
 //        f->Read(&_buff[0],s,1);
@@ -393,7 +395,6 @@ class Md3Importer : BaseImporter() {
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
 
-        // TODO read mem file
         val stream = ioSystem.open(file)
 
         // Check whether the md3 file is large enough to contain the header
@@ -740,7 +741,7 @@ class Md3Importer : BaseImporter() {
         }
         assert(s != -1)
         val skinFile = path + filename.substring(0, s) + "_$configSkinFile.skin"
-        Q3Shader.loadSkin(fill, skinFile)
+        Q3Shader.loadSkin(fill, skinFile, ioSystem)
     }
 
     /** Try to read the shader for a MD3 file
@@ -752,8 +753,9 @@ class Md3Importer : BaseImporter() {
 
         // If no specific dir or file is given, use our default search behaviour
         if (configShaderFile.isEmpty()) {
-            if (!Q3Shader.loadShader(fill, "$path../../../scripts/$modelFile.shader"))
-                Q3Shader.loadShader(fill, "$path../../../scripts/$filename.shader")
+            // TODO read from memory: how do we resolve ../../..
+            if (!Q3Shader.loadShader(fill, "$path../../../scripts/$modelFile.shader", ioSystem))
+                Q3Shader.loadShader(fill, "$path../../../scripts/$filename.shader", ioSystem)
         } else {
             TODO()
 //            // If the given string specifies a file, load this file.

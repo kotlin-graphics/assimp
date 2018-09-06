@@ -76,12 +76,12 @@ Working:
 - stl
 - obj
 - assbin
+- md2
+- md5
 
 Failing:
 
-- md2
 - md3
-- md5
 
 Disabled:
 

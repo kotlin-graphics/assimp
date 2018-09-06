@@ -24,7 +24,6 @@ class MemoryIOSystem : IOSystem{
 		memoryFiles.putAll(buffers)
 	}
 
-
 	/** Tests for the existence of a file at the given path. */
 	override fun exists(file: String): Boolean = memoryFiles.containsKey(file)
 

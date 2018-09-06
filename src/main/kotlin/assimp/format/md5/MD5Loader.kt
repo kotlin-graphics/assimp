@@ -151,7 +151,7 @@ class Md5Importer : BaseImporter() {
             ioFile = ioSystem.open(file + "md5mesh")
         } catch(e : IOException) {
             // Check whether we can read from the file
-            logger.warn { "Failed to access MD5MESH file: $file" }
+            logger.warn { "Failed to access MD5MESH file: ${file}md5mesh" }
             return
         }
         loadFileIntoMemory(ioFile.reader())
@@ -320,7 +320,7 @@ class Md5Importer : BaseImporter() {
             ioFile = ioSystem.open(file + "md5anim")
         } catch(e : IOException) {
             // Check whether we can read from the file
-            logger.warn { "Failed to access MD5ANIM file: $file" }
+            logger.warn { "Failed to access MD5ANIM file: ${file}md5anim" }
             return
         }
         loadFileIntoMemory(ioFile.reader())
