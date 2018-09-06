@@ -420,10 +420,10 @@ class Md3Importer : BaseImporter() {
         scene.numMaterials = header.numSurfaces
         // Now read possible skins from .skin file
         val skins = Q3Shader.SkinData()
-        readSkin(skins)
+        readSkin(skins, ioSystem)
         // And check whether we can locate a shader file for this model
         val shadersData = Q3Shader.ShaderData()
-        readShader(shadersData)
+        readShader(shadersData, ioSystem)
 
         // Adjust all texture paths in the shader
         val headerName = header.name
@@ -732,7 +732,7 @@ class Md3Importer : BaseImporter() {
 
     /** Try to read the skin for a MD3 file
      *  @param fill Receives output information     */
-    fun readSkin(fill: Q3Shader.SkinData) {
+    fun readSkin(fill: Q3Shader.SkinData, ioSystem: IOSystem) {
         // skip any postfixes (e.g. lower_1.md3)
         var s = filename.lastIndexOf('_')
         if (s == -1) {
@@ -746,7 +746,7 @@ class Md3Importer : BaseImporter() {
 
     /** Try to read the shader for a MD3 file
      *  @param fill Receives output information     */
-    fun readShader(fill: Q3Shader.ShaderData) {
+    fun readShader(fill: Q3Shader.ShaderData, ioSystem: IOSystem) {
         // Determine Q3 model name from given path
         val last = path.substring(0, path.length - 2).lastIndexOf(File.separatorChar)
         val modelFile = path.substring(last + 1, path.length - 1)

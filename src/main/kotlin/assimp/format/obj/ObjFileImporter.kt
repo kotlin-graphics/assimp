@@ -410,7 +410,7 @@ class ObjFileImporter : BaseImporter() {
     }
 
     /**  Load textures   */
-    fun loadTextures(scene: AiScene, ioSystem: IOSystem = this.ioSystem) {
+    fun loadTextures(scene: AiScene, ioSystem: IOSystem = ASSIMP.defaultIOSystem) {
 
         scene.materials.forEach { mtl ->
 
