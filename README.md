@@ -75,10 +75,10 @@ Working:
 - fbx
 - stl
 - obj
+- assbin
 
 Failing:
 
-- assbin
 - md2
 - md3
 - md5

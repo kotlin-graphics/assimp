@@ -87,7 +87,7 @@ private class ByteBufferBackedInputStream(val buf: ByteBuffer) : InputStream() {
 	override fun read(): Int {
 		return if (!buf.hasRemaining()) {
 			-1
-		} else (buf.get() and 0xFF).toInt()
+		} else buf.get().toInt() and 0xFF
 	}
 
 	/**
