@@ -454,7 +454,7 @@ constructor() {
      *  The pointer to the scene remains in possession of the Importer instance. Use getOrphanedScene() to take
      *  ownership of it.
      */
-    fun readFilesFromMemory(fileName: String, flags: Int, vararg files: Pair<String, ByteBuffer>): AiScene? {
+    fun readFilesFromMemory(fileName: String, vararg files: Pair<String, ByteBuffer>, flags: Int = 0): AiScene? {
         return readFilesFromMemory(fileName, files.toMap(), flags)
     }
 
