@@ -754,8 +754,9 @@ class Md3Importer : BaseImporter() {
         // If no specific dir or file is given, use our default search behaviour
         if (configShaderFile.isEmpty()) {
             // TODO read from memory: how do we resolve ../../..
-            if (!Q3Shader.loadShader(fill, "$path../../../scripts/$modelFile.shader", ioSystem))
-                Q3Shader.loadShader(fill, "$path../../../scripts/$filename.shader", ioSystem)
+            val relativePath = "../../../scripts/".replace("/", ioSystem.osSeparator) // I hate windoof paths
+            if (!Q3Shader.loadShader(fill, "$path$relativePath$modelFile.shader", ioSystem))
+                Q3Shader.loadShader(fill, "$path$relativePath$filename.shader", ioSystem)
         } else {
             TODO()
 //            // If the given string specifies a file, load this file.

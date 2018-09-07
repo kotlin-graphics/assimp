@@ -11,9 +11,13 @@ import java.nio.file.*
 object europeanFnt {
 
     operator fun invoke(fileName: String, shaderName: String) {
+		val fileName = fileName.replace('/', File.separatorChar)
+		val shaderName = shaderName.replace('/', File.separatorChar)
 
+		logger.info("load from file $fileName")
         Importer().readFile(getResource(fileName))?.verify() ?: fail("could not load $fileName")
 
+		logger.info("load from memory $fileName")
 	    // TODO temp workaround for relative paths in load from memory
 	    fun String.loadFile(): ByteBuffer {
 		    val file = Paths.get(getResource(this).toURI()).toAbsolutePath().toFile()
