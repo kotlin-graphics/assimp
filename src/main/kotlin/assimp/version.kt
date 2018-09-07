@@ -76,3 +76,6 @@ val branch = "master"
  *  @return Any bitwise combination of the ASSIMP_CFLAGS_xxx constants.
  */
 val compileFlags = ASSIMP.DEBUG.i
+
+/** JVM custom */
+val version = "4.0.12"

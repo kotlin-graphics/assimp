@@ -188,7 +188,7 @@ constructor() {
     var ioHandler: IOSystem
         get() = impl.ioSystem
         set(value) {
-            if (value != null) {
+            if (value != null) { // TODO check nullability
                 impl.ioSystem = value
                 impl.isDefaultHandler = false
             } else {
@@ -462,7 +462,7 @@ constructor() {
      *
      *  This is strictly equivalent to calling readFile() with the same flags. However, you can use this separate
      *  function to inspect the imported scene first to fine-tune your post-processing setup.
-     *  @param flags Provide a bitwise combination of the AiPostProcessSteps flags.
+     *  @param flags_ Provide a bitwise combination of the AiPostProcessSteps flags.
      *  @return A pointer to the post-processed data. This is still the same as the pointer returned by readFile().
      *  However, if post-processing fails, the scene could now be null.
      *  That's quite a rare case, post processing steps are not really designed to 'fail'. To be exact, the
@@ -470,26 +470,26 @@ constructor() {
      *  reset to null.
      *
      *  @note The method does nothing if no scene is currently bound to the Importer instance.  */
-    fun applyPostProcessing(flags: Int): AiScene? {
+    fun applyPostProcessing(flags_: Int): AiScene? {
         // Return immediately if no scene is active
         if (impl.scene == null) return null
         // If no flags are given, return the current scene with no further action
-        if (flags == 0) return impl.scene
+        if (flags_ == 0) return impl.scene
         // In debug builds: run basic flag validation
-        assert(_validateFlags(flags))
+        assert(_validateFlags(flags_))
         logger.info("Entering post processing pipeline")
         if (!ASSIMP.NO.VALIDATEDS_PROCESS)
         /*  The ValidateDS process plays an exceptional role. It isn't contained in the global list of post-processing
             steps, so we need to call it manually.         */
-            if (flags has Pps.ValidateDataStructure) {
+            if (flags_ has Pps.ValidateDataStructure) {
                 ValidateDSProcess().executeOnScene(this)
                 if (impl.scene == null) return null
             }
-        if (flags has Pps.OptimizeMeshes) {
+        if (flags_ has Pps.OptimizeMeshes) {
             OptimizeMeshes().executeOnScene(this)
             if (impl.scene == null) return null
         }
-        var flags = flags
+        var flags = flags_
         if (ASSIMP.DEBUG) {
             if (impl.extraVerbose) {
                 if (ASSIMP.NO.VALIDATEDS_PROCESS)
