@@ -16,5 +16,6 @@ class md5 : StringSpec() {
     init {
         "simple cube"  { simpleCube(path + "SimpleCube.md5mesh") }
         "boar man"  { boarMan(path_ + "BoarMan.md5mesh") }
+        // TODO no tests for anim files
     }
 }

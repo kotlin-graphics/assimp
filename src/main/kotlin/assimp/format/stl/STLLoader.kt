@@ -3,13 +3,8 @@ package assimp.format.stl
 import assimp.*
 import glm_.*
 import unsigned.ushr
-import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.channels.FileChannel
 import java.util.*
 
 /**
@@ -100,21 +95,14 @@ class StlImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Imports the given file into the given scene structure.
-    override fun internReadFile(pFile: String, ioSystem: IOSystem, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        val file = File(pFile)
+	    val stream = ioSystem.open(file)
 
-        // Check whether we can read from the file
-        if (!file.canRead()) throw IOException("Failed to open STL file $pFile.")
-
-        fileSize = file.length().i
-
-        // allocate storage and copy the contents of the file to a memory buffer
-        val fileChannel = RandomAccessFile(file, "r").channel
-        val mBuffer2 = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        fileSize = stream.length.i
 
         this.pScene = scene
-        this.mBuffer = mBuffer2
+        this.mBuffer = stream.readBytes()
 
         // the default vertex color is light gray.
         clrColorDefault put 0.6f
@@ -128,7 +116,7 @@ class StlImporter : BaseImporter() {
             bMatClr = loadBinaryFile()
         else if (isAsciiSTL(mBuffer, fileSize))
             loadASCIIFile()
-        else throw Error("Failed to determine STL storage representation for $pFile.")
+        else throw Error("Failed to determine STL storage representation for $file.")
 
         // add all created meshes to the single node
         scene.rootNode.numMeshes = scene.numMeshes

@@ -59,13 +59,13 @@ fun compareTextures(texture: Texture, texture1: Texture) {
     texture.baseLayer shouldBe texture1.baseLayer
     texture.baseLevel shouldBe texture1.baseLevel
     compareCache(texture.cache, texture1.cache)
-    texture.format.shouldEqual(texture1.format)
+    texture.format shouldBe texture1.format
     texture.maxFace shouldBe texture1.maxFace
     texture.maxLayer shouldBe texture1.maxLayer
     texture.maxLevel shouldBe texture1.maxLevel
     texture.size shouldBe texture1.size
-    texture.swizzles.shouldEqual(texture1.swizzles)
-    texture.target.shouldEqual(texture1.target)
+    texture.swizzles shouldBe texture1.swizzles
+    texture.target shouldBe texture1.target
 }
 
 fun compareCache(cache: Cache, cache1: Cache) {

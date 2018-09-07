@@ -4,8 +4,6 @@ import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
-import java.io.File
-import java.net.URI
 
 /**
  * Created by Sunny on 19/01/2018.
@@ -13,9 +11,9 @@ import java.net.URI
 
 object shelter {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(fileName: String, matName: String) {
 
-        Importer().testFile(getResource(fileName)) {
+        Importer().testURLs(getResource(fileName), getResource(matName)) {
 
             with(rootNode) {
 

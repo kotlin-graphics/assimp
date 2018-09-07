@@ -7,7 +7,6 @@ import glm_.toUnsignedInt
 import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -47,8 +46,7 @@ class BlenderImporter : BaseImporter() {
 
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        val fileChannel = RandomAccessFile(File(file), "r").channel
-        buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        buffer = ioSystem.open(file).readBytes()
 
         var match = buffer.strncmp(tokens)
         if (!match) {

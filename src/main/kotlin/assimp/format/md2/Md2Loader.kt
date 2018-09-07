@@ -52,7 +52,6 @@ import glm_.f
 import glm_.i
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
@@ -109,18 +108,13 @@ class Md2Importer : BaseImporter() {
      *  See BaseImporter.internReadFile() for details     */
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        val file = File(file)
-
-        // Check whether we can read from the file
-        if (!file.canRead())
-            throw Error("Failed to open MD2 file $file")
+	    val stream = ioSystem.open(file)
 
         // check whether the md3 file is large enough to contain at least the file header
-        fileSize = file.length().i
+        fileSize = stream.length.i
         if (fileSize < MD2.Header.size) throw Error("MD2 File is too small")
 
-        val fileChannel = RandomAccessFile(file, "r").channel
-        val buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        val buffer = stream.readBytes()
 
         header = MD2.Header(buffer).apply { validate(fileSize, configFrameID) }
 
@@ -171,7 +165,7 @@ class Md2Importer : BaseImporter() {
             // apply a default material
             helper.color = AiMaterial.Color(diffuse = AiColor3D(0.6f), specular = AiColor3D(0.6f), ambient = AiColor3D(0.05f))
             helper.name = AI_DEFAULT_MATERIAL_NAME
-            val fileName = file.name.substringAfterLast('\\').substringBeforeLast('.')
+            val fileName = file.substringAfterLast('\\').substringBeforeLast('.')
             helper.textures.add(AiMaterial.Texture(file = "$fileName.bmp", type = AiTexture.Type.diffuse))
         }
 

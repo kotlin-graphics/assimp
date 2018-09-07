@@ -8,8 +8,11 @@ import java.util.*
 
 object nanosuit {
 
-    operator fun invoke(fileName: String) {
-        Importer().testFile(getResource(fileName)) {
+    operator fun invoke(fileName: String, matName: String, vararg imagePath: String) {
+
+        val imageURLs = imagePath.map { getResource(it) }.toTypedArray()
+
+        Importer().testURLs(getResource(fileName), getResource(matName), *imageURLs) {
 
             with(rootNode) {
 
@@ -430,6 +433,9 @@ object nanosuit {
                     uvwsrc shouldBe 0
                 }
             }
+
+            // numTextures shouldBe 23 // TODO not set
+            textures.size shouldBe 23
         }
     }
 }

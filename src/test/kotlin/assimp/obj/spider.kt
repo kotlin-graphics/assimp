@@ -8,9 +8,10 @@ import java.util.*
 
 object spider {
 
-    operator fun invoke(fileName: String) {
+    operator fun invoke(fileName: String, matName: String, img1: String, img2: String, img3: String, img4: String, img5: String) {
 
-        Importer().testFile(getResource(fileName)){
+        Importer().testURLs(getResource(fileName), getResource(matName),
+                            getResource(img1), getResource(img2), getResource(img3), getResource(img4), getResource(img5)){
 
             with(rootNode) {
 
@@ -199,6 +200,9 @@ object spider {
                 }
                 textures[0].file shouldBe ".\\engineflare1.jpg"
             }
+
+            // numTextures shouldBe 5 // TODO numTextures is not set
+            textures.size shouldBe 5
         }
     }
 }

@@ -256,16 +256,18 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         if (words.size < 2) throw Error("File name of the material is absent.")
 
         // get the name of the mat file with spaces
-        var filename = ObjTools.getNameWithSpace(words, 1)
+        val filename = ObjTools.getNameWithSpace(words, 1)
 
-        val pFile = file.parentPath() + "/" + filename //windows can just suck it
+        val pFile = "${file.parentPath}${ioSystem.osSeparator}$filename"
         println(pFile)
 
         if (!ioSystem.exists(pFile)) {
-            System.err.println("OBJ: Unable to locate material file $filename")
+            logger.error { "OBJ: Unable to locate material file $filename" }
+
+	        // TODO ?? what happens here?
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
-            if (!File(strMatFallbackName).exists()) {
+            if (!ioSystem.exists(strMatFallbackName)) {
                 System.err.println("OBJ: Unable to locate fallback material file $strMatFallbackName")
                 return
             }

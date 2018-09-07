@@ -1,33 +1,48 @@
 package assimp
 
 import java.io.*
-import java.nio.file.Files
+import java.nio.*
+import java.nio.channels.*
 import java.nio.file.Path
 import java.nio.file.Paths
 
 class DefaultIOSystem : IOSystem {
 
-    override fun exists(pFile: String) = File(pFile).exists()
+    override fun exists(file: String) = File(file).exists()
 
-    override fun open(pFile: String): IOStream {
+    override fun open(file: String): IOStream {
 
-        val path: Path = Paths.get(pFile)
-        if (!Files.exists(path))
-            throw IOException("File doesn't exist: $pFile")
+        val path: Path = Paths.get(file)
+        if (!exists(file))
+            throw IOException("File doesn't exist: $file")
 
-
-        return FileIOStream(path)
+        return FileIOStream(path, this)
     }
 
-    class FileIOStream(override val path: Path) : IOStream {
+    class FileIOStream(private val pathObject: Path, override val osSystem: DefaultIOSystem) : IOStream {
 
-        override fun read() = FileInputStream(path.toFile())
+        override val path: String
+            get() =  pathObject.toString()
 
-        override fun reader() = BufferedReader(FileReader(path.toFile()))
+        override fun read() = FileInputStream(file)
+
+        override fun reader() = BufferedReader(FileReader(file))
 
         override val filename: String
-            get() = path.fileName.toString()
+            get() = pathObject.fileName.toString()
 
-        override fun parentPath() = path.parent.toAbsolutePath().toString()
+        override val parentPath = pathObject.parent.toAbsolutePath().toString()
+
+        override val length: Long
+            get() = file.length()
+
+        override fun readBytes(): ByteBuffer {
+            RandomAccessFile(file, "r").channel.use {fileChannel ->
+                return fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+            }
+        }
+
+        val file: File
+            get() = pathObject.toFile()
     }
 }

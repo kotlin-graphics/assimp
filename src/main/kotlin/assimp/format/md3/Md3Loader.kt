@@ -48,7 +48,6 @@ import glm_.i
 import glm_.size
 import java.io.File
 import java.io.RandomAccessFile
-import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -119,13 +118,15 @@ object Q3Shader {
      *  @param io IOSystem to be used for reading
      *  @return false if file is not accessible
      */
-    fun loadShader(fill: ShaderData, file: String): Boolean {
-        val f = File(file)
-        if (!f.exists()) return false // if we can't access the file, don't worry and return
+    fun loadShader(fill: ShaderData, file: String, ioSystem: IOSystem): Boolean {
+
+        if (!ioSystem.exists(file)) return false // if we can't access the file, don't worry and return
+
+        val reader = ioSystem.open(file).reader()
 
         logger.info { "Loading Quake3 shader file $file" }
         // read file in memory and remove comments from it (C++ style) and empty or blank lines
-        val lines = f.readLines().filter { !it.startsWith("//") && it.isNotEmpty() && it.isNotBlank() }
+        val lines = reader.readLines().filter { !it.startsWith("//") && it.isNotEmpty() && it.isNotBlank() }
                 .map { it.trim() } // and trim it
 
         var curData: Q3Shader.ShaderDataBlock? = null
@@ -272,14 +273,16 @@ object Q3Shader {
      *  @param io IOSystem to be used for reading
      *  @return false if file is not accessible
      */
-    fun loadSkin(fill: SkinData, file: String): Boolean {
-        val f = File(file)
-        if (!f.canRead()) return false // if we can't access the file, don't worry and return
+    fun loadSkin(fill: SkinData, file: String, ioSystem: IOSystem): Boolean {
+
+        if (!ioSystem.exists(file)) return false // if we can't access the file, don't worry and return
 
         logger.info { "Loading Quake3 skin file $file" }
 
+        val ioStream = ioSystem.open(file)
+
         // read file in memory
-        val s = f.length()
+        val s = ioStream.length
         TODO()
 //        std::vector<char> _buff(s+1);const char* buff = &_buff[0];
 //        f->Read(&_buff[0],s,1);
@@ -392,17 +395,13 @@ class Md3Importer : BaseImporter() {
         // Load multi-part model file, if necessary
         if (configHandleMP && readMultipartFile()) return
 
-        // Check whether we can read from the file
-        val f = File(file)
-        if (!f.canRead()) throw Error("Failed to open MD3 file $file.")
+        val stream = ioSystem.open(file)
 
         // Check whether the md3 file is large enough to contain the header
-        fileSize = f.length().i
+        fileSize = stream.length.i
         if (fileSize < MD3.Header.size) throw Error("MD3 File is too small.")
 
-        // Allocate storage and copy the contents of the file to a memory buffer
-        val fileChannel = RandomAccessFile(f, "r").channel
-        val buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
+        val buffer = stream.readBytes()
 
         header = MD3.Header(buffer)
         // Validate the file header
@@ -421,10 +420,10 @@ class Md3Importer : BaseImporter() {
         scene.numMaterials = header.numSurfaces
         // Now read possible skins from .skin file
         val skins = Q3Shader.SkinData()
-        readSkin(skins)
+        readSkin(skins, ioSystem)
         // And check whether we can locate a shader file for this model
         val shadersData = Q3Shader.ShaderData()
-        readShader(shadersData)
+        readShader(shadersData, ioSystem)
 
         // Adjust all texture paths in the shader
         val headerName = header.name
@@ -733,7 +732,7 @@ class Md3Importer : BaseImporter() {
 
     /** Try to read the skin for a MD3 file
      *  @param fill Receives output information     */
-    fun readSkin(fill: Q3Shader.SkinData) {
+    fun readSkin(fill: Q3Shader.SkinData, ioSystem: IOSystem) {
         // skip any postfixes (e.g. lower_1.md3)
         var s = filename.lastIndexOf('_')
         if (s == -1) {
@@ -742,20 +741,22 @@ class Md3Importer : BaseImporter() {
         }
         assert(s != -1)
         val skinFile = path + filename.substring(0, s) + "_$configSkinFile.skin"
-        Q3Shader.loadSkin(fill, skinFile)
+        Q3Shader.loadSkin(fill, skinFile, ioSystem)
     }
 
     /** Try to read the shader for a MD3 file
      *  @param fill Receives output information     */
-    fun readShader(fill: Q3Shader.ShaderData) {
+    fun readShader(fill: Q3Shader.ShaderData, ioSystem: IOSystem) {
         // Determine Q3 model name from given path
         val last = path.substring(0, path.length - 2).lastIndexOf(File.separatorChar)
         val modelFile = path.substring(last + 1, path.length - 1)
 
         // If no specific dir or file is given, use our default search behaviour
         if (configShaderFile.isEmpty()) {
-            if (!Q3Shader.loadShader(fill, "$path../../../scripts/$modelFile.shader"))
-                Q3Shader.loadShader(fill, "$path../../../scripts/$filename.shader")
+            // TODO read from memory: how do we resolve ../../..
+            val relativePath = "../../../scripts/".replace("/", ioSystem.osSeparator) // I hate windoof paths
+            if (!Q3Shader.loadShader(fill, "$path$relativePath$modelFile.shader", ioSystem))
+                Q3Shader.loadShader(fill, "$path$relativePath$filename.shader", ioSystem)
         } else {
             TODO()
 //            // If the given string specifies a file, load this file.
