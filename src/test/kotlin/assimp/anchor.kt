@@ -4,7 +4,6 @@ import io.kotlintest.*
 import org.lwjgl.BufferUtils
 import java.io.*
 import java.net.URL
-import java.nio.file.Paths
 
 /**
  * Created by elect on 14/01/2017.
@@ -31,7 +30,7 @@ fun getResource(resource: String): URL = ClassLoader.getSystemResource(resource)
  * @return the result of [Importer.readFile]
  */
 fun Importer.testFile(path: URL, flags: AiPostProcessStepsFlags = 0, failOnNull: Boolean = true, verify: AiScene.() -> Unit = {}): AiScene? {
-	return testFile(Paths.get(path.toURI()).toAbsolutePath().toString(), flags, failOnNull, verify)
+	return testFile(path.file, flags, failOnNull, verify)
 }
 
 /**
