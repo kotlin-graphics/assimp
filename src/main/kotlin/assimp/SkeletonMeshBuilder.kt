@@ -73,16 +73,16 @@ constructor(scene: AiScene, root: AiNode? = null, val knobsOnly: Boolean = false
 
     init {
         // nothing to do if there's mesh data already present at the scene
-        if (scene.numMeshes == 0 && scene.rootNode != null) {
-            val root = root ?: scene.rootNode
+        if (scene.numMeshes == 0) {
+            val r = root ?: scene.rootNode
             // build some faces around each node
-            createGeometry(root)
+            createGeometry(r)
             // create a mesh to hold all the generated faces
             scene.numMeshes = 1
             scene.meshes = arrayListOf(createMesh())
             // and install it at the root node
-            root.numMeshes = 1
-            root.meshes = IntArray(1)
+            r.numMeshes = 1
+            r.meshes = IntArray(1)
             // create a dummy material for the mesh
             if (scene.numMaterials == 0){
                 scene.numMaterials = 1

@@ -40,7 +40,7 @@ class XFileImporter : BaseImporter() {
         // And create the proper return structures out of it
         CreateDataRepresentationFromImport(scene, parser.mScene)
 
-        if (scene.rootNode == null)
+        if (scene.rootNode == null) // TODO do we need some other kind of check here instead? This is never true
             throw Error("XFile is ill-formatted - no content imported.")
     }
 
@@ -56,21 +56,12 @@ class XFileImporter : BaseImporter() {
 
         // read the global meshes that were stored outside of any node
         if (pData.mGlobalMeshes.size() > 0) {
-            // create a root node to hold them if there isn't any, yet
-            if (pScene.rootNode == null) {
-                pScene.rootNode = AiNode()
-                pScene.rootNode.name = "\$dummy_node"
-            }
 
             // convert all global meshes and store them in the root node.
             // If there was one before, the global meshes now suddenly have its transformation matrix...
             // Don't know what to do there, I don't want to insert another node under the present root node
             // just to avoid this.
             CreateMeshes(pScene, pScene.rootNode, pData.mGlobalMeshes)
-        }
-
-        if (pScene.rootNode == null) {
-            throw Error("No root node")
         }
 
         // Convert everything to OpenGL space... it's the same operation as the conversion back, so we can reuse the step directly
@@ -240,15 +231,14 @@ class XFileImporter : BaseImporter() {
         }
 
         // convert all the materials given in the array
-        for (a in 0 until pMaterials.size()) {
-            var oldMat = pMaterials[a]
+        for (oldMatIndex in 0 until pMaterials.size()) {
+            val oldMat = pMaterials[oldMatIndex]
             if (oldMat.mIsReference) {
                 // find the material it refers to by name, and store its index
-                for (a in 0 until pScene.numMaterials) {
-                    var name: String
-                    name = pScene.materials[a].name!!
+                for (matIndex in 0 until pScene.numMaterials) {
+                    val name = pScene.materials[matIndex].name!!
                     if ((name == oldMat.mName)) {
-                        oldMat.sceneIndex = a
+                        oldMat.sceneIndex = matIndex
                         break
                     }
                 }
@@ -261,13 +251,13 @@ class XFileImporter : BaseImporter() {
                 continue
             }
 
-            var mat = AiMaterial()
+            val mat = AiMaterial()
             var name: String?
             name = (oldMat.mName)
             mat.name = name
 
             // Shading model: hardcoded to PHONG, there is no such information in an XFile
-            // FIX (aramis): If the specular exponent is 0, use gouraud shading. This is a bugfix
+            // FIX (aramis): If the specular exponent is 0, use gouraud shading. This is oldMatIndex bugfix
             // for some models in the SDK (e.g. good old tiny.x)
             var shadeMode = if (oldMat.mSpecularExponent == 0.0f)
                 AiShadingMode.gouraud else AiShadingMode.phong
@@ -275,7 +265,7 @@ class XFileImporter : BaseImporter() {
             mat.shadingModel = shadeMode
             // material colours
             // Unclear: there's no ambient colour, but emissive. What to put for ambient?
-            // Probably nothing at all, let the user select a suitable default.
+            // Probably nothing at all, let the user select oldMatIndex suitable default.
             mat.color = AiMaterial.Color()
             mat.color!!.emissive = oldMat.mEmissive
             mat.color!!.diffuse = AiColor3D(oldMat.mDiffuse) //Why conversion to 3D?
@@ -343,7 +333,7 @@ class XFileImporter : BaseImporter() {
                     } else if (-1 != sz.indexOf("emissive", s) || -1 != sz.indexOf("self", s)) {
                         mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.emissive, uvwsrc = (iEM++)))
                     } else {
-                        // Assume it is a diffuse texture
+                        // Assume it is oldMatIndex diffuse texture
                         mat.textures.add(AiMaterial.Texture(file = tex, type = AiTexture.Type.diffuse, uvwsrc = (iDM++)))
                     }
                 }
@@ -455,17 +445,18 @@ class XFileImporter : BaseImporter() {
 
                 // now collect the vertex data of all data streams present in the imported mesh
                 var newIndex = 0
-                var orgPoints: MutableList<Int> = mutableListOf() // from which original point each new vertex stems
+                val orgPoints: MutableList<Int> = mutableListOf() // from which original point each new vertex stems
                 orgPoints.resize(numVertices, { 0 })
 
                 for (c in 0 until faces.size()) {
-                    var f = faces[c] // index of the source face
-                    var pf = sourceMesh.mPosFaces[f] // position source face
+                    val f = faces[c] // index of the source face
+                    val pf = sourceMesh.mPosFaces[f] // position source face
 
                     // create face. either triangle or triangle fan depending on the index count
-                    var df = mesh.faces[c] // destination face
+                    //var df = mesh.faces[c] // destination face
                     //df.numIndices = pf.mIndices.size(); //3
-                    df = MutableList<Int>(pf.mIndices.size(), { 0 }); mesh.faces[c]=df
+                    val df = MutableList<Int>(pf.mIndices.size()) { 0 }
+                    mesh.faces[c]=df
 
                     // collect vertex data for indices of this face
                     for (d in 0 until df.size()) {
@@ -481,7 +472,7 @@ class XFileImporter : BaseImporter() {
                         // texture coord sets
                         for (e in 0 until AI_MAX_NUMBER_OF_TEXTURECOORDS) {
                             if (e < mesh.textureCoords.size && mesh.hasTextureCoords(e)) {
-                                var tex = sourceMesh.mTexCoords[e][pf.mIndices[d]]
+                                val tex = sourceMesh.mTexCoords[e][pf.mIndices[d]]
                                 mesh.textureCoords[e][newIndex] = arrayOf(tex.x, 1.0f - tex.y
                                         //, 0.0f //Not sure why this is in original C++ code, but not in kotlin port.
                                 ).toFloatArray()
@@ -547,7 +538,7 @@ class XFileImporter : BaseImporter() {
 
         // reallocate scene mesh array to be large enough
         var prevArray = pScene.meshes
-        pScene.meshes.reserve(pScene.numMeshes + meshes.size(), {AiMesh()})
+        pScene.meshes.reserve(pScene.numMeshes + meshes.size()) { AiMesh() }
 //        pScene.mMeshes = ArrayList<AiMesh>(pScene.mNumMeshes + meshes.size());
 //        if( prevArray!=null)
 //        {

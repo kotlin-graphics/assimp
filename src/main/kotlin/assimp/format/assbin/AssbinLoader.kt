@@ -28,10 +28,10 @@ class AssbinLoader : BaseImporter() {
 
             it.skip(44) // signature
 
-            val a = it.int(be)   // unsigned int versionMajor
-            val b = it.int(be)   // unsigned int versionMinor
-            val c = it.int(be)   // unsigned int versionRevision
-            val d = it.int(be)   // unsigned int compileFlags
+            /* unused */ it.int(be)   // unsigned int versionMajor
+            /* unused */ it.int(be)   // unsigned int versionMinor
+            /* unused */ it.int(be)   // unsigned int versionRevision
+            /* unused */ it.int(be)   // unsigned int compileFlags
 
             shortened = it.short(be).bool
             compressed = it.short(be).bool

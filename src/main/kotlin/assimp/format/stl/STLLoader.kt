@@ -3,7 +3,6 @@ package assimp.format.stl
 import assimp.*
 import glm_.*
 import unsigned.ushr
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -74,9 +73,9 @@ class StlImporter : BaseImporter() {
 
     // ------------------------------------------------------------------------------------------------
     // Returns whether the class can handle the format of the given file.
-    override fun canRead(pFile: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
 
-        val extension = pFile.substring(pFile.lastIndexOf('.') + 1)
+        val extension = file.substring(file.lastIndexOf('.') + 1)
 
         if (extension == "stl") {
             return true
@@ -209,13 +208,13 @@ class StlImporter : BaseImporter() {
             if ((color and (1 shl 15)) != 0.s) {
 
                 // seems we need to take the color
-                if (pMesh.colors[0] == null) {
+                if (pMesh.colors[0] == null) {      // TODO should there be a case where this is null? In that case the AIMesh class does not represent the data correctly
 
                     pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D(clrColorDefault) }).toMutableList()
 
                     logger.info { "STL: Mesh has vertex colors" }
                 }
-                val clr = pMesh.colors[0]!![i * 3]
+                val clr = pMesh.colors[0][i * 3]
                 clr.a = 1f
                 val invVal = 1f / 31
                 if (bIsMaterialise) {    // this is reversed
@@ -235,7 +234,7 @@ class StlImporter : BaseImporter() {
             }
         }
         // now copy faces
-        addFacesToMesh(pMesh);
+        addFacesToMesh(pMesh)
 
         // use the color as diffuse material color
         return bIsMaterialise && pMesh.colors[0] == null

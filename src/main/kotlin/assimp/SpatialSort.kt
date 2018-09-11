@@ -20,13 +20,13 @@ class SpatialSort{
     }
 
     fun finalize() {
-        val array = mPositions.toArray() as Array<Entry>
+        val array = mPositions.toTypedArray()
         Arrays.sort(array)
         mPositions.clear()
         mPositions.addAll(array)
     }
 
-    fun append(pPositions: List<AiVector3D>,pNumPositions: Int,pElementOffset: Int, pFinalize: Boolean = true)
+    fun append(pPositions: List<AiVector3D>,pNumPositions: Int, pElementOffset: Int, pFinalize: Boolean = true)
     {
         // store references to all given positions along with their distance to the reference plane
         val initial = mPositions.size

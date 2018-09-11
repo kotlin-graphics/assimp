@@ -17,7 +17,7 @@ class SGSpatialSort {
 
     fun prepare()
     {
-        val array = mPositions.toArray() as Array<Entry>
+        val array = mPositions.toTypedArray()
         Arrays.sort(array)
         mPositions.clear()
         mPositions.addAll(array)

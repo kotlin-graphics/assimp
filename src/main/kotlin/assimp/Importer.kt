@@ -188,13 +188,7 @@ constructor() {
     var ioHandler: IOSystem
         get() = impl.ioSystem
         set(value) {
-            if (value != null) { // TODO check nullability
-                impl.ioSystem = value
-                impl.isDefaultHandler = false
-            } else {
-                impl.ioSystem = DefaultIOSystem()
-                impl.isDefaultHandler = true
-            }
+            impl.ioSystem = value
         }
 
     /** Checks whether a default progress handler is active
@@ -773,8 +767,8 @@ constructor() {
             the library version they're using - a log dump is sufficient.   */
         val flags = compileFlags
         logger.debug {
-            var message = "Assimp $versionMajor.$versionMinor.$versionRevision"
-            if (ASSIMP.DEBUG) message += " debug"
+            val message = "Assimp $versionMajor.$versionMinor.$versionRevision"
+            if (ASSIMP.DEBUG) "$message debug" else message
         }
     }
 

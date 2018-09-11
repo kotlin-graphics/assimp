@@ -407,7 +407,7 @@ class ValidateDSProcess : BaseProcess() {
                 if (i > 0 && boneAnim.rotationKeys[i].time <= last) {
                     val t = "%.5f".format(boneAnim.rotationKeys[i].time)
                     val l = "%.5f".format(last)
-                    reportWarning("AiNodeAnim.rotationKeys[$i].time ($t) is smaller than AiAnimation.rotationKeys[${i - 1}] (which is $last)")
+                    reportWarning("AiNodeAnim.rotationKeys[$i].time ($t) is smaller than AiAnimation.rotationKeys[${i - 1}] (which is $l)")
                 }
                 last = boneAnim.rotationKeys[i].time
             }
@@ -491,7 +491,7 @@ class ValidateDSProcess : BaseProcess() {
         }
     }
 
-    /** extended version: checks whethr T.name occurs twice   */
+    /** extended version: checks whether T.name occurs twice   */
     fun doValidationEx(array: ArrayList<*>, size: Int, firstName: String, secondName: String) {
         // validate all entries
         if (size > 0) {
@@ -508,6 +508,7 @@ class ValidateDSProcess : BaseProcess() {
                     is AiMaterial -> validate(element)
                 }
                 // check whether there are duplicate names
+                @Suppress("UNCHECKED_CAST")
                 for (a in i + 1 until size) {
                     val propI = element::class.memberProperties.find { it.name == "name" } as KMutableProperty1<Any?, String>
                     val nameI = propI.get(element)

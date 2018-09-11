@@ -123,49 +123,50 @@ fun fast_atoreal_move(_c : Pointer<Char>, out : Pointer<ai_real>, check_comma : 
 
 fun strtoul10_64(_in : Pointer<Char>, _out : Pointer<Pointer<Char>>?, max_inout : Pointer<Int>? = null) : Long
 {
-	var in_ = _in; var out_ = _out
-    var cur : Int = 0;
-    var value : Long = 0.toLong();
+	var in_ = _in;
+    val out_ = _out
+    var cur : Int = 0
+    var value : Long = 0.toLong()
 
     if ( in_.value < '0' || in_.value > '9' )
-        throw RuntimeException("The string \"" + in_.value + "\" cannot be converted into a value.");
+        throw RuntimeException("The string \"" + in_.value + "\" cannot be converted into a value.")
 
-    var running = true;
-    while ( running )
+
+    while ( true )
     {
         if ( in_.value < '0' || in_.value > '9' )
-            break;
+            break
 
-        var new_value : Long = ( value * 10 ) + ( in_.value - '0' );
+        val new_value : Long = (value * 10) + (in_.value - '0')
 
         // numeric overflow, we rely on you
         if ( new_value < value ) {
-            warn("Converting the string \""  + in_.value + "\" into a value resulted in overflow." );
-            return 0;
+            warn("Converting the string \""  + in_.value + "\" into a value resulted in overflow." )
+            return 0
         }
             //throw std::overflow_error();
 
-        value = new_value;
+        value = new_value
 
-        ++in_;
-        ++cur;
+        ++in_
+        ++cur
 
-        if (max_inout!=null && max_inout!!.value == cur) {
+        if (max_inout!=null && max_inout.value == cur) {
 
             if (out_!=null) { /* skip to end */
-                while (in_.value >= '0' && in_.value <= '9')
-                    ++in_;
-                out_.value=in_;
+                while (in_.value in '0'..'9')
+                    ++in_
+                out_.value=in_
             }
 
-            return value;
+            return value
         }
     }
     if (out_!=null)
-        out_.value = in_;
+        out_.value = in_
 
     if (max_inout != null)
-        max_inout!!.value = cur;
+        max_inout.value = cur
 
     return value;
 }

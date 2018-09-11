@@ -79,9 +79,4 @@ fun TextureTypeToString(i : AiTexture.Type) : String
         else ->
             throw RuntimeException("BUG")
     }
-
-    assert(false);
-    return  "BUG";
 }
-
-
