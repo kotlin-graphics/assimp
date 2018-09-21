@@ -72,10 +72,13 @@ val versionMajor = 4
 val versionRevision = 0xee56ffa1
 val branch = "master"
 
+/** JVM custom */
+val build = 13
+
 /** @brief Returns assimp's compile flags
  *  @return Any bitwise combination of the ASSIMP_CFLAGS_xxx constants.
  */
 val compileFlags = ASSIMP.DEBUG.i
 
 /** JVM custom */
-val version = "4.0.12"
+val version = "$versionMajor.$versionMinor.$build"
