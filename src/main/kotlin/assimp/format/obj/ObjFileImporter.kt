@@ -3,8 +3,8 @@ package assimp.format.obj
 import assimp.*
 import gli_.*
 import gli_.tga.*
-import java.io.*
 import java.lang.IllegalArgumentException
+import java.nio.*
 import javax.imageio.*
 import javax.imageio.spi.*
 
@@ -434,7 +434,7 @@ class ObjFileImporter : BaseImporter() {
                             val typeStart = texFile.filename.lastIndexOf(".") + 1
                             val type = texFile.filename.substring(typeStart)
 
-                            scene.textures[name] = loadImageFromMemory(texFile, type)
+                            scene.textures[name] = loadImageFromMemory(texFile.readBytes(), type)
                         }
                         ioSystem.exists(parentPath + cleaned.toUpperCase()) -> {
                             // try case insensitive
@@ -443,7 +443,7 @@ class ObjFileImporter : BaseImporter() {
                             val typeStart = texFile.filename.lastIndexOf(".") + 1
                             val type = texFile.filename.substring(typeStart).toLowerCase()
 
-                            scene.textures[name] = loadImageFromMemory(texFile, type)
+                            scene.textures[name] = loadImageFromMemory(texFile.readBytes(), type)
                         }
                         else -> logger.warn { "OBJ/MTL: Texture image not found --> $cleaned" }
                     }
@@ -456,15 +456,15 @@ class ObjFileImporter : BaseImporter() {
     }
 }
 
-
 // TODO this is pretty much a copy past from gli.read(...) and should be added there
-private fun loadImageFromMemory(file: IOStream, type: String): Texture {
+private var tgaAdded = false
+private fun loadImageFromMemory(buffer: ByteBuffer, type: String): Texture {
     return when(type) {
-        "dds"  -> gli.loadDds(file.readBytes())
-        "kmg"  -> gli.loadKmg(file.readBytes())
-        "ktx"  -> gli.loadKtx(file.readBytes())
+        "dds"  -> gli.loadDds(buffer)
+        "kmg"  -> gli.loadKmg(buffer)
+        "ktx"  -> gli.loadKtx(buffer)
         "jpeg", "jpg", "png", "gif", "bmp", "wbmp" -> {
-            val image = ImageIO.read(file.read())
+            val image = ImageIO.read(ByteBufferBackedInputStream(buffer))
             gli.createTexture(image)
         }
         "tga"  -> {
@@ -472,43 +472,9 @@ private fun loadImageFromMemory(file: IOStream, type: String): Texture {
                 IIORegistry.getDefaultInstance().registerServiceProvider(TgaImageReaderSpi())
                 tgaAdded = true
             }
-            val image = ImageIO.read(file.read())
+            val image = ImageIO.read(ByteBufferBackedInputStream(buffer))
             gli.createTexture(image)
         }
         else -> throw IllegalArgumentException("Type not supported")
     }
 }
-
-
-private var tgaAdded = false
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
