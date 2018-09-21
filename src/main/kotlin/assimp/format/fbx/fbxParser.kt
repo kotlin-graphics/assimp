@@ -45,7 +45,7 @@ import assimp.ASSIMP.DEBUG
 import assimp.AiMatrix4x4
 import assimp.AiVector3D
 import glm_.*
-import glm_.buffer.bufferBig
+import kool.bufferBig
 import java.nio.ByteBuffer
 import java.util.zip.Inflater
 import kotlin.reflect.KMutableProperty0
@@ -358,7 +358,7 @@ class Element(val keyToken: Token, parser: Parser) {
         }
 
         val fullLength = stride * count
-        val buff = bufferBig(fullLength)
+        val buff = bufferBig(fullLength) // TODO free?
 
         if (encMode == 0) {
             assert(fullLength == compLen)
