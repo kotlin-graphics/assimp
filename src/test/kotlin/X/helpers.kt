@@ -92,7 +92,7 @@ fun compareNode(rootNode: AiNode, rootNode1: AiNode) {
 }
 
 fun compareMetaData(aiMetadata: AiMetadata, aiMetadata1: AiMetadata) {
-
+    // TODO
 }
 
 fun compareMaterials(a1: AiMaterial, a2: AiMaterial) {

@@ -5,7 +5,8 @@ import assimp.format.ProgressHandler
 /** Internal PIMPL implementation for Assimp::Importer   */
 class ImporterPimpl {
 
-    var isDefaultHandler = true
+    val isDefaultHandler
+        get() = ioSystem is DefaultIOSystem
 
     /** Progress handler for feedback. */
     var progressHandler: ProgressHandler = DefaultProgressHandler()

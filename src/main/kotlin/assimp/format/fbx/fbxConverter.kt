@@ -288,6 +288,7 @@ class Converter(val out: AiScene, val doc: Document) {
             direction.put(0f, -1f, 0f)
             up.put(0f, 0f, -1f)
 
+            @Suppress("REDUNDANT_ELSE_IN_WHEN")
             type = when (light.type) {
                 Light.Type.Point -> AiLightSourceType.POINT
                 Light.Type.Directional -> AiLightSourceType.DIRECTIONAL
@@ -308,6 +309,7 @@ class Converter(val out: AiScene, val doc: Document) {
             }
 
             val decay = light.decayStart
+            @Suppress("REDUNDANT_ELSE_IN_WHEN")
             when (light.decayType) {
                 Light.Decay.None -> {
                     attenuationConstant = decay
@@ -1194,7 +1196,7 @@ class Converter(val out: AiScene, val doc: Document) {
                             logger.warn("did not find UV channel named $uvSet in a mesh using this material")
                             continue
                         }
-                        if (uvIndex == -1)
+                        if (uvIndex == -1) // TODO this is never true, what should this really be?
                             uvIndex = index
                         else
                             logger.warn("the UV channel named $uvSet appears at different positions in meshes, results will be wrong")
@@ -1537,8 +1539,8 @@ class Converter(val out: AiScene, val doc: Document) {
                 // this can happen - it could also be a NodeAttribute (i.e. for camera animations)
                 val model = node.target as? Model ?: continue
 
-                val name = fixNodeName(model.name)
-                nodeMap[name]!!.add(node)
+                val nodeName = fixNodeName(model.name)
+                nodeMap[nodeName]!!.add(node)
 
                 layerMap[node] = layer
             }

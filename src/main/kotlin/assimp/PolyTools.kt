@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** @file PolyTools.h, various utilities for our dealings with arbitrary polygons */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package assimp
 
 import glm_.vec2.Vec2

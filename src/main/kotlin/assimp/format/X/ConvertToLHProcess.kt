@@ -9,7 +9,6 @@ object MakeLeftHandedProcess {
 
     fun Execute(pScene: AiScene) {
         // Check for an existent root node to proceed
-        assert(pScene.rootNode != null)
         debug("MakeLeftHandedProcess: MakeLeftHandedProcess begin")
 
         // recursively convert all the nodes

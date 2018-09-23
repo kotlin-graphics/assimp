@@ -223,6 +223,7 @@ class Structure {
         } as T
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> convertDispatcher(db: FileDatabase): T = when (name) {
         "int" -> db.reader.int as T
         "short" -> db.reader.short as T

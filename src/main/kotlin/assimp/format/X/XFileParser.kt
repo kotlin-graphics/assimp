@@ -150,9 +150,9 @@ class XFileParser() {
         var guid: String = GetNextToken()
 
         // read and ignore data members
-        var running = true
+        val running = true
         while (running) {
-            var s: String = GetNextToken()
+            val s: String = GetNextToken()
 
             if (s == "}")
                 break
@@ -230,30 +230,29 @@ class XFileParser() {
     }
 
     fun ParseDataObjectMesh(pMesh: Mesh) {
-        var name: String
-        var builder: StringBuilder = StringBuilder()
+        val builder: StringBuilder = StringBuilder()
         readHeadOfDataObject(builder)
 
-        var numVertices: Int = ReadInt()
-        pMesh.mPositions.resize(numVertices, { AiVector3D() })
+        val numVertices: Int = ReadInt()
+        pMesh.mPositions.resize(numVertices) { AiVector3D() }
 
         for (a in IntRange(0, numVertices - 1))
             pMesh.mPositions.set(a, ReadVector3())
 
-        var numPosFaces: Int = ReadInt()
-        pMesh.mPosFaces.resize(numPosFaces, { Face() })
+        val numPosFaces: Int = ReadInt()
+        pMesh.mPosFaces.resize(numPosFaces) { Face() }
         for (a in 0 until numPosFaces) {
-            var numIndices: Int = ReadInt()
-            var face: Face = pMesh.mPosFaces.get(a)
+            val numIndices: Int = ReadInt()
+            val face: Face = pMesh.mPosFaces.get(a)
             for (b in IntRange(0, numIndices - 1)) {
                 face.mIndices.push_back(ReadInt())
             }
             TestForSeparator()
         }
 
-        var running = true
+        val running = true
         while (running) {
-            var objectName: String = GetNextToken()
+            val objectName: String = GetNextToken()
 
             if (objectName.length == 0)
                 throw Error("Unexpected end of file while parsing mesh structure")

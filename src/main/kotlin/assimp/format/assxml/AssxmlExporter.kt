@@ -91,19 +91,17 @@ class AssxmlExporter {
         }
 
         fun WriteDump(scene : AiScene, io : StringBuilder, shortened : Boolean) {
-            var tt=Calendar.getInstance(TimeZone.getTimeZone("GMT"))
-            var p = SimpleDateFormat("HH:mm:ss").format(tt.time)
-            assert(p!=null)
+            val tt=Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+            val curtime = SimpleDateFormat("HH:mm:ss").format(tt.time)!!
 
             // write header
-            var header=(
+            val header=(
                     "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ASSIMP format_id=\"1\">\n\n<!-- XML Model dump produced by assimp dump\n  Library version: %d.%d.%d\n  %s\n-. \n\n<Scene flags=\"%d\" postprocessing=\"%d\">\n"
                     )
 
-            var majorVersion=( versionMajor )
-            var minorVersion=( versionMinor )
-            var rev=( versionRevision )
-            var curtime = (p)
+            val majorVersion=( versionMajor )
+            val minorVersion=( versionMinor )
+            val rev=( versionRevision )
             ioprintf( io, header.format(majorVersion, minorVersion, rev, curtime, scene.flags, 0 ))
 
             // write the node graph
@@ -112,7 +110,8 @@ class AssxmlExporter {
             //#if 0
             // write cameras
             for (i in 0 until scene.numCameras) {
-                var cam  = scene.cameras[i];var name = StringBuilder()
+                val cam  = scene.cameras[i]
+                val name = StringBuilder()
                 ConvertName(name,cam.name)
 
                 // camera header
@@ -126,7 +125,8 @@ class AssxmlExporter {
 
             // write lights
             for (i in 0 until scene.numLights) {
-                var l  = scene.lights[i]; var name = StringBuilder()
+                val l  = scene.lights[i]
+                val name = StringBuilder()
                 ConvertName(name,l.name)
 
                 // light header

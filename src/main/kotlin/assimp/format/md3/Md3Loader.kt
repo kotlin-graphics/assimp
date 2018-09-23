@@ -726,7 +726,6 @@ class Md3Importer : BaseImporter() {
     fun removeSingleNodeFromList(nd: AiNode?) {
         if (nd == null || nd.numChildren != 0 || nd.parent == null) return
         val par = nd.parent!!
-        var i = 0
         if (par.children.remove(nd)) --par.numChildren
     }
 
@@ -793,13 +792,12 @@ class Md3Importer : BaseImporter() {
             /*  HACK: If the paths starts with "models", ignore the next two hierarchy levels, it specifies just the
                 model name.
                 Ignored by Q3, it might be not equal to the real model location. */
-            var len2 = 6
-            val len1 = end1
+            val len2: Int
             if (textureName.startsWith("models") && (textureName[6] == '/' || textureName[6] == '\\')) {
                 len2 = 6 // ignore the seventh - could be slash or backslash
                 if (headerName[0] == NUL)
                     return textureName.substring(end2 + 1) // Use the file name only
-            } else len2 = min(len1, end2)
+            } else len2 = min(end1, end2)
             if (textureName.startsWith(headerName.substring(0, len2)))
                 return textureName.substring(end2 + 1) // Use the file name only
         }

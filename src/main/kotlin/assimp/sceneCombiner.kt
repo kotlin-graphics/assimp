@@ -275,7 +275,7 @@ object SceneCombiner {
         var n = src.lastIndex
         while (n >= 0) { /* !!! important !!! */
             val cur = src[n]
-            var node: AiNode? = null
+            var node: AiNode?
 
             // To offset or not to offset, this is the question
             if (n != duplicates[n]) {

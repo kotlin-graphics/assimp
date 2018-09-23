@@ -39,7 +39,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     fun parseFile(streamBuffer: BufferedReader) {
 
 
-        var line: String? = ""
+        var line: String?
         do {
             //Support for continuationToken
             line = ObjTools.getNextDataLine(streamBuffer, "\\")

@@ -62,16 +62,14 @@ fun Importer.testFile(path: String,
                       verify: AiScene.() -> Unit = {}): AiScene? {
 
 	logger.info { "Testing read $path:" }
-	var scene: AiScene? = null
 
 	logger.info { "reading from file:"}
 
-	scene = readFile(path, flags)
+	var scene = readFile(path, flags)
 	if (scene == null && failOnNull) {
 		fail("readFile returned 'null' for $path")
-	} else {
-		scene?.verify()
 	}
+	scene?.verify()
 
 	logger.info { "reading from memory:" }
 
@@ -84,9 +82,8 @@ fun Importer.testFile(path: String,
 	val memScene = readFileFromMemory(buffer, flags, hint)
 	if (memScene == null && failOnNull) {
 		fail("readFileFromMemory returned 'null' for $path")
-	} else {
-		memScene?.verify()
 	}
+	memScene?.verify()
 
 	if(scene == null) scene = memScene
 
