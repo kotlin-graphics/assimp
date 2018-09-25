@@ -9,7 +9,7 @@ group = 'com.github.kotlin-graphics'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.70'
+    ext.kotlinVersion = '1.2.71'
 
     repositories {
         jcenter()
