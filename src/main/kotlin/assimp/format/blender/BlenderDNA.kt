@@ -536,7 +536,9 @@ data class FileBlockHead(
         // index into DNA
         var dnaIndex: Int = 0,
         // number of structure instances to follow
-        var num: Int = 0) {
+        var num: Int = 0) : Comparable<FileBlockHead> {
+
+    override fun compareTo(other: FileBlockHead): Int = address.compare(other.address)
 
 
     // file blocks are sorted by address to quickly locate specific memory addresses

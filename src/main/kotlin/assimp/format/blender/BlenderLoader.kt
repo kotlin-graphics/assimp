@@ -91,13 +91,12 @@ class BlenderImporter : BaseImporter() {
 
         parseBlendFile(db)
 
-//        Scene scene;
-//        ExtractScene(scene,file);
+        val scene = extractScene(db)
 //
 //        ConvertBlendFile(pScene,scene,file);
     }
 
-    fun parseBlendFile(out: FileDatabase) {
+    private fun parseBlendFile(out: FileDatabase) {
 
         val dnaReader = DnaParser(out)
         var dna: DNA? = null
@@ -123,6 +122,8 @@ class BlenderImporter : BaseImporter() {
         }
         if (dna == null) throw Error("SDNA not found")
 
-//        std::sort(out.entries.begin(), out.entries.end());
+        out.entries.sort()
     }
+
+    private fun extractScene(file: FileDatabase): Scene = TODO()
 }
