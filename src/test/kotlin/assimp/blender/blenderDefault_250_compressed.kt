@@ -15,7 +15,7 @@ object blenderDefault_250_compressed {
 
     operator fun invoke(fileName: String) {
 
-        Importer().testFile(fileName) {
+        Importer().testFile(getResource(fileName)) {
 
 //            flags shouldBe 0
 //

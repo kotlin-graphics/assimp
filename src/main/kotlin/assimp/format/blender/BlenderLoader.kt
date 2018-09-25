@@ -26,7 +26,7 @@ class BlenderImporter : BaseImporter() {
         val extension = getExtension(file)
         if (extension == "blend") return true
         else if (extension.isEmpty() || checkSig) {
-            TODO()
+            // TODO
             // note: this won't catch compressed files
 //            return SearchFileHeaderForToken(pIOHandler,pFile, TokensForSearch,1);
         }
