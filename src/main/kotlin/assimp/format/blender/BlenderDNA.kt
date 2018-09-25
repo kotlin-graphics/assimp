@@ -526,31 +526,18 @@ class DNA {
 //
 /** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
  *  (or otherwise unspecified data). */
-class FileBlockHead() {
-    /** points right after the header of the file block */
-    var start = 0
+data class FileBlockHead(
+		/** points right after the header of the file block */
+		var start: Int = 0,
+        var id: String = "",
+        var size: Int = 0,
+        // original memory address of the data
+        var address: Long = 0L,
+        // index into DNA
+        var dnaIndex: Int = 0,
+        // number of structure instances to follow
+        var num: Int = 0) {
 
-    var id = ""
-    var size = 0
-
-    // original memory address of the data
-    var address = 0L
-
-    // index into DNA
-    var dnaIndex = 0
-
-    // number of structure instances to follow
-    var num = 0
-
-    // TODO copy constructor, consider using data class and copy instead
-    constructor(other: FileBlockHead) : this() {
-        start = other.start
-        id = other.id
-        size = other.size
-        address = other.address
-        dnaIndex = other.dnaIndex
-        num = other.num
-    }
 
     // file blocks are sorted by address to quickly locate specific memory addresses
 //    bool operator < (const FileBlockHead& o)

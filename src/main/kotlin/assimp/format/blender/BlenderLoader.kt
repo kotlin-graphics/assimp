@@ -109,7 +109,7 @@ class BlenderImporter : BaseImporter() {
         // first parse the file in search for the DNA and insert all other sections into the database
         while (true) {
             parser.next()
-            val head = FileBlockHead(parser.current)
+            val head = parser.current.copy()
 
             if (head.id == "ENDB")
                 break // only valid end of the file
