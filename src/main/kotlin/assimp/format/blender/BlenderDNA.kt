@@ -575,20 +575,17 @@ class FileBlockHead() {
 /** Utility to read all master file blocks in turn. */
 class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 
-    // HINT this current is only changed value by value. The way each single block is saved is by creating a copy of current
-    // TODO should I change next to return a FileBlockHead instead??
     val current = FileBlockHead()
 
     /** Advance to the next section.
      *  @throw DeadlyImportError if the last chunk was passed. */
     fun next() {
 
-        if(stream.pos + current.size >= stream.size)
-            println()   // TODO ????
-        stream.pos += current.size
+	    // we can not simply increment the pos, because the stream pos is undefined when next is called
+        stream.pos = current.start + current.size
 
         val tmp = CharArray(4) { stream.get().c }
-        current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)    // TODO tmp.toString().trim() ???
+        current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)
 
         current.size = stream.int
         current.address = if (ptr64) stream.long else stream.int.L
@@ -597,6 +594,11 @@ class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
         current.num = stream.int
 
         current.start = stream.pos
+
+	    if(ASSIMP.BLENDER_DEBUG){
+		    logger.info("BLEND FileBlockHead: ${current.id}")
+	    }
+
         if (stream.limit() - stream.pos < current.size)
             throw Error("BLEND: invalid size of file block")
     }
@@ -769,13 +771,7 @@ class DnaParser(
      *  @note The position of the stream pointer is undefined afterwards.   */
     fun parse() {
 
-        // TODO is this correct (compare with original C version)
-        // the doc says the stream pos is undefined after this method so I should probably not rely on it
-        // another option is to just do this different than the C version
-
-        // we don't want to modify the position of the original stream as to not interfere with reading the FileBlockHeader
-        val stream = db.reader.duplicate()
-        stream.order(if(db.little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
+        val stream = db.reader
 
         if (stream doesntMatch "SDNA") throw Error("BlenderDNA: Expected SDNA chunk")
         // name dictionary

@@ -87,7 +87,7 @@ class BlenderImporter : BaseImporter() {
         val minor = buffer.get().c.parseInt() * 10 + buffer.get().c.parseInt()
         logger.info("Blender version is $major.$minor (64bit: ${db.i64bit}, little endian: ${db.little})")
 
-        db.reader = buffer
+        db.reader = buffer.slice().order(if(db.little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
 
         parseBlendFile(db)
 
