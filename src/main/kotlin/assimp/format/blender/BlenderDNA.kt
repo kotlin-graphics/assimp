@@ -44,7 +44,8 @@ package assimp.format.blender
 
 import assimp.*
 import glm_.*
-import java.nio.ByteBuffer
+import kool.*
+import java.nio.*
 
 /** @file  BlenderDNA.h
  *  @brief Blender `DNA` (file format specification embedded in
@@ -541,6 +542,7 @@ class FileBlockHead() {
     // number of structure instances to follow
     var num = 0
 
+    // TODO copy constructor, consider using data class and copy instead
     constructor(other: FileBlockHead) : this() {
         start = other.start
         id = other.id
@@ -573,6 +575,8 @@ class FileBlockHead() {
 /** Utility to read all master file blocks in turn. */
 class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 
+    // HINT this current is only changed value by value. The way each single block is saved is by creating a copy of current
+    // TODO should I change next to return a FileBlockHead instead??
     val current = FileBlockHead()
 
     /** Advance to the next section.
@@ -580,11 +584,11 @@ class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
     fun next() {
 
         if(stream.pos + current.size >= stream.size)
-            println()
+            println()   // TODO ????
         stream.pos += current.size
 
         val tmp = CharArray(4) { stream.get().c }
-        current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)
+        current.id = String(tmp, 0, if (tmp[3] != NUL) 4 else if (tmp[2] != NUL) 3 else if (tmp[1] != NUL) 2 else 1)    // TODO tmp.toString().trim() ???
 
         current.size = stream.int
         current.address = if (ptr64) stream.long else stream.int.L
@@ -710,8 +714,9 @@ class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 class FileDatabase {
 
     // publicly accessible fields
+    // TODO is64, little and reader should be part of the constructor, also reader does not need to be lateinit
     var i64bit = false
-    var little = false
+    var little = false      // TODO this is not used I only added it for dnaParser not for the rest
 
     var dna = DNA()
     lateinit var reader: ByteBuffer
@@ -758,13 +763,19 @@ class DnaParser(
         /** Bind the parser to a empty DNA and an input stream */
         val db: FileDatabase) {
 
-    /** Locate the DNA in the file and parse it. The input stream is expected to point to the beginning of the DN1 chunk
+    /** Locate the DNA in the file and parse it. The input stream is expected to point to the beginning of the DNA1 chunk
      *  at the time this method is called and is undefined afterwards.
      *  @throw DeadlyImportError if the DNA cannot be read.
      *  @note The position of the stream pointer is undefined afterwards.   */
     fun parse() {
-        val stream = db.reader
-        val dna = db.dna
+
+        // TODO is this correct (compare with original C version)
+        // the doc says the stream pos is undefined after this method so I should probably not rely on it
+        // another option is to just do this different than the C version
+
+        // we don't want to modify the position of the original stream as to not interfere with reading the FileBlockHeader
+        val stream = db.reader.duplicate()
+        stream.order(if(db.little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
 
         if (stream doesntMatch "SDNA") throw Error("BlenderDNA: Expected SDNA chunk")
         // name dictionary

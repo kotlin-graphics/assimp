@@ -44,9 +44,11 @@ class BlenderImporter : BaseImporter() {
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
-    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
+    override fun internReadFile(fileName: String, ioSystem: IOSystem, scene: AiScene) {
 
-        buffer = ioSystem.open(file).readBytes()
+        val file = ioSystem.open(fileName)
+
+        buffer = file.readBytes()
 
         var match = buffer.strncmp(tokens)
         if (!match) {
@@ -54,17 +56,18 @@ class BlenderImporter : BaseImporter() {
             // compressed blend file and try uncompressing it, else fail. This is to
             // avoid uncompressing random files which our loader might end up with.
 
-            val output = File("temp")
+            val output = File("temp")   // TODO use a temp outputStream instead of writing to disc, maybe?
 
-            GZIPInputStream(FileInputStream(File(file))).use { gzip ->
-                FileOutputStream(output).use({ out ->
+            GZIPInputStream(file.read()).use { gzip ->
+
+                FileOutputStream(output).use { out ->
                     val buffer = ByteArray(1024)
                     var len = gzip.read(buffer)
                     while (len != -1) {
                         out.write(buffer, 0, len)
                         len = gzip.read(buffer)
                     }
-                })
+                }
             }
             val fc = RandomAccessFile(output, "r").channel
             buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).order(ByteOrder.nativeOrder())
@@ -72,15 +75,17 @@ class BlenderImporter : BaseImporter() {
             match = buffer.strncmp(tokens)
             if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
             buffer.pos += tokens.length
+
+            output.delete()
         }
 
         val db = FileDatabase().apply {
-            i64bit = buffer.get().c == '-'
-            little = buffer.get().c == 'v'
+            i64bit = buffer.get().c == '-'      // 32 bit should be '_'
+            little = buffer.get().c == 'v'      // big endian should be 'V'
         }
         val major = buffer.get().c.parseInt()
         val minor = buffer.get().c.parseInt() * 10 + buffer.get().c.parseInt()
-        logger.info("Blender version is $major.$minor (64bit: ${db.i64bit}, little endian: ${db.little}")
+        logger.info("Blender version is $major.$minor (64bit: ${db.i64bit}, little endian: ${db.little})")
 
         db.reader = buffer
 
