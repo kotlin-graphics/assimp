@@ -3,7 +3,6 @@ package assimp.format.blender
 import assimp.*
 import glm_.*
 import kotlin.math.min
-import kotlin.reflect.KFunction0
 import kotlin.reflect.KMutableProperty0
 import assimp.format.blender.ErrorPolicy as Ep
 
@@ -29,7 +28,6 @@ class Structure (val db: FileDatabase) {
         val index = indices[ss] ?: throw Exception("BlendDNA: Did not find a field named `$ss` in structure `$name`")
         return fields[index.i]
     }
-//    fun get_(ss:String) =
 
     /** Access a field of the structure by its index */
     operator fun get(i: Long) = fields.getOrElse(i.i) { throw Error("BlendDNA: There is no field with index `$i` in structure `$name`") }
@@ -268,7 +266,7 @@ class Structure (val db: FileDatabase) {
      *  The return value indicates whether the data was already cached.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> readField(errorPolicy: Ep, out: T, name: String): T {
+    fun <T: Any> readField(errorPolicy: Ep, out: T, name: String): T {
 
         val old = db.reader.pos
         try {
@@ -285,9 +283,9 @@ class Structure (val db: FileDatabase) {
                     is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
                     is Int -> (out as KMutableProperty0<Int>).set(s.convertInt())
                     is Char -> (out as KMutableProperty0<Char>).set(s.convertChar)
-                    else -> throw Error()
+                    else -> throw Error("Field type of ${out()?.javaClass?.canonicalName} is not yet supported")
                 }
-                else -> throw Error()
+                else -> throw Error("Invalid field type of ${out.javaClass.canonicalName}")
             }
         } catch (e: Exception) {
             error(errorPolicy, out, e.message)
@@ -471,17 +469,17 @@ class Structure (val db: FileDatabase) {
             return false
         }
 
-        val first = builders.first as KFunction0<ElemBase>
+        val constructor = builders.first!!  // TODO why are those even nullable?
         // allocate the object hull
-        out.set(first())
+        out.set(constructor())
 
         /*  cache the object immediately to prevent infinite recursion in a circular list with a single element
             (i.e. a self-referencing element).         */
         db.cache.set(s, out, ptrVal)
 
         // and do the actual conversion
-        val second = builders.second as Structure.(KMutableProperty0<ElemBase?>) -> Unit
-        s.second(out)
+        val converter = builders.second!!
+        s.converter(out)
         db.reader.pos = pOld
 
         /*  store a pointer to the name string of the actual type in the object itself. This allows the conversion code
@@ -508,6 +506,11 @@ class Structure (val db: FileDatabase) {
             throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, nearest file block starting at " +
                     "0x${it.address.toHexString} ends at 0x${(it.address + it.size).toHexString}")
         return it
+    }
+
+    fun <T>KMutableProperty0<T?>.setIfNull(value: T): T {
+        val result = this() ?: value.also{ set(value) }
+        return result
     }
 //
 //    private :
@@ -555,7 +558,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertObject(dest: KMutableProperty0<Object?>) {
 
-        val d = dest() ?: Object().also { dest.set(it) }
+        val d = dest.setIfNull(Object())
 
         readField(Ep.Fail, d.id, "id")
         readField(Ep.Fail, ::e, "type")
@@ -578,7 +581,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertGroup(dest: KMutableProperty0<Group?>) {
 
-        val d = dest() ?: Group().also { dest.set(it) }
+        val d = dest.setIfNull(Group())
 
         readField(Ep.Fail, d.id, "id")
         readField(Ep.Igno, d.layer, "layer")
@@ -589,7 +592,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertMTex(dest: KMutableProperty0<MTex?>) {
 
-        val d = dest() ?: MTex().also { dest.set(it) }
+        val d = dest.setIfNull(MTex())
 
         readField(Ep.Igno, ::e, "mapto")
         d.mapTo = MTex.MapType of e
@@ -630,7 +633,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertTFace(dest: KMutableProperty0<TFace?>) {
 
-        val d = dest() ?: TFace().also { dest.set(it) }
+        val d = dest.setIfNull(TFace())
 
         readFieldArray2(Ep.Fail, d.uv, "uv")
         readFieldIntArray(Ep.Fail, d.col, "col")
@@ -644,7 +647,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertSubsurfModifierData(dest: KMutableProperty0<SubsurfModifierData?>) {
 
-        val d = dest() ?: SubsurfModifierData().also { dest.set(it) }
+        val d = dest.setIfNull(SubsurfModifierData())
 
         readField(Ep.Fail, d.modifier, "modifier")
         readField(Ep.Warn, d::subdivType, "subdivType")
@@ -655,9 +658,9 @@ class Structure (val db: FileDatabase) {
         db.reader.pos += size.i
     }
 
-    fun convertMFace(dest: KMutableProperty0<MFace? >) {
+    fun convertMFace(dest: KMutableProperty0<MFace?>) {
 
-        val d = dest() ?: MFace().also { dest.set(it) }
+        val d = dest.setIfNull(MFace())
 
         readField(Ep.Fail, d::v1, "v1")
         readField(Ep.Fail, d::v2, "v2")
@@ -671,9 +674,9 @@ class Structure (val db: FileDatabase) {
 
     fun convertLamp(dest: KMutableProperty0<Lamp?>) {
 
-        val d = dest() ?: Lamp().also { dest.set(it) }
+        val d = dest.setIfNull(Lamp())
 
-        readField(Ep.Fail, d::id,"id")
+        readField(Ep.Fail, d.id,"id")
         readField(Ep.Fail, ::e,"type")
         d.type = Lamp.Type of e
         readField(Ep.Igno, d::flags,"flags")
@@ -702,7 +705,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertMDeformWeight(dest: KMutableProperty0<MDeformWeight?>) {
 
-        val d = dest() ?: MDeformWeight().also { dest.set(it) }
+        val d = dest.setIfNull(MDeformWeight())
 
         readField(Ep.Fail, d::defNr,"def_nr")
         readField(Ep.Fail, d::weight,"weight")
@@ -712,7 +715,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertPackedFile(dest: KMutableProperty0<PackedFile?>) {
 
-        val d = dest() ?: PackedFile().also { dest.set(it) }
+        val d = dest.setIfNull(PackedFile())
 
         readField(Ep.Warn, d::size,"size")
         readField(Ep.Warn, d::seek,"seek")
@@ -729,7 +732,7 @@ class Structure (val db: FileDatabase) {
 
         val initialPos = db.reader.pos
 
-        var todo = (dest() ?: Base().also { dest.set(it) }) to initialPos
+        var todo = dest.setIfNull(Base()) to initialPos
         while (true) {
 
             val curDest = todo.first
@@ -752,6 +755,7 @@ class Structure (val db: FileDatabase) {
 
         db.reader.pos = initialPos + size.i
     }
+
 //
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MTFace> (
@@ -768,6 +772,9 @@ class Structure (val db: FileDatabase) {
 //
 //        db.reader->IncPtr(size);
 //    }
+    fun convertMTFace(dest: KMutableProperty0<MTFace?>) {
+        TODO()
+    }
 //
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<Material> (
@@ -946,6 +953,13 @@ class Structure (val db: FileDatabase) {
 //        db.reader->IncPtr(size);
 //    }
 //
+
+    fun convertMesh(dest: KMutableProperty0<Mesh?>) {
+
+        val d = dest.setIfNull(Mesh())
+
+        // TODO()
+    }
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MDeformVert> (
 //    MDeformVert& dest,
@@ -962,7 +976,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertWorld(dest: KMutableProperty0<World?>) {
 
-        val d = dest() ?: World().also { dest.set(it) }
+        val d = dest.setIfNull(World())
 
         readField(Ep.Fail, d.id, "id")
 
@@ -1032,7 +1046,7 @@ class Structure (val db: FileDatabase) {
 
     fun convertGroupObject(dest: KMutableProperty0<GroupObject?>) {
 
-        val d = dest() ?: GroupObject().also { dest.set(it) }
+        val d = dest.setIfNull(GroupObject())
 
         readFieldPtr(Ep.Fail, d::prev, "*prev")
         readFieldPtr(Ep.Fail, d::next, "*next")
@@ -1179,7 +1193,9 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Warn, ::e, "flag")
         d.flag = Camera.Type of e
         readField(Ep.Warn, d::lens, "lens")
-        readField(Ep.Warn, d::sensorX, "sensor_x")
+        readField(Ep.Warn, d::sensorX, "sensor_x")      /* TODO my current test file does not contain this.
+        This might be because the sensor_x (I think it corresponds to sensor_width in bpy doc) default is 0.0f as it is here
+        and therefor does not need to be part of the saved file. I should check that */
         readField(Ep.Igno, d::clipSta, "clipsta")
         readField(Ep.Igno, d::clipEnd, "clipend")
 

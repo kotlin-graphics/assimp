@@ -139,16 +139,16 @@ class BlenderImporter : BaseImporter() {
 
         val out = ss.convertScene()
 
-        /*
-    #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
-    ASSIMP_LOG_INFO_F(
-        "(Stats) Fields read: " ,file.stats().fields_read,
-        ", pointers resolved: " ,file.stats().pointers_resolved,
-        ", cache hits: "        ,file.stats().cache_hits,
-        ", cached objects: "    ,file.stats().cached_objects
-    );
-    #endif
-     */
+	    if(!ASSIMP.BLENDER_NO_STATS) {
+		    val stats = file.stats
+		    logger.info {
+			    "(Stats) Fields read: ${stats.fieldsRead}, " +
+			    "pointers resolved: ${stats.pointersResolved}, " +
+			    "cache hits: ${stats.cacheHits}, " +
+			    "cached objects: ${stats.cachedObjects}"
+		    }
+	    }
+
 	    return out
     }
 }
@@ -156,5 +156,5 @@ class BlenderImporter : BaseImporter() {
 fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {
     ErrorPolicy.Warn -> logger.warn { "value: $value, $message" }
     ErrorPolicy.Fail -> throw Error( "value: $value, $message" )
-    ErrorPolicy.Igno -> if (ASSIMP.BLENDER_DEBUG) error(ErrorPolicy.Warn, value, message) else Unit
+    ErrorPolicy.Igno -> if (ASSIMP.BLENDER_DEBUG) logger.info { "value: $value, $message" } else Unit
 }

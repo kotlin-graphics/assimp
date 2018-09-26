@@ -205,25 +205,16 @@ class TFace : ElemBase() {
     var unwrap = 0.s
 }
 
-//// -------------------------------------------------------------------------------
-//struct MTFace : ElemBase {
-//    MTFace()
-//    : flag(0)
-//    , mode(0)
-//    , tile(0)
-//    , unwrap(0)
-//    {
-//    }
-//
-//    float uv [4][2] FAIL;
-//    char flag;
-//    short mode;
-//    short tile;
-//    short unwrap;
-//
-//    // std::shared_ptr<Image> tpage;
-//};
-//
+class MTFace : ElemBase() {
+
+    var uv = Array(4) { FloatArray(2) }
+    var flag: Char = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var unwrap = 0.s
+
+    var tpage: Image? = null
+}
 
 class MDeformWeight : ElemBase()  {
     var defNr = 0
@@ -357,37 +348,38 @@ class Material : ElemBase() {
     var mTex = Array(18) { MTex() }
 }
 
-// -------------------------------------------------------------------------------
-//struct Mesh : ElemBase {
-//    ID id FAIL;
-//
-//    int totface FAIL;
-//    int totedge FAIL;
-//    int totvert FAIL;
-//    int totloop;
-//    int totpoly;
-//
-//    short subdiv;
-//    short subdivr;
-//    short subsurftype;
-//    short smoothresh;
-//
-//    vector<MFace> mface FAIL;
-//    vector<MTFace> mtface;
-//    vector<TFace> tface;
-//    vector<MVert> mvert FAIL;
-//    vector<MEdge> medge WARN;
-//    vector<MLoop> mloop;
-//    vector<MLoopUV> mloopuv;
-//    vector<MLoopCol> mloopcol;
-//    vector<MPoly> mpoly;
-//    vector<MTexPoly> mtpoly;
-//    vector<MDeformVert> dvert;
-//    vector<MCol> mcol;
-//
-//    vector < std::shared_ptr<Material> > mat FAIL;
-//};
-//
+class Mesh : ElemBase() {
+
+    var id = Id()
+
+    var totface = 0
+    var totedge = 0
+    var totvert = 0
+    var totloop = 0
+    var totpoly = 0
+
+    var subdiv = 0.s
+    var subdivr = 0.s
+    var subsurftype = 0.s
+    var smoothresh = 0.s
+
+    // TODO those lists represent C vector, should I maybe represent them as emptyList instead of null default?
+    var mface: List<MFace>? = null
+    var mtface: List<MTFace>? = null
+    var tface: List<TFace>? = null
+    var mvert: List<MVert>? = null
+    var medge: List<MEdge>? = null
+    var mloop: List<MLoop>? = null
+    var mloopuv: List<MLoopUV>? = null
+    var mloopcol: List<MLoopCol>? = null
+    var mpoly: List<MPoly>? = null
+    var mtpoly: List<MTexPoly>? = null
+    var dvert: List<MDeformVert>? = null
+    var mcol: List<MCol>? = null
+
+    var mat: List<Material?>? = null
+
+}
 //// -------------------------------------------------------------------------------
 //struct Library : ElemBase {
 //    ID id FAIL;

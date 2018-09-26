@@ -78,6 +78,10 @@ import kotlin.reflect.*
 //}
 //};
 //
+
+typealias ElemBaseConstructor = KFunction0<ElemBase>
+typealias ElemBaseConverter = (Structure.(KMutableProperty0<ElemBase?>) -> Unit)
+
 /** The only purpose of this structure is to feed a virtual dtor into its descendents. It serves as base class for
  *  all data structure fields.  */
 open class ElemBase {
@@ -300,22 +304,24 @@ class DNA {
      *  complete object in intermediate representation.
      *  @param structure Destination structure definition
      *  @param db File database.
-     *  @return A null pointer in .first if no appropriate converter is available.  */
-    fun getBlobToStructureConverter(structure: Structure) = when (structure.name) {
-        "Object" -> ::Object to (Structure::convertObject as Structure.(KMutableProperty0<ElemBase>) -> Unit)
+     *  @return A null pointer in .first if no appropriate converter is available.
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun getBlobToStructureConverter(structure: Structure): Pair<ElemBaseConstructor?, ElemBaseConverter?> = when (structure.name) {
+        "Object" -> ::Object to Structure::convertObject as ElemBaseConverter
 //            converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
 //            converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
 //            converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
 //            converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
 //            converters["MFace"] = DNA::FactoryPair( &Structure::Allocate<MFace>, &Structure::Convert<MFace> );
-//            converters["Lamp"] = DNA::FactoryPair( &Structure::Allocate<Lamp>, &Structure::Convert<Lamp> );
+        "Lamp" -> ::Lamp to Structure::convertLamp as ElemBaseConverter
 //            converters["MDeformWeight"] = DNA::FactoryPair( &Structure::Allocate<MDeformWeight>, &Structure::Convert<MDeformWeight> );
 //            converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
 //            converters["Base"] = DNA::FactoryPair( &Structure::Allocate<Base>, &Structure::Convert<Base> );
 //            converters["MTFace"] = DNA::FactoryPair( &Structure::Allocate<MTFace>, &Structure::Convert<MTFace> );
 //            converters["Material"] = DNA::FactoryPair( &Structure::Allocate<Material>, &Structure::Convert<Material> );
 //            converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
-//            converters["Mesh"] = DNA::FactoryPair( &Structure::Allocate<Mesh>, &Structure::Convert<Mesh> );
+        "Mesh" -> ::Mesh to Structure::convertMesh as ElemBaseConverter
 //            converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
 //            converters["World"] = DNA::FactoryPair( &Structure::Allocate<World>, &Structure::Convert<World> );
 //            converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
@@ -332,10 +338,10 @@ class DNA {
 //            converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
 //            converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //            converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-        "Camera" -> ::Camera to (Structure::convertCamera as Structure.(KMutableProperty0<ElemBase>) -> Unit)
+        "Camera" -> ::Camera to Structure::convertCamera as ElemBaseConverter
 //            converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
 //            converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
-        else -> null to null
+        else     -> null to null
     }
 
 //
