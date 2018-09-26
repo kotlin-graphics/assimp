@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.blender
 
 import assimp.NUL
+import glm_.s
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.
@@ -97,7 +98,7 @@ var maxNameLen = 1024
 
 class Id : ElemBase() {
     var name = ""
-    var flag = 0
+    var flag = 0.s
 }
 
 class ListBase : ElemBase() {
@@ -128,76 +129,82 @@ class World : ElemBase() {
     var id = Id()
 }
 
-// -------------------------------------------------------------------------------
-//struct MVert : ElemBase {
-//    float co [3] FAIL;
-//    float no [3] FAIL;
-//    char flag;
-//    int mat_nr WARN;
-//    int bweight;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MEdge : ElemBase {
-//    int v1, v2 FAIL;
-//    char crease, bweight;
-//    short flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoop : ElemBase {
-//    int v, e;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoopUV : ElemBase {
-//    float uv [2];
-//    int flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//// Note that red and blue are not swapped, as with MCol
-//struct MLoopCol : ElemBase {
-//    unsigned char r, g, b, a;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MPoly : ElemBase {
-//    int loopstart;
-//    int totloop;
-//    short mat_nr;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MTexPoly : ElemBase {
-//    Image * tpage;
-//    char flag, transp;
-//    short mode, tile, pad;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MCol : ElemBase {
-//    char r, g, b, a FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MFace : ElemBase {
-//    int v1, v2, v3, v4 FAIL;
-//    int mat_nr FAIL;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct TFace : ElemBase {
-//    float uv [4][2] FAIL;
-//    int col [4] FAIL;
-//    char flag;
-//    short mode;
-//    short tile;
-//    short unwrap;
-//};
-//
+class MVert : ElemBase() {
+    val co = FloatArray(3)
+    val no = FloatArray(3)
+    var flag = '\u0000'
+    var matNr = 0
+    var weight = 0
+}
+
+class MEdge : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var crease = '\u0000'
+    var weight = '\u0000'
+    var flag = 0.s
+}
+
+class MLoop : ElemBase() {
+    var v = 0
+    var e = 0
+}
+
+class MLoopUV : ElemBase() {
+    val uv = FloatArray(2)
+    var flag = 0
+}
+
+/** Note that red and blue are not swapped, as with MCol    */
+class MLoopCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
+class MPoly : ElemBase() {
+    var loopStart = 0
+    var totLoop = 0
+    var matNr = 0.s
+    var flag = '\u0000'
+}
+
+class MTexPoly : ElemBase() {
+    var tpage: Image? = null
+    var flag = '\u0000'
+    var transp = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var pad = 0.s
+}
+
+class MCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
+class MFace : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var v3 = 0
+    var v4 = 0
+    var matNr = 0
+    var flag = '\u0000'
+}
+
+
+class TFace : ElemBase() {
+    var uv = Array(4) { FloatArray(2) }
+    var col = IntArray(4)
+    var flag = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var unwrap = 0.s
+}
+
 //// -------------------------------------------------------------------------------
 //struct MTFace : ElemBase {
 //    MTFace()
@@ -217,17 +224,16 @@ class World : ElemBase() {
 //    // std::shared_ptr<Image> tpage;
 //};
 //
-//// -------------------------------------------------------------------------------
-//struct MDeformWeight : ElemBase  {
-//    int def_nr FAIL;
-//    float weight FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MDeformVert : ElemBase  {
-//    vector<MDeformWeight> dw WARN;
-//    int totweight;
-//};
+
+class MDeformWeight : ElemBase()  {
+    var defNr = 0
+    var weight = 0f
+}
+
+class MDeformVert : ElemBase()  {
+    val dw = ArrayList<MDeformWeight>()
+    var totWeight = 0
+}
 
 val MA_RAYMIRROR = 0x40000
 val MA_TRANSPARENCY = 0x10000
@@ -235,6 +241,7 @@ val MA_RAYTRANSP = 0x20000
 val MA_ZTRANSP = 0x00040
 
 class Material : ElemBase() {
+
     var id = Id()
 
     var r = 0f
@@ -390,104 +397,118 @@ class Material : ElemBase() {
 //    std::shared_ptr<Library> parent WARN;
 //};
 //
-//// -------------------------------------------------------------------------------
-//struct Camera : ElemBase {
-//    enum Type {
-//        Type_PERSP = 0
-//        ,Type_ORTHO = 1
-//    };
-//
-//    ID id FAIL;
-//
-//    Type type, flag WARN;
-//    float lens WARN;
-//    float sensor_x WARN;
-//    float clipsta, clipend;
-//};
-//
-//
-//// -------------------------------------------------------------------------------
-//struct Lamp : ElemBase {
-//
-//    enum FalloffType {
-//        FalloffType_Constant = 0x0
-//        ,FalloffType_InvLinear = 0x1
-//        ,FalloffType_InvSquare = 0x2
-//        //,FalloffType_Curve    = 0x3
-//        //,FalloffType_Sliders  = 0x4
-//    };
-//
-//    enum Type {
-//        Type_Local = 0x0
-//        ,Type_Sun = 0x1
-//        ,Type_Spot = 0x2
-//        ,Type_Hemi = 0x3
-//        ,Type_Area = 0x4
-//        //,Type_YFPhoton    = 0x5
-//    };
-//
-//    ID id FAIL;
-//    //AnimData *adt;
-//
-//    Type type FAIL;
-//    short flags;
-//
-//    //int mode;
-//
-//    short colormodel, totex;
-//    float r, g, b, k WARN;
-//    //float shdwr, shdwg, shdwb;
-//
-//    float energy, dist, spotsize, spotblend;
-//    //float haint;
-//
-//    float att1, att2;
-//    //struct CurveMapping *curfalloff;
-//    FalloffType falloff_type;
-//
-//    //float clipsta, clipend, shadspotsize;
-//    //float bias, soft, compressthresh;
-//    //short bufsize, samp, buffers, filtertype;
-//    //char bufflag, buftype;
-//
-//    //short ray_samp, ray_sampy, ray_sampz;
-//    //short ray_samp_type;
-//    short area_shape;
-//    float area_size, area_sizey, area_sizez;
-//    //float adapt_thresh;
-//    //short ray_samp_method;
-//
-//    //short texact, shadhalostep;
-//
-//    //short sun_effect_type;
-//    //short skyblendtype;
-//    //float horizon_brightness;
-//    //float spread;
-//    float sun_brightness;
-//    //float sun_size;
-//    //float backscattered_light;
-//    //float sun_intensity;
-//    //float atm_turbidity;
-//    //float atm_inscattering_factor;
-//    //float atm_extinction_factor;
-//    //float atm_distance_factor;
-//    //float skyblendfac;
-//    //float sky_exposure;
-//    //short sky_colorspace;
-//
-//    // int YF_numphotons, YF_numsearch;
-//    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
-//    // float YF_causticblur, YF_ltradius;
-//
-//    // float YF_glowint, YF_glowofs;
-//    // short YF_glowtype, YF_pad2;
-//
-//    //struct Ipo *ipo;
-//    //struct MTex *mtex[18];
-//    // short pr_texture;
-//
-//    //struct PreviewImage *preview;
-//};
+
+class Camera : ElemBase() {
+    enum class Type { PERSP, ORTHO, INVALID;
+
+        companion object {
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    var id = Id()
+
+    var type = Type.PERSP
+    var flag = Type.PERSP
+    var lens = 0f
+    var sensorX = 0f
+    var clipSta = 0f
+    var clipEnd = 0f
+}
+
+class Lamp : ElemBase() {
+
+    enum class FalloffType { Constant, InvLinear, InvSquare, INVALID;
+        //,FalloffType_Curve    = 0x3
+        //,FalloffType_Sliders  = 0x4
+        val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    enum class Type { Local, Sun, Spot, Hemi, Area, INVALID;
+        //,Type_YFPhoton    = 0x5
+        val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
+        }
+    }
+
+    var id = Id()
+    //AnimData *adt;
+
+    var type = Type.Local
+    var flags = 0.s
+
+    //int mode;
+
+    var colorModel = 0.s
+    var totex = 0.s
+    var r = 0f
+    var g = 0f
+    var b = 0f
+    var k = 0f
+    //float shdwr, shdwg, shdwb;
+
+    var energy = 0f
+    var dist = 0f
+    var spotSize = 0f
+    var spotBlend = 0f
+    //float haint;
+
+    var att1 = 0f
+    var att2 = 0f
+    //struct CurveMapping *curfalloff;
+    var falloffType = FalloffType.Constant
+
+    //float clipsta, clipend, shadspotsize;
+    //float bias, soft, compressthresh;
+    //short bufsize, samp, buffers, filtertype;
+    //char bufflag, buftype;
+
+    //short ray_samp, ray_sampy, ray_sampz;
+    //short ray_samp_type;
+    var areaShape = 0.s
+    var areaSize = 0f
+    var areaSizeY = 0f
+    var areaSizeZ = 0f
+    //float adapt_thresh;
+    //short ray_samp_method;
+
+    //short texact, shadhalostep;
+
+    //short sun_effect_type;
+    //short skyblendtype;
+    //float horizon_brightness;
+    //float spread;
+    var sunBrightness = 0f
+    //float sun_size;
+    //float backscattered_light;
+    //float sun_intensity;
+    //float atm_turbidity;
+    //float atm_inscattering_factor;
+    //float atm_extinction_factor;
+    //float atm_distance_factor;
+    //float skyblendfac;
+    //float sky_exposure;
+    //short sky_colorspace;
+
+    // int YF_numphotons, YF_numsearch;
+    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
+    // float YF_causticblur, YF_ltradius;
+
+    // float YF_glowint, YF_glowofs;
+    // short YF_glowtype, YF_pad2;
+
+    //struct Ipo *ipo;
+    //struct MTex *mtex[18];
+    // short pr_texture;
+
+    //struct PreviewImage *preview;
+}
 
 class ModifierData : ElemBase() {
 
@@ -506,27 +527,25 @@ class ModifierData : ElemBase() {
     var name = ""
 }
 
-// -------------------------------------------------------------------------------
-//struct SubsurfModifierData : ElemBase  {
-//
-//    enum Type {
-//
-//        TYPE_CatmullClarke = 0x0,
-//        TYPE_Simple = 0x1
-//    };
-//
-//    enum Flags {
-//        // some omitted
-//        FLAGS_SubsurfUV = 1 < <3
-//    };
-//
-//    ModifierData modifier FAIL;
-//    short subdivType WARN;
-//    short levels FAIL;
-//    short renderLevels;
-//    short flags;
-//};
-//
+class SubsurfModifierData : ElemBase()  {
+
+    enum class Type { CatmullClarke, Simple;
+
+        val i = ordinal
+    }
+
+    enum class Flags(val i: Int) {
+        // some omitted
+        SubsurfUV (1 shl 3)
+    }
+
+    var modifier = ModifierData()
+    var subdivType = 0.s
+    var levels = 0.s
+    var renderLevels = 0.s
+    var flags = 0.s
+}
+
 //// -------------------------------------------------------------------------------
 //struct MirrorModifierData : ElemBase {
 //
@@ -563,13 +582,17 @@ class Object : ElemBase() {
         CAMERA(11),
 
         WAVE(21),
-        LATTICE(22),
+        LATTICE(22);
+
+        companion object {
+            infix fun of(i: Int) = values().first { it.i == i }
+        }
     }
 
     var type = Type.EMPTY
     val obmat = Array(4) { FloatArray(4) }
     val parentinv = Array(4) { FloatArray(4) }
-    var parsubstr = ""
+    var parSubstr = ""
 
     var parent: Object? = null
     var track: Object? = null
@@ -580,7 +603,7 @@ class Object : ElemBase() {
     var dupGroup: Group? = null
     var data: ElemBase? = null
 
-    var modifiers: ListBase? = null
+    var modifiers = ListBase()
 }
 
 
@@ -598,7 +621,7 @@ class Scene : ElemBase() {
     var world: World? = null
     var basact: Base? = null
 
-    var base: ListBase? = null
+    var base = ListBase()
 }
 
 class Image : ElemBase() {
@@ -708,6 +731,10 @@ class MTex : ElemBase() {
     enum class Projection { N, X, Y, Z;
 
         val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values()[i]
+        }
     }
 
     enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10) }
@@ -715,17 +742,25 @@ class MTex : ElemBase() {
     enum class BlendType { BLEND, MUL, ADD, SUB, DIV, DARK, DIFF, LIGHT, SCREEN, OVERLAY, BLEND_HUE, BLEND_SAT, BLEND_VAL, BLEND_COLOR;
 
         val i = ordinal
+
+        companion object {
+            infix fun of(i: Int) = values()[i]
+        }
     }
 
     enum class MapType { COL, NORM, COLSPEC, COLMIR, REF, SPEC, EMIT, ALPHA, HAR, RAYMIRR, TRANSLU, AMB, DISPLACE, WARP;
 
         val i = 1 shl ordinal
+
+        companion object {
+            infix fun of(i: Int) = values()[i]
+        }
     }
 
     // short texco, maptoneg;
     var mapTo = MapType.COL
 
-    var blendtype = BlendType.BLEND
+    var blendType = BlendType.BLEND
     var object_: Object? = null
     var tex: Tex? = null
     var uvName = ""

@@ -128,11 +128,16 @@ class BlenderImporter : BaseImporter() {
 
         val ss = file.dna.structures[sceneIndex]
 
-        val block = file.entries.find { it.dnaIndex == sceneIndex } ?: throw Error("There is not a single `Scene` record to load")
+	    // we need a scene somewhere to start with.
+	    val block = file.entries.find {
+		    // Fix: using the DNA index is more reliable to locate scenes
+		    //if (bl.id == "SC") {
+		    it.dnaIndex == sceneIndex
+	    } ?: throw Error("There is not a single `Scene` record to load")
 
-        file.reader.pos = block.start
+	    file.reader.pos = block.start
 
-        return ss.convert<Scene>(file)  // TODO
+        val out = ss.convert<Scene>(file)  // TODO
 
         /*
     #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
@@ -144,5 +149,12 @@ class BlenderImporter : BaseImporter() {
     );
     #endif
      */
+	    return out
     }
+}
+
+fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {
+    ErrorPolicy.Warn -> logger.warn { "value: $value, $message" }
+    ErrorPolicy.Fail -> throw Error( "value: $value, $message" )
+    ErrorPolicy.Igno -> if (ASSIMP.BUILD.BLENDER.DEBUG) error(ErrorPolicy.Warn, value, message) else Unit
 }
