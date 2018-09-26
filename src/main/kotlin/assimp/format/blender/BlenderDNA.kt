@@ -361,25 +361,14 @@ data class FileBlockHead(
         // original memory address of the data
         var address: Long = 0L,
         // index into DNA
-        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C
+        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C implementation
         // number of structure instances to follow
         var num: Int = 0) : Comparable<FileBlockHead> {
 
-	// file blocks are sorted by address to quickly locate specific memory addresses
+    // file blocks are sorted by address to quickly locate specific memory addresses
     override fun compareTo(other: FileBlockHead): Int = address.compare(other.address)
-//
-//    // for std::upper_bound
-//    operator const Pointer& ()
-//    const {
-//        return address;
-//    }
 }
-//
-//// for std::upper_bound
-//inline bool operator< (const Pointer& a, const Pointer& b) {
-//return a.val < b.val;
-//}
-//
+
 /** Utility to read all master file blocks in turn. */
 class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 
@@ -562,36 +551,36 @@ class DnaParser(
         dna.structures.ensureCapacity(end)
         for (i in 0 until end) {
 
-            var n = stream.short.i
-            if (n >= types.size) throw Error("BlenderDNA: Invalid type index in structure name$n (there are only ${types.size} entries)")
+            val structureTypeIndex = stream.short.i
+            if (structureTypeIndex >= types.size) throw Error("BlenderDNA: Invalid type index in structure name $structureTypeIndex (there are only ${types.size} entries)")
 
             // maintain separate indexes
-            dna.indices[types[n].name] = dna.structures.size.L
+            dna.indices[types[structureTypeIndex].name] = dna.structures.size.L
 
-            val s = Structure(db).apply { name = types[n].name }
+            val s = Structure(db).apply { name = types[structureTypeIndex].name }
             dna.structures += s
             //s.index = dna.structures.size()-1;
 
-            n = stream.short.i
-            s.fields.ensureCapacity(n)
+	        val fieldCount = stream.short.i
+            s.fields.ensureCapacity(fieldCount)
 
             var offset = 0L
-            for (m in 0 until n) {
+            for (fieldIndex in 0 until fieldCount) {
 
-                var j = stream.short.i
-                if (j >= types.size) throw Error("BlenderDNA: Invalid type index in structure field $j (there are only ${types.size} entries)")
+                var fieldTypeIndex = stream.short.i
+                if (fieldTypeIndex >= types.size) throw Error("BlenderDNA: Invalid type index in structure field $fieldTypeIndex (there are only ${types.size} entries)")
 
                 val f = Field()
                 s.fields += f
                 f.offset = offset
 
-                f.type = types[j].name
-                f.size = types[j].size
+                f.type = types[fieldTypeIndex].name
+                f.size = types[fieldTypeIndex].size
 
-                j = stream.short.i
-                if (j >= names.size) throw Error("BlenderDNA: Invalid name index in structure field $j (there are only ${names.size} entries)")
+                fieldTypeIndex = stream.short.i
+                if (fieldTypeIndex >= names.size) throw Error("BlenderDNA: Invalid name index in structure field $fieldTypeIndex (there are only ${names.size} entries)")
 
-                f.name = names[j]
+                f.name = names[fieldTypeIndex]
                 f.flags = 0
 
                 /*  pointers always specify the size of the pointee instead of their own.
@@ -639,10 +628,14 @@ class DnaParser(
     val dna get() = db.dna
 }
 
-infix fun ByteBuffer.match(string: String) = get().c == string[0] && get().c == string[1] && get().c == string[2] && get().c == string[3]
-infix fun ByteBuffer.doesntMatch(string: String) = !match(string)
+private infix fun ByteBuffer.match(string: String) = get().c == string[0] && get().c == string[1] && get().c == string[2] && get().c == string[3]
+private infix fun ByteBuffer.doesntMatch(string: String) = !match(string)
 
 class Type {
     var size = 0L
     var name = ""
+
+	override fun toString(): String {   // TODO debug temp
+		return "[Type]: $name, size: $size"
+	}
 }

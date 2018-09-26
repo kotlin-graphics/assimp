@@ -71,10 +71,10 @@ class BlenderImporter : BaseImporter() {
             // .. and retry
             match = buffer.strncmp(tokens)
             if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
-            buffer.pos += tokens.length
 
             output.delete()
         }
+	    buffer.pos += tokens.length
 
         val db = FileDatabase().apply {
             i64bit = buffer.get().c == '-'      // 32 bit should be '_'
