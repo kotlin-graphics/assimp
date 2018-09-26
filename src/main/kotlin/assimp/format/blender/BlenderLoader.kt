@@ -2,8 +2,6 @@ package assimp.format.blender
 
 import assimp.*
 import glm_.c
-import glm_.i
-import glm_.toUnsignedInt
 import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
@@ -11,7 +9,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.io.FileOutputStream
-import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
 
 lateinit var buffer: ByteBuffer
@@ -93,7 +90,7 @@ class BlenderImporter : BaseImporter() {
 
         val scene = extractScene(db)
 //
-//        ConvertBlendFile(pScene,scene,file);
+//        ConvertBlendFile(pScene,scene,file); TODO
     }
 
     private fun parseBlendFile(out: FileDatabase) {
@@ -125,5 +122,27 @@ class BlenderImporter : BaseImporter() {
         out.entries.sort()
     }
 
-    private fun extractScene(file: FileDatabase): Scene = TODO()
+    private fun extractScene(file: FileDatabase): Scene {
+
+        val sceneIndex = file.dna.indices["Scene"]?.toInt() ?: throw Error("There is no `Scene` structure record")
+
+        val ss = file.dna.structures[sceneIndex]
+
+        val block = file.entries.find { it.dnaIndex == sceneIndex } ?: throw Error("There is not a single `Scene` record to load")
+
+        file.reader.pos = block.start
+
+        return ss.convert<Scene>(file)  // TODO
+
+        /*
+    #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
+    ASSIMP_LOG_INFO_F(
+        "(Stats) Fields read: " ,file.stats().fields_read,
+        ", pointers resolved: " ,file.stats().pointers_resolved,
+        ", cache hits: "        ,file.stats().cache_hits,
+        ", cached objects: "    ,file.stats().cached_objects
+    );
+    #endif
+     */
+    }
 }

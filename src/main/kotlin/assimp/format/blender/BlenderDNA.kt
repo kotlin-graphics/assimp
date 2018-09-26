@@ -388,7 +388,7 @@ class DNA {
 
     val converters = mutableMapOf<String, Pair<ElemBase, (ElemBase, FileDatabase) -> Unit>>()
     val structures = ArrayList<Structure>()
-    val indices = mutableMapOf<String, Long>()
+    val indices = mutableMapOf<String, Long>()      // TODO why is this long when we use int everywhere else
 
     /** Access a structure by its canonical name, the pointer version returns NULL on failure while the reference
      *  version raises an error. */
@@ -525,7 +525,9 @@ class DNA {
 //template <> inline void Structure :: Convert<Pointer>   (Pointer& dest,const FileDatabase& db) const;
 //
 /** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
- *  (or otherwise unspecified data). */
+ *  (or otherwise unspecified data).
+ *  FileBlockHeads are ordered by their [address]
+ *  */
 data class FileBlockHead(
 		/** points right after the header of the file block */
 		var start: Int = 0,
@@ -534,7 +536,7 @@ data class FileBlockHead(
         // original memory address of the data
         var address: Long = 0L,
         // index into DNA
-        var dnaIndex: Int = 0,
+        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C
         // number of structure instances to follow
         var num: Int = 0) : Comparable<FileBlockHead> {
 
