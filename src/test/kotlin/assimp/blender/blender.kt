@@ -9,7 +9,7 @@ class blender : StringSpec() {
 
     init {
 
-        ASSIMP.BLENDER_DEBUG = true // TODO temp
+        ASSIMP.BLENDER_DEBUG = false // TODO temp
 
         "blender default 250 compressed" { blenderDefault_250_compressed(path + "BlenderDefault_250_Compressed.blend") }
         //"spider"{ spider(path + "spider.obj") }
