@@ -137,7 +137,7 @@ class BlenderImporter : BaseImporter() {
 
 	    file.reader.pos = block.start
 
-        val out = ss.convert<Scene>(file)  // TODO
+        val out = ss.convertScene()
 
         /*
     #ifndef ASSIMP_BUILD_BLENDER_NO_STATS
@@ -156,5 +156,5 @@ class BlenderImporter : BaseImporter() {
 fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {
     ErrorPolicy.Warn -> logger.warn { "value: $value, $message" }
     ErrorPolicy.Fail -> throw Error( "value: $value, $message" )
-    ErrorPolicy.Igno -> if (ASSIMP.BUILD.BLENDER.DEBUG) error(ErrorPolicy.Warn, value, message) else Unit
+    ErrorPolicy.Igno -> if (ASSIMP.BLENDER_DEBUG) error(ErrorPolicy.Warn, value, message) else Unit
 }

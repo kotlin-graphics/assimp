@@ -44,13 +44,8 @@ package assimp.format.blender
 
 import assimp.*
 import glm_.*
-import kool.*
 import java.nio.*
-import kotlin.reflect.KFunction0
-import kotlin.reflect.KFunction2
-import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
+import kotlin.reflect.*
 
 /** @file  BlenderDNA.h
  *  @brief Blender `DNA` (file format specification embedded in
@@ -167,185 +162,6 @@ enum class ErrorPolicy {
  *  binary `blob` read from the file to such a structure instance with
  *  meaningful contents. */
 // -------------------------------------------------------------------------------
-class Structure {
-
-    // publicly accessible members
-    var name = ""
-    val fields = ArrayList<Field>()
-    val indices = mutableMapOf<String, Long>()
-
-    var size = 0L
-
-    var cacheIdx = -1L
-
-    /** Access a field of the structure by its canonical name. The pointer version returns NULL on failure while
-     *  the reference version raises an import error. */
-    operator fun get(ss: String) = indices[ss]
-            ?: throw Error("BlendDNA: Did not find a field named `$ss` in structure `$name`")
-//    fun get_(ss:String) =
-
-    /** Access a field of the structure by its index */
-    operator fun get(i: Long) = fields.getOrElse(i.i) { throw Error("BlendDNA: There is no field with index `$i` in structure `$name`") }
-
-    override fun equals(other: Any?) = other is Structure && name == other.name // name is meant to be an unique identifier
-
-    /** Try to read an instance of the structure from the stream and attempt to convert to `T`. This is done by an
-     *  appropriate specialization. If none is available, a compiler complain is the result.
-     *  @param dest Destination value to be written
-     *  @param db File database, including input stream. */
-    inline fun <reified T> convert(db: FileDatabase): T {
-        return when (T::class) {
-            Int::class -> convertDispatcher(db)
-            Short::class -> when (name) {
-            // automatic rescaling from short to float and vice versa (seems to be used by normals)
-                "float" -> {
-                    var f = db.reader.float
-                    if (f > 1f) f = 1f
-                    (f * 32767f).s
-                }
-                "double" -> db.reader.double * 32767.0
-                else -> convertDispatcher(db)
-            }
-            Char::class -> when (name) {
-            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
-                "float" -> db.reader.float * 255f
-                "double" -> db.reader.double * 255f
-                else -> convertDispatcher(db)
-            }
-            Float::class, Double::class -> when (name) {
-            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
-                "char" -> db.reader.get() / 255f
-            // automatic rescaling from short to float and vice versa (used by normals)
-                "short" -> db.reader.short / 32767f
-                else -> convertDispatcher(db)
-            }
-            else -> Unit
-        } as T
-    }
-
-    fun <T> convertDispatcher(db: FileDatabase): T = when (name) {
-        "int" -> db.reader.int as T
-        "short" -> db.reader.short as T
-        "char" -> db.reader.get().c as T
-        "float" -> db.reader.float as T
-        "double" -> db.reader.double as T
-        else -> throw Error("Unknown source for conversion to primitive data type: $name")
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + fields.hashCode()
-        result = 31 * result + indices.hashCode()
-        result = 31 * result + size.hashCode()
-        result = 31 * result + cacheIdx.hashCode()
-        return result
-    }
-
-//    // --------------------------------------------------------
-//    // field parsing for 1d arrays
-//    template <int error_policy, typename T, size_t M>
-//    void ReadFieldArray(T (& out )[M], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for 2d arrays
-//    template <int error_policy, typename T, size_t M, size_t N>
-//    void ReadFieldArray2(T (& out )[M][N], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for pointer or dynamic array types
-//    // (std::shared_ptr)
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, template <typename>
-//    class TOUT, typename T>
-//    bool ReadFieldPtr(TOUT<T>& out , const char* name,
-//    const FileDatabase& db,
-//    bool non_recursive = false) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for static arrays of pointer or dynamic
-//    // array types (std::shared_ptr[])
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, template <typename>
-//    class TOUT, typename T, size_t N>
-//    bool ReadFieldPtr(TOUT<T> (&out )[N], const char* name,
-//    const FileDatabase& db) const
-//
-//    // --------------------------------------------------------
-//    // field parsing for `normal` values
-//    // The return value indicates whether the data was already cached.
-//    template <int error_policy, typename T>
-//    void ReadField(T& out , const char* name,
-//    const FileDatabase& db) const
-//
-//    private :
-//
-//    // --------------------------------------------------------
-//    template <template <typename>
-//    class TOUT, typename T>
-//    bool ResolvePointer(TOUT<T>& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f,
-//    bool non_recursive = false) const
-//
-//    // --------------------------------------------------------
-//    template <template <typename>
-//    class TOUT, typename T>
-//    bool ResolvePointer(vector< TOUT<T> >& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f, bool) const
-//
-//    // --------------------------------------------------------
-//    bool ResolvePointer( std::shared_ptr< FileOffset >& out , const Pointer & ptrval,
-//    const FileDatabase& db, const Field& f, bool) const
-//
-//    // --------------------------------------------------------
-//    inline const FileBlockHead* LocateFileBlockForAddress(
-//    const Pointer & ptrval,
-//    const FileDatabase& db) const
-//
-//    private :
-//
-//    // ------------------------------------------------------------------------------
-//    template <typename T> T* _allocate(std::shared_ptr<T>& out , size_t& s)
-//    const {
-//        out = std::shared_ptr<T>(new T ())
-//        s = 1
-//        return out.get()
-//    }
-//
-//    template <typename T> T* _allocate(vector<T>& out , size_t& s)
-//    const {
-//        out.resize(s)
-//        return s ? &out.front() : NULL
-//    }
-//
-//    // --------------------------------------------------------
-//    template <int error_policy>
-//    struct _defaultInitializer
-//    {
-//
-//        template < typename T, unsigned int N>
-//        void operator ()(T(& out)[N], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        out[i] = T()
-//    }
-//    }
-//
-//        template < typename T, unsigned int N, unsigned int M>
-//        void operator ()(T(& out)[N][M], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        for (unsigned int j = 0; j < M; ++j) {
-//        out[i][j] = T()
-//    }
-//    }
-//    }
-//
-//        template < typename T >
-//        void operator ()(T& out, const char* = NULL) {
-//        out = T()
-//    }
-//    }
-}
 //
 //// --------------------------------------------------------
 //template <>  struct Structure :: _defaultInitializer<ErrorPolicy_Warn> {
@@ -389,32 +205,35 @@ class DNA {
     val indices = mutableMapOf<String, Long>()      // TODO why is this long when we use int everywhere else
 
     /** Access a structure by its canonical name, the pointer version returns NULL on failure while the reference
-     *  version raises an error. */ // TODO look at
-    operator fun get(ss: String) = indices[ss] ?: throw Error("BlendDNA: Did not find a structure named `$ss`")
+     *  version raises an error. */
+    operator fun get(ss: String): Structure {
+        val index = indices[ss] ?: throw Error("BlendDNA: Did not find a structure named `$ss`")
+        return get(index)
+    }
 
     /** Access a structure by its index */
     operator fun get(i: Long) = structures.getOrElse(i.i) { throw Error("BlendDNA: There is no structure with index `$i`") }
 
     /** Add structure definitions for all the primitive types, i.e. integer, short, char, float */
-    fun addPrimitiveStructures() {
+    fun addPrimitiveStructures(db: FileDatabase) {
         /*  NOTE: these are just dummies. Their presence enforces Structure::Convert<target_type> to be called on these
             empty structures. These converters are special overloads which scan the name of the structure and perform
             the required data type conversion if one of these special names is found in the structure in question.  */
 
         indices["int"] = structures.size.L
-        structures += Structure().apply { name = "int"; size = 4; }
+        structures += Structure(db).apply { name = "int"; size = 4; }
 
         indices["short"] = structures.size.L
-        structures += Structure().apply { name = "short"; size = 2; }
+        structures += Structure(db).apply { name = "short"; size = 2; }
 
         indices["char"] = structures.size.L
-        structures += Structure().apply { name = "char"; size = 1; }
+        structures += Structure(db).apply { name = "char"; size = 1; }
 
         indices["float"] = structures.size.L
-        structures += Structure().apply { name = "float"; size = 4; }
+        structures += Structure(db).apply { name = "float"; size = 4; }
 
         indices["double"] = structures.size.L
-        structures += Structure().apply { name = "double"; size = 8; }
+        structures += Structure(db).apply { name = "double"; size = 8; }
 
         // no long, seemingly.
     }
@@ -662,7 +481,7 @@ class ObjectCache(val db: FileDatabase) {
 
             out.set(it as T)
 
-            if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.cacheHits
+            if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.cacheHits
         }
         // otherwise, out remains untouched
     }
@@ -679,7 +498,7 @@ class ObjectCache(val db: FileDatabase) {
         }
         caches[s.cacheIdx.i][ptr] = out() as ElemBase
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.cachedObjects
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.cachedObjects
     }
 }
 
@@ -774,7 +593,7 @@ class DnaParser(
             // maintain separate indexes
             dna.indices[types[n].name] = dna.structures.size.L
 
-            val s = Structure().apply { name = types[n].name }
+            val s = Structure(db).apply { name = types[n].name }
             dna.structures += s
             //s.index = dna.structures.size()-1;
 
@@ -837,7 +656,7 @@ class DnaParser(
 //                dna.DumpToFile();
 //        #endif
 
-        dna.addPrimitiveStructures()
+        dna.addPrimitiveStructures(db)
         dna.registerConverters()
     }
 

@@ -12,7 +12,7 @@ import assimp.format.blender.ErrorPolicy as Ep
  *  BlenderScene.h header. This class defines various utilities to map a
  *  binary `blob` read from the file to such a structure instance with
  *  meaningful contents. */
-class Structure {
+class Structure (val db: FileDatabase) {
 
     // publicly accessible members
     var name = ""
@@ -130,7 +130,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
 
         return dest
     }
@@ -163,7 +163,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
     /** field parsing for 1d arrays */
@@ -194,7 +194,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
     /** field parsing for 2d arrays */
@@ -223,7 +223,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
     /** field parsing for pointer or dynamic array types (std::shared_ptr)
@@ -254,7 +254,7 @@ class Structure {
         // and recover the previous stream position
         if (!nonRecursive) db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
 
         return res
     }
@@ -265,7 +265,9 @@ class Structure {
 //    const FileDatabase& db) const
 //
     /** field parsing for `normal` values
-     *  The return value indicates whether the data was already cached. */
+     *  The return value indicates whether the data was already cached.
+     */
+    @Suppress("UNCHECKED_CAST")
     fun <T> readField(errorPolicy: Ep, out: T, name: String): T {
 
         val old = db.reader.pos
@@ -294,7 +296,7 @@ class Structure {
         // and recover the previous stream position
         db.reader.pos = old
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.fieldsRead
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
 
         return out
     }
@@ -379,7 +381,7 @@ class Structure {
             }
         }
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS && out() != null)
+        if (!ASSIMP.BLENDER_NO_STATS && out() != null)
             ++db.stats.pointersResolved
 
         return false
@@ -486,7 +488,7 @@ class Structure {
             to perform additional type checking.         */
         out()!!.dnaType = s.name
 
-        if (!ASSIMP.BUILD.BLENDER.NO_STATS) ++db.stats.pointersResolved
+        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.pointersResolved
 
         return false
     }
