@@ -3,7 +3,7 @@ package assimp.format.blender
 import assimp.*
 import glm_.*
 import kotlin.math.min
-import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.*
 import assimp.format.blender.ErrorPolicy as Ep
 
 /** Represents a data structure in a BLEND file. A Structure defines n fields and their locations and encodings the input stream. Usually, every
@@ -21,6 +21,10 @@ class Structure (val db: FileDatabase) {
     var size = 0L
 
     var cacheIdx = -1L
+
+    override fun toString(): String {       // TODO temp debug
+        return "[Structure]: $name"
+    }
 
     /** Access a field of the structure by its canonical name. The pointer version returns NULL on failure while
      *  the reference version raises an import error. */
@@ -283,7 +287,7 @@ class Structure (val db: FileDatabase) {
                     is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
                     is Int -> (out as KMutableProperty0<Int>).set(s.convertInt())
                     is Char -> (out as KMutableProperty0<Char>).set(s.convertChar)
-                    else -> throw Error("Field type of ${out()?.javaClass?.canonicalName} is not yet supported")
+                    else -> throw Error("Field type is not yet supported")
                 }
                 else -> throw Error("Invalid field type of ${out.javaClass.canonicalName}")
             }
@@ -299,12 +303,14 @@ class Structure (val db: FileDatabase) {
         return out
     }
 
-    fun <T> resolvePtr(out: T?, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when {
+    fun <T> resolvePtr(out: T?, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when { // TODO ErrorPolicy missing
         f.type == "ElemBase" || isElem -> resolvePointer(out as KMutableProperty0<ElemBase?>, ptrVal)
         else -> resolvePointer(out as KMutableProperty0<*>, ptrVal, f, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
 //        else -> throw Error()
     }
+
+    private var _o: ElemBase? = null // workaround for https://youtrack.jetbrains.com/issue/KT-16303
 
     fun <T> resolvePointer(out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {
 
@@ -331,49 +337,49 @@ class Structure (val db: FileDatabase) {
         // I really ought to improve StreamReader to work with 64 bit indices exclusively.
 
         // continue conversion after allocating the required storage
+
+        // TODO does this work with primitives? probably not
+        val (constructor, converter) = db.dna.converters[f.type] ?: run {
+            logger.warn { "Failed to find a converter for the `${f.type}` structure" }
+            return false
+        }
+
         val num = block.size / ss.size.i
-        if (num > 1) {
-            TODO()
-            val o = when (f.type) {
-                "Object" -> Array(num) { Object() }
-                "Camera" -> Array(num) { Camera() }
-                else -> throw Error()
-            }
+        if (num > 1) {// TODO this path might make convertMesh fail, test
+
+            val list = MutableList<ElemBase?>(num) { constructor() } // TODO should this be List or Array (currently used for Mesh)
+
+            @Suppress("UNCHECKED_CAST")
+            out.set(list as T)
 
             // cache the object before we convert it to avoid cyclic recursion.
             db.cache.set(s, out, ptrVal)
 
             // if the non_recursive flag is set, we don't do anything but leave the cursor at the correct position to resolve the object.
             if (!nonRecursive) {
-                for (i in 0 until num)
-                    when (o[i]) {
-//                        is Object -> s.convertObject(::_o as KMutableProperty0<Object?>) as T
-                    }
+                for (i in 0 until num) {
+
+                    // workaround for https://youtrack.jetbrains.com/issue/KT-16303
+                    _o = list[i]
+                    s.converter(::_o)
+                    list[i] = _o
+                }
 
                 db.reader.pos = pOld
             }
         } else {
 
-            out.set(when (f.type) {
-                "Object" -> Object()
-                "Camera" -> Camera()
-                "World" -> World()
-                "Base" -> Base()
-                else -> throw Error()
-            } as T)
+            @Suppress("UNCHECKED_CAST")
+            out.set(constructor() as T)
 
             // cache the object before we convert it to avoid cyclic recursion.
             db.cache.set(s, out, ptrVal)
 
             // if the non_recursive flag is set, we don't do anything but leave the cursor at the correct position to resolve the object.
             if (!nonRecursive) {
-                when (f.type) {
-                    "Object" -> s.convertObject(out as KMutableProperty0<Object?>)
-                    "Camera" -> s.convertCamera(out as KMutableProperty0<Camera?>)
-                    "World" -> s.convertWorld(out as KMutableProperty0<World?>)
-                    "Base" -> s.convertBase(out as KMutableProperty0<Base?>)
-                    else -> throw Error("type invalid ${f.type}")
-                }
+
+                @Suppress("UNCHECKED_CAST")
+                s.converter(out as KMutableProperty0<ElemBase?>)
 
                 db.reader.pos = pOld
             }
@@ -460,8 +466,8 @@ class Structure (val db: FileDatabase) {
         // I really ought to improve StreamReader to work with 64 bit indices exclusively.
 
         // continue conversion after allocating the required storage
-        val builders = db.dna.getBlobToStructureConverter(s)
-        if (builders.first == null) {
+        val (constructor, converter) = db.dna.getBlobToStructureConverter(s) ?: run {
+
             /*  this might happen if DNA::RegisterConverters hasn't been called so far or
                 if the target type is not contained in `our` DNA.             */
             out.set(null)
@@ -469,7 +475,6 @@ class Structure (val db: FileDatabase) {
             return false
         }
 
-        val constructor = builders.first!!  // TODO why are those even nullable?
         // allocate the object hull
         out.set(constructor())
 
@@ -478,7 +483,6 @@ class Structure (val db: FileDatabase) {
         db.cache.set(s, out, ptrVal)
 
         // and do the actual conversion
-        val converter = builders.second!!
         s.converter(out)
         db.reader.pos = pOld
 
@@ -508,10 +512,7 @@ class Structure (val db: FileDatabase) {
         return it
     }
 
-    fun <T>KMutableProperty0<T?>.setIfNull(value: T): T {
-        val result = this() ?: value.also{ set(value) }
-        return result
-    }
+    fun <T>KMutableProperty0<T?>.setIfNull(value: T): T = this() ?: value.also { set(value) }
 //
 //    private :
 //
@@ -919,46 +920,43 @@ class Structure (val db: FileDatabase) {
 //        db.reader->IncPtr(size);
 //    }
 //
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Mesh> (
-//    Mesh& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        ReadField<ErrorPolicy_Fail>(dest.totface,"totface",db);
-//        ReadField<ErrorPolicy_Fail>(dest.totedge,"totedge",db);
-//        ReadField<ErrorPolicy_Fail>(dest.totvert,"totvert",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totloop,"totloop",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totpoly,"totpoly",db);
-//        ReadField<ErrorPolicy_Igno>(dest.subdiv,"subdiv",db);
-//        ReadField<ErrorPolicy_Igno>(dest.subdivr,"subdivr",db);
-//        ReadField<ErrorPolicy_Igno>(dest.subsurftype,"subsurftype",db);
-//        ReadField<ErrorPolicy_Igno>(dest.smoothresh,"smoothresh",db);
-//        ReadFieldPtr<ErrorPolicy_Fail>(dest.mface,"*mface",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mtface,"*mtface",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.tface,"*tface",db);
-//        ReadFieldPtr<ErrorPolicy_Fail>(dest.mvert,"*mvert",db);
-//        ReadFieldPtr<ErrorPolicy_Warn>(dest.medge,"*medge",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mloop,"*mloop",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mloopuv,"*mloopuv",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mloopcol,"*mloopcol",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mpoly,"*mpoly",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mtpoly,"*mtpoly",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.dvert,"*dvert",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mcol,"*mcol",db);
-//        ReadFieldPtr<ErrorPolicy_Fail>(dest.mat,"**mat",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
 
     fun convertMesh(dest: KMutableProperty0<Mesh?>) {
 
         val d = dest.setIfNull(Mesh())
 
-        // TODO()
+	    readField(Ep.Fail, d.id, "id")
+		readField(Ep.Fail, d::totface, "totface")
+		readField(Ep.Fail, d::totedge, "totedge")
+		readField(Ep.Fail, d::totvert, "totvert")
+		readField(Ep.Igno, d::totloop, "totloop")
+		readField(Ep.Igno, d::totpoly, "totpoly")
+		readField(Ep.Igno, d::subdiv, "subdiv")
+		readField(Ep.Igno, d::subdivr, "subdivr")
+		readField(Ep.Igno, d::subsurftype, "subsurftype")
+		readField(Ep.Igno, d::subsurftype, "subsurftype")
+		readField(Ep.Igno, d::smoothresh, "smoothresh")
+	    readFieldPtr(Ep.Fail, d::mface, "*mface")
+	    readFieldPtr(Ep.Igno, d::mtface, "*mtface")
+	    readFieldPtr(Ep.Igno, d::tface, "*tface")
+	    readFieldPtr(Ep.Fail, d::mvert, "*mvert")
+	    readFieldPtr(Ep.Warn, d::medge, "*medge")
+	    readFieldPtr(Ep.Igno, d::mloop, "*mloop")
+	    readFieldPtr(Ep.Igno, d::mloopuv, "*mloopuv")
+	    readFieldPtr(Ep.Igno, d::mloopcol, "*mloopcol")
+	    readFieldPtr(Ep.Igno, d::mpoly, "*mpoly")
+	    readFieldPtr(Ep.Igno, d::mtpoly, "*mtpoly")
+	    readFieldPtr(Ep.Igno, d::dvert, "*dvert")
+	    readFieldPtr(Ep.Igno, d::mcol, "*mcol")
+	    readFieldPtr(Ep.Fail, d::mat, "**mat")      // TODO FIXME crash
+
+	    readField(Ep.Igno, d::vdata, "vdata")
+	    readField(Ep.Igno, d::edata, "edata")
+	    readField(Ep.Igno, d::fdata, "fdata")
+	    readField(Ep.Igno, d::pdata, "pdata")
+	    readField(Ep.Igno, d::ldata, "ldata")
+
+	    db.reader.pos += size.i
     }
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MDeformVert> (

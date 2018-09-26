@@ -213,7 +213,7 @@ class MTFace : ElemBase() {
     var tile = 0.s
     var unwrap = 0.s
 
-    var tpage: Image? = null
+    // var tpage: Image? = null
 }
 
 class MDeformWeight : ElemBase()  {
@@ -348,6 +348,34 @@ class Material : ElemBase() {
     var mTex = Array(18) { MTex() }
 }
 
+// /*
+// CustomData 208
+//
+//     CustomDataLayer *layers 0 8
+//     int typemap 8 168
+//     int pad_i1 176 4
+//     int totlayer 180 4
+//     int maxlayer 184 4
+//     int totsize 188 4
+//     BLI_mempool *pool 192 8
+//     CustomDataExternal *external 200 8
+// */
+// struct CustomData : ElemBase {
+// 	vector<std::shared_ptr<struct CustomDataLayer> > layers;
+// 	int typemap[42];    // CD_NUMTYPES
+// 	int totlayer;
+// 	int maxlayer;
+// 	int totsize;
+// 	/*
+// 	std::shared_ptr<BLI_mempool> pool;
+// 	std::shared_ptr<CustomDataExternal> external;
+// 	*/
+// };
+
+class CustomData : ElemBase() {
+	// TODO
+}
+
 class Mesh : ElemBase() {
 
     var id = Id()
@@ -363,7 +391,6 @@ class Mesh : ElemBase() {
     var subsurftype = 0.s
     var smoothresh = 0.s
 
-    // TODO those lists represent C vector, should I maybe represent them as emptyList instead of null default?
     var mface: List<MFace>? = null
     var mtface: List<MTFace>? = null
     var tface: List<TFace>? = null
@@ -378,6 +405,12 @@ class Mesh : ElemBase() {
     var mcol: List<MCol>? = null
 
     var mat: List<Material?>? = null
+
+	var vdata: CustomData? = null
+	var edata: CustomData? = null
+	var fdata: CustomData? = null
+	var pdata: CustomData? = null
+	var ldata: CustomData? = null
 
 }
 //// -------------------------------------------------------------------------------
@@ -577,7 +610,7 @@ class Object : ElemBase() {
         LATTICE(22);
 
         companion object {
-            infix fun of(i: Int) = values().first { it.i == i }
+            infix fun of(i: Int) = values().first { it.i == i } // TODO deprecate infix, I don't like the way it's used
         }
     }
 

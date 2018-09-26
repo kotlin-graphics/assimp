@@ -147,6 +147,10 @@ class Field {
 
     /** Any of the #FieldFlags enumerated values */
     var flags = 0
+
+	override fun toString(): String {       // TODO temp debug
+		return "[Field]: $name"
+	}
 }
 
 /** Range of possible behaviours for fields absend in the input file. Some are mission critical so we need them,
@@ -204,7 +208,7 @@ enum class ErrorPolicy {
  *  #DnaParser does the reading and represents currently the only place where DNA is altered.*/
 class DNA {
 
-    val converters = mutableMapOf<String, Pair<ElemBase, (ElemBase, FileDatabase) -> Unit>>()
+    val converters = mutableMapOf<String, Pair<ElemBaseConstructor, ElemBaseConverter>>()
     val structures = ArrayList<Structure>()
     val indices = mutableMapOf<String, Long>()      // TODO why is this long when we use int everywhere else
 
@@ -242,28 +246,31 @@ class DNA {
         // no long, seemingly.
     }
 
-    /** basing on http://www.blender.org/development/architecture/notes-on-sdna/
+	/**
+	 *  basing on http://www.blender.org/development/architecture/notes-on-sdna/
      *  Fill the @c converters member with converters for all known data types. The implementation of this method is in
      *  BlenderScene.cpp and is machine-generated.
      *  Converters are used to quickly handle objects whose exact data type is a runtime-property and not yet known
-     *  at compile time (consier Object::data).*/
-    fun registerConverters() {
-//        converters["Object"] = ::Object to ::convertObject
+     *  at compile time (consier Object::data).
+	 */
+    @Suppress("UNCHECKED_CAST")
+    fun registerConverters() { // TODO unfinished
+          converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
 //        converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
 //        converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
 //        converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
 //        converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
 //        converters["MFace"] = DNA::FactoryPair( &Structure::Allocate<MFace>, &Structure::Convert<MFace> );
-//        converters["Lamp"] = DNA::FactoryPair( &Structure::Allocate<Lamp>, &Structure::Convert<Lamp> );
+          converters["Lamp"] = ::Lamp to Structure::convertLamp as ElemBaseConverter
 //        converters["MDeformWeight"] = DNA::FactoryPair( &Structure::Allocate<MDeformWeight>, &Structure::Convert<MDeformWeight> );
 //        converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
-//        converters["Base"] = DNA::FactoryPair( &Structure::Allocate<Base>, &Structure::Convert<Base> );
+          converters["Base"] = ::Base to Structure::convertBase as ElemBaseConverter
 //        converters["MTFace"] = DNA::FactoryPair( &Structure::Allocate<MTFace>, &Structure::Convert<MTFace> );
 //        converters["Material"] = DNA::FactoryPair( &Structure::Allocate<Material>, &Structure::Convert<Material> );
 //        converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
-//        converters["Mesh"] = DNA::FactoryPair( &Structure::Allocate<Mesh>, &Structure::Convert<Mesh> );
+          converters["Mesh"] = ::Mesh to Structure::convertMesh as ElemBaseConverter
 //        converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
-//        converters["World"] = DNA::FactoryPair( &Structure::Allocate<World>, &Structure::Convert<World> );
+          converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
 //        converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
 //        converters["MVert"] = DNA::FactoryPair( &Structure::Allocate<MVert>, &Structure::Convert<MVert> );
 //        converters["MEdge"] = DNA::FactoryPair( &Structure::Allocate<MEdge>, &Structure::Convert<MEdge> );
@@ -278,9 +285,7 @@ class DNA {
 //        converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
 //        converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //        converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-//        converters["Camera"] = ::Camera to Structure::convertCamera
-//        converters["Camera"] = 0 to Structure::convertCamera
-//        converters["Camera"] = ::Camera to 0
+          converters["Camera"] = ::Camera to Structure::convertCamera  as ElemBaseConverter
 //        converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
 //        converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
     }
@@ -306,43 +311,7 @@ class DNA {
      *  @param db File database.
      *  @return A null pointer in .first if no appropriate converter is available.
      */
-    @Suppress("UNCHECKED_CAST")
-    fun getBlobToStructureConverter(structure: Structure): Pair<ElemBaseConstructor?, ElemBaseConverter?> = when (structure.name) {
-        "Object" -> ::Object to Structure::convertObject as ElemBaseConverter
-//            converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
-//            converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
-//            converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
-//            converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
-//            converters["MFace"] = DNA::FactoryPair( &Structure::Allocate<MFace>, &Structure::Convert<MFace> );
-        "Lamp" -> ::Lamp to Structure::convertLamp as ElemBaseConverter
-//            converters["MDeformWeight"] = DNA::FactoryPair( &Structure::Allocate<MDeformWeight>, &Structure::Convert<MDeformWeight> );
-//            converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
-//            converters["Base"] = DNA::FactoryPair( &Structure::Allocate<Base>, &Structure::Convert<Base> );
-//            converters["MTFace"] = DNA::FactoryPair( &Structure::Allocate<MTFace>, &Structure::Convert<MTFace> );
-//            converters["Material"] = DNA::FactoryPair( &Structure::Allocate<Material>, &Structure::Convert<Material> );
-//            converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
-        "Mesh" -> ::Mesh to Structure::convertMesh as ElemBaseConverter
-//            converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
-//            converters["World"] = DNA::FactoryPair( &Structure::Allocate<World>, &Structure::Convert<World> );
-//            converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
-//            converters["MVert"] = DNA::FactoryPair( &Structure::Allocate<MVert>, &Structure::Convert<MVert> );
-//            converters["MEdge"] = DNA::FactoryPair( &Structure::Allocate<MEdge>, &Structure::Convert<MEdge> );
-//            converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
-//            converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
-//            converters["ListBase"] = DNA::FactoryPair( &Structure::Allocate<ListBase>, &Structure::Convert<ListBase> );
-//            converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
-//            converters["ModifierData"] = DNA::FactoryPair( &Structure::Allocate<ModifierData>, &Structure::Convert<ModifierData> );
-//            converters["ID"] = DNA::FactoryPair( &Structure::Allocate<ID>, &Structure::Convert<ID> );
-//            converters["MCol"] = DNA::FactoryPair( &Structure::Allocate<MCol>, &Structure::Convert<MCol> );
-//            converters["MPoly"] = DNA::FactoryPair( &Structure::Allocate<MPoly>, &Structure::Convert<MPoly> );
-//            converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
-//            converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
-//            converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-        "Camera" -> ::Camera to Structure::convertCamera as ElemBaseConverter
-//            converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
-//            converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
-        else     -> null to null
-    }
+    fun getBlobToStructureConverter(structure: Structure): Pair<ElemBaseConstructor, ElemBaseConverter>? = converters[structure.name]
 
 //
 //    #ifdef ASSIMP_BUILD_BLENDER_DEBUG
