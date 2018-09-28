@@ -491,6 +491,8 @@ class FileDatabase {
     var i64bit = false
     var little = false      // TODO this is not used I only added it for dnaParser not for the rest
 
+	val pointerSize get() = if(i64bit) 8 else 4
+
     var dna = DNA()
     lateinit var reader: ByteBuffer
     val entries = ArrayList<FileBlockHead>()
@@ -586,7 +588,7 @@ class DnaParser(
                 /*  pointers always specify the size of the pointee instead of their own.
                     The pointer asterisk remains a property of the lookup name.                 */
                 if (f.name[0] == '*') {
-                    f.size = if (db.i64bit) 8 else 4
+                    f.size = db.pointerSize.L
                     f.flags = f.flags or FieldFlag.Pointer
                 }
 
