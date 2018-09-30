@@ -292,7 +292,7 @@ class Structure (val db: FileDatabase) {
             when (out) {
                 is Id -> s.convert(out)
                 is ListBase -> s.convert(out)
-                is CustomData ->  error(Ep.Warn, out, "Custom data read yet implemented!")  // TODO
+                is CustomData ->  error(Ep.Warn, out, "Custom data read not yet implemented!")  // TODO
                 is KMutableProperty0<*> -> when (out()) {
                     is Float -> (out as KMutableProperty0<Float>).set(s.convertFloat)
                     is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
@@ -364,7 +364,7 @@ class Structure (val db: FileDatabase) {
             out.set(list as T)
 
             // cache the object before we convert it to avoid cyclic recursion.
-            // db.cache.set(s, out, ptrVal) // TODO cache for lists
+            db.cache.set(s, out, ptrVal)
 
             // if the non_recursive flag is set, we don't do anything but leave the cursor at the correct position to resolve the object.
             if (!nonRecursive) {

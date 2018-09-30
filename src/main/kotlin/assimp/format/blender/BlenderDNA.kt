@@ -427,7 +427,7 @@ class ObjectCache(val db: FileDatabase) {
 
     /** Currently there are only ~400 structure records per blend file. We read only a small part of them and don't
      *  cache objects which we don't need, so this should suffice.  */
-    val caches = ArrayList<MutableMap<Long, ElemBase>>(64)
+    val caches = ArrayList<MutableMap<Long, Any>>(64)
 
     /** Check whether a specific item is in the cache.
      *  @param s Data type of the item
@@ -460,7 +460,7 @@ class ObjectCache(val db: FileDatabase) {
             s.cacheIdx = db.nextCacheIdx++
             caches.ensureCapacity(db.nextCacheIdx.i)
         }
-        caches[s.cacheIdx.i][ptr] = out() as ElemBase
+        caches[s.cacheIdx.i][ptr] = out() as Any
 
         if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.cachedObjects
     }
@@ -468,7 +468,7 @@ class ObjectCache(val db: FileDatabase) {
 
 //// -------------------------------------------------------------------------------
 //// -------------------------------------------------------------------------------
-//template <> class ObjectCache<Blender::vector>
+//template <> class ObjectCache<Blender::vector> // HINT I think we no longer need this
 //{
 //    public:
 //
@@ -478,9 +478,6 @@ class ObjectCache(val db: FileDatabase) {
 //    template <typename T> void set(const Structure&, const vector<T>&, const Pointer&) {}
 //};
 //
-//#ifdef _MSC_VER
-//#   pragma warning(disable:4355)
-//#endif
 
 /** Memory representation of a full BLEND file and all its dependencies. The output AiScene is constructed from
  *  an instance of this data structure. */
