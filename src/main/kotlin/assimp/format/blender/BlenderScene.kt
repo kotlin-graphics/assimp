@@ -131,7 +131,7 @@ class World : ElemBase() {
 
 class MVert : ElemBase() {
     val co = FloatArray(3)
-    val no = FloatArray(3)
+    val no = FloatArray(3)  // readed as short and divided through / 32767.f
     var flag = '\u0000'
     var matNr = 0
     var weight = 0
@@ -345,7 +345,7 @@ class Material : ElemBase() {
     var diffShader = 0
     var specShader = 0
 
-    var mTex = Array(18) { MTex() }
+    var mTex: Array<MTex>? = Array(18) { MTex() }   // TODO use List instead?
 }
 
 // /*
@@ -406,11 +406,11 @@ class Mesh : ElemBase() {
 
     var mat: List<Material?>? = null
 
-	var vdata: CustomData? = null
-	var edata: CustomData? = null
-	var fdata: CustomData? = null
-	var pdata: CustomData? = null
-	var ldata: CustomData? = null
+	var vdata = CustomData()
+	var edata = CustomData()
+	var fdata = CustomData()
+	var pdata = CustomData()
+	var ldata = CustomData()
 
 }
 //// -------------------------------------------------------------------------------

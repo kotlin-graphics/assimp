@@ -228,12 +228,10 @@ class Structure (val db: FileDatabase) {
         if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
-    /** field parsing for pointer or dynamic array types (std::shared_ptr)
-     *  The return value indicates whether the data was already cached. */
-    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean {
+    private inline fun <T>readFieldPtrPrivate(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean, resolve: (Ep, KMutableProperty0<T?>, Long, Field, Boolean) -> Boolean): Boolean {
 
         val old = db.reader.pos
-        var ptrval = 0L
+        val ptrval: Long
         val f: Field
         try {
             f = get(name)
@@ -252,7 +250,7 @@ class Structure (val db: FileDatabase) {
         }
 
         // resolve the pointer and load the corresponding structure
-        val res = resolvePtr(out, ptrval, f, nonRecursive)
+        val res = resolve(errorPolicy, out, ptrval, f, nonRecursive)
         // and recover the previous stream position
         if (!nonRecursive) db.reader.pos = old
 
@@ -260,6 +258,18 @@ class Structure (val db: FileDatabase) {
 
         return res
     }
+
+    /** field parsing for pointer or dynamic array types (std::shared_ptr)
+     *  The return value indicates whether the data was already cached. */
+    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean
+            = readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, nonRec ->
+        resolvePtr(errorPolicy, o, ptrVal, field, nonRec)
+    }
+
+    fun <T> readFieldPtrList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, name: String, nonRecursive: Boolean = false): Boolean =
+            readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, _ ->
+                resolvePointerList(ep, o, ptrVal, field)
+            }
 
     /** field parsing for static arrays of pointer or dynamic array types (std::shared_ptr[])
      *  The return value indicates whether the data was already cached. */
@@ -270,7 +280,7 @@ class Structure (val db: FileDatabase) {
      *  The return value indicates whether the data was already cached.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> readField(errorPolicy: Ep, out: T, name: String): T {
+    fun <T: Any> readField(errorPolicy: Ep, out: T, name: String): T { // TODO this should probably not be T but KMutableProperty0<T> and overloads the other for special cases of T (Id, ListBase)
 
         val old = db.reader.pos
         try {
@@ -282,6 +292,7 @@ class Structure (val db: FileDatabase) {
             when (out) {
                 is Id -> s.convert(out)
                 is ListBase -> s.convert(out)
+                is CustomData ->  error(Ep.Warn, out, "Custom data read yet implemented!")  // TODO
                 is KMutableProperty0<*> -> when (out()) {
                     is Float -> (out as KMutableProperty0<Float>).set(s.convertFloat)
                     is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
@@ -303,16 +314,16 @@ class Structure (val db: FileDatabase) {
         return out
     }
 
-    fun <T> resolvePtr(out: T?, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when { // TODO ErrorPolicy missing
-        f.type == "ElemBase" || isElem -> resolvePointer(out as KMutableProperty0<ElemBase?>, ptrVal)
-        else -> resolvePointer(out as KMutableProperty0<*>, ptrVal, f, nonRecursive)
+    @Suppress("UNCHECKED_CAST")
+    fun <T> resolvePtr(errorPolicy: Ep, out: T?, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when { // TODO change T? to KMutableProperty<T?>
+        f.type == "ElemBase" || isElem -> resolvePointer(errorPolicy, out as KMutableProperty0<ElemBase?>, ptrVal)
+        else -> resolvePointer(errorPolicy, out as KMutableProperty0<*>, ptrVal, f, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
 //        else -> throw Error()
     }
 
-    private var _o: ElemBase? = null // workaround for https://youtrack.jetbrains.com/issue/KT-16303
 
-    fun <T> resolvePointer(out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {
+    fun <T> resolvePointer(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {
 
         out.set(null) // ensure null pointers work
         if (ptrVal == 0L) return false
@@ -340,29 +351,29 @@ class Structure (val db: FileDatabase) {
 
         // TODO does this work with primitives? probably not
         val (constructor, converter) = db.dna.converters[f.type] ?: run {
-            logger.warn { "Failed to find a converter for the `${f.type}` structure" }
+            error(errorPolicy, out, "Failed to find a converter for the `${f.type}` structure")
             return false
         }
 
         val num = block.size / ss.size.i
-        if (num > 1) {// TODO this path might make convertMesh fail, test
+        if (num > 1) {
 
-            val list = MutableList<ElemBase?>(num) { constructor() } // TODO should this be List or Array (currently used for Mesh)
+            val list = MutableList<ElemBase?>(num) { constructor() }
 
             @Suppress("UNCHECKED_CAST")
             out.set(list as T)
 
             // cache the object before we convert it to avoid cyclic recursion.
-            db.cache.set(s, out, ptrVal)
+            // db.cache.set(s, out, ptrVal) // TODO cache for lists
 
             // if the non_recursive flag is set, we don't do anything but leave the cursor at the correct position to resolve the object.
             if (!nonRecursive) {
                 for (i in 0 until num) {
 
                     // workaround for https://youtrack.jetbrains.com/issue/KT-16303
-                    _o = list[i]
-                    s.converter(::_o)
-                    list[i] = _o
+                    tempElemBase = list[i]
+                    s.converter(::tempElemBase)
+                    list[i] = tempElemBase
                 }
 
                 db.reader.pos = pOld
@@ -440,7 +451,7 @@ class Structure (val db: FileDatabase) {
 //        return res;
     }
 
-    fun resolvePointer(out: KMutableProperty0<ElemBase?>, ptrVal: Long): Boolean {
+    fun resolvePointer(errorPolicy: Ep, out: KMutableProperty0<ElemBase?>, ptrVal: Long): Boolean {
 
         isElem = false
         /*  Special case when the data type needs to be determined at runtime.
@@ -471,7 +482,7 @@ class Structure (val db: FileDatabase) {
             /*  this might happen if DNA::RegisterConverters hasn't been called so far or
                 if the target type is not contained in `our` DNA.             */
             out.set(null)
-            logger.warn("Failed to find a converter for the `${s.name}` structure")
+            error(errorPolicy, out, "Failed to find a converter for the `${s.name}` structure")
             return false
         }
 
@@ -493,6 +504,40 @@ class Structure (val db: FileDatabase) {
         if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.pointersResolved
 
         return false
+    }
+
+    fun <T> resolvePointerList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, ptrVal: Long, field: Field): Boolean {
+        // This is a function overload, not a template specialization. According to
+        // the partial ordering rules, it should be selected by the compiler
+        // for array-of-pointer inputs, i.e. Object::mats.
+
+        out.set(null)
+
+        if(ptrVal == 0L) return false
+
+        val block = locateFileBlockForAddress(ptrVal)
+
+        val num = block.size / db.pointerSize
+
+        // keep the old stream position
+        val pOld = db.reader.pos
+        db.reader.pos = block.start + (ptrVal - block.address).i
+        // FIXME: basically, this could cause problems with 64 bit pointers on 32 bit systems.
+        // I really ought to improve StreamReader to work with 64 bit indices exclusively.
+
+        var res = true // FIXME: check back with https://github.com/assimp/assimp/issues/2160
+
+        out.set(MutableList(num) {
+            val ptr = convertPointer()
+            res = resolvePtr(errorPolicy, ::tempAny, ptr, field) || res // FIXME: check back with https://github.com/assimp/assimp/issues/2160
+            @Suppress("UNCHECKED_CAST")
+
+            tempAny as T
+        })
+
+        db.reader.pos = pOld
+
+        return res
     }
 
     fun locateFileBlockForAddress(ptrVal: Long): FileBlockHead {
@@ -562,8 +607,8 @@ class Structure (val db: FileDatabase) {
         val d = dest.setIfNull(Object())
 
         readField(Ep.Fail, d.id, "id")
-        readField(Ep.Fail, ::e, "type")
-        d.type = Object.Type of e
+        readField(Ep.Fail, ::tempInt, "type")
+        d.type = Object.Type of tempInt
         readFieldArray2(Ep.Warn, d.obmat, "obmat")
         readFieldArray2(Ep.Warn, d.parentinv, "parentinv")
         d.parSubstr = readFieldString(Ep.Warn, "parsubstr")
@@ -595,19 +640,19 @@ class Structure (val db: FileDatabase) {
 
         val d = dest.setIfNull(MTex())
 
-        readField(Ep.Igno, ::e, "mapto")
-        d.mapTo = MTex.MapType of e
-        readField(Ep.Igno, ::e, "blendtype")
-        d.blendType = MTex.BlendType of e
+        readField(Ep.Igno, ::tempInt, "mapto")
+        d.mapTo = MTex.MapType of tempInt
+        readField(Ep.Igno, ::tempInt, "blendtype")
+        d.blendType = MTex.BlendType of tempInt
         readFieldPtr(Ep.Igno, d::object_, "*object")
         readFieldPtr(Ep.Igno, d::tex, "*tex")
         d.uvName = readFieldString(Ep.Igno, "uvname")
-        readField(Ep.Igno, ::e, "projx")
-        d.projX = MTex.Projection of e
-        readField(Ep.Igno, ::e, "projy")
-        d.projY = MTex.Projection of e
-        readField(Ep.Igno, ::e, "projz")
-        d.projZ = MTex.Projection of e
+        readField(Ep.Igno, ::tempInt, "projx")
+        d.projX = MTex.Projection of tempInt
+        readField(Ep.Igno, ::tempInt, "projy")
+        d.projY = MTex.Projection of tempInt
+        readField(Ep.Igno, ::tempInt, "projz")
+        d.projZ = MTex.Projection of tempInt
         d.mapping = readFieldString(Ep.Igno, "mapping")
         readFieldFloatArray(Ep.Igno, d.ofs, "ofs")
         readFieldFloatArray(Ep.Igno, d.size, "size")
@@ -678,8 +723,8 @@ class Structure (val db: FileDatabase) {
         val d = dest.setIfNull(Lamp())
 
         readField(Ep.Fail, d.id,"id")
-        readField(Ep.Fail, ::e,"type")
-        d.type = Lamp.Type of e
+        readField(Ep.Fail, ::tempInt, "type")
+        d.type = Lamp.Type of tempInt
         readField(Ep.Igno, d::flags,"flags")
         readField(Ep.Igno, d::colorModel,"colormodel")
         readField(Ep.Igno, d::totex,"totex")
@@ -693,8 +738,8 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::spotBlend,"spotblend")
         readField(Ep.Igno, d::att1,"att1")
         readField(Ep.Igno, d::att2,"att2")
-        readField(Ep.Igno, ::e,"falloff_type")
-        d.falloffType = Lamp.FalloffType of e
+        readField(Ep.Igno, ::tempInt, "falloff_type")
+        d.falloffType = Lamp.FalloffType of tempInt
         readField(Ep.Igno, d::sunBrightness,"sun_brightness")
         readField(Ep.Igno, d::areaSize,"area_size")
         readField(Ep.Igno, d::areaSizeY,"area_sizey")
@@ -778,127 +823,123 @@ class Structure (val db: FileDatabase) {
     }
 //
 ////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Material> (
-//    Material& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        ReadField<ErrorPolicy_Warn>(dest.r,"r",db);
-//        ReadField<ErrorPolicy_Warn>(dest.g,"g",db);
-//        ReadField<ErrorPolicy_Warn>(dest.b,"b",db);
-//        ReadField<ErrorPolicy_Warn>(dest.specr,"specr",db);
-//        ReadField<ErrorPolicy_Warn>(dest.specg,"specg",db);
-//        ReadField<ErrorPolicy_Warn>(dest.specb,"specb",db);
-//        ReadField<ErrorPolicy_Igno>(dest.har,"har",db);
-//        ReadField<ErrorPolicy_Warn>(dest.ambr,"ambr",db);
-//        ReadField<ErrorPolicy_Warn>(dest.ambg,"ambg",db);
-//        ReadField<ErrorPolicy_Warn>(dest.ambb,"ambb",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mirr,"mirr",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mirg,"mirg",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mirb,"mirb",db);
-//        ReadField<ErrorPolicy_Warn>(dest.emit,"emit",db);
-//        ReadField<ErrorPolicy_Igno>(dest.ray_mirror,"ray_mirror",db);
-//        ReadField<ErrorPolicy_Warn>(dest.alpha,"alpha",db);
-//        ReadField<ErrorPolicy_Igno>(dest.ref,"ref",db);
-//        ReadField<ErrorPolicy_Igno>(dest.translucency,"translucency",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mode,"mode",db);
-//        ReadField<ErrorPolicy_Igno>(dest.roughness,"roughness",db);
-//        ReadField<ErrorPolicy_Igno>(dest.darkness,"darkness",db);
-//        ReadField<ErrorPolicy_Igno>(dest.refrac,"refrac",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.group,"*group",db);
-//        ReadField<ErrorPolicy_Warn>(dest.diff_shader,"diff_shader",db);
-//        ReadField<ErrorPolicy_Warn>(dest.spec_shader,"spec_shader",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mtex,"*mtex",db);
-//
-//
-//        ReadField<ErrorPolicy_Igno>(dest.amb, "amb", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ang, "ang", db);
-//        ReadField<ErrorPolicy_Igno>(dest.spectra, "spectra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.spec, "spec", db);
-//        ReadField<ErrorPolicy_Igno>(dest.zoffs, "zoffs", db);
-//        ReadField<ErrorPolicy_Igno>(dest.add, "add", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fresnel_mir, "fresnel_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fresnel_mir_i, "fresnel_mir_i", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fresnel_tra, "fresnel_tra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fresnel_tra_i, "fresnel_tra_i", db);
-//        ReadField<ErrorPolicy_Igno>(dest.filter, "filter", db);
-//        ReadField<ErrorPolicy_Igno>(dest.tx_limit, "tx_limit", db);
-//        ReadField<ErrorPolicy_Igno>(dest.tx_falloff, "tx_falloff", db);
-//        ReadField<ErrorPolicy_Igno>(dest.gloss_mir, "gloss_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.gloss_tra, "gloss_tra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.adapt_thresh_mir, "adapt_thresh_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.adapt_thresh_tra, "adapt_thresh_tra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.aniso_gloss_mir, "aniso_gloss_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.dist_mir, "dist_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.hasize, "hasize", db);
-//        ReadField<ErrorPolicy_Igno>(dest.flaresize, "flaresize", db);
-//        ReadField<ErrorPolicy_Igno>(dest.subsize, "subsize", db);
-//        ReadField<ErrorPolicy_Igno>(dest.flareboost, "flareboost", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_sta, "strand_sta", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_end, "strand_end", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_ease, "strand_ease", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_surfnor, "strand_surfnor", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_min, "strand_min", db);
-//        ReadField<ErrorPolicy_Igno>(dest.strand_widthfade, "strand_widthfade", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sbias, "sbias", db);
-//        ReadField<ErrorPolicy_Igno>(dest.lbias, "lbias", db);
-//        ReadField<ErrorPolicy_Igno>(dest.shad_alpha, "shad_alpha", db);
-//        ReadField<ErrorPolicy_Igno>(dest.param, "param", db);
-//        ReadField<ErrorPolicy_Igno>(dest.rms, "rms", db);
-//        ReadField<ErrorPolicy_Igno>(dest.rampfac_col, "rampfac_col", db);
-//        ReadField<ErrorPolicy_Igno>(dest.rampfac_spec, "rampfac_spec", db);
-//        ReadField<ErrorPolicy_Igno>(dest.friction, "friction", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fh, "fh", db);
-//        ReadField<ErrorPolicy_Igno>(dest.reflect, "reflect", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fhdist, "fhdist", db);
-//        ReadField<ErrorPolicy_Igno>(dest.xyfrict, "xyfrict", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_radius, "sss_radius", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_col, "sss_col", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_error, "sss_error", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_scale, "sss_scale", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_ior, "sss_ior", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_colfac, "sss_colfac", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_texfac, "sss_texfac", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_front, "sss_front", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_back, "sss_back", db);
-//
-//        ReadField<ErrorPolicy_Igno>(dest.material_type, "material_type", db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag, "flag", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ray_depth, "ray_depth", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ray_depth_tra, "ray_depth_tra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.samp_gloss_mir, "samp_gloss_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.samp_gloss_tra, "samp_gloss_tra", db);
-//        ReadField<ErrorPolicy_Igno>(dest.fadeto_mir, "fadeto_mir", db);
-//        ReadField<ErrorPolicy_Igno>(dest.shade_flag, "shade_flag", db);
-//        ReadField<ErrorPolicy_Igno>(dest.flarec, "flarec", db);
-//        ReadField<ErrorPolicy_Igno>(dest.starc, "starc", db);
-//        ReadField<ErrorPolicy_Igno>(dest.linec, "linec", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ringc, "ringc", db);
-//        ReadField<ErrorPolicy_Igno>(dest.pr_lamp, "pr_lamp", db);
-//        ReadField<ErrorPolicy_Igno>(dest.pr_texture, "pr_texture", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ml_flag, "ml_flag", db);
-//        ReadField<ErrorPolicy_Igno>(dest.diff_shader, "diff_shader", db);
-//        ReadField<ErrorPolicy_Igno>(dest.spec_shader, "spec_shader", db);
-//        ReadField<ErrorPolicy_Igno>(dest.texco, "texco", db);
-//        ReadField<ErrorPolicy_Igno>(dest.mapto, "mapto", db);
-//        ReadField<ErrorPolicy_Igno>(dest.ramp_show, "ramp_show", db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad3, "pad3", db);
-//        ReadField<ErrorPolicy_Igno>(dest.dynamode, "dynamode", db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad2, "pad2", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_flag, "sss_flag", db);
-//        ReadField<ErrorPolicy_Igno>(dest.sss_preset, "sss_preset", db);
-//        ReadField<ErrorPolicy_Igno>(dest.shadowonly_flag, "shadowonly_flag", db);
-//        ReadField<ErrorPolicy_Igno>(dest.index, "index", db);
-//        ReadField<ErrorPolicy_Igno>(dest.vcol_alpha, "vcol_alpha", db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad4, "pad4", db);
-//
-//        ReadField<ErrorPolicy_Igno>(dest.seed1, "seed1", db);
-//        ReadField<ErrorPolicy_Igno>(dest.seed2, "seed2", db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+
+    fun convertMaterial(dest: KMutableProperty0<Material?>) {
+
+        val d = dest.setIfNull(Material())
+
+        readField(Ep.Fail, d.id,"id")
+        readField(Ep.Warn, d::r,"r")
+        readField(Ep.Warn, d::g,"g")
+        readField(Ep.Warn, d::b,"b")
+        readField(Ep.Warn, d::specr,"specr")
+        readField(Ep.Warn, d::specg,"specg")
+        readField(Ep.Warn, d::specb,"specb")
+        readField(Ep.Igno, d::har,"har")
+        readField(Ep.Warn, d::ambr,"ambr")
+        readField(Ep.Warn, d::ambg,"ambg")
+        readField(Ep.Warn, d::ambb,"ambb")
+        readField(Ep.Igno, d::mirr,"mirr")
+        readField(Ep.Igno, d::mirg,"mirg")
+        readField(Ep.Igno, d::mirb,"mirb")
+        readField(Ep.Warn, d::emit,"emit")
+        readField(Ep.Igno, d::rayMirror,"ray_mirror")
+        readField(Ep.Warn, d::alpha,"alpha")
+        readField(Ep.Igno, d::ref,"ref")
+        readField(Ep.Igno, d::translucency,"translucency")
+        readField(Ep.Igno, d::mode,"mode")
+        readField(Ep.Igno, d::roughness,"roughness")
+        readField(Ep.Igno, d::darkness,"darkness")
+        readField(Ep.Igno, d::refrac,"refrac")
+        readFieldPtr(Ep.Igno, d::group,"*group")
+        readField(Ep.Warn, d::diffShader,"diff_shader")
+        readField(Ep.Warn, d::specShader,"spec_shader")
+        readFieldPtr(Ep.Igno, d::mTex,"*mtex")
+
+        readField(Ep.Igno, d::amb, "amb")
+        readField(Ep.Igno, d::ang, "ang")
+        readField(Ep.Igno, d::spectra, "spectra")
+        readField(Ep.Igno, d::spec, "spec")
+        readField(Ep.Igno, d::zoffs, "zoffs")
+        readField(Ep.Igno, d::add, "add")
+        readField(Ep.Igno, d::fresnelMir, "fresnel_mir")
+        readField(Ep.Igno, d::fresnelMirI, "fresnel_mir_i")
+        readField(Ep.Igno, d::fresnelTra, "fresnel_tra")
+        readField(Ep.Igno, d::fresnelTraI, "fresnel_tra_i")
+        readField(Ep.Igno, d::filter, "filter")
+        readField(Ep.Igno, d::txLimit, "tx_limit")
+        readField(Ep.Igno, d::txFalloff, "tx_falloff")
+        readField(Ep.Igno, d::glossMir, "gloss_mir")
+        readField(Ep.Igno, d::glossTra, "gloss_tra")
+        readField(Ep.Igno, d::adaptThreshMir, "adapt_thresh_mir")
+        readField(Ep.Igno, d::adaptThreshTra, "adapt_thresh_tra")
+        readField(Ep.Igno, d::anisoGlossMir, "aniso_gloss_mir")
+        readField(Ep.Igno, d::distMir, "dist_mir")
+        readField(Ep.Igno, d::hasize, "hasize")
+        readField(Ep.Igno, d::flaresize, "flaresize")
+        readField(Ep.Igno, d::subsize, "subsize")
+        readField(Ep.Igno, d::flareboost, "flareboost")
+        readField(Ep.Igno, d::strandSta, "strand_sta")
+        readField(Ep.Igno, d::strandEnd, "strand_end")
+        readField(Ep.Igno, d::strandEase, "strand_ease")
+        readField(Ep.Igno, d::strandSurfnor, "strand_surfnor")
+        readField(Ep.Igno, d::strandMin, "strand_min")
+        readField(Ep.Igno, d::strandWidthfade, "strand_widthfade")
+        readField(Ep.Igno, d::sbias, "sbias")
+        readField(Ep.Igno, d::lbias, "lbias")
+        readField(Ep.Igno, d::shadAlpha, "shad_alpha")
+        readField(Ep.Igno, d::param, "param")
+        readField(Ep.Igno, d::rms, "rms")
+        readField(Ep.Igno, d::rampfacCol, "rampfac_col")
+        readField(Ep.Igno, d::rampfacSpec, "rampfac_spec")
+        readField(Ep.Igno, d::friction, "friction")
+        readField(Ep.Igno, d::fh, "fh")
+        readField(Ep.Igno, d::reflect, "reflect")
+        readField(Ep.Igno, d::fhdist, "fhdist")
+        readField(Ep.Igno, d::xyfrict, "xyfrict")
+        readField(Ep.Igno, d::sssRadius, "sss_radius")
+        readField(Ep.Igno, d::sssCol, "sss_col")
+        readField(Ep.Igno, d::sssError, "sss_error")
+        readField(Ep.Igno, d::sssScale, "sss_scale")
+        readField(Ep.Igno, d::sssIor, "sss_ior")
+        readField(Ep.Igno, d::sssColfac, "sss_colfac")
+        readField(Ep.Igno, d::sssTexfac, "sss_texfac")
+        readField(Ep.Igno, d::sssFront, "sss_front")
+        readField(Ep.Igno, d::sssBack, "sss_back")
+
+        readField(Ep.Igno, d::material_type, "material_type")
+        readField(Ep.Igno, d::flag, "flag")
+        readField(Ep.Igno, d::rayDepth, "ray_depth")
+        readField(Ep.Igno, d::rayDepthTra, "ray_depth_tra")
+        readField(Ep.Igno, d::sampGlossMir, "samp_gloss_mir")
+        readField(Ep.Igno, d::sampGlossTra, "samp_gloss_tra")
+        readField(Ep.Igno, d::fadetoMir, "fadeto_mir")
+        readField(Ep.Igno, d::shadeFlag, "shade_flag")
+        readField(Ep.Igno, d::flarec, "flarec")
+        readField(Ep.Igno, d::starc, "starc")
+        readField(Ep.Igno, d::linec, "linec")
+        readField(Ep.Igno, d::ringc, "ringc")
+        readField(Ep.Igno, d::prLamp, "pr_lamp")
+        readField(Ep.Igno, d::prTexture, "pr_texture")
+        readField(Ep.Igno, d::mlFlag, "ml_flag")
+        readField(Ep.Igno, d::diffShader, "diff_shader")
+        readField(Ep.Igno, d::specShader, "spec_shader")
+        readField(Ep.Igno, d::texco, "texco")
+        readField(Ep.Igno, d::mapto, "mapto")
+        readField(Ep.Igno, d::rampShow, "ramp_show")
+        readField(Ep.Igno, d::pad3, "pad3")
+        readField(Ep.Igno, d::dynamode, "dynamode")
+        readField(Ep.Igno, d::pad2, "pad2")
+        readField(Ep.Igno, d::sssFlag, "sss_flag")
+        readField(Ep.Igno, d::sssPreset, "sss_preset")
+        readField(Ep.Igno, d::shadowonlyFlag, "shadowonly_flag")
+        readField(Ep.Igno, d::index, "index")
+        readField(Ep.Igno, d::vcolAlpha, "vcol_alpha")
+        readField(Ep.Igno, d::pad4, "pad4")
+
+        readField(Ep.Igno, d::seed1, "seed1")
+        readField(Ep.Igno, d::seed2, "seed2")
+    }
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MTexPoly> (
 //    MTexPoly& dest,
@@ -937,24 +978,24 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Igno, d::subsurftype, "subsurftype")
 		readField(Ep.Igno, d::smoothresh, "smoothresh")
 	    readFieldPtr(Ep.Fail, d::mface, "*mface")
-	    readFieldPtr(Ep.Igno, d::mtface, "*mtface")
-	    readFieldPtr(Ep.Igno, d::tface, "*tface")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mtface, "*mtface")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::tface, "*tface")
 	    readFieldPtr(Ep.Fail, d::mvert, "*mvert")
-	    readFieldPtr(Ep.Warn, d::medge, "*medge")
-	    readFieldPtr(Ep.Igno, d::mloop, "*mloop")
-	    readFieldPtr(Ep.Igno, d::mloopuv, "*mloopuv")
-	    readFieldPtr(Ep.Igno, d::mloopcol, "*mloopcol")
-	    readFieldPtr(Ep.Igno, d::mpoly, "*mpoly")
-	    readFieldPtr(Ep.Igno, d::mtpoly, "*mtpoly")
-	    readFieldPtr(Ep.Igno, d::dvert, "*dvert")
-	    readFieldPtr(Ep.Igno, d::mcol, "*mcol")
-	    readFieldPtr(Ep.Fail, d::mat, "**mat")      // TODO FIXME crash
+	    // TODO(enable): readFieldPtr(Ep.Warn, d::medge, "*medge")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloop, "*mloop")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloopuv, "*mloopuv")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloopcol, "*mloopcol")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mpoly, "*mpoly")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mtpoly, "*mtpoly")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::dvert, "*dvert")
+	    // TODO(enable): readFieldPtr(Ep.Igno, d::mcol, "*mcol")
+        readFieldPtrList(Ep.Fail, d::mat, "**mat")
 
-	    readField(Ep.Igno, d::vdata, "vdata")
-	    readField(Ep.Igno, d::edata, "edata")
-	    readField(Ep.Igno, d::fdata, "fdata")
-	    readField(Ep.Igno, d::pdata, "pdata")
-	    readField(Ep.Igno, d::ldata, "ldata")
+	    readField(Ep.Igno, d.vdata, "vdata")
+	    readField(Ep.Igno, d.edata, "edata")
+	    readField(Ep.Igno, d.fdata, "fdata")
+	    readField(Ep.Igno, d.pdata, "pdata")
+	    readField(Ep.Igno, d.ldata, "ldata")
 
 	    db.reader.pos += size.i
     }
@@ -996,21 +1037,17 @@ class Structure (val db: FileDatabase) {
 //        db.reader->IncPtr(size);
 //    }
 //
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MVert> (
-//    MVert& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadFieldArray<ErrorPolicy_Fail>(dest.co,"co",db);
-//        ReadFieldArray<ErrorPolicy_Fail>(dest.no,"no",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//        //ReadField<ErrorPolicy_Warn>(dest.mat_nr,"mat_nr",db);
-//        ReadField<ErrorPolicy_Igno>(dest.bweight,"bweight",db);
-//
-//        db.reader->IncPtr(size);
-//    }
+
+    fun convertMVert(dest: KMutableProperty0<MVert?>) {
+        val d = dest.setIfNull(MVert())
+
+        readFieldFloatArray(Ep.Fail, d.co, "co")
+        readFieldFloatArray(Ep.Fail, d.no, "no")
+        readField(Ep.Igno, d::flag, "flag")
+        //readField(Ep.Warn, d.matNr, "matNr")
+        readField(Ep.Igno, d::weight, "bweight")
+
+    }
 //
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MEdge> (
@@ -1186,10 +1223,10 @@ class Structure (val db: FileDatabase) {
         val d = dest() ?: Camera().also { dest.set(it) }
 
         readField(Ep.Fail, d.id, "id")
-        readField(Ep.Warn, ::e, "type")
-        d.type = Camera.Type of e
-        readField(Ep.Warn, ::e, "flag")
-        d.flag = Camera.Type of e
+        readField(Ep.Warn, ::tempInt, "type")
+        d.type = Camera.Type of tempInt
+        readField(Ep.Warn, ::tempInt, "flag")
+        d.flag = Camera.Type of tempInt
         readField(Ep.Warn, d::lens, "lens")
         readField(Ep.Warn, d::sensorX, "sensor_x")      /* TODO my current test file does not contain this.
         This might be because the sensor_x (I think it corresponds to sensor_width in bpy doc) default is 0.0f as it is here
@@ -1250,7 +1287,11 @@ class Structure (val db: FileDatabase) {
 //    }
 
     companion object {
-        var e = 0
+        // workaround for https://youtrack.jetbrains.com/issue/KT-16303
+        private var tempAny: Any? = null
+        private var tempElemBase: ElemBase? = null
+        private var tempInt = 0
+
         var isElem = false
     }
 }

@@ -266,13 +266,13 @@ class DNA {
 //        converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
           converters["Base"] = ::Base to Structure::convertBase as ElemBaseConverter
           converters["MTFace"] = ::MTFace to Structure::convertMTFace as ElemBaseConverter
-//        converters["Material"] = DNA::FactoryPair( &Structure::Allocate<Material>, &Structure::Convert<Material> );
+          converters["Material"] = ::Material to Structure::convertMaterial as ElemBaseConverter
 //        converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
           converters["Mesh"] = ::Mesh to Structure::convertMesh as ElemBaseConverter
 //        converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
           converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
 //        converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
-          // converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter TODO()
+          converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter
           // converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter TODO()
 //        converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
 //        converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
