@@ -1144,6 +1144,21 @@ class Structure (val db: FileDatabase) {
 //    }
 //
 
+	fun convertModifierData(data: ModifierData) {
+
+		readFieldPtr(Ep.Warn, data::next,"*next")
+        readFieldPtr(Ep.Warn, data::prev,"*prev")
+        readField(Ep.Igno, data::type,"type")
+        readField(Ep.Igno, data::mode,"mode")
+        data.name = readFieldString(Ep.Igno, "name")
+	}
+
+    fun convertModifierDataRef(dest: KMutableProperty0<ModifierData?>) {
+
+        val d = dest.setIfNull(ModifierData())
+        convertModifierData(d)
+    }
+
     fun convert(id: Id) {
 
         id.name = readFieldString(Ep.Warn, "name")
