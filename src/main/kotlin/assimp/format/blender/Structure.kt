@@ -1144,7 +1144,7 @@ class Structure (val db: FileDatabase) {
 //    }
 //
 
-	fun convertModifierData(data: ModifierData) {
+	fun convert(data: ModifierData) {
 
 		readFieldPtr(Ep.Warn, data::next,"*next")
         readFieldPtr(Ep.Warn, data::prev,"*prev")
@@ -1153,10 +1153,10 @@ class Structure (val db: FileDatabase) {
         data.name = readFieldString(Ep.Igno, "name")
 	}
 
-    fun convertModifierDataRef(dest: KMutableProperty0<ModifierData?>) {
+    fun convertModifierData(dest: KMutableProperty0<ModifierData?>) {
 
         val d = dest.setIfNull(ModifierData())
-        convertModifierData(d)
+	    convert(d)
     }
 
     fun convert(id: Id) {
@@ -1165,6 +1165,11 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, id::flag, "flag")
 
         db.reader.pos += size.i
+    }
+
+    fun convertId(dest: KMutableProperty0<Id?>) {
+        val d = dest.setIfNull(Id())
+	    convert(d)
     }
 
     fun convertMCol(dest: KMutableProperty0<MCol?>) {
@@ -1193,20 +1198,22 @@ class Structure (val db: FileDatabase) {
 //    }
 //
 
-    fun convertScene(): Scene {
+	fun convert(dest: Scene) {
 
-        val dest = Scene()
+		readField(Ep.Fail, dest.id, "id")
+		readFieldPtr(Ep.Warn, dest::camera, "*camera")
+		readFieldPtr(Ep.Warn, dest::world, "*world")
+		readFieldPtr(Ep.Warn, dest::basact, "*basact")
+		readField(Ep.Igno, dest.base, "base")
 
-        readField(Ep.Fail, dest.id, "id")
-        readFieldPtr(Ep.Warn, dest::camera, "*camera")
-        readFieldPtr(Ep.Warn, dest::world, "*world")
-        readFieldPtr(Ep.Warn, dest::basact, "*basact")
-        readField(Ep.Igno, dest.base, "base")
+		db.reader.pos += size.i     // TODO am I missing this everywhere else??
+	}
 
-        db.reader.pos += size.i
+	fun convertSceneRef(dest: KMutableProperty0<Scene?>) {
 
-        return dest
-    }
+		val d = dest.setIfNull(Scene())
+		convert(d)
+	}
 
     //
 ////--------------------------------------------------------------------------------

@@ -136,7 +136,8 @@ class BlenderImporter : BaseImporter() {
 
 	    file.reader.pos = block.start
 
-        val out = ss.convertScene()
+	    val out = Scene()
+        ss.convert(out)
 
 	    if(!ASSIMP.BLENDER_NO_STATS) {
 		    val stats = file.stats

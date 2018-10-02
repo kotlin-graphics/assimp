@@ -278,11 +278,11 @@ class DNA {
 //        converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
 //        converters["ListBase"] = DNA::FactoryPair( &Structure::Allocate<ListBase>, &Structure::Convert<ListBase> );
 //        converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
-          converters["ModifierData"] = ::ModifierData to Structure::convertModifierDataRef as ElemBaseConverter
-//        converters["ID"] = DNA::FactoryPair( &Structure::Allocate<ID>, &Structure::Convert<ID> );
+          converters["ModifierData"] = ::ModifierData to Structure::convertModifierData as ElemBaseConverter
+          converters["ID"] = ::Id to Structure::convertId as ElemBaseConverter
           converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter
 //        converters["MPoly"] = DNA::FactoryPair( &Structure::Allocate<MPoly>, &Structure::Convert<MPoly> );
-//        converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
+          converters["Scene"] = ::Scene to Structure::convertSceneRef as ElemBaseConverter
 //        converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //        converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
           converters["Camera"] = ::Camera to Structure::convertCamera  as ElemBaseConverter
