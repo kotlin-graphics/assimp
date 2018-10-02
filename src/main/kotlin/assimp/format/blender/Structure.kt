@@ -283,48 +283,71 @@ class Structure (val db: FileDatabase) {
 //    fun <T>readFieldPtr(out )[N], const char* name,
 //    const FileDatabase& db) const
 //
-    /** field parsing for `normal` values
-     *  The return value indicates whether the data was already cached.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T: Any> readField(errorPolicy: Ep, out: T, name: String): T { // TODO this should probably not be T but KMutableProperty0<T> and overloads the other for special cases of T (Id, ListBase)
 
-        val old = db.reader.pos
-        try {
-            val f = get(name)
-            // find the structure definition pertaining to this field
-            val s = db.dna[f.type]
+	private inline fun <T: Any> readFieldPrivate(errorPolicy: Ep, out: T, name: String, read: (Structure, T) -> Unit): T {
 
-            db.reader.pos += f.offset.i
-            when (out) {
-                is Id -> s.convert(out)
-                is ListBase -> s.convert(out)
-                is CustomData ->  error(Ep.Warn, out, "Custom data read not yet implemented!")  // TODO
-                is KMutableProperty0<*> -> when (out()) {
-                    is Float -> (out as KMutableProperty0<Float>).set(s.convertFloat)
-                    is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
-                    is Int -> (out as KMutableProperty0<Int>).set(s.convertInt())
-                    is Char -> (out as KMutableProperty0<Char>).set(s.convertChar)
-                    else -> throw Error("Field type is not yet supported")
-                }
-                else -> throw Error("Invalid field type of ${out.javaClass.canonicalName}")
-            }
-        } catch (e: Exception) {
-            error(errorPolicy, out, e.message)
-        }
+	    val old = db.reader.pos
+	    try {
+		    val f = get(name)
+		    // find the structure definition pertaining to this field
+		    val s = db.dna[f.type]
 
-        // and recover the previous stream position
-        db.reader.pos = old
+		    read(s, out)
+	    } catch(e: Exception) {
+		    error(errorPolicy, out, e.message)
+	    }
 
-        if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
+	    // and recover the previous stream position
+	    db.reader.pos = old
 
-        return out
+
+	    if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
+
+	    return out
     }
 
+	/**
+	 * field parsing for `normal` values
+     * The return value indicates whether the data was already cached.
+     */
     @Suppress("UNCHECKED_CAST")
-    fun <T> resolvePtr(errorPolicy: Ep, out: T?, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when { // TODO change T? to KMutableProperty<T?>
+    fun <T: Any> readField(errorPolicy: Ep, out: KMutableProperty0<T>, name: String): KMutableProperty0<T> {
+
+	    return readFieldPrivate(errorPolicy, out, name) { s, o ->
+		    when (o()) {
+			    is Float -> (out as KMutableProperty0<Float>).set(s.convertFloat)
+			    is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
+			    is Int   -> (out as KMutableProperty0<Int>).set(s.convertInt())
+			    is Char  -> (out as KMutableProperty0<Char>).set(s.convertChar)
+			    else     -> throw Error("Field type is not yet supported")
+		    }
+	    }
+    }
+
+	fun readField(errorPolicy: Ep, out: Id, name: String): Id {
+		return readFieldPrivate(errorPolicy, out, name) { s, o -> s.convert(o) }
+	}
+
+	fun readField(errorPolicy: Ep, out: ListBase, name: String): ListBase {
+		return readFieldPrivate(errorPolicy, out, name) { s, o -> s.convert(o) }
+	}
+
+	fun readField(errorPolicy: Ep, out: CustomData, name: String): CustomData {
+		return readFieldPrivate(errorPolicy, out, name) { s, o ->
+			TODO()
+		}
+	}
+
+	fun readField(errorPolicy: Ep, out: ModifierData, name: String): ModifierData {
+		return readFieldPrivate(errorPolicy, out, name) { s, o ->
+			TODO()
+		}
+	}
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> resolvePtr(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when {
         f.type == "ElemBase" || isElem -> resolvePointer(errorPolicy, out as KMutableProperty0<ElemBase?>, ptrVal)
-        else -> resolvePointer(errorPolicy, out as KMutableProperty0<*>, ptrVal, f, nonRecursive)
+        else -> resolvePointer(errorPolicy, out, ptrVal, f, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
 //        else -> throw Error()
     }
@@ -356,7 +379,7 @@ class Structure (val db: FileDatabase) {
 
         // continue conversion after allocating the required storage
 
-        // TODO does this work with primitives? probably not
+        // TODO does this work with primitives? The question is does it need to? I don't think we will ever see a pointer to a primitive
         val (constructor, converter) = db.dna.converters[f.type] ?: run {
             error(errorPolicy, out, "Failed to find a converter for the `${f.type}` structure")
             return false
@@ -637,7 +660,7 @@ class Structure (val db: FileDatabase) {
         val d = dest.setIfNull(Group())
 
         readField(Ep.Fail, d.id, "id")
-        readField(Ep.Igno, d.layer, "layer")
+        readField(Ep.Igno, d::layer, "layer")
         readFieldPtr(Ep.Igno, d::gObject, "*gobject")
 
         db.reader.pos += size.i
