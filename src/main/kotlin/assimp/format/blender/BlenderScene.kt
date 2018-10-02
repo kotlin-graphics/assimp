@@ -611,7 +611,7 @@ class Object : ElemBase() {
         LATTICE(22);
 
         companion object {
-            fun of(i: Int) = values().first { it.i == i }
+            fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Object.Type with value of $i does not exist!")
         }
     }
 
