@@ -796,33 +796,21 @@ class Structure (val db: FileDatabase) {
                 todo = (curDest.next ?: Base().also { curDest.next = it }) to db.reader.pos
                 continue
             }
-            break
+	        break
         }
 
-        db.reader.pos = initialPos + size.i
+	    db.reader.pos = initialPos + size.i
     }
 
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MTFace> (
-//    MTFace& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadFieldArray2<ErrorPolicy_Fail>(dest.uv,"uv",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mode,"mode",db);
-//        ReadField<ErrorPolicy_Igno>(dest.tile,"tile",db);
-//        ReadField<ErrorPolicy_Igno>(dest.unwrap,"unwrap",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-    fun convertMTFace(dest: KMutableProperty0<MTFace?>) {
-        TODO()
-    }
-//
-////--------------------------------------------------------------------------------
+	fun convertMTFace(dest: KMutableProperty0<MTFace?>) {
+
+		val d = dest.setIfNull(MTFace())
+
+		readFieldArray2(Ep.Fail, d.uv, "uv")
+		readField(Ep.Igno, d::flag, "flag")
+		readField(Ep.Igno, d::tile,"tile")
+        readField(Ep.Igno, d::unwrap,"unwrap")
+	}
 
     fun convertMaterial(dest: KMutableProperty0<Material?>) {
 
@@ -978,17 +966,17 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Igno, d::subsurftype, "subsurftype")
 		readField(Ep.Igno, d::smoothresh, "smoothresh")
 	    readFieldPtr(Ep.Fail, d::mface, "*mface")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mtface, "*mtface")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::tface, "*tface")
+	    readFieldPtr(Ep.Igno, d::mtface, "*mtface")
+	    readFieldPtr(Ep.Igno, d::tface, "*tface")
 	    readFieldPtr(Ep.Fail, d::mvert, "*mvert")
-	    // TODO(enable): readFieldPtr(Ep.Warn, d::medge, "*medge")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloop, "*mloop")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloopuv, "*mloopuv")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mloopcol, "*mloopcol")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mpoly, "*mpoly")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mtpoly, "*mtpoly")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::dvert, "*dvert")
-	    // TODO(enable): readFieldPtr(Ep.Igno, d::mcol, "*mcol")
+	    readFieldPtr(Ep.Warn, d::medge, "*medge")
+	    readFieldPtr(Ep.Igno, d::mloop, "*mloop")
+	    readFieldPtr(Ep.Igno, d::mloopuv, "*mloopuv")
+	    readFieldPtr(Ep.Igno, d::mloopcol, "*mloopcol")
+	    readFieldPtr(Ep.Igno, d::mpoly, "*mpoly")
+	    readFieldPtr(Ep.Igno, d::mtpoly, "*mtpoly")
+	    readFieldPtr(Ep.Igno, d::dvert, "*dvert")
+	    readFieldPtr(Ep.Igno, d::mcol, "*mcol")
         readFieldPtrList(Ep.Fail, d::mat, "**mat")
 
 	    readField(Ep.Igno, d.vdata, "vdata")
