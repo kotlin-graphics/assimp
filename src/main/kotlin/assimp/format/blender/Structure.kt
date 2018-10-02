@@ -38,7 +38,14 @@ class Structure (val db: FileDatabase) {
 
     override fun equals(other: Any?) = other is Structure && name == other.name // name is meant to be an unique identifier
 
-    fun convertInt() = convertDispatcher<Int>()
+    fun convertInt() = when (name) {
+        "int"    -> db.reader.int.i
+        "short"  -> db.reader.short.i
+        "char"   -> db.reader.get().c.i
+        "float"  -> db.reader.float.i
+        "double" -> db.reader.double.i
+        else     -> throw Error("Unknown source for conversion to primitive data type: $name")
+    }
 
     /** Try to read an instance of the structure from the stream and attempt to convert to `T`. This is done by an
      *  appropriate specialization. If none is available, a compiler complain is the result.
@@ -49,7 +56,10 @@ class Structure (val db: FileDatabase) {
         // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
             "float" -> (db.reader.float * 255f).c
             "double" -> (db.reader.double * 255f).c
-            else -> convertDispatcher()
+            "int"    -> db.reader.int.c
+            "short"  -> db.reader.short.c
+            "char"   -> db.reader.get().c
+            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
         }
 
     val convertShort
@@ -61,7 +71,10 @@ class Structure (val db: FileDatabase) {
                 (f * 32767f).s
             }
             "double" -> (db.reader.double * 32767.0).s
-            else -> convertDispatcher()
+            "int"    -> db.reader.int.s
+            "short"  -> db.reader.short
+            "char"   -> db.reader.get().c.s
+            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
         }
 
     //        return when (T::class) {
@@ -69,23 +82,17 @@ class Structure (val db: FileDatabase) {
 //
     val convertFloat
         get() = when (name) {
-        // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
-            "char" -> db.reader.get() / 255f
-        // automatic rescaling from short to float and vice versa (used by normals)
-            "short" -> db.reader.short / 32767f
-            else -> convertDispatcher()
+            // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
+            "char"   -> db.reader.get() / 255f
+            // automatic rescaling from short to float and vice versa (used by normals)
+            "short"  -> db.reader.short / 32767f
+            "int"    -> db.reader.int.f
+            "float"  -> db.reader.float
+            "double" -> db.reader.double.f
+            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
         }
 
     fun convertPointer() = if (db.i64bit) db.reader.long else db.reader.int.L
-
-    fun <T> convertDispatcher(): T = when (name) {
-        "int" -> db.reader.int as T
-        "short" -> db.reader.short as T
-        "char" -> db.reader.get().c as T
-        "float" -> db.reader.float as T
-        "double" -> db.reader.double as T
-        else -> throw Error("Unknown source for conversion to primitive data type: $name")
-    }
 
     override fun hashCode(): Int {
         var result = name.hashCode()
@@ -263,7 +270,7 @@ class Structure (val db: FileDatabase) {
      *  The return value indicates whether the data was already cached. */
     fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean
             = readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, nonRec ->
-        resolvePtr(errorPolicy, o, ptrVal, field, nonRec)
+        resolvePtr(ep, o, ptrVal, field, nonRec)
     }
 
     fun <T> readFieldPtrList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, name: String, nonRecursive: Boolean = false): Boolean =
@@ -1036,22 +1043,17 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::weight, "bweight")
 
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MEdge> (
-//    MEdge& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.v1,"v1",db);
-//        ReadField<ErrorPolicy_Fail>(dest.v2,"v2",db);
-//        ReadField<ErrorPolicy_Igno>(dest.crease,"crease",db);
-//        ReadField<ErrorPolicy_Igno>(dest.bweight,"bweight",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//
-//        db.reader->IncPtr(size);
-//    }
+
+    fun convertMEdge(dest: KMutableProperty0<MEdge?>) {
+
+        val d = dest.setIfNull(MEdge())
+
+        readField(Ep.Fail, d::v1, "v1")
+        readField(Ep.Fail, d::v2,"v2")
+        readField(Ep.Igno, d::crease,"crease")
+        readField(Ep.Igno, d::weight,"bweight")
+        readField(Ep.Igno, d::flag,"flag")
+    }
 //
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MLoopUV> (
@@ -1126,22 +1128,17 @@ class Structure (val db: FileDatabase) {
 
         db.reader.pos += size.i
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MCol> (
-//    MCol& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.r,"r",db);
-//        ReadField<ErrorPolicy_Fail>(dest.g,"g",db);
-//        ReadField<ErrorPolicy_Fail>(dest.b,"b",db);
-//        ReadField<ErrorPolicy_Fail>(dest.a,"a",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+
+    fun convertMCol(dest: KMutableProperty0<MCol?>) {
+
+        val d = dest.setIfNull(MCol())
+
+        readField(Ep.Fail, d::r,"r")
+        readField(Ep.Fail, d::g,"g")
+        readField(Ep.Fail, d::b,"b")
+        readField(Ep.Fail, d::a,"a")
+    }
+
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MPoly> (
 //    MPoly& dest,

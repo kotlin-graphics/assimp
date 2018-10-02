@@ -273,14 +273,14 @@ class DNA {
           converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
 //        converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
           converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter
-          // converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter TODO()
+          converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter
 //        converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
 //        converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
 //        converters["ListBase"] = DNA::FactoryPair( &Structure::Allocate<ListBase>, &Structure::Convert<ListBase> );
 //        converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
 //        converters["ModifierData"] = DNA::FactoryPair( &Structure::Allocate<ModifierData>, &Structure::Convert<ModifierData> );
 //        converters["ID"] = DNA::FactoryPair( &Structure::Allocate<ID>, &Structure::Convert<ID> );
-          // converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter TODO
+          converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter
 //        converters["MPoly"] = DNA::FactoryPair( &Structure::Allocate<MPoly>, &Structure::Convert<MPoly> );
 //        converters["Scene"] = DNA::FactoryPair( &Structure::Allocate<Scene>, &Structure::Convert<Scene> );
 //        converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
