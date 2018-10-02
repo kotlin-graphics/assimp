@@ -346,6 +346,7 @@ class Material : ElemBase() {
     var specShader = 0
 
     var mTex: Array<MTex>? = Array(18) { MTex() }   // TODO use List instead?
+	// I think this will fail, but my first test file does not contain any MTex structures
 }
 
 // /*
@@ -610,7 +611,7 @@ class Object : ElemBase() {
         LATTICE(22);
 
         companion object {
-            infix fun of(i: Int) = values().first { it.i == i } // TODO deprecate infix, I don't like the way it's used
+            fun of(i: Int) = values().first { it.i == i }
         }
     }
 

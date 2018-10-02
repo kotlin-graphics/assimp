@@ -41,11 +41,11 @@ class BlenderImporter : BaseImporter() {
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
-    override fun internReadFile(fileName: String, ioSystem: IOSystem, scene: AiScene) {
+    override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
-        val file = ioSystem.open(fileName)
+        val stream = ioSystem.open(file)
 
-        buffer = file.readBytes()
+        buffer = stream.readBytes()
 
         var match = buffer.strncmp(tokens)
         if (!match) {
@@ -54,8 +54,9 @@ class BlenderImporter : BaseImporter() {
             // avoid uncompressing random files which our loader might end up with.
 
             val output = File("temp")   // TODO use a temp outputStream instead of writing to disc, maybe?
+            output.deleteOnExit()
 
-            GZIPInputStream(file.read()).use { gzip ->
+            GZIPInputStream(stream.read()).use { gzip ->
 
                 FileOutputStream(output).use { out ->
                     val buffer = ByteArray(1024)
@@ -71,8 +72,6 @@ class BlenderImporter : BaseImporter() {
             // .. and retry
             match = buffer.strncmp(tokens)
             if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
-
-            output.delete()
         }
 	    buffer.pos += tokens.length
 

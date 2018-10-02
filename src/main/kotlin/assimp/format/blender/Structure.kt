@@ -608,7 +608,7 @@ class Structure (val db: FileDatabase) {
 
         readField(Ep.Fail, d.id, "id")
         readField(Ep.Fail, ::tempInt, "type")
-        d.type = Object.Type of tempInt
+        d.type = Object.Type.of(tempInt)
         readFieldArray2(Ep.Warn, d.obmat, "obmat")
         readFieldArray2(Ep.Warn, d.parentinv, "parentinv")
         d.parSubstr = readFieldString(Ep.Warn, "parsubstr")
