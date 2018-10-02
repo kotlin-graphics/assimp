@@ -292,6 +292,7 @@ class Structure (val db: FileDatabase) {
 		    // find the structure definition pertaining to this field
 		    val s = db.dna[f.type]
 
+            db.reader.pos += f.offset.i
 		    read(s, out)
 	    } catch(e: Exception) {
 		    error(errorPolicy, out, e.message)
@@ -334,13 +335,13 @@ class Structure (val db: FileDatabase) {
 
 	fun readField(errorPolicy: Ep, out: CustomData, name: String): CustomData {
 		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			TODO()
+			// TODO
 		}
 	}
 
 	fun readField(errorPolicy: Ep, out: ModifierData, name: String): ModifierData {
 		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			TODO()
+			// TODO
 		}
 	}
 
