@@ -391,12 +391,12 @@ class Structure (val db: FileDatabase) {
 
 	fun readField(errorPolicy: Ep, out: ModifierData, name: String): ModifierData {
 		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			// TODO
+			s.convert(o)
 		}
 	}
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> resolvePtr(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when {
+    fun <T> resolvePtr(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when {  // TODO T: ElemBase ???
         f.type == "ElemBase" || isElem -> resolvePointer(errorPolicy, out as KMutableProperty0<ElemBase?>, ptrVal)
         else -> resolvePointer(errorPolicy, out, ptrVal, f, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
@@ -485,7 +485,7 @@ class Structure (val db: FileDatabase) {
 
     fun resolvePointer(out: FileOffset?, ptrVal: Long) {
         // Currently used exclusively by PackedFile::data to represent a simple offset into the mapped BLEND file.
-        TODO()
+        TODO("resolvePointer(out: FileOffset?")
 //        out.reset();
 //        if (!ptrval.val) {
 //                    return false;
@@ -497,39 +497,6 @@ class Structure (val db: FileDatabase) {
 //        out =  std::shared_ptr< FileOffset > (new FileOffset());
 //        out->val = block->start+ static_cast<size_t>((ptrval.val - block->address.val) );
 //        return false;
-    }
-
-    fun <T> resolvePointer(out: ArrayList<T>, ptrVal: Long, f: Field): Boolean {
-        /*  This is a function overload, not a template specialization. According to the partial ordering rules, it
-            should be selected by the compiler for array-of-pointer inputs, i.e. Object::mats.  */
-
-        TODO()
-//        out.reset();
-//        if (!ptrval.val) {
-//                    return false;
-//                }
-//
-//                // find the file block the pointer is pointing to
-//                const FileBlockHead* block = LocateFileBlockForAddress(ptrval,db);
-//        const size_t num = block->size / (db.i64bit?8:4);
-//
-//        // keep the old stream position
-//        const StreamReaderAny::pos pold = db.reader->GetCurrentPos();
-//        db.reader->SetCurrentPos(block->start+ static_cast<size_t>((ptrval.val - block->address.val) ));
-//
-//        bool res = false;
-//        // allocate raw storage for the array
-//        out.resize(num);
-//        for (size_t i = 0; i< num; ++i) {
-//        Pointer val;
-//        Convert(val,db);
-//
-//        // and resolve the pointees
-//        res = ResolvePointer(out[i],val,db,f) && res;
-//    }
-//
-//        db.reader->SetCurrentPos(pold);
-//        return res;
     }
 
     fun resolvePointer(errorPolicy: Ep, out: KMutableProperty0<ElemBase?>, ptrVal: Long): Boolean {

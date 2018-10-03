@@ -91,6 +91,8 @@ import glm_.s
 //   value for the field.
 //
 
+// TODO check all usages of char instead of short, e.g. flags is char in some places and not short, int or byte
+
 
 val AI_BLEND_MESH_MAX_VERTS = 2000000000L
 
@@ -131,7 +133,7 @@ class World : ElemBase() {
 
 class MVert : ElemBase() {
     val co = FloatArray(3)
-    val no = FloatArray(3)  // readed as short and divided through / 32767.f
+    val no = FloatArray(3)  // read as short and divided through / 32767.f
     var flag = '\u0000'
     var matNr = 0
     var weight = 0
