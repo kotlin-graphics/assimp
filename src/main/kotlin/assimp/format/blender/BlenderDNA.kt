@@ -443,6 +443,7 @@ class ObjectCache(val db: FileDatabase) {
 
         caches[s.cacheIdx.i][ptr]?.let {
 
+            @Suppress("UNCHECKED_CAST")
             out.set(it as T)
 
             if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.cacheHits
@@ -615,8 +616,8 @@ class DnaParser(
 
         logger.debug("BlenderDNA: Got ${dna.structures.size} structures with totally $fields fields")
 
-//        #ifdef ASSIMP_BUILD_BLENDER_DEBUG TODO
-//                dna.DumpToFile();
+//        #ifdef ASSIMP_BUILD_BLENDER_DEBUG
+//                dna.DumpToFile();  TODO
 //        #endif
 
         dna.addPrimitiveStructures(db)

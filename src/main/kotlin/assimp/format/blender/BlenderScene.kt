@@ -375,7 +375,7 @@ class Material : ElemBase() {
 // };
 
 class CustomData : ElemBase() {
-	// TODO
+	// TODO("Custom data class")
 }
 
 class Mesh : ElemBase() {

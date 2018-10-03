@@ -385,7 +385,7 @@ class Structure (val db: FileDatabase) {
 
 	fun readField(errorPolicy: Ep, out: CustomData, name: String): CustomData {
 		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			// TODO
+			// TODO ("call convert custom data")
 		}
 	}
 

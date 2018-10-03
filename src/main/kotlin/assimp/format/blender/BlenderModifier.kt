@@ -107,6 +107,8 @@ class BlenderModifierShowcase {
 
             assert(cur!!.dnaType.isNotEmpty())
 
+            // TODO("apply Modifiers")
+
 //            val s = convData.db.dna.Get( cur->dna_type )
 //            if (!s) {
 //                ASSIMP_LOG_WARN_F("BlendModifier: could not resolve DNA name: ",cur->dna_type)

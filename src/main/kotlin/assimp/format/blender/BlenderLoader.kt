@@ -23,7 +23,7 @@ class BlenderImporter : BaseImporter() {
         val extension = getExtension(file)
         if (extension == "blend") return true
         else if (extension.isEmpty() || checkSig) {
-            // TODO
+            // TODO ("check extension")
             // note: this won't catch compressed files
 //            return SearchFileHeaderForToken(pIOHandler,pFile, TokensForSearch,1);
         }
@@ -87,9 +87,9 @@ class BlenderImporter : BaseImporter() {
 
         parseBlendFile(db)
 
-        val scene = extractScene(db)
+        val blendScene = extractScene(db)
 
-//        ConvertBlendFile(pScene,scene,file) TODO
+//        ConvertBlendFile(pScene,blendScene,file) TODO
     }
 
     private fun parseBlendFile(out: FileDatabase) {
