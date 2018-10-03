@@ -1049,6 +1049,14 @@ class Structure (val db: FileDatabase) {
 //    }
 //
 
+	fun convertMDeformVert(dest: KMutableProperty0<MDeformVert?>) {
+
+		val d = dest.setIfNull(MDeformVert())
+
+		// readFieldPtr(Ep.Warn, d::dw, "*dw") // FIXME which readFieldPtr do I need to call here
+		readField(Ep.Igno, d::totWeight, "totweight")
+	}
+
     fun convertWorld(dest: KMutableProperty0<World?>) {
 
         val d = dest.setIfNull(World())
@@ -1131,6 +1139,11 @@ class Structure (val db: FileDatabase) {
 
         db.reader.pos += size.i
     }
+
+	fun convertListBase(dest: KMutableProperty0<ListBase?>){
+		val d = dest.setIfNull(ListBase())
+		convert(d)
+	}
 
 ////--------------------------------------------------------------------------------
 //    template <> void Structure :: Convert<MLoop> (

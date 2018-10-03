@@ -256,27 +256,27 @@ class DNA {
     @Suppress("UNCHECKED_CAST")
     fun registerConverters() { // TODO unfinished
           converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
-//        converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
+          converters["Group"] = ::Group to Structure::convertGroup as ElemBaseConverter
           converters["MTex"] = ::MTex to Structure::convertMTex as ElemBaseConverter
-//        converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
-//        converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
+          converters["TFace"] = ::TFace to Structure::convertTFace as ElemBaseConverter
+          converters["SubsurfModifierData"] = ::SubsurfModifierData to Structure::convertSubsurfModifierData as ElemBaseConverter
           converters["MFace"] = ::MFace to Structure::convertMFace as ElemBaseConverter
           converters["Lamp"] = ::Lamp to Structure::convertLamp as ElemBaseConverter
-//        converters["MDeformWeight"] = DNA::FactoryPair( &Structure::Allocate<MDeformWeight>, &Structure::Convert<MDeformWeight> );
-//        converters["PackedFile"] = DNA::FactoryPair( &Structure::Allocate<PackedFile>, &Structure::Convert<PackedFile> );
+          converters["MDeformWeight"] = ::MDeformWeight to Structure::convertMDeformWeight as ElemBaseConverter
+          converters["PackedFile"] = ::PackedFile to Structure::convertPackedFile as ElemBaseConverter
           converters["Base"] = ::Base to Structure::convertBase as ElemBaseConverter
           converters["MTFace"] = ::MTFace to Structure::convertMTFace as ElemBaseConverter
           converters["Material"] = ::Material to Structure::convertMaterial as ElemBaseConverter
 //        converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
           converters["Mesh"] = ::Mesh to Structure::convertMesh as ElemBaseConverter
-//        converters["MDeformVert"] = DNA::FactoryPair( &Structure::Allocate<MDeformVert>, &Structure::Convert<MDeformVert> );
+          converters["MDeformVert"] = ::MDeformVert to Structure::convertMDeformVert as ElemBaseConverter
           converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
 //        converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
           converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter
           converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter
 //        converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
-//        converters["GroupObject"] = DNA::FactoryPair( &Structure::Allocate<GroupObject>, &Structure::Convert<GroupObject> );
-//        converters["ListBase"] = DNA::FactoryPair( &Structure::Allocate<ListBase>, &Structure::Convert<ListBase> );
+          converters["GroupObject"] = ::GroupObject to Structure::convertGroupObject as ElemBaseConverter
+          converters["ListBase"] = ::ListBase to Structure::convertListBase as ElemBaseConverter
 //        converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
           converters["ModifierData"] = ::ModifierData to Structure::convertModifierData as ElemBaseConverter
           converters["ID"] = ::Id to Structure::convertId as ElemBaseConverter
