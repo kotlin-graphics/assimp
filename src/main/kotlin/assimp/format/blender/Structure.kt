@@ -92,7 +92,7 @@ class Structure (val db: FileDatabase) {
             else     -> throw Error("Unknown source for conversion to primitive data type: $name")
         }
 
-    fun convertPointer() = if (db.i64bit) db.reader.long else db.reader.int.L
+    fun convertPointer(): Long = if (db.i64bit) db.reader.long else db.reader.int.L
 
     override fun hashCode(): Int {
         var result = name.hashCode()
@@ -247,6 +247,7 @@ class Structure (val db: FileDatabase) {
             if (f.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
 
             db.reader.pos += f.offset.i
+
             ptrval = convertPointer()
             /*  actually it is meaningless on which Structure the Convert is called because the `Pointer` argument
                 triggers a special implementation.             */
@@ -268,10 +269,10 @@ class Structure (val db: FileDatabase) {
 
     /** field parsing for pointer or dynamic array types (std::shared_ptr)
      *  The return value indicates whether the data was already cached. */
-    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean
-            = readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, nonRec ->
-        resolvePtr(ep, o, ptrVal, field, nonRec)
-    }
+    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean =
+            readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, nonRec ->
+                resolvePtr(ep, o, ptrVal, field, nonRec)
+            }
 
     fun <T> readFieldPtrList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, name: String, nonRecursive: Boolean = false): Boolean =
             readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, _ ->
@@ -283,6 +284,55 @@ class Structure (val db: FileDatabase) {
 //    fun <T>readFieldPtr(out )[N], const char* name,
 //    const FileDatabase& db) const
 //
+    fun <T> readFieldPtr(errorPolicy: Ep, out: Array<T?>, name: String): Boolean {
+
+        val oldPos = db.reader.pos
+
+        val ptrval = LongArray(out.size) { 0L }
+
+        val field: Field
+        try{
+            field = get(name)
+
+            // sanity check, should never happen if the genblenddna script is right
+            if(field.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
+
+            db.reader.pos += field.offset.i
+
+            repeat(min(out.size, field.arraySizes[0].i)) {
+                ptrval[it] = convertPointer()
+            }
+            /*
+             for(; i < N; ++i) {
+	            _defaultInitializer<ErrorPolicy_Igno>()(ptrval[i]);
+	        }
+             */
+
+            // actually it is meaningless on which Structure the Convert is called
+            // because the `Pointer` argument triggers a special implementation.
+        } catch (e: Exception) {
+
+            error(errorPolicy, out, e.message)
+            for(i in 0 until out.size) {
+                out[i] = null
+            }
+            return false
+        }
+
+        var res = true // FIXME: check back with https://github.com/assimp/assimp/issues/2160
+        for (i in 0 until out.size) {
+            // resolve the pointer and load the corresponding structure
+            res = resolvePtr(errorPolicy, ::tempAny, ptrval[i], field) && res
+        }
+
+        db.reader.pos = oldPos
+
+        if(!ASSIMP.BLENDER_NO_STATS) {
+            db.stats.fieldsRead++
+        }
+
+        return res
+    }
 
 	private inline fun <T: Any> readFieldPrivate(errorPolicy: Ep, out: T, name: String, read: (Structure, T) -> Unit): T {
 
@@ -354,7 +404,7 @@ class Structure (val db: FileDatabase) {
     }
 
 
-    fun <T> resolvePointer(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {
+    fun <T> resolvePointer(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {   // TODO T: ElemBase ???
 
         out.set(null) // ensure null pointers work
         if (ptrVal == 0L) return false
@@ -537,7 +587,7 @@ class Structure (val db: FileDatabase) {
         return false
     }
 
-    fun <T> resolvePointerList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, ptrVal: Long, field: Field): Boolean {
+    fun <T> resolvePointerList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, ptrVal: Long, field: Field): Boolean {    // TODO T: ElemBase ????
         // This is a function overload, not a template specialization. According to
         // the partial ordering rules, it should be selected by the compiler
         // for array-of-pointer inputs, i.e. Object::mats.
@@ -560,7 +610,7 @@ class Structure (val db: FileDatabase) {
 
         out.set(MutableList(num) {
             val ptr = convertPointer()
-            res = resolvePtr(errorPolicy, ::tempAny, ptr, field) || res // FIXME: check back with https://github.com/assimp/assimp/issues/2160
+            res = resolvePtr(errorPolicy, ::tempAny, ptr, field) && res
             @Suppress("UNCHECKED_CAST")
 
             tempAny as T
@@ -588,7 +638,7 @@ class Structure (val db: FileDatabase) {
         return it
     }
 
-    fun <T>KMutableProperty0<T?>.setIfNull(value: T): T = this() ?: value.also { set(value) }
+    private fun <T>KMutableProperty0<T?>.setIfNull(value: T): T = this() ?: value.also { set(value) }
 //
 //    private :
 //
@@ -684,7 +734,7 @@ class Structure (val db: FileDatabase) {
         d.projY = MTex.Projection of tempInt
         readField(Ep.Igno, ::tempInt, "projz")
         d.projZ = MTex.Projection of tempInt
-        d.mapping = readFieldString(Ep.Igno, "mapping")
+        readField(Ep.Igno, d::mapping, "mapping")
         readFieldFloatArray(Ep.Igno, d.ofs, "ofs")
         readFieldFloatArray(Ep.Igno, d.size, "size")
         readField(Ep.Igno, d::rot, "rot")
@@ -873,7 +923,7 @@ class Structure (val db: FileDatabase) {
         readFieldPtr(Ep.Igno, d::group,"*group")
         readField(Ep.Warn, d::diffShader,"diff_shader")
         readField(Ep.Warn, d::specShader,"spec_shader")
-        readFieldPtr(Ep.Igno, d::mTex,"*mtex")
+        readFieldPtr(Ep.Igno, d.mTex,"*mtex")
 
         readField(Ep.Igno, d::amb, "amb")
         readField(Ep.Igno, d::ang, "ang")

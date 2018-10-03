@@ -88,8 +88,8 @@ class BlenderImporter : BaseImporter() {
         parseBlendFile(db)
 
         val scene = extractScene(db)
-//
-//        ConvertBlendFile(pScene,scene,file); TODO
+
+//        ConvertBlendFile(pScene,scene,file) TODO
     }
 
     private fun parseBlendFile(out: FileDatabase) {

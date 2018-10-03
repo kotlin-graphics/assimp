@@ -345,8 +345,7 @@ class Material : ElemBase() {
     var diffShader = 0
     var specShader = 0
 
-    var mTex: Array<MTex>? = Array(18) { MTex() }   // TODO use List instead?
-	// I think this will fail, but my first test file does not contain any MTex structures
+    var mTex: Array<MTex?> = arrayOfNulls(18)
 }
 
 // /*
@@ -794,7 +793,7 @@ class MTex : ElemBase() {
     var projX = Projection.X
     var projY = Projection.Y
     var projZ = Projection.Z
-    var mapping = ""
+    var mapping: Char = '\u0000'
     val ofs = FloatArray(3)
     val size = FloatArray(3)
     var rot = 0f

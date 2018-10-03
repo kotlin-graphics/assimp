@@ -257,7 +257,7 @@ class DNA {
     fun registerConverters() { // TODO unfinished
           converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
 //        converters["Group"] = DNA::FactoryPair( &Structure::Allocate<Group>, &Structure::Convert<Group> );
-//        converters["MTex"] = DNA::FactoryPair( &Structure::Allocate<MTex>, &Structure::Convert<MTex> );
+          converters["MTex"] = ::MTex to Structure::convertMTex as ElemBaseConverter
 //        converters["TFace"] = DNA::FactoryPair( &Structure::Allocate<TFace>, &Structure::Convert<TFace> );
 //        converters["SubsurfModifierData"] = DNA::FactoryPair( &Structure::Allocate<SubsurfModifierData>, &Structure::Convert<SubsurfModifierData> );
           converters["MFace"] = ::MFace to Structure::convertMFace as ElemBaseConverter
