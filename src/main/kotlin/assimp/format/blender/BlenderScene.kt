@@ -224,7 +224,7 @@ class MDeformWeight : ElemBase()  {
 }
 
 class MDeformVert : ElemBase()  {
-    val dw = ArrayList<MDeformWeight>()
+    var dw: List<MDeformWeight>? = null
     var totWeight = 0
 }
 

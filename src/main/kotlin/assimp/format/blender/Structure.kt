@@ -6,6 +6,8 @@ import kotlin.math.min
 import kotlin.reflect.*
 import assimp.format.blender.ErrorPolicy as Ep
 
+// TODO check method visibility
+
 /** Represents a data structure in a BLEND file. A Structure defines n fields and their locations and encodings the input stream. Usually, every
  *  Structure instance pertains to one equally-named data structure in the
  *  BlenderScene.h header. This class defines various utilities to map a
@@ -77,9 +79,6 @@ class Structure (val db: FileDatabase) {
             else     -> throw Error("Unknown source for conversion to primitive data type: $name")
         }
 
-    //        return when (T::class) {
-//            Int::class -> convertDispatcher(db)
-//
     val convertFloat
         get() = when (name) {
             // automatic rescaling from char to float and vice versa (seems useful for RGB colors)
@@ -281,9 +280,6 @@ class Structure (val db: FileDatabase) {
 
     /** field parsing for static arrays of pointer or dynamic array types (std::shared_ptr[])
      *  The return value indicates whether the data was already cached. */
-//    fun <T>readFieldPtr(out )[N], const char* name,
-//    const FileDatabase& db) const
-//
     fun <T> readFieldPtr(errorPolicy: Ep, out: Array<T?>, name: String): Boolean {
 
         val oldPos = db.reader.pos
@@ -606,49 +602,6 @@ class Structure (val db: FileDatabase) {
     }
 
     private fun <T>KMutableProperty0<T?>.setIfNull(value: T): T = this() ?: value.also { set(value) }
-//
-//    private :
-//
-//    // ------------------------------------------------------------------------------
-//    template <typename T> T* _allocate(std::shared_ptr<T>& out , size_t& s)
-//    const {
-//        out = std::shared_ptr<T>(new T ())
-//        s = 1
-//        return out.get()
-//    }
-//
-//    template <typename T> T* _allocate(vector<T>& out , size_t& s)
-//    const {
-//        out.resize(s)
-//        return s ? &out.front() : NULL
-//    }
-//
-//    // --------------------------------------------------------
-//    template <int error_policy>
-//    struct _defaultInitializer
-//    {
-//
-//        template < typename T, unsigned int N>
-//        void operator ()(T(& out)[N], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        out[i] = T()
-//    }
-//    }
-//
-//        template < typename T, unsigned int N, unsigned int M>
-//        void operator ()(T(& out)[N][M], const char* = NULL) {
-//        for (unsigned int i = 0; i < N; ++i) {
-//        for (unsigned int j = 0; j < M; ++j) {
-//        out[i][j] = T()
-//    }
-//    }
-//    }
-//
-//        template < typename T >
-//        void operator ()(T& out, const char* = NULL) {
-//        out = T()
-//    }
-//    }
 
     fun convertObject(dest: KMutableProperty0<Object?>) {
 
@@ -1035,25 +988,12 @@ class Structure (val db: FileDatabase) {
 
 	    db.reader.pos += size.i
     }
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MDeformVert> (
-//    MDeformVert& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadFieldPtr<ErrorPolicy_Warn>(dest.dw,"*dw",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totweight,"totweight",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
 
 	fun convertMDeformVert(dest: KMutableProperty0<MDeformVert?>) {
 
 		val d = dest.setIfNull(MDeformVert())
 
-		// readFieldPtr(Ep.Warn, d::dw, "*dw") // FIXME which readFieldPtr do I need to call here
+		readFieldPtr(Ep.Warn, d::dw, "*dw")
 		readField(Ep.Igno, d::totWeight, "totweight")
 	}
 

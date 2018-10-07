@@ -340,15 +340,7 @@ class DNA {
         }
     }
 }
-//
-//// special converters for primitive types
-//template <> inline void Structure :: Convert<int>       (int& dest,const FileDatabase& db) const;
-//template <> inline void Structure :: Convert<short>     (short& dest,const FileDatabase& db) const;
-//template <> inline void Structure :: Convert<char>      (char& dest,const FileDatabase& db) const;
-//template <> inline void Structure :: Convert<float>     (float& dest,const FileDatabase& db) const;
-//template <> inline void Structure :: Convert<double>    (double& dest,const FileDatabase& db) const;
-//template <> inline void Structure :: Convert<Pointer>   (Pointer& dest,const FileDatabase& db) const;
-//
+
 /** Describes a master file block header. Each master file sections holds n elements of a certain SDNA structure
  *  (or otherwise unspecified data).
  *  FileBlockHeads are ordered by their [address]
@@ -469,7 +461,7 @@ class ObjectCache(val db: FileDatabase) {
 
 //// -------------------------------------------------------------------------------
 //// -------------------------------------------------------------------------------
-//template <> class ObjectCache<Blender::vector> // HINT I think we no longer need this
+//template <> class ObjectCache<Blender::vector> // TODO I think we no longer need this
 //{
 //    public:
 //
