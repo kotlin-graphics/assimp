@@ -350,32 +350,26 @@ class Material : ElemBase() {
     var mTex: Array<MTex?> = arrayOfNulls(18)
 }
 
-// /*
-// CustomData 208
-//
-//     CustomDataLayer *layers 0 8
-//     int typemap 8 168
-//     int pad_i1 176 4
-//     int totlayer 180 4
-//     int maxlayer 184 4
-//     int totsize 188 4
-//     BLI_mempool *pool 192 8
-//     CustomDataExternal *external 200 8
-// */
-// struct CustomData : ElemBase {
-// 	vector<std::shared_ptr<struct CustomDataLayer> > layers;
-// 	int typemap[42];    // CD_NUMTYPES
-// 	int totlayer;
-// 	int maxlayer;
-// 	int totsize;
-// 	/*
-// 	std::shared_ptr<BLI_mempool> pool;
-// 	std::shared_ptr<CustomDataExternal> external;
-// 	*/
-// };
-
 class CustomData : ElemBase() {
-	// TODO("Custom data class")
+
+	val layers: MutableList<CustomDataLayer?> = mutableListOf()
+	var typemap = IntArray(42)
+	var totlayer: Int = 0
+	var maxlayer: Int = 0
+	var totsize: Int = 0
+}
+
+class CustomDataLayer: ElemBase() {
+	var type: Int = 0
+	var offset: Int = 0
+	var flag: Int = 0
+	var active: Int = 0
+	var active_rnd: Int = 0
+	var active_clone: Int = 0
+	var active_mask: Int = 0
+	var uid: Int = 0
+	var name: String = ""
+	var data: ElemBase? = null  // must be converted to real type according type member
 }
 
 class Mesh : ElemBase() {

@@ -255,39 +255,40 @@ class DNA {
 	 */
     @Suppress("UNCHECKED_CAST")
     fun registerConverters() { // TODO unfinished
-          converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
-          converters["Group"] = ::Group to Structure::convertGroup as ElemBaseConverter
-          converters["MTex"] = ::MTex to Structure::convertMTex as ElemBaseConverter
-          converters["TFace"] = ::TFace to Structure::convertTFace as ElemBaseConverter
-          converters["SubsurfModifierData"] = ::SubsurfModifierData to Structure::convertSubsurfModifierData as ElemBaseConverter
-          converters["MFace"] = ::MFace to Structure::convertMFace as ElemBaseConverter
-          converters["Lamp"] = ::Lamp to Structure::convertLamp as ElemBaseConverter
-          converters["MDeformWeight"] = ::MDeformWeight to Structure::convertMDeformWeight as ElemBaseConverter
-          converters["PackedFile"] = ::PackedFile to Structure::convertPackedFile as ElemBaseConverter
-          converters["Base"] = ::Base to Structure::convertBase as ElemBaseConverter
-          converters["MTFace"] = ::MTFace to Structure::convertMTFace as ElemBaseConverter
-          converters["Material"] = ::Material to Structure::convertMaterial as ElemBaseConverter
+        converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
+        converters["Group"] = ::Group to Structure::convertGroup as ElemBaseConverter
+        converters["MTex"] = ::MTex to Structure::convertMTex as ElemBaseConverter
+        converters["TFace"] = ::TFace to Structure::convertTFace as ElemBaseConverter
+        converters["SubsurfModifierData"] = ::SubsurfModifierData to Structure::convertSubsurfModifierData as ElemBaseConverter
+        converters["MFace"] = ::MFace to Structure::convertMFace as ElemBaseConverter
+        converters["Lamp"] = ::Lamp to Structure::convertLamp as ElemBaseConverter
+        converters["MDeformWeight"] = ::MDeformWeight to Structure::convertMDeformWeight as ElemBaseConverter
+        converters["PackedFile"] = ::PackedFile to Structure::convertPackedFile as ElemBaseConverter
+        converters["Base"] = ::Base to Structure::convertBase as ElemBaseConverter
+        converters["MTFace"] = ::MTFace to Structure::convertMTFace as ElemBaseConverter
+        converters["Material"] = ::Material to Structure::convertMaterial as ElemBaseConverter
 //        converters["MTexPoly"] = DNA::FactoryPair( &Structure::Allocate<MTexPoly>, &Structure::Convert<MTexPoly> );
-          converters["Mesh"] = ::Mesh to Structure::convertMesh as ElemBaseConverter
-          converters["MDeformVert"] = ::MDeformVert to Structure::convertMDeformVert as ElemBaseConverter
-          converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
+        converters["Mesh"] = ::Mesh to Structure::convertMesh as ElemBaseConverter
+        converters["MDeformVert"] = ::MDeformVert to Structure::convertMDeformVert as ElemBaseConverter
+        converters["World"] = ::World to Structure::convertWorld as ElemBaseConverter
 //        converters["MLoopCol"] = DNA::FactoryPair( &Structure::Allocate<MLoopCol>, &Structure::Convert<MLoopCol> );
-          converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter
-          converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter
+        converters["MVert"] = ::MVert to Structure::convertMVert as ElemBaseConverter
+        converters["MEdge"] = ::MEdge to Structure::convertMEdge as ElemBaseConverter
 //        converters["MLoopUV"] = DNA::FactoryPair( &Structure::Allocate<MLoopUV>, &Structure::Convert<MLoopUV> );
-          converters["GroupObject"] = ::GroupObject to Structure::convertGroupObject as ElemBaseConverter
-          converters["ListBase"] = ::ListBase to Structure::convertListBase as ElemBaseConverter
+        converters["GroupObject"] = ::GroupObject to Structure::convertGroupObject as ElemBaseConverter
+        converters["ListBase"] = ::ListBase to Structure::convertListBase as ElemBaseConverter
 //        converters["MLoop"] = DNA::FactoryPair( &Structure::Allocate<MLoop>, &Structure::Convert<MLoop> );
-          converters["ModifierData"] = ::ModifierData to Structure::convertModifierData as ElemBaseConverter
-          converters["ID"] = ::Id to Structure::convertId as ElemBaseConverter
-          converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter
+        converters["ModifierData"] = ::ModifierData to Structure::convertModifierData as ElemBaseConverter
+        converters["ID"] = ::Id to Structure::convertId as ElemBaseConverter
+        converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter
 //        converters["MPoly"] = DNA::FactoryPair( &Structure::Allocate<MPoly>, &Structure::Convert<MPoly> );
-          converters["Scene"] = ::Scene to Structure::convertSceneRef as ElemBaseConverter
+        converters["Scene"] = ::Scene to Structure::convertSceneRef as ElemBaseConverter
 //        converters["Library"] = DNA::FactoryPair( &Structure::Allocate<Library>, &Structure::Convert<Library> );
 //        converters["Tex"] = DNA::FactoryPair( &Structure::Allocate<Tex>, &Structure::Convert<Tex> );
-          converters["Camera"] = ::Camera to Structure::convertCamera  as ElemBaseConverter
+        converters["Camera"] = ::Camera to Structure::convertCamera as ElemBaseConverter
 //        converters["MirrorModifierData"] = DNA::FactoryPair( &Structure::Allocate<MirrorModifierData>, &Structure::Convert<MirrorModifierData> );
 //        converters["Image"] = DNA::FactoryPair( &Structure::Allocate<Image>, &Structure::Convert<Image> );
+        converters["CustomData"] = ::CustomData to Structure::convertCustomData as ElemBaseConverter
     }
 
 
@@ -353,7 +354,7 @@ data class FileBlockHead(
         // original memory address of the data
         var address: Long = 0L,
         // index into DNA
-        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C implementation
+        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C implementation, should we use UInt here as well?
         // number of structure instances to follow
         var num: Int = 0) : Comparable<FileBlockHead> {
 

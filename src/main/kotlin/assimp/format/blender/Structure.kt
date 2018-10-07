@@ -278,6 +278,66 @@ class Structure (val db: FileDatabase) {
                 resolvePointerList(ep, o, ptrVal, field)
             }
 
+	/**
+	 * field parsing for vectors of pointers where the number of elements is defined in the file block header
+	 * @return *true* when read was successful
+	 */
+	fun <T: ElemBase> readFieldPtrVector(errorPolicy: Ep, out: MutableList<T?>, name: String): Boolean {
+
+		out.clear()
+
+		val old = db.reader.pos
+		val ptrval: Long
+		val f: Field
+		try {
+			f = get(name)
+
+			// sanity check, should never happen if the genblenddna script is right
+			if (f.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
+
+			db.reader.pos += f.offset.i
+
+			ptrval = convertPointer()
+			/*  actually it is meaningless on which Structure the Convert is called because the `Pointer` argument
+				triggers a special implementation.             */
+		} catch (e: Exception) {
+			error(errorPolicy, out, e.message)
+			return false
+		}
+
+		if(ptrval != 0L){
+			// find the file block the pointer is pointing to
+			val block = locateFileBlockForAddress(ptrval)
+
+			block.setReaderPos(ptrval)
+
+			// TODO does this work with primitives? The question is does it need to? I don't think we will ever see a pointer to a primitive
+			val (constructor, converter) = db.dna.converters[f.type] ?: run {
+				error(errorPolicy, out, "Failed to find a converter for the `${f.type}` structure")
+				return false
+			}
+
+			val s = db.dna[f.type]
+			for(i in 0 until block.num) {
+				tempElemBase = constructor()
+				s.converter(::tempElemBase)
+				out.add(tempElemBase as T)
+			}
+		}
+
+		db.reader.pos = old
+
+		if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
+
+		return true
+	}
+
+	private fun FileBlockHead.setReaderPos(ptrVal: Long) {
+		db.reader.pos = start + (ptrVal - address).i
+		// FIXME: basically, this could cause problems with 64 bit pointers on 32 bit systems.
+		// I really ought to improve StreamReader to work with 64 bit indices exclusively.
+	}
+
     /** field parsing for static arrays of pointer or dynamic array types (std::shared_ptr[])
      *  The return value indicates whether the data was already cached. */
     fun <T> readFieldPtr(errorPolicy: Ep, out: Array<T?>, name: String): Boolean {
@@ -380,15 +440,11 @@ class Structure (val db: FileDatabase) {
 	}
 
 	fun readField(errorPolicy: Ep, out: CustomData, name: String): CustomData {
-		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			// TODO ("call convert custom data")
-		}
+		return readFieldPrivate(errorPolicy, out, name) { s, o -> s.convert(o) }
 	}
 
 	fun readField(errorPolicy: Ep, out: ModifierData, name: String): ModifierData {
-		return readFieldPrivate(errorPolicy, out, name) { s, o ->
-			s.convert(o)
-		}
+		return readFieldPrivate(errorPolicy, out, name) { s, o -> s.convert(o) }
 	}
 
     @Suppress("UNCHECKED_CAST")
@@ -420,9 +476,7 @@ class Structure (val db: FileDatabase) {
 
         // seek to this location, but save the previous stream pointer.
         val pOld = db.reader.pos
-        db.reader.pos = block.start + (ptrVal - block.address).i
-        // FIXME: basically, this could cause problems with 64 bit pointers on 32 bit systems.
-        // I really ought to improve StreamReader to work with 64 bit indices exclusively.
+	    block.setReaderPos(ptrVal)
 
         // continue conversion after allocating the required storage
 
@@ -516,9 +570,7 @@ class Structure (val db: FileDatabase) {
 
         // seek to this location, but save the previous stream pointer.
         val pOld = db.reader.pos
-        db.reader.pos = block.start + (ptrVal - block.address).i
-        // FIXME: basically, this could cause problems with 64 bit pointers on 32 bit systems.
-        // I really ought to improve StreamReader to work with 64 bit indices exclusively.
+	    block.setReaderPos(ptrVal)
 
         // continue conversion after allocating the required storage
         val (constructor, converter) = db.dna.getBlobToStructureConverter(s) ?: run {
@@ -565,9 +617,7 @@ class Structure (val db: FileDatabase) {
 
         // keep the old stream position
         val pOld = db.reader.pos
-        db.reader.pos = block.start + (ptrVal - block.address).i
-        // FIXME: basically, this could cause problems with 64 bit pointers on 32 bit systems.
-        // I really ought to improve StreamReader to work with 64 bit indices exclusively.
+        block.setReaderPos(ptrVal)
 
         var res = true // FIXME: check back with https://github.com/assimp/assimp/issues/2160
 
@@ -1232,10 +1282,10 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Warn, d::sensorX, "sensor_x")      /* TODO my current test file does not contain this.
         This might be because the sensor_x (I think it corresponds to sensor_width in bpy doc) default is 0.0f as it is here
         and therefor does not need to be part of the saved file. I should check that */
-        readField(Ep.Igno, d::clipSta, "clipsta")
-        readField(Ep.Igno, d::clipEnd, "clipend")
+	    readField(Ep.Igno, d::clipSta, "clipsta")
+	    readField(Ep.Igno, d::clipEnd, "clipend")
 
-        db.reader.pos += size.i
+	    db.reader.pos += size.i
     }
 //
 ////--------------------------------------------------------------------------------
@@ -1287,7 +1337,62 @@ class Structure (val db: FileDatabase) {
 //        db.reader->IncPtr(size);
 //    }
 
-    companion object {
+	fun convert(data: CustomData) {
+
+		readFieldIntArray(Ep.Warn, data.typemap, "typemap")
+		readField(Ep.Warn, data::totlayer, "totlayer")
+		readField(Ep.Warn, data::maxlayer, "maxlayer")
+		readField(Ep.Warn, data::totsize, "totsize")
+		readFieldPtrVector(Ep.Warn, data.layers, "*layers")
+
+		db.reader.pos += size.i
+	}
+
+	fun convertCustomData(dest: KMutableProperty0<CustomData?>){
+
+		val d = dest.setIfNull(CustomData())
+
+		convert(d)
+	}
+//
+////--------------------------------------------------------------------------------
+//	template <> void Structure::Convert<CustomDataLayer>(
+//	CustomDataLayer& dest,
+//	const FileDatabase& db
+//	) const
+//	{
+//		ReadField<ErrorPolicy_Fail>(dest.type, "type", db);
+//		ReadField<ErrorPolicy_Fail>(dest.offset, "offset", db);
+//		ReadField<ErrorPolicy_Fail>(dest.flag, "flag", db);
+//		ReadField<ErrorPolicy_Fail>(dest.active, "active", db);
+//		ReadField<ErrorPolicy_Fail>(dest.active_rnd, "active_rnd", db);
+//		ReadField<ErrorPolicy_Fail>(dest.active_clone, "active_clone", db);
+//		ReadField<ErrorPolicy_Fail>(dest.active_mask, "active_mask", db);
+//		ReadField<ErrorPolicy_Fail>(dest.uid, "uid", db);
+//		ReadFieldArray<ErrorPolicy_Warn>(dest.name, "name", db);
+//		ReadCustomDataPtr<ErrorPolicy_Fail>(dest.data, dest.type, "*data", db);
+//
+//		db.reader->IncPtr(size);
+//	}
+
+	fun convertCustomDataLayer(dest: KMutableProperty0<CustomDataLayer?>) {
+
+		val d = dest.setIfNull(CustomDataLayer())
+
+		readField(Ep.Fail, d::type, "type")
+		readField(Ep.Fail, d::offset, "offset")
+		readField(Ep.Fail, d::flag, "flag")
+		readField(Ep.Fail, d::active, "active")
+		readField(Ep.Fail, d::active_rnd, "active_rnd")
+		readField(Ep.Fail, d::active_clone, "active_clone")
+		readField(Ep.Fail, d::active_mask, "active_mask")
+		readField(Ep.Fail, d::uid, "uid")
+		d.name = readFieldString(Ep.Warn, "name")
+		// ReadCustomDataPtr<ErrorPolicy_Fail>(dest.data, dest.type, "*data", db);   // TODO
+	}
+
+
+	companion object {
         // workaround for https://youtrack.jetbrains.com/issue/KT-16303
         private var tempAny: Any? = null
         private var tempElemBase: ElemBase? = null
