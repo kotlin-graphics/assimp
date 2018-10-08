@@ -360,7 +360,7 @@ class CustomData : ElemBase() {
 }
 
 class CustomDataLayer: ElemBase() {
-	var type: Int = 0
+	var type: Int = 0       // TODO change to CustomDataType
 	var offset: Int = 0
 	var flag: Int = 0
 	var active: Int = 0

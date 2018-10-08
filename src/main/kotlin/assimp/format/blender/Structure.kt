@@ -234,7 +234,7 @@ class Structure (val db: FileDatabase) {
         if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
-    private inline fun <T>readFieldPtrPrivate(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean, resolve: (Ep, KMutableProperty0<T?>, Long, Field, Boolean) -> Boolean): Boolean {
+    private inline fun <T>readFieldPtrPrivate(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false, resolve: (Ep, KMutableProperty0<T?>, Long, Field, Boolean) -> Boolean): Boolean {
 
         val old = db.reader.pos
         val ptrval: Long
@@ -330,6 +330,19 @@ class Structure (val db: FileDatabase) {
 		if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
 
 		return true
+	}
+
+	fun <T: ElemBase> readCustomDataPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, cdtype: Int, name: String): Boolean {
+		return readFieldPtrPrivate(errorPolicy, out, name) { _, o, ptrVal, _, _ ->
+
+			if(ptrVal == 0L) return true
+
+
+			val block = locateFileBlockForAddress(ptrVal)
+			block.setReaderPos(ptrVal)
+
+			return readCustomData(o, cdtype, block.num)
+		}
 	}
 
 	private fun FileBlockHead.setReaderPos(ptrVal: Long) {
@@ -1388,7 +1401,7 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Fail, d::active_mask, "active_mask")
 		readField(Ep.Fail, d::uid, "uid")
 		d.name = readFieldString(Ep.Warn, "name")
-		// ReadCustomDataPtr<ErrorPolicy_Fail>(dest.data, dest.type, "*data", db);   // TODO
+		readCustomDataPtr(Ep.Fail, d::data, d.type, "*data")
 	}
 
 
