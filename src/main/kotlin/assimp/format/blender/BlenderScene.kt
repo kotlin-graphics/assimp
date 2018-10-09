@@ -409,28 +409,30 @@ class Mesh : ElemBase() {
 	var ldata = CustomData()
 
 }
-//// -------------------------------------------------------------------------------
-//struct Library : ElemBase {
-//    ID id FAIL;
-//
-//    char name [240] WARN;
-//    char filename [240] FAIL;
-//    std::shared_ptr<Library> parent WARN;
-//};
-//
+
+class Library : ElemBase() {
+
+	var id = Id()
+
+	var name: String = ""
+	var filename: String = ""
+	var parent: Library? = null
+}
 
 class Camera : ElemBase() {
-    enum class Type { PERSP, ORTHO, INVALID;
+    enum class Type { Persp, Ortho;
 
-        companion object {
-            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
-        }
+	    val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Camera.Type with value of $i does not exist!")
+	    }
     }
 
     var id = Id()
 
-    var type = Type.PERSP
-    var flag = Type.PERSP
+    var type = Type.Persp
+    var flag: Short = 0 // HINT this is Camera.Type in the C-version, but we can't do this here, otherwise we loose the value when converting to Type
     var lens = 0f
     var sensorX = 0f
     var clipSta = 0f
@@ -439,23 +441,23 @@ class Camera : ElemBase() {
 
 class Lamp : ElemBase() {
 
-    enum class FalloffType { Constant, InvLinear, InvSquare, INVALID;
+    enum class FalloffType { Constant, InvLinear, InvSquare;
         //,FalloffType_Curve    = 0x3
         //,FalloffType_Sliders  = 0x4
         val i = ordinal
 
-        companion object {
-            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
-        }
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Lamp.FalloffType with value of $i does not exist!")
+	    }
     }
 
-    enum class Type { Local, Sun, Spot, Hemi, Area, INVALID;
+    enum class Type { Local, Sun, Spot, Hemi, Area;
         //,Type_YFPhoton    = 0x5
         val i = ordinal
 
-        companion object {
-            infix fun of(i: Int) = values().getOrElse(i, { INVALID })
-        }
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Lamp.Type with value of $i does not exist!")
+	    }
     }
 
     var id = Id()
@@ -538,6 +540,10 @@ class ModifierData : ElemBase() {
         Cloth, Collision, Bevel, Shrinkwrap, Fluidsim, Mask, SimpleDeform, Multires, Surface, Smoke, ShapeKey;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("ModifierData.Type with value of $i does not exist!")
+	    }
     }
 
     var next: ElemBase? = null
@@ -553,11 +559,19 @@ class SubsurfModifierData : ElemBase()  {
     enum class Type { CatmullClarke, Simple;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("SubsurfModifierData.Type with value of $i does not exist!")
+	    }
     }
 
     enum class Flags(val i: Int) {
         // some omitted
-        SubsurfUV (1 shl 3)
+        SubsurfUV (1 shl 3);
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("SubsurfModifierData.Flags with value of $i does not exist!")
+	    }
     }
 
     var modifier = ModifierData()
@@ -567,25 +581,28 @@ class SubsurfModifierData : ElemBase()  {
     var flags = 0.s
 }
 
-//// -------------------------------------------------------------------------------
-//struct MirrorModifierData : ElemBase {
-//
-//    enum Flags {
-//        Flags_CLIPPING = 1 < <0,
-//        Flags_MIRROR_U = 1 < <1,
-//        Flags_MIRROR_V = 1 < <2,
-//        Flags_AXIS_X = 1 < <3,
-//        Flags_AXIS_Y = 1 < <4,
-//        Flags_AXIS_Z = 1 < <5,
-//        Flags_VGROUP = 1 < <6
-//    };
-//
-//    ModifierData modifier FAIL;
-//
-//    short axis, flag;
-//    float tolerance;
-//    std::shared_ptr<Object> mirror_ob;
-//};
+
+class MirrorModifierData : ElemBase() {
+
+	enum class Flag(val i: Int) {
+		None(0),
+		Clipping(1 shl 0),
+		MirrorU(1 shl 1),
+		MirrorV(1 shl 2),
+		AxisX(1 shl 3),
+		AxisY(1 shl 4),
+		AxisZ(1 shl 5),
+		VGroup(1 shl 6);
+	}
+
+	var modifier = ModifierData()
+
+	var axis: Short = 0
+	var flag: Short = 0
+	var tolerance: Float = 0f
+
+	var mirrorOb: Object? = null
+}
 
 class Object : ElemBase() {
 
@@ -688,6 +705,10 @@ class Tex : ElemBase() {
         DistortedNoise, PointDensitz, VoxelData;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Tex.Type with value of $i does not exist!")
+	    }
     }
 
     enum class ImageFlags(val i: Int) { INTERPOL(1), USEALPHA(2), MIPMAP(4), IMAROT(16), CALCALPHA(32),
@@ -715,7 +736,7 @@ class Tex : ElemBase() {
     //short noisebasis, noisebasis2;
 
     //short flag;
-    var imaFlag = ImageFlags.INTERPOL
+    var imaFlag: Int = ImageFlags.INTERPOL.i
     var type = Type.Clouds
     //short stype;
 
@@ -736,7 +757,7 @@ class Tex : ElemBase() {
 
     //bNodeTree *nodetree;
     //Ipo *ipo;
-    var ima = Image()
+    var ima: Image? = null
     //PluginTex *plugin;
     //ColorBand *coba;
     //EnvMap *env;
@@ -754,28 +775,28 @@ class MTex : ElemBase() {
         val i = ordinal
 
         companion object {
-            infix fun of(i: Int) = values()[i]
-        }
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.Projection with value of $i does not exist!")
+	    }
     }
 
-    enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10) }
+    enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10); }
 
     enum class BlendType { BLEND, MUL, ADD, SUB, DIV, DARK, DIFF, LIGHT, SCREEN, OVERLAY, BLEND_HUE, BLEND_SAT, BLEND_VAL, BLEND_COLOR;
 
         val i = ordinal
 
-        companion object {
-            infix fun of(i: Int) = values()[i]
-        }
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.BlendType with value of $i does not exist!")
+	    }
     }
 
     enum class MapType { COL, NORM, COLSPEC, COLMIR, REF, SPEC, EMIT, ALPHA, HAR, RAYMIRR, TRANSLU, AMB, DISPLACE, WARP;
 
         val i = 1 shl ordinal
 
-        companion object {
-            infix fun of(i: Int) = values()[i]
-        }
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.MapType with value of $i does not exist!")
+	    }
     }
 
     // short texco, maptoneg;

@@ -705,18 +705,18 @@ class Structure (val db: FileDatabase) {
         val d = dest.setIfNull(MTex())
 
         readField(Ep.Igno, ::tempInt, "mapto")
-        d.mapTo = MTex.MapType of tempInt
+        d.mapTo = MTex.MapType.of(tempInt)
         readField(Ep.Igno, ::tempInt, "blendtype")
-        d.blendType = MTex.BlendType of tempInt
+        d.blendType = MTex.BlendType.of(tempInt)
         readFieldPtr(Ep.Igno, d::object_, "*object")
         readFieldPtr(Ep.Igno, d::tex, "*tex")
         d.uvName = readFieldString(Ep.Igno, "uvname")
         readField(Ep.Igno, ::tempInt, "projx")
-        d.projX = MTex.Projection of tempInt
+        d.projX = MTex.Projection.of(tempInt)
         readField(Ep.Igno, ::tempInt, "projy")
-        d.projY = MTex.Projection of tempInt
+        d.projY = MTex.Projection.of(tempInt)
         readField(Ep.Igno, ::tempInt, "projz")
-        d.projZ = MTex.Projection of tempInt
+        d.projZ = MTex.Projection.of(tempInt)
         readField(Ep.Igno, d::mapping, "mapping")
         readFieldFloatArray(Ep.Igno, d.ofs, "ofs")
         readFieldFloatArray(Ep.Igno, d.size, "size")
@@ -788,7 +788,7 @@ class Structure (val db: FileDatabase) {
 
         readField(Ep.Fail, d.id,"id")
         readField(Ep.Fail, ::tempInt, "type")
-        d.type = Lamp.Type of tempInt
+        d.type = Lamp.Type.of(tempInt)
         readField(Ep.Igno, d::flags,"flags")
         readField(Ep.Igno, d::colorModel,"colormodel")
         readField(Ep.Igno, d::totex,"totex")
@@ -803,7 +803,7 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::att1,"att1")
         readField(Ep.Igno, d::att2,"att2")
         readField(Ep.Igno, ::tempInt, "falloff_type")
-        d.falloffType = Lamp.FalloffType of tempInt
+        d.falloffType = Lamp.FalloffType.of(tempInt)
         readField(Ep.Igno, d::sunBrightness,"sun_brightness")
         readField(Ep.Igno, d::areaSize,"area_size")
         readField(Ep.Igno, d::areaSizeY,"area_sizey")
@@ -989,30 +989,22 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::vcolAlpha, "vcol_alpha")
         readField(Ep.Igno, d::pad4, "pad4")
 
-        readField(Ep.Igno, d::seed1, "seed1")
-        readField(Ep.Igno, d::seed2, "seed2")
+	    readField(Ep.Igno, d::seed1, "seed1")
+	    readField(Ep.Igno, d::seed2, "seed2")
     }
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MTexPoly> (
-//    MTexPoly& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        {
-//            std::shared_ptr<Image> tpage;
-//            ReadFieldPtr<ErrorPolicy_Igno>(tpage,"*tpage",db);
-//            dest.tpage = tpage.get();
-//        }
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//        ReadField<ErrorPolicy_Igno>(dest.transp,"transp",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mode,"mode",db);
-//        ReadField<ErrorPolicy_Igno>(dest.tile,"tile",db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad,"pad",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+
+	fun convertMTexPoly(dest: KMutableProperty0<MTexPoly?>) {
+		val d = dest.setIfNull(MTexPoly())
+
+		readFieldPtr(Ep.Igno, d::tpage, "*tpage")
+		readField(Ep.Igno, d::flag,"flag")
+		readField(Ep.Igno, d::transp,"transp")
+		readField(Ep.Igno, d::mode,"mode")
+		readField(Ep.Igno, d::tile,"tile")
+		readField(Ep.Igno, d::pad,"pad")
+
+		db.reader.pos += size.i
+	}
 
     fun convertMesh(dest: KMutableProperty0<Mesh?>) {
 
@@ -1069,21 +1061,17 @@ class Structure (val db: FileDatabase) {
         db.reader.pos += size.i
     }
 
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MLoopCol> (
-//    MLoopCol& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Igno>(dest.r,"r",db);
-//        ReadField<ErrorPolicy_Igno>(dest.g,"g",db);
-//        ReadField<ErrorPolicy_Igno>(dest.b,"b",db);
-//        ReadField<ErrorPolicy_Igno>(dest.a,"a",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+	fun convertMLoopCol(dest: KMutableProperty0<MLoopCol?>) {
+
+		val d = dest.setIfNull(MLoopCol())
+
+		readField(Ep.Igno, d::r,"r")
+		readField(Ep.Igno, d::g,"g")
+		readField(Ep.Igno, d::b,"b")
+		readField(Ep.Igno, d::a,"a")
+
+		db.reader.pos += size.i
+	}
 
     fun convertMVert(dest: KMutableProperty0<MVert?>) {
         val d = dest.setIfNull(MVert())
@@ -1106,20 +1094,16 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::weight,"bweight")
         readField(Ep.Igno, d::flag,"flag")
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MLoopUV> (
-//    MLoopUV& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadFieldArray<ErrorPolicy_Igno>(dest.uv,"uv",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+
+	fun convertMLoopUV(dest: KMutableProperty0<MLoopUV?>) {
+
+		val d = dest.setIfNull(MLoopUV())
+
+		readFieldFloatArray(Ep.Igno, d.uv, "uv")
+		readField(Ep.Igno, d::flag, "flag")
+
+		db.reader.pos += size.i
+	}
 
     fun convertGroupObject(dest: KMutableProperty0<GroupObject?>) {
 
@@ -1148,20 +1132,15 @@ class Structure (val db: FileDatabase) {
 		convert(d)
 	}
 
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MLoop> (
-//    MLoop& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Igno>(dest.v,"v",db);
-//        ReadField<ErrorPolicy_Igno>(dest.e,"e",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
-////--------------------------------------------------------------------------------
+	fun convertMLoop(dest: KMutableProperty0<MLoop?>) {
+		val d = dest.setIfNull(MLoop())
+
+		readField(Ep.Igno, d::v,"v")
+		readField(Ep.Igno, d::e,"e")
+
+		db.reader.pos += size.i
+	}
+
 //    template <> void Structure :: Convert<ModifierData> (
 //    ModifierData& dest,
 //    const FileDatabase& db
@@ -1216,21 +1195,16 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Fail, d::a,"a")
     }
 
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MPoly> (
-//    MPoly& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Igno>(dest.loopstart,"loopstart",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totloop,"totloop",db);
-//        ReadField<ErrorPolicy_Igno>(dest.mat_nr,"mat_nr",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+	fun convertMPoly(dest: KMutableProperty0<MPoly?>) {
+		val d = dest.setIfNull(MPoly())
+
+		readField(Ep.Igno, d::loopStart,"loopstart")
+		readField(Ep.Igno, d::totLoop,"totloop")
+		readField(Ep.Igno, d::matNr,"mat_nr")
+		readField(Ep.Igno, d::flag,"flag")
+
+		db.reader.pos += size.i
+	}
 
 	fun convert(dest: Scene) {
 
@@ -1240,7 +1214,7 @@ class Structure (val db: FileDatabase) {
 		readFieldPtr(Ep.Warn, dest::basact, "*basact")
 		readField(Ep.Igno, dest.base, "base")
 
-		db.reader.pos += size.i     // TODO am I missing this everywhere else??
+		db.reader.pos += size.i     // TODO am I missing this everywhere else?? Yes I am
 	}
 
 	fun convertSceneRef(dest: KMutableProperty0<Scene?>) {
@@ -1249,106 +1223,90 @@ class Structure (val db: FileDatabase) {
 		convert(d)
 	}
 
-    //
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Library> (
-//    Library& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        ReadFieldArray<ErrorPolicy_Warn>(dest.name,"name",db);
-//        ReadFieldArray<ErrorPolicy_Fail>(dest.filename,"filename",db);
-//        ReadFieldPtr<ErrorPolicy_Warn>(dest.parent,"*parent",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Tex> (
-//    Tex& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//        short temp_short = 0;
-//        ReadField<ErrorPolicy_Igno>(temp_short,"imaflag",db);
-//        dest.imaflag = static_cast<Assimp::Blender::Tex::ImageFlags>(temp_short);
-//        int temp = 0;
-//        ReadField<ErrorPolicy_Fail>(temp,"type",db);
-//        dest.type = static_cast<Assimp::Blender::Tex::Type>(temp);
-//        ReadFieldPtr<ErrorPolicy_Warn>(dest.ima,"*ima",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
+	fun convertLibrary(dest: KMutableProperty0<Library?>) {
+
+		val d = dest.setIfNull(Library())
+
+		readField(Ep.Fail, d.id,"id")
+		d.name = readFieldString(Ep.Warn, "name")
+		d.filename = readFieldString(Ep.Fail, "filename")
+		readFieldPtr(Ep.Warn, d::parent,"*parent")
+
+		db.reader.pos += size.i
+	}
+
+	fun convertTex(dest: KMutableProperty0<Tex?>) {
+
+		val d = dest.setIfNull(Tex())
+
+        readField(Ep.Fail, d.id, "id")  // TODO not in the C version, investigate
+
+		readField(Ep.Igno, d::imaFlag, "imaflag")
+        readField(Ep.Fail, ::tempInt, "type")
+        d.type = Tex.Type.of(tempInt)
+        readFieldPtr(Ep.Warn, d::ima, "*ima")
+
+		db.reader.pos += size.i
+	}
+
     fun convertCamera(dest: KMutableProperty0<Camera?>) {
 
         val d = dest() ?: Camera().also { dest.set(it) }
 
         readField(Ep.Fail, d.id, "id")
         readField(Ep.Warn, ::tempInt, "type")
-        d.type = Camera.Type of tempInt
-        readField(Ep.Warn, ::tempInt, "flag")
-        d.flag = Camera.Type of tempInt
+        d.type = Camera.Type.of(tempInt)
+        readField(Ep.Warn, d::flag, "flag")
         readField(Ep.Warn, d::lens, "lens")
-        readField(Ep.Warn, d::sensorX, "sensor_x")      /* TODO my current test file does not contain this.
-        This might be because the sensor_x (I think it corresponds to sensor_width in bpy doc) default is 0.0f as it is here
-        and therefor does not need to be part of the saved file. I should check that */
+        readField(Ep.Warn, d::sensorX, "sensor_x")
 	    readField(Ep.Igno, d::clipSta, "clipsta")
 	    readField(Ep.Igno, d::clipEnd, "clipend")
 
 	    db.reader.pos += size.i
     }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<MirrorModifierData> (
-//    MirrorModifierData& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.modifier,"modifier",db);
-//        ReadField<ErrorPolicy_Igno>(dest.axis,"axis",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//        ReadField<ErrorPolicy_Igno>(dest.tolerance,"tolerance",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.mirror_ob,"*mirror_ob",db);
-//
-//        db.reader->IncPtr(size);
-//    }
-//
-////--------------------------------------------------------------------------------
-//    template <> void Structure :: Convert<Image> (
-//    Image& dest,
-//    const FileDatabase& db
-//    ) const
-//    {
-//
-//        ReadField<ErrorPolicy_Fail>(dest.id,"id",db);
-//        ReadFieldArray<ErrorPolicy_Warn>(dest.name,"name",db);
-//        ReadField<ErrorPolicy_Igno>(dest.ok,"ok",db);
-//        ReadField<ErrorPolicy_Igno>(dest.flag,"flag",db);
-//        ReadField<ErrorPolicy_Igno>(dest.source,"source",db);
-//        ReadField<ErrorPolicy_Igno>(dest.type,"type",db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad,"pad",db);
-//        ReadField<ErrorPolicy_Igno>(dest.pad1,"pad1",db);
-//        ReadField<ErrorPolicy_Igno>(dest.lastframe,"lastframe",db);
-//        ReadField<ErrorPolicy_Igno>(dest.tpageflag,"tpageflag",db);
-//        ReadField<ErrorPolicy_Igno>(dest.totbind,"totbind",db);
-//        ReadField<ErrorPolicy_Igno>(dest.xrep,"xrep",db);
-//        ReadField<ErrorPolicy_Igno>(dest.yrep,"yrep",db);
-//        ReadField<ErrorPolicy_Igno>(dest.twsta,"twsta",db);
-//        ReadField<ErrorPolicy_Igno>(dest.twend,"twend",db);
-//        ReadFieldPtr<ErrorPolicy_Igno>(dest.packedfile,"*packedfile",db);
-//        ReadField<ErrorPolicy_Igno>(dest.lastupdate,"lastupdate",db);
-//        ReadField<ErrorPolicy_Igno>(dest.lastused,"lastused",db);
-//        ReadField<ErrorPolicy_Igno>(dest.animspeed,"animspeed",db);
-//        ReadField<ErrorPolicy_Igno>(dest.gen_x,"gen_x",db);
-//        ReadField<ErrorPolicy_Igno>(dest.gen_y,"gen_y",db);
-//        ReadField<ErrorPolicy_Igno>(dest.gen_type,"gen_type",db);
-//
-//        db.reader->IncPtr(size);
-//    }
+
+    fun convertMirrorModifierData(dest: KMutableProperty0<MirrorModifierData?>) {
+
+        val d = dest.setIfNull(MirrorModifierData())
+
+        readField(Ep.Fail, d.modifier,"modifier")
+        readField(Ep.Igno, d::axis,"axis")
+        readField(Ep.Igno, d::flag,"flag")
+        readField(Ep.Igno, d::tolerance,"tolerance")
+        readFieldPtr(Ep.Igno, d::mirrorOb, "*mirror_ob")
+
+        db.reader.pos += size.i
+    }
+
+    fun convertImage(dest: KMutableProperty0<Image?>) {
+
+        val d = dest.setIfNull(Image())
+
+        readField(Ep.Fail, d.id,"id")
+        d.name = readFieldString(Ep.Warn, "name")
+        readField(Ep.Igno, d::ok,"ok")
+        readField(Ep.Igno, d::flag,"flag")
+        readField(Ep.Igno, d::source,"source")
+        readField(Ep.Igno, d::type,"type")
+        readField(Ep.Igno, d::pad,"pad")
+        readField(Ep.Igno, d::pad1,"pad1")
+        readField(Ep.Igno, d::lastFrame,"lastframe")
+        readField(Ep.Igno, d::tPageFlag,"tpageflag")
+        readField(Ep.Igno, d::totBind,"totbind")
+        readField(Ep.Igno, d::xRep,"xrep")
+        readField(Ep.Igno, d::yRep,"yrep")
+        readField(Ep.Igno, d::twsta,"twsta")
+        readField(Ep.Igno, d::twend,"twend")
+        readFieldPtr(Ep.Igno, d::packedfile,"*packedfile")
+        readField(Ep.Igno, d::lastUpdate,"lastupdate")
+        readField(Ep.Igno, d::lastUsed,"lastused")
+        readField(Ep.Igno, d::animSpeed,"animspeed")
+        readField(Ep.Igno, d::genX,"gen_x")
+        readField(Ep.Igno, d::genY,"gen_y")
+        readField(Ep.Igno, d::genType,"gen_type")
+
+        db.reader.pos += size.i
+    }
 
 	fun convert(data: CustomData) {
 
@@ -1367,26 +1325,6 @@ class Structure (val db: FileDatabase) {
 
 		convert(d)
 	}
-//
-////--------------------------------------------------------------------------------
-//	template <> void Structure::Convert<CustomDataLayer>(
-//	CustomDataLayer& dest,
-//	const FileDatabase& db
-//	) const
-//	{
-//		ReadField<ErrorPolicy_Fail>(dest.type, "type", db);
-//		ReadField<ErrorPolicy_Fail>(dest.offset, "offset", db);
-//		ReadField<ErrorPolicy_Fail>(dest.flag, "flag", db);
-//		ReadField<ErrorPolicy_Fail>(dest.active, "active", db);
-//		ReadField<ErrorPolicy_Fail>(dest.active_rnd, "active_rnd", db);
-//		ReadField<ErrorPolicy_Fail>(dest.active_clone, "active_clone", db);
-//		ReadField<ErrorPolicy_Fail>(dest.active_mask, "active_mask", db);
-//		ReadField<ErrorPolicy_Fail>(dest.uid, "uid", db);
-//		ReadFieldArray<ErrorPolicy_Warn>(dest.name, "name", db);
-//		ReadCustomDataPtr<ErrorPolicy_Fail>(dest.data, dest.type, "*data", db);
-//
-//		db.reader->IncPtr(size);
-//	}
 
 	fun convertCustomDataLayer(dest: KMutableProperty0<CustomDataLayer?>) {
 
@@ -1402,6 +1340,8 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Fail, d::uid, "uid")
 		d.name = readFieldString(Ep.Warn, "name")
 		readCustomDataPtr(Ep.Fail, d::data, d.type, "*data")
+
+        db.reader.pos += size.i
 	}
 
 
