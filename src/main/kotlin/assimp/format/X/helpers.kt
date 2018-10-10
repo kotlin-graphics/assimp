@@ -72,7 +72,7 @@ fun <T> MutableList<T>.reserve(newsize: Int, init: () -> T) {
 fun String.size(): Int = length
 fun StringBuilder.length(): Int = length
 
-fun <T> MutableList<T>.push_back(t: T) = add(t)
+fun <T> MutableList<T>.pushBack(t: T) = add(t)
 fun <T> MutableList<T>.size(): Int = size
 fun <T> MutableList<T>.front() = first()
 fun <T> MutableList<T>.back() = last()

@@ -2,7 +2,6 @@ package assimp.format.X
 
 import assimp.*
 import assimp.AiFace
-import java.io.*
 
 class XFileImporter : BaseImporter() {
 
@@ -107,7 +106,7 @@ class XFileImporter : BaseImporter() {
 
             // create a new animation to hold the data
             var nanim = AiAnimation()
-            newAnims.push_back(nanim)
+            newAnims.pushBack(nanim)
             nanim.name = if (anim.mName == null) "" else anim.mName!!
             // duration will be determined by the maximum length
             nanim.duration = 0.0
@@ -391,14 +390,14 @@ class XFileImporter : BaseImporter() {
                     // if there is a per-face material defined, select the faces with the corresponding material
                     for (c in 0 until sourceMesh.mFaceMaterials.size()) {
                         if (sourceMesh.mFaceMaterials[c] == b) {
-                            faces.push_back(c)
+                            faces.pushBack(c)
                             numVertices += sourceMesh.mPosFaces[c].mIndices.size()
                         }
                     }
                 } else {
                     // if there is no per-face material, place everything into one mesh
                     for (c in 0 until sourceMesh.mPosFaces.size()) {
-                        faces.push_back(c)
+                        faces.pushBack(c)
                         numVertices += sourceMesh.mPosFaces[c].mIndices.size()
                     }
                 }
@@ -409,7 +408,7 @@ class XFileImporter : BaseImporter() {
 
                 // create a submesh using this material
                 var mesh = AiMesh()
-                meshes.push_back(mesh)
+                meshes.pushBack(mesh)
 
                 // find the material in the scene's material list. Either own material
                 // or referenced material, it should already have a valid index
@@ -507,7 +506,7 @@ class XFileImporter : BaseImporter() {
                         // does the new vertex stem from an old vertex which was influenced by this bone?
                         var w = oldWeights[orgPoints[d]]
                         if (w > 0.0.a)
-                            newWeights.push_back(AiVertexWeight(d, w))
+                            newWeights.pushBack(AiVertexWeight(d, w))
                     }
 
                     // if the bone has no weights in the newly created mesh, ignore it
@@ -516,7 +515,7 @@ class XFileImporter : BaseImporter() {
 
                     // create
                     var nbone = AiBone()
-                    newBones.push_back(nbone)
+                    newBones.pushBack(nbone)
                     // copy name and matrix
                     nbone.name = (if (obone.mName == null) "" else obone.mName!!)
                     nbone.offsetMatrix = obone.mOffsetMatrix

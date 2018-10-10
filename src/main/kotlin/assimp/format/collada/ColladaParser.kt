@@ -336,7 +336,7 @@ class ColladaParser(pFile: IOStream) {
                 from an <instance_animation>.   */
 /*        // special filtering for stupid exporters packing each channel into a separate animation
         if( channels.size() == 1)
-            pParent->channels.push_back( channels.begin()->second);
+            pParent->channels.pushBack( channels.begin()->second);
         else {
 */
             if (anim == null) { // else create the animation, if not done yet, and store the channels

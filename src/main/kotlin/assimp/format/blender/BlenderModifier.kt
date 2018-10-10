@@ -137,7 +137,7 @@ class BlenderModifierShowcase {
 //
 //            for (;*curgod;++curgod,++curmod) { // allocate modifiers on the fly
 //            if (curmod == endmod) {
-//                cached_modifiers->push_back((*curgod)())
+//                cached_modifiers->pushBack((*curgod)())
 //
 //                endmod = cached_modifiers->end()
 //                curmod = endmod-1

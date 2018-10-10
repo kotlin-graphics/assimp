@@ -148,8 +148,8 @@ class Field {
     /** Any of the #FieldFlags enumerated values */
     var flags = 0
 
-	override fun toString(): String {       // TODO temp debug
-		return "[Field]: $name"
+	override fun toString(): String {
+		return "[Field]: $name, type: $type"
 	}
 }
 
@@ -630,7 +630,7 @@ class Type {
     var size = 0L
     var name = ""
 
-	override fun toString(): String {   // TODO debug temp
+	override fun toString(): String {
 		return "[Type]: $name, size: $size"
 	}
 }

@@ -44,6 +44,7 @@ package assimp.format.blender
 
 import assimp.NUL
 import glm_.s
+import kotlin.coroutines.experimental.*
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.
@@ -644,12 +645,28 @@ class Object : ElemBase() {
     var modifiers = ListBase()
 }
 
-
 class Base : ElemBase() {
     var prev: Base? = null
     var next: Base? = null
-    var object_: Object? = null
+    var obj: Object? = null
+
 }
+
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")   // TODO Kotlin 1.3 move from experimental to stable
+fun Base.iterator() = buildIterator {
+    var current: Base? = this@iterator
+    while(current != null) {
+
+        yield(current!!) // non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s
+
+        current = current.next
+    }
+}
+
+inline fun Base.forEach(block: (Base) -> Unit) {
+    iterator().forEach{ block(it) }
+}
+
 
 class Scene : ElemBase() {
 

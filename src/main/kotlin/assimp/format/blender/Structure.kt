@@ -24,7 +24,7 @@ class Structure (val db: FileDatabase) {
 
     var cacheIdx = -1L
 
-    override fun toString(): String {       // TODO temp debug
+    override fun toString(): String {
         return "[Structure]: $name"
     }
 
@@ -852,7 +852,7 @@ class Structure (val db: FileDatabase) {
                 so don't bother resolving the back links.             */
             curDest.prev = null
 
-            readFieldPtr(Ep.Warn, curDest::object_, "*object")
+            readFieldPtr(Ep.Warn, curDest::obj, "*object")
 
             /*  the return value of ReadFieldPtr indicates whether the object was already cached.
                 In this case, we don't need to resolve it again.    */
