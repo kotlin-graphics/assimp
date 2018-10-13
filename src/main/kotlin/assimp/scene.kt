@@ -220,7 +220,7 @@ class AiScene {
      * Not many file formats embed their textures into the file.
      * An example is Quake's MDL format (which is also used by some GameStudio versions)
      */
-    var textures = mutableMapOf<String, gli_.Texture>()
+    var textures = mutableMapOf<String, gli_.Texture>()     // The index is the file name
 
     /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
      * will be 0         */

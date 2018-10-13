@@ -2,7 +2,7 @@ package assimp.format.blender
 
 import assimp.*
 import assimp.format.X.*
-import glm_.c
+import glm_.*
 import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
@@ -12,12 +12,13 @@ import java.nio.channels.FileChannel
 import java.io.FileOutputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
+import kotlin.math.*
 
 private lateinit var buffer: ByteBuffer
 
 private val tokens = "BLENDER"
 
-class BlenderImporter : BaseImporter() {
+class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++ version has protected methods
 	// TODO check member visibility
 
 	private val modifierCache = BlenderModifierShowcase()
@@ -202,42 +203,47 @@ class BlenderImporter : BaseImporter() {
 			node
 		}
 
-		TODO()
+		buildMaterials(conv)
 
-//
-//		root->mNumChildren = static_cast<unsigned int>(no_parents.size());
-//		root->mChildren = new aiNode*[root->mNumChildren]();
-//		for (unsigned int i = 0; i < root->mNumChildren; ++i) {
-//			root->mChildren[i] = ConvertNode(in, no_parents[i], conv, aiMatrix4x4());
-//			root->mChildren[i]->mParent = root;
-//		}
-//
-//		BuildMaterials(conv);
-//
-//		if (conv.meshes->size()) {
-//			out->mMeshes = new aiMesh*[out->mNumMeshes = static_cast<unsigned int>( conv.meshes->size() )];
-//			std::copy(conv.meshes->begin(),conv.meshes->end(),out->mMeshes);
-//			conv.meshes.dismiss();
-//		}
-//
-//		if (conv.lights->size()) {
-//			out->mLights = new aiLight*[out->mNumLights = static_cast<unsigned int>( conv.lights->size() )];
-//			std::copy(conv.lights->begin(),conv.lights->end(),out->mLights);
-//			conv.lights.dismiss();
-//		}
-//
-//		if (conv.cameras->size()) {
-//			out->mCameras = new aiCamera*[out->mNumCameras = static_cast<unsigned int>( conv.cameras->size() )];
-//			std::copy(conv.cameras->begin(),conv.cameras->end(),out->mCameras);
-//			conv.cameras.dismiss();
-//		}
-//
-//		if (conv.materials->size()) {
-//			out->mMaterials = new aiMaterial*[out->mNumMaterials = static_cast<unsigned int>( conv.materials->size() )];
-//			std::copy(conv.materials->begin(),conv.materials->end(),out->mMaterials);
-//			conv.materials.dismiss();
-//		}
-//
+		if(conv.meshes.size > 0) {
+			out.numMeshes = conv.meshes.size
+			out.meshes = MutableList(conv.meshes.size) {
+				conv.meshes[it]
+			}
+			conv.meshes.clear()
+		}
+
+		if(conv.lights.size > 0) {
+			out.numLights = conv.lights.size
+			out.lights = MutableList(conv.lights.size) {
+				conv.lights[it]
+			}
+			conv.lights.clear()
+		}
+
+		if(conv.cameras.size > 0) {
+			out.numCameras = conv.cameras.size
+			out.cameras = MutableList(conv.cameras.size) {
+				conv.cameras[it]
+			}
+			conv.cameras.clear()
+		}
+
+		if(conv.materials.size > 0) {
+			out.numMaterials = conv.materials.size
+			out.materials = MutableList(conv.materials.size) {
+				conv.materials[it]
+			}
+			conv.materials.clear()
+		}
+
+		if(conv.textures.size > 0) {
+			out.numTextures = conv.textures.size
+			for((name, tex) in conv.textures) {
+				// TODO convert to gli.Texture out.textures[name] = tex ??
+			}
+		}
+
 //		if (conv.textures->size()) {
 //			out->mTextures = new aiTexture*[out->mNumTextures = static_cast<unsigned int>( conv.textures->size() )];
 //			std::copy(conv.textures->begin(),conv.textures->end(),out->mTextures);
@@ -287,17 +293,13 @@ class BlenderImporter : BaseImporter() {
 				}
 				Object.Type.LAMP    -> {
 					checkActualType(data, "Lamp")
-					val light = TODO("convertLight(obj, data as Lamp, conv)")
-					if(light != null){
-						conv.lights.pushBack(light)
-					}
+					val light = convertLight(obj, data as Lamp)
+					conv.lights.pushBack(light)
 				}
 				Object.Type.CAMERA  -> {
 					checkActualType(data, "Camera")
-					val camera = TODO("convertCamera(obj, data as Camera, conv")
-					if(camera != null) {
-						conv.cameras.pushBack(camera)
-					}
+					val camera = convertCamera(obj, data as Camera)
+					conv.cameras.pushBack(camera)
 				}
 				Object.Type.CURVE   -> notSupportedObjectType(obj, "Curve")
 				Object.Type.SURF    -> notSupportedObjectType(obj, "Surf")
@@ -307,6 +309,7 @@ class BlenderImporter : BaseImporter() {
 				Object.Type.LATTICE -> notSupportedObjectType(obj, "Lattice")
 				else -> throw Error("When should be exhaustive")
 			}
+			Unit // return Unit from let explicitly so that when and the contained if statements don't need to be exhaustive
 		}
 
 		for(x in 0 until 4) {
@@ -340,6 +343,67 @@ class BlenderImporter : BaseImporter() {
 		}
 	}
 
+	private fun buildMaterials(conv: ConversionData) {
+		TODO("buildMaterials")
+	}
+
+	private fun convertCamera(obj: Object, cam: Camera): AiCamera {
+
+		val out = AiCamera()
+		out.name = obj.id.name.substring(2)
+
+		out.position = AiVector3D(0f)
+		out.up = AiVector3D(0f, 1f,0f)
+		out.lookAt = AiVector3D(0f, 0f, -1f)
+
+		if(cam.sensorX > 0f && cam.lens > 0f) {
+			out.horizontalFOV = 2f * atan2(cam.sensorX, 2f * cam.lens)
+		}
+
+		out.clipPlaneNear = cam.clipSta
+		out.clipPlaneFar = cam.clipEnd
+
+		return out
+	}
+
+	private fun convertLight(obj: Object, lamp: Lamp): AiLight {
+
+		val out = AiLight()
+		out.name = obj.id.name.substring(2)
+
+		when(lamp.type) {
+			Lamp.Type.Local -> {
+				out.type = AiLightSourceType.POINT
+			}
+			Lamp.Type.Sun   -> {
+				out.type = AiLightSourceType.DIRECTIONAL
+
+				// blender orients directional lights as facing toward -z
+				out.direction = AiVector3D(0f, 0f, -1f)
+				out.up = AiVector3D(0f, 1f, 0f)
+			}
+			Lamp.Type.Area  -> {
+				out.type = AiLightSourceType.AREA
+
+				if(lamp.areaShape == 0.s){
+					out.size = AiVector2D(lamp.areaSize, lamp.areaSize)
+				} else {
+					out.size = AiVector2D(lamp.areaSize, lamp.areaSizeY)
+				}
+
+				// blender orients directional lights as facing toward -z
+				out.direction = AiVector3D(0f, 0f, -1f)
+				out.up = AiVector3D(0f, 1f, 0f)
+			}
+			else -> {} // TODO missing light types??? do nothing?? realy??
+		}
+
+		out.colorAmbient = AiColor3D(lamp.r, lamp.b, lamp.g) * lamp.energy
+		out.colorSpecular= AiColor3D(lamp.r, lamp.b, lamp.g) * lamp.energy
+		out.colorDiffuse = AiColor3D(lamp.r, lamp.b, lamp.g) * lamp.energy
+
+		return out
+	}
 }
 
 fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {

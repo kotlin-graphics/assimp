@@ -451,7 +451,7 @@ data class AiMaterial(
 
             var type: AiTexture.Type? = null,
 
-            var file: String? = null,
+            var file: String? = null,       // HINT this is used as the index to reference textures in AiScene.textures
 
             var blend: Float? = null,
 
