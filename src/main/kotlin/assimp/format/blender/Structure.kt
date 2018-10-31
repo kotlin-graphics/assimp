@@ -1200,7 +1200,7 @@ class Structure (val db: FileDatabase) {
 
 		readField(Ep.Igno, d::loopStart,"loopstart")
 		readField(Ep.Igno, d::totLoop,"totloop")
-		readField(Ep.Igno, d::matNr,"mat_nr")
+		readField(Ep.Igno, d::matNr,"mat_nr")       // TODO test this works, it should read a short
 		readField(Ep.Igno, d::flag,"flag")
 
 		db.reader.pos += size.i

@@ -169,7 +169,7 @@ class MLoopCol : ElemBase() {
 class MPoly : ElemBase() {
     var loopStart = 0
     var totLoop = 0
-    var matNr = 0.s
+    var matNr = 0               // HINT this is a short in the C version
     var flag = '\u0000'
 }
 
@@ -194,6 +194,7 @@ class MFace : ElemBase() {
     var v2 = 0
     var v3 = 0
     var v4 = 0
+
     var matNr = 0
     var flag = '\u0000'
 }
@@ -657,7 +658,7 @@ fun Base.iterator() = buildIterator {
     var current: Base? = this@iterator
     while(current != null) {
 
-        yield(current!!) // non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s
+        yield(current!!) // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s, fixed in Kotlin 1.4 or 1.3 new optional type inference system
 
         current = current.next
     }

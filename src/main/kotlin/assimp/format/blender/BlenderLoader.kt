@@ -12,11 +12,19 @@ import java.nio.channels.FileChannel
 import java.io.FileOutputStream
 import java.util.*
 import java.util.zip.GZIPInputStream
+import kotlin.collections.ArrayList
 import kotlin.math.*
+
 
 private lateinit var buffer: ByteBuffer
 
 private val tokens = "BLENDER"
+
+// typedef std::map<uint32_t, const MLoopUV *> TextureUVMapping;
+// key is material number, value is the TextureUVMapping for the material
+// typedef std::map<uint32_t, TextureUVMapping> MaterialTextureUVMappings;
+private typealias TextureUVMap = MutableMap<Int, MLoopUV>
+private typealias MaterialTextureUVMap = MutableMap<Int, TextureUVMap>
 
 class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++ version has protected methods
 	// TODO check member visibility
@@ -240,23 +248,22 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		if(conv.textures.size > 0) {
 			out.numTextures = conv.textures.size
 			for((name, tex) in conv.textures) {
+				tex.achFormatHint
 				// TODO convert to gli.Texture out.textures[name] = tex ??
 			}
-		}
-
-//		if (conv.textures->size()) {
 //			out->mTextures = new aiTexture*[out->mNumTextures = static_cast<unsigned int>( conv.textures->size() )];
 //			std::copy(conv.textures->begin(),conv.textures->end(),out->mTextures);
 //			conv.textures.dismiss();
-//		}
-//
-//		// acknowledge that the scene might come out incomplete
-//		// by Assimp's definition of `complete`: blender scenes
-//		// can consist of thousands of cameras or lights with
-//		// not a single mesh between them.
-//		if (!out->mNumMeshes) {
-//			out->mFlags |= AI_SCENE_FLAGS_INCOMPLETE;
-//		}
+		}
+
+
+        // acknowledge that the scene might come out incomplete
+  		// by Assimp's definition of `complete`: blender scenes
+  		// can consist of thousands of cameras or lights with
+  		// not a single mesh between them.
+		if(out.numMeshes == 0){
+			out.flags = out.flags or AI_SCENE_FLAGS_INCOMPLETE
+		}
 
 		return out
 	}
@@ -285,7 +292,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 					val old = conv.meshes.size
 
 					checkActualType(data, "Mesh")
-					// convertMesh(obj, data as Mesh, conv, conv.meshes)    TODO
+					convertMesh(obj, data as Mesh, conv, conv.meshes)
 
 					if(conv.meshes.size > old) {
 						node.meshes = IntArray(conv.meshes.size - old) { it + old }
@@ -345,6 +352,376 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 	private fun buildMaterials(conv: ConversionData) {
 		TODO("buildMaterials")
+	}
+
+	private fun Scene.convertMesh(obj: Object, mesh: Mesh, conv: ConversionData, meshList/* temp in C version */: ArrayList<AiMesh>) {
+
+		/*
+		// TODO: Resolve various problems with BMesh triangulation before re-enabling.
+        //       See issues #400, #373, #318  #315 and #132.
+	#if defined(TODO_FIX_BMESH_CONVERSION)
+	    BlenderBMeshConverter BMeshConverter( mesh );
+	    if ( BMeshConverter.ContainsBMesh( ) )
+	    {
+	        mesh = BMeshConverter.TriangulateBMesh( );
+	    }
+	#endif
+		 */
+
+		// typedef std::pair<const int,size_t> MyPair;
+		if((mesh.totface == 0 && mesh.totloop == 0) || mesh.totvert == 0 ) {
+			return
+		}
+
+		// extract nullables
+		val faces = requireNotNull(mesh.mface) { "mface in mesh is null!" }
+		val verts = requireNotNull(mesh.mvert) { "mvert in mesh is null!" }
+		val loops = requireNotNull(mesh.mloop) { "mloop in mesh is null!" }
+		val polys = requireNotNull(mesh.mpoly) { "mpoly in mesh is null!" }
+		val mats = requireNotNull(mesh.mat) { "mat in mesh is null!" }
+
+		// some sanity checks
+		require(mesh.totface <= faces.size ) { "Number of faces is larger than the corresponding array" }
+
+		require(mesh.totvert <= verts.size ) { "Number of vertices is larger than the corresponding array" }
+
+		require(mesh.totloop <= loops.size ) { "Number of loops is larger than the corresponding array" }
+
+		// collect per-submesh numbers
+		val perMat = mutableMapOf<Int, Int>()
+		val perMatVerts = mutableMapOf<Int, Int>()
+
+		for(i in 0 until mesh.totface) {
+			val face = faces[i]
+			perMat[face.matNr] = perMat.getOrDefault(face.matNr, 0) + 1
+			val vertCount = if(face.v4 != 0) 4 else 3
+			perMatVerts[face.matNr] = perMatVerts.getOrDefault(face.matNr, 0) + vertCount
+		}
+		for(i in 0 until mesh.totpoly) {
+			val poly = polys[i]
+
+			perMat[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + 1
+			perMatVerts[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + poly.totLoop
+		}
+
+		// ... and allocate the corresponding meshes
+		val old = meshList.size
+		meshList.ensureCapacity(meshList.size + perMat.size)
+
+		val matNumToMeshIndex = mutableMapOf<Int, Int>()
+		fun getMesh(matNr: Int): AiMesh = meshList[matNumToMeshIndex[matNr]!!]
+
+		for((matNr, faceCount) in perMat) {
+
+			matNumToMeshIndex[matNr] = meshList.size
+
+			val out = AiMesh()
+			meshList.pushBack(out)
+
+			out.vertices = MutableList(perMatVerts[matNr]!!) { AiVector3D() }
+			out.normals = MutableList(perMatVerts[matNr]!!) { AiVector3D() }
+
+			//out->mNumFaces = 0
+			//out->mNumVertices = 0
+			out.faces = MutableList(faceCount) { mutableListOf<Int>() }
+
+			// all sub-meshes created from this mesh are named equally. this allows
+			// curious users to recover the original adjacency.
+			out.name = mesh.id.name.substring(2)
+			// skip over the name prefix 'ME'
+
+			// resolve the material reference and add this material to the set of
+			// output materials. The (temporary) material index is the index
+			// of the material entry within the list of resolved materials.
+			if (mesh.mat != null) {
+
+				val materials = mesh.mat!!
+
+				if(matNr >= materials.size) {
+					throw IndexOutOfBoundsException("Material index is out of range")
+				}
+
+				val mat = checkNotNull(materials[matNr])
+
+				val index = conv.materialsRaw.indexOf(mat)
+				if (index == -1) {
+					out.materialIndex = conv.materialsRaw.size
+					conv.materialsRaw.pushBack(mat)
+				} else {
+					out.materialIndex = index
+				}
+			} else {
+				out.materialIndex = -1 // static_cast<unsigned int>( -1 );
+			}
+
+		}
+
+		fun AiMesh.convertVertex(pos: Int, vertIndex: Int, f: AiFace) {
+			if(pos >= mesh.totvert) {
+				throw IndexOutOfBoundsException("Vertex index out of range")
+			}
+			val v = verts[pos]
+
+			vertices[numVertices] = AiVector3D(v.co)
+			normals[numVertices] = AiVector3D(v.no)
+			f[vertIndex] = numVertices
+			numVertices++
+		}
+
+		for(i in 0 until mesh.totface) {
+
+			val mf = faces[i]
+
+			val out = getMesh(mf.matNr)
+
+			val f = out.faces[out.numFaces] // AiFace == MutableList
+			out.numFaces++
+
+			out.convertVertex(mf.v1, 0, f)
+			out.convertVertex(mf.v2, 1, f)
+			out.convertVertex(mf.v3, 2, f)
+			if(mf.v4 > 0) {
+				out.convertVertex(mf.v4, 3, f)
+				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.POLYGON
+			} else {
+				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.TRIANGLE
+			}
+		}
+
+		for(i in 0 until mesh.totpoly) {
+
+			val mp = polys[i]
+
+			val out = getMesh(mp.matNr)
+
+			val f = out.faces[out.numFaces]
+			out.numFaces++
+
+
+			for(j in 0 until mp.totLoop) {
+				val loop = loops[mp.loopStart + j]
+
+				out.convertVertex(loop.v, j, f)
+			}
+			if(mp.totLoop == 3) {
+				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.TRIANGLE
+			} else {
+				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.POLYGON
+			}
+		}
+	    // TODO should we create the TextureUVMapping map in Convert<Material> to prevent redundant processing?
+
+	    // create texture <-> uvname mapping for all materials
+	    // key is texture number, value is data *
+	    // typedef std::map<uint32_t, const MLoopUV *> TextureUVMapping;
+	    // key is material number, value is the TextureUVMapping for the material
+	    // typedef std::map<uint32_t, TextureUVMapping> MaterialTextureUVMappings;
+
+		val matTexUvMappings: MaterialTextureUVMap = mutableMapOf()
+
+		val maxMat = mats.size
+		for (m in 0 until maxMat) {
+			val mat = checkNotNull(mats[m])
+
+			val texUV: TextureUVMap = mutableMapOf()
+			val maxTex = mat.mTex.size
+			for(t in 0 until maxTex) {
+				val tex = mat.mTex[t]
+				if(tex != null && tex.uvName.isNotEmpty()) {
+					// get the CustomData layer for given uvname and correct type
+					val loop = TODO("getCustomDataLayerData(mesh.ldata, CustomDataType.MLoopUv, tex.uvName)")
+					if(loop != null) {
+						texUV[t] = loop
+					}
+				}
+			}
+			if(texUV.isNotEmpty()) {
+				matTexUvMappings[m] = texUV
+			}
+		}
+
+		// collect texture coordinates, they're stored in a separate per-face buffer
+		if(mesh.mtface != null || mesh.mloopuv != null) {       // FIXME does this need to be &&, the C code disagrees, right now we fail in the same situation
+
+			if(mesh.totface > 0 && mesh.totface > mesh.mtface!!.size) {
+				throw IndexOutOfBoundsException("number of uv faces is larger than the corresponding uv face array (#1)")
+			}
+
+			for(itMesh in meshList.subList(old, meshList.size)) {
+
+				assert(itMesh.numVertices > 0 && itMesh.numFaces > 0)
+
+				val itMatTexUvMap = matTexUvMappings[itMesh.materialIndex]
+				if(itMatTexUvMap == null) {
+					// default behaviour like before
+					itMesh.textureCoords[0] = MutableList(itMesh.numVertices) { FloatArray(2) }
+				} else {
+					// create texture coords for every mapped tex
+					for (i in 0 until itMatTexUvMap.size) {
+						itMesh.textureCoords[i] = MutableList(itMesh.numVertices)  { FloatArray(2) }
+					}
+				}
+				itMesh.numFaces = 0
+				itMesh.numVertices = 0
+			}
+
+			for(meshIndex in 0 until mesh.totface) {
+
+				val mtface = mesh.mtface!![meshIndex]
+
+				val out = getMesh(faces[meshIndex].matNr)
+				val f = out.faces[out.numFaces]
+				out.numFaces++
+
+				for(i in 0 until f.size) {
+					val vo = out.textureCoords[0][out.numVertices]
+					vo[0] = mtface.uv[i][0] // x
+					vo[1] = mtface.uv[i][1] // y
+					out.numVertices++
+				}
+			}
+
+			for(loopIndex in 0 until mesh.totpoly) {
+				val poly = polys[loopIndex]
+				val out = getMesh(poly.matNr)
+
+				val f = out.faces[out.numFaces]
+				out.numFaces++
+
+				val itMatTexUvMap = matTexUvMappings[poly.matNr]
+				if(itMatTexUvMap == null) {
+					// old behavior
+					for(j in 0 until f.size) {
+						val vo = out.textureCoords[0][out.numVertices]
+						val uv = mesh.mloopuv!![poly.loopStart + j]
+
+						vo[0] = uv.uv[0]
+						vo[1] = uv.uv[1]
+						out.numVertices++
+					}
+				} else {
+					// create textureCoords for every mapped tex
+					for(m in 0 until itMatTexUvMap.size) {
+						val tm = itMatTexUvMap[m]!!
+						// TODO I think there is a bug here!!!!!!!!!
+						for(j in 0 until f.size) {
+							val vo = out.textureCoords[m][out.numVertices]
+							val uv = tm.uv
+							vo[0] = uv[0]
+							vo[1] = uv[1]
+							out.numVertices++
+
+						/*
+					// create textureCoords for every mapped tex
+	                for (uint32_t m = 0; m < itMatTexUvMapping->second.size(); ++m) {
+	                    const MLoopUV *tm = itMatTexUvMapping->second[m];
+	                    aiVector3D* vo = &out->mTextureCoords[m][out->mNumVertices];
+	                    uint32_t j = 0;
+	                    for (; j < f.mNumIndices; ++j, ++vo) {
+	                        const MLoopUV& uv = tm[v.loopstart + j];
+	                        vo->x = uv.uv[0];
+	                        vo->y = uv.uv[1];
+	                    }
+	                    // only update written mNumVertices in last loop
+	                    // TODO why must the numVertices be incremented here?
+	                    if (m == itMatTexUvMapping->second.size() - 1) {
+	                        out->mNumVertices += j;
+	                    }
+	                }
+						 */
+						}
+					}
+				}
+			}
+		}
+
+		if(mesh.tface != null) {
+			val tfaces = mesh.tface!!
+
+			assert(mesh.totface <= tfaces.size) { "Number of faces is larger than the corresponding UV face array (#2)" }
+
+			for(itMesh in meshList) {
+				assert(itMesh.numVertices > 0 && itMesh.numFaces > 0)
+
+				// TODO
+			}
+		}
+		/*
+
+	    // collect texture coordinates, old-style (marked as deprecated in current blender sources)
+	    if (mesh->tface) {
+	        if (mesh->totface > static_cast<int> ( mesh->tface.size())) {
+	            ThrowException("Number of faces is larger than the corresponding UV face array (#2)");
+	        }
+	        for (std::vector<aiMesh*>::iterator it = temp->begin()+old; it != temp->end(); ++it) {
+	            ai_assert((*it)->mNumVertices && (*it)->mNumFaces);
+
+	            (*it)->mTextureCoords[0] = new aiVector3D[(*it)->mNumVertices];
+	            (*it)->mNumFaces = (*it)->mNumVertices = 0;
+	        }
+
+	        for (int i = 0; i < mesh->totface; ++i) {
+	            const TFace* v = &mesh->tface[i];
+
+	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ mesh->mface[i].mat_nr ] ];
+	            const aiFace& f = out->mFaces[out->mNumFaces++];
+
+	            aiVector3D* vo = &out->mTextureCoords[0][out->mNumVertices];
+	            for (unsigned int i = 0; i < f.mNumIndices; ++i,++vo,++out->mNumVertices) {
+	                vo->x = v->uv[i][0];
+	                vo->y = v->uv[i][1];
+	            }
+	        }
+	    }
+
+	    // collect vertex colors, stored separately as well
+	    if (mesh->mcol || mesh->mloopcol) {
+	        if (mesh->totface > static_cast<int> ( (mesh->mcol.size()/4)) ) {
+	            ThrowException("Number of faces is larger than the corresponding color face array");
+	        }
+	        for (std::vector<aiMesh*>::iterator it = temp->begin()+old; it != temp->end(); ++it) {
+	            ai_assert((*it)->mNumVertices && (*it)->mNumFaces);
+
+	            (*it)->mColors[0] = new aiColor4D[(*it)->mNumVertices];
+	            (*it)->mNumFaces = (*it)->mNumVertices = 0;
+	        }
+
+	        for (int i = 0; i < mesh->totface; ++i) {
+
+	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ mesh->mface[i].mat_nr ] ];
+	            const aiFace& f = out->mFaces[out->mNumFaces++];
+
+	            aiColor4D* vo = &out->mColors[0][out->mNumVertices];
+	            for (unsigned int n = 0; n < f.mNumIndices; ++n, ++vo,++out->mNumVertices) {
+	                const MCol* col = &mesh->mcol[(i<<2)+n];
+
+	                vo->r = col->r;
+	                vo->g = col->g;
+	                vo->b = col->b;
+	                vo->a = col->a;
+	            }
+	            for (unsigned int n = f.mNumIndices; n < 4; ++n);
+	        }
+
+	        for (int i = 0; i < mesh->totpoly; ++i) {
+	            const MPoly& v = mesh->mpoly[i];
+	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ v.mat_nr ] ];
+	            const aiFace& f = out->mFaces[out->mNumFaces++];
+
+	            aiColor4D* vo = &out->mColors[0][out->mNumVertices];
+				const ai_real scaleZeroToOne = 1.f/255.f;
+	            for (unsigned int j = 0; j < f.mNumIndices; ++j,++vo,++out->mNumVertices) {
+	                const MLoopCol& col = mesh->mloopcol[v.loopstart + j];
+	                vo->r = ai_real(col.r) * scaleZeroToOne;
+	                vo->g = ai_real(col.g) * scaleZeroToOne;
+	                vo->b = ai_real(col.b) * scaleZeroToOne;
+	                vo->a = ai_real(col.a) * scaleZeroToOne;
+	            }
+
+	        }
+
+	    }
+		*/
 	}
 
 	private fun convertCamera(obj: Object, cam: Camera): AiCamera {

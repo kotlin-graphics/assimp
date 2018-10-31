@@ -5,6 +5,8 @@ import glm_.vec3.Vec3
 import mu.KotlinLogging
 import kotlin.math.abs
 
+// TODO refactor errors/exceptions so that they can be handled outside of the library
+
 val logger = KotlinLogging.logger {}
 
 fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiVector3D) {

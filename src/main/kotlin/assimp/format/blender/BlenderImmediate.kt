@@ -130,7 +130,7 @@ class ConversionData(
     val cameras = ArrayList<AiCamera>()
     val lights = ArrayList<AiLight>()
     val materials = ArrayList<AiMaterial>()
-    val textures = ArrayList<AiTexture>()
+    val textures = mutableMapOf<String, AiTexture>()        // TODO maybe this should be something else
 
     /** set of all materials referenced by at least one mesh in the scene   */
     val materialsRaw = ArrayList<Material>()
