@@ -635,6 +635,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			}
 		}
 
+		// collect texture coordinates, old-style (marked as deprecated in current blender sources)
 		if(mesh.tface != null) {
 			val tfaces = mesh.tface!!
 
@@ -643,36 +644,27 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			for(itMesh in meshList) {
 				assert(itMesh.numVertices > 0 && itMesh.numFaces > 0)
 
-				// TODO
+				// TODO check Vector2 (FloatArray size 2) is enough, it's a aiVector3D in C but I think there just is no aiVector2D
+				itMesh.textureCoords[0] = MutableList(itMesh.numVertices) { FloatArray(2) }
+
+				itMesh.numFaces = 0
+				itMesh.numVertices = 0
+			}
+
+			for(meshIndex in 0 until mesh.totface) {
+				val v = tfaces[meshIndex]
+
+				val out = getMesh(faces[meshIndex].matNr)
+				val f = out.faces
+				for(i in 0 until f.size) {
+					val vo = out.textureCoords[0][out.numVertices]
+					vo[0] = v.uv[i][0]
+					vo[1] = v.uv[i][1]
+				}
 			}
 		}
+
 		/*
-
-	    // collect texture coordinates, old-style (marked as deprecated in current blender sources)
-	    if (mesh->tface) {
-	        if (mesh->totface > static_cast<int> ( mesh->tface.size())) {
-	            ThrowException("Number of faces is larger than the corresponding UV face array (#2)");
-	        }
-	        for (std::vector<aiMesh*>::iterator it = temp->begin()+old; it != temp->end(); ++it) {
-	            ai_assert((*it)->mNumVertices && (*it)->mNumFaces);
-
-	            (*it)->mTextureCoords[0] = new aiVector3D[(*it)->mNumVertices];
-	            (*it)->mNumFaces = (*it)->mNumVertices = 0;
-	        }
-
-	        for (int i = 0; i < mesh->totface; ++i) {
-	            const TFace* v = &mesh->tface[i];
-
-	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ mesh->mface[i].mat_nr ] ];
-	            const aiFace& f = out->mFaces[out->mNumFaces++];
-
-	            aiVector3D* vo = &out->mTextureCoords[0][out->mNumVertices];
-	            for (unsigned int i = 0; i < f.mNumIndices; ++i,++vo,++out->mNumVertices) {
-	                vo->x = v->uv[i][0];
-	                vo->y = v->uv[i][1];
-	            }
-	        }
-	    }
 
 	    // collect vertex colors, stored separately as well
 	    if (mesh->mcol || mesh->mloopcol) {
