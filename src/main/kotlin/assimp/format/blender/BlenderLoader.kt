@@ -215,7 +215,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		if(conv.meshes.size > 0) {
 			out.numMeshes = conv.meshes.size
-			out.meshes = MutableList(conv.meshes.size) {
+			out.meshes = ArrayList(conv.meshes.size) {
 				conv.meshes[it]
 			}
 			conv.meshes.clear()
@@ -223,7 +223,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		if(conv.lights.size > 0) {
 			out.numLights = conv.lights.size
-			out.lights = MutableList(conv.lights.size) {
+			out.lights = ArrayList(conv.lights.size) {
 				conv.lights[it]
 			}
 			conv.lights.clear()
@@ -231,7 +231,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		if(conv.cameras.size > 0) {
 			out.numCameras = conv.cameras.size
-			out.cameras = MutableList(conv.cameras.size) {
+			out.cameras = ArrayList(conv.cameras.size) {
 				conv.cameras[it]
 			}
 			conv.cameras.clear()
@@ -239,13 +239,13 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		if(conv.materials.size > 0) {
 			out.numMaterials = conv.materials.size
-			out.materials = MutableList(conv.materials.size) {
+			out.materials = ArrayList(conv.materials.size) {
 				conv.materials[it]
 			}
 			conv.materials.clear()
 		}
 
-		if(conv.textures.size > 0) {
+		if(conv.textures.isNotEmpty()) {
 			out.numTextures = conv.textures.size
 			for((name, tex) in conv.textures) {
 				tex.achFormatHint

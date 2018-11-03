@@ -3,6 +3,7 @@ package assimp
 import glm_.BYTES
 import glm_.mat4x4.Mat4
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 13/11/2016.
@@ -192,7 +193,7 @@ class AiScene {
      *
      * Use the indices given in the aiNode structure to access this array. The array is numMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var meshes: MutableList<AiMesh> = ArrayList()
+    var meshes: ArrayList<AiMesh> = ArrayList()
 
     /** The number of materials in the scene. */
     var numMaterials = 0
@@ -201,7 +202,7 @@ class AiScene {
      *
      * Use the index given in each aiMesh structure to access this array. The array is numMaterials in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var materials: MutableList<AiMaterial> = ArrayList()
+    var materials: ArrayList<AiMaterial> = ArrayList()
 
     /** The number of animations in the scene. */
     var numAnimations = 0
@@ -210,7 +211,7 @@ class AiScene {
      *
      * All animations imported from the given file are listed here.
      * The array is numAnimations in size.         */
-    var animations: MutableList<AiAnimation> = ArrayList()
+    var animations: ArrayList<AiAnimation> = ArrayList()
 
     /** The number of textures embedded into the file */
     var numTextures = 0
@@ -229,7 +230,7 @@ class AiScene {
     /** The array of light sources.
      *
      * All light sources imported from the given file are listed here. The array is numLights in size.         */
-    var lights: MutableList<AiLight> = ArrayList()
+    var lights: ArrayList<AiLight> = ArrayList()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
     var numCameras = 0
@@ -239,7 +240,7 @@ class AiScene {
      * All cameras imported from the given file are listed here.
      * The array is numCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
-    var cameras: MutableList<AiCamera> = ArrayList()
+    var cameras: ArrayList<AiCamera> = ArrayList()
 
     /** The global metadata assigned to the scene itself.
      *

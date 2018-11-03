@@ -58,30 +58,43 @@ operator fun Pointer<Char>.get(range: IntRange): String = subset(range).joinToSt
 
 fun <T> MutableList<T>.resize(newsize: Int, init: () -> T) {
 	if (newsize - size < 0) throw RuntimeException("Downsizing unsupported")
-	for (a in size..newsize - 1)
+	for (a in size until newsize)
 		add(init())
 }
 
 fun <T> MutableList<T>.reserve(newsize: Int, init: () -> T) {
 	if (newsize - size > 0) {
-		for (a in size..newsize - 1)
+		for (a in size until newsize)
 			add(init())
 	}
+}
+
+/**
+ * Creates a new mutable list with the specified [size], where each element is calculated by calling the specified
+ * [init] function. The [init] function returns a list element given its index.
+ */
+@Suppress("FunctionName")
+inline fun <reified T> ArrayList(size: Int, init: (index: Int) -> T): ArrayList<T> {
+	val result = ArrayList<T>(size)
+	for(i in 0 until size) {
+		result[i] = init(i)
+	}
+	return result
 }
 
 fun String.size(): Int = length
 fun StringBuilder.length(): Int = length
 
-fun <T> MutableList<T>.pushBack(t: T) = add(t)
+fun <T> MutableList<T>.pushBack(t: T): Boolean = add(t)
 fun <T> MutableList<T>.size(): Int = size
-fun <T> MutableList<T>.front() = first()
-fun <T> MutableList<T>.back() = last()
+fun <T> MutableList<T>.front(): T = first()
+fun <T> MutableList<T>.back(): T = last()
 
-fun <T> ArrayList<T>.reserve(newsize : Int) = ensureCapacity(newsize)
+fun <T> ArrayList<T>.reserve(newsize : Int): Unit = ensureCapacity(newsize)
 
 fun <T> ArrayList<T>.reserve(newsize: Int, init: () -> T) : ArrayList<T> {
     if (newsize - size > 0) {
-        for (a in size..newsize - 1)
+        for (a in size until newsize)
             add(init())
     }
 	return this
@@ -92,7 +105,7 @@ fun isspace(char: Char): Boolean {
 }
 
 fun strncmp(P: Pointer<Char>, s: String, l: Int): Int { //Highly simplified from C++ function definition
-	if (P[0..l - 1] == s) return 0
+	if (P[0 until l] == s) return 0
 	return -1
 }
 
