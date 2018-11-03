@@ -10,6 +10,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.io.FileOutputStream
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.zip.GZIPInputStream
 import kotlin.collections.ArrayList
@@ -374,31 +375,39 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		}
 
 		// extract nullables
-		val faces = requireNotNull(mesh.mface) { "mface in mesh is null!" }
 		val verts = requireNotNull(mesh.mvert) { "mvert in mesh is null!" }
-		val loops = requireNotNull(mesh.mloop) { "mloop in mesh is null!" }
-		val polys = requireNotNull(mesh.mpoly) { "mpoly in mesh is null!" }
-		val mats = requireNotNull(mesh.mat) { "mat in mesh is null!" }
+
+		fun face(i: Int) = mesh.mface!![i]
+		fun loop(i: Int) = mesh.mloop!![i]
+		fun poly(i: Int) = mesh.mpoly!![i]
 
 		// some sanity checks
-		require(mesh.totface <= faces.size ) { "Number of faces is larger than the corresponding array" }
-
+		if(mesh.totface > 0) {
+			val faces = requireNotNull(mesh.mface) { "mface in mesh is null!" }
+			require(mesh.totface <= faces.size ) { "Number of faces is larger than the corresponding array" }
+		}
 		require(mesh.totvert <= verts.size ) { "Number of vertices is larger than the corresponding array" }
-
-		require(mesh.totloop <= loops.size ) { "Number of loops is larger than the corresponding array" }
+		if(mesh.totloop > 0) {
+			val loops = requireNotNull(mesh.mloop) { "mloop in mesh is null!" }
+			require(mesh.totloop <= loops.size) { "Number of loops is larger than the corresponding array" }
+		}
+		if(mesh.totpoly > 0) {
+			val polys = requireNotNull(mesh.mpoly) { "mpoly in mesh is null!" }
+			require(mesh.totpoly <= polys.size) { "Number of polygons is larger than the corresponding array" }
+		}
 
 		// collect per-submesh numbers
 		val perMat = mutableMapOf<Int, Int>()
 		val perMatVerts = mutableMapOf<Int, Int>()
 
 		for(i in 0 until mesh.totface) {
-			val face = faces[i]
+			val face = face(i)
 			perMat[face.matNr] = perMat.getOrDefault(face.matNr, 0) + 1
 			val vertCount = if(face.v4 != 0) 4 else 3
 			perMatVerts[face.matNr] = perMatVerts.getOrDefault(face.matNr, 0) + vertCount
 		}
 		for(i in 0 until mesh.totpoly) {
-			val poly = polys[i]
+			val poly = poly(i)
 
 			perMat[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + 1
 			perMatVerts[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + poly.totLoop
@@ -441,7 +450,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 					throw IndexOutOfBoundsException("Material index is out of range")
 				}
 
-				val mat = checkNotNull(materials[matNr])
+				val mat = checkNotNull(materials[matNr]) { "Material with index $matNr does not exist!" }
 
 				val index = conv.materialsRaw.indexOf(mat)
 				if (index == -1) {
@@ -470,12 +479,13 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		for(i in 0 until mesh.totface) {
 
-			val mf = faces[i]
+			val mf = face(i)
 
 			val out = getMesh(mf.matNr)
 
-			val f = out.faces[out.numFaces] // AiFace == MutableList
+			val f = out.faces[out.numFaces] // AiFace == MutableList<AiFace>
 			out.numFaces++
+			f.resize(if(mf.v4 > 0) 4 else 3) { 0 }  // TODO instead of resize I should just assert that size is 0 and add instead of insert in convertVertex
 
 			out.convertVertex(mf.v1, 0, f)
 			out.convertVertex(mf.v2, 1, f)
@@ -489,17 +499,17 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		}
 
 		for(i in 0 until mesh.totpoly) {
-
-			val mp = polys[i]
+			val mp = poly(i)
 
 			val out = getMesh(mp.matNr)
 
 			val f = out.faces[out.numFaces]
+			f.resize(mp.totLoop) { 0 }      // TODO instead of resize I should just assert that size is 0 and add instead of insert in convertVertex
 			out.numFaces++
 
 
 			for(j in 0 until mp.totLoop) {
-				val loop = loops[mp.loopStart + j]
+				val loop = loop(mp.loopStart + j)
 
 				out.convertVertex(loop.v, j, f)
 			}
@@ -519,6 +529,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		val matTexUvMappings: MaterialTextureUVMap = mutableMapOf()
 
+		val mats = mesh.mat!!// TODO temp
 		val maxMat = mats.size
 		for (m in 0 until maxMat) {
 			val mat = checkNotNull(mats[m])
@@ -527,7 +538,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			val maxTex = mat.mTex.size
 			for(t in 0 until maxTex) {
 				val tex = mat.mTex[t]
-				if(tex != null && tex.uvName.isNotEmpty()) {
+				if(tex != null && tex.uvName.isNotEmpty() && false) {   // TODO temp, remove false in if
 					// get the CustomData layer for given uvname and correct type
 					val loop = TODO("getCustomDataLayerData(mesh.ldata, CustomDataType.MLoopUv, tex.uvName)")
 					if(loop != null) {
@@ -554,11 +565,11 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 				val itMatTexUvMap = matTexUvMappings[itMesh.materialIndex]
 				if(itMatTexUvMap == null) {
 					// default behaviour like before
-					itMesh.textureCoords[0] = MutableList(itMesh.numVertices) { FloatArray(2) }
+					itMesh.textureCoords.add(MutableList(itMesh.numVertices) { FloatArray(2) })
 				} else {
 					// create texture coords for every mapped tex
 					for (i in 0 until itMatTexUvMap.size) {
-						itMesh.textureCoords[i] = MutableList(itMesh.numVertices)  { FloatArray(2) }
+						itMesh.textureCoords.add(MutableList(itMesh.numVertices)  { FloatArray(2) })
 					}
 				}
 				itMesh.numFaces = 0
@@ -569,7 +580,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 				val mtface = mesh.mtface!![meshIndex]
 
-				val out = getMesh(faces[meshIndex].matNr)
+				val out = getMesh(face(meshIndex).matNr)
 				val f = out.faces[out.numFaces]
 				out.numFaces++
 
@@ -582,7 +593,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			}
 
 			for(loopIndex in 0 until mesh.totpoly) {
-				val poly = polys[loopIndex]
+				val poly = poly(loopIndex)
 				val out = getMesh(poly.matNr)
 
 				val f = out.faces[out.numFaces]
@@ -603,32 +614,12 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 					// create textureCoords for every mapped tex
 					for(m in 0 until itMatTexUvMap.size) {
 						val tm = itMatTexUvMap[m]!!
-						// TODO I think there is a bug here!!!!!!!!!
 						for(j in 0 until f.size) {
 							val vo = out.textureCoords[m][out.numVertices]
 							val uv = tm.uv
 							vo[0] = uv[0]
 							vo[1] = uv[1]
 							out.numVertices++
-
-						/*
-					// create textureCoords for every mapped tex
-	                for (uint32_t m = 0; m < itMatTexUvMapping->second.size(); ++m) {
-	                    const MLoopUV *tm = itMatTexUvMapping->second[m];
-	                    aiVector3D* vo = &out->mTextureCoords[m][out->mNumVertices];
-	                    uint32_t j = 0;
-	                    for (; j < f.mNumIndices; ++j, ++vo) {
-	                        const MLoopUV& uv = tm[v.loopstart + j];
-	                        vo->x = uv.uv[0];
-	                        vo->y = uv.uv[1];
-	                    }
-	                    // only update written mNumVertices in last loop
-	                    // TODO why must the numVertices be incremented here?
-	                    if (m == itMatTexUvMapping->second.size() - 1) {
-	                        out->mNumVertices += j;
-	                    }
-	                }
-						 */
 						}
 					}
 				}
@@ -644,17 +635,16 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			for(itMesh in meshList) {
 				assert(itMesh.numVertices > 0 && itMesh.numFaces > 0)
 
-				// TODO check Vector2 (FloatArray size 2) is enough, it's a aiVector3D in C but I think there just is no aiVector2D
 				itMesh.textureCoords[0] = MutableList(itMesh.numVertices) { FloatArray(2) }
 
 				itMesh.numFaces = 0
 				itMesh.numVertices = 0
 			}
 
-			for(meshIndex in 0 until mesh.totface) {
-				val v = tfaces[meshIndex]
+			for(faceIndex in 0 until mesh.totface) {
+				val v = tfaces[faceIndex]
 
-				val out = getMesh(faces[meshIndex].matNr)
+				val out = getMesh(face(faceIndex).matNr)
 				val f = out.faces
 				for(i in 0 until f.size) {
 					val vo = out.textureCoords[0][out.numVertices]
@@ -664,56 +654,57 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			}
 		}
 
-		/*
+		if(mesh.mcol != null && mesh.mloopcol != null) {
+			val mcol = mesh.mcol!!
+			val mloopcol = mesh.mloopcol!!
 
-	    // collect vertex colors, stored separately as well
-	    if (mesh->mcol || mesh->mloopcol) {
-	        if (mesh->totface > static_cast<int> ( (mesh->mcol.size()/4)) ) {
-	            ThrowException("Number of faces is larger than the corresponding color face array");
-	        }
-	        for (std::vector<aiMesh*>::iterator it = temp->begin()+old; it != temp->end(); ++it) {
-	            ai_assert((*it)->mNumVertices && (*it)->mNumFaces);
+			if(mesh.totface > mcol.size / 4) {
+				throw IllegalStateException("Number of faces is larger than corresponding color face array")
+			}
+			for(meshIt in meshList) {
 
-	            (*it)->mColors[0] = new aiColor4D[(*it)->mNumVertices];
-	            (*it)->mNumFaces = (*it)->mNumVertices = 0;
-	        }
+				assert(meshIt.numVertices and meshIt.numFaces != 0) // What the hell??? I think this checks that both numVertices and numFaces is not 0
 
-	        for (int i = 0; i < mesh->totface; ++i) {
+				meshIt.colors[0] = MutableList(meshIt.numVertices) { AiColor4D() }
+				meshIt.numVertices = 0
+				meshIt.numFaces = 0
+			}
 
-	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ mesh->mface[i].mat_nr ] ];
-	            const aiFace& f = out->mFaces[out->mNumFaces++];
+			for(faceIndex in 0 until mesh.totface) {
 
-	            aiColor4D* vo = &out->mColors[0][out->mNumVertices];
-	            for (unsigned int n = 0; n < f.mNumIndices; ++n, ++vo,++out->mNumVertices) {
-	                const MCol* col = &mesh->mcol[(i<<2)+n];
+				val out = getMesh(face(faceIndex).matNr)
+				val f = out.faces[out.numFaces]
+				out.numFaces++
 
-	                vo->r = col->r;
-	                vo->g = col->g;
-	                vo->b = col->b;
-	                vo->a = col->a;
-	            }
-	            for (unsigned int n = f.mNumIndices; n < 4; ++n);
-	        }
+				for(n in 0 until f.size) {
+					val col = mcol[(faceIndex shl 2) + n]   // I see the IndexOutOfBoundsException coming already
+					val vo = out.colors[0][out.numVertices]
+					vo.r = col.r.f
+					vo.g = col.g.f
+					vo.b = col.b.f
+					vo.a = col.a.f
+					out.numVertices++
+				}
+				// for (unsigned int n = f.mNumIndices; n < 4; ++n); I don't even ....
+			}
 
-	        for (int i = 0; i < mesh->totpoly; ++i) {
-	            const MPoly& v = mesh->mpoly[i];
-	            aiMesh* const out = temp[ mat_num_to_mesh_idx[ v.mat_nr ] ];
-	            const aiFace& f = out->mFaces[out->mNumFaces++];
+			for (polyIndex in 0 until mesh.totpoly) {
+				val v = poly(polyIndex)
+				val out = getMesh(v.matNr)
+				val f = out.faces[out.numFaces]
+				out.numFaces++
 
-	            aiColor4D* vo = &out->mColors[0][out->mNumVertices];
-				const ai_real scaleZeroToOne = 1.f/255.f;
-	            for (unsigned int j = 0; j < f.mNumIndices; ++j,++vo,++out->mNumVertices) {
-	                const MLoopCol& col = mesh->mloopcol[v.loopstart + j];
-	                vo->r = ai_real(col.r) * scaleZeroToOne;
-	                vo->g = ai_real(col.g) * scaleZeroToOne;
-	                vo->b = ai_real(col.b) * scaleZeroToOne;
-	                vo->a = ai_real(col.a) * scaleZeroToOne;
-	            }
-
-	        }
-
-	    }
-		*/
+				val scaleZeroToOne = 1f/255f
+				for(j in 0 until f.size) {
+					val col = mloopcol[v.loopStart + j]
+					val vo = out.colors[0][out.numVertices]
+					vo.r = col.r.f * scaleZeroToOne
+					vo.g = col.g.f * scaleZeroToOne
+					vo.b = col.b.f * scaleZeroToOne
+					vo.a = col.a.f * scaleZeroToOne
+				}
+			}
+		}
 	}
 
 	private fun convertCamera(obj: Object, cam: Camera): AiCamera {

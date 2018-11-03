@@ -389,10 +389,13 @@ class Structure (val db: FileDatabase) {
         }
 
         var res = true // FIXME: check back with https://github.com/assimp/assimp/issues/2160
+
+        val oldTempAny = tempAny
         for (i in 0 until out.size) {
             // resolve the pointer and load the corresponding structure
             res = resolvePtr(errorPolicy, ::tempAny, ptrval[i], field) && res
         }
+        tempAny = oldTempAny
 
         db.reader.pos = oldPos
 
@@ -634,6 +637,7 @@ class Structure (val db: FileDatabase) {
 
         var res = true // FIXME: check back with https://github.com/assimp/assimp/issues/2160
 
+        val oldTempAny = tempAny
         out.set(MutableList(num) {
             val ptr = convertPointer()
             res = resolvePtr(errorPolicy, ::tempAny, ptr, field) && res
@@ -641,6 +645,7 @@ class Structure (val db: FileDatabase) {
 
             tempAny as T
         })
+        tempAny = oldTempAny
 
         db.reader.pos = pOld
 
