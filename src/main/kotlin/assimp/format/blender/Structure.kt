@@ -332,7 +332,7 @@ class Structure (val db: FileDatabase) {
 		return true
 	}
 
-	fun <T: ElemBase> readCustomDataPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, cdtype: Int, name: String): Boolean {
+	fun <T: ElemBase> readCustomDataPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, cdtype: CustomDataType, name: String): Boolean {
 		return readFieldPtrPrivate(errorPolicy, out, name) { _, o, ptrVal, _, _ ->
 
 			if(ptrVal == 0L) return true
@@ -341,7 +341,7 @@ class Structure (val db: FileDatabase) {
 			val block = locateFileBlockForAddress(ptrVal)
 			block.setReaderPos(ptrVal)
 
-			return readCustomData(o, cdtype, block.num)
+			return TODO("readCustomData(o, cdtype, block.num)")
 		}
 	}
 
@@ -1335,13 +1335,14 @@ class Structure (val db: FileDatabase) {
 
 		val d = dest.setIfNull(CustomDataLayer())
 
-		readField(Ep.Fail, d::type, "type")
+		readField(Ep.Fail, ::tempInt, "type")
+        d.type = CustomDataType.of(tempInt)
 		readField(Ep.Fail, d::offset, "offset")
 		readField(Ep.Fail, d::flag, "flag")
 		readField(Ep.Fail, d::active, "active")
-		readField(Ep.Fail, d::active_rnd, "active_rnd")
-		readField(Ep.Fail, d::active_clone, "active_clone")
-		readField(Ep.Fail, d::active_mask, "active_mask")
+		readField(Ep.Fail, d::activeRnd, "active_rnd")
+		readField(Ep.Fail, d::activeClone, "active_clone")
+		readField(Ep.Fail, d::activeMask, "active_mask")
 		readField(Ep.Fail, d::uid, "uid")
 		d.name = readFieldString(Ep.Warn, "name")
 		readCustomDataPtr(Ep.Fail, d::data, d.type, "*data")

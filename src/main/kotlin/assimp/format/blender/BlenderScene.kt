@@ -94,10 +94,9 @@ import kotlin.coroutines.*
 
 // TODO check all usages of char instead of short, e.g. flags is char in some places and not short, int or byte
 
-
 val AI_BLEND_MESH_MAX_VERTS = 2000000000L
 
-var maxNameLen = 1024
+val maxNameLen = 1024
 
 class Id : ElemBase() {
     var name = ""
@@ -355,20 +354,20 @@ class Material : ElemBase() {
 class CustomData : ElemBase() {
 
 	val layers: MutableList<CustomDataLayer?> = mutableListOf()
-	var typemap = IntArray(42)
+	var typemap: IntArray = IntArray(42)
 	var totlayer: Int = 0
 	var maxlayer: Int = 0
 	var totsize: Int = 0
 }
 
 class CustomDataLayer: ElemBase() {
-	var type: Int = 0       // TODO change to CustomDataType
+	var type: CustomDataType = CustomDataType.None
 	var offset: Int = 0
 	var flag: Int = 0
 	var active: Int = 0
-	var active_rnd: Int = 0
-	var active_clone: Int = 0
-	var active_mask: Int = 0
+	var activeRnd: Int = 0
+	var activeClone: Int = 0
+	var activeMask: Int = 0
 	var uid: Int = 0
 	var name: String = ""
 	var data: ElemBase? = null  // must be converted to real type according type member
@@ -376,7 +375,7 @@ class CustomDataLayer: ElemBase() {
 
 class Mesh : ElemBase() {
 
-    var id = Id()
+    var id: Id = Id()
 
     var totface = 0
     var totedge = 0

@@ -290,7 +290,7 @@ class DNA {
         converters["MirrorModifierData"] = ::MirrorModifierData to Structure::convertMirrorModifierData as ElemBaseConverter
         converters["Image"] = ::Image to Structure::convertImage as ElemBaseConverter
         converters["CustomData"] = ::CustomData to Structure::convertCustomData as ElemBaseConverter
-        // converters["CustomDataLayer"] = ::CustomDataLayer to Structure::convertCustomDataLayer as ElemBaseConverter  // TODO disabled because not finished
+        converters["CustomDataLayer"] = ::CustomDataLayer to Structure::convertCustomDataLayer as ElemBaseConverter
     }
 
 
@@ -311,8 +311,7 @@ class DNA {
      *  Such a converter function takes a blob from the input stream, reads as much as it needs, and builds up a
      *  complete object in intermediate representation.
      *  @param structure Destination structure definition
-     *  @param db File database.
-     *  @return A null pointer in .first if no appropriate converter is available.
+     *  @return A null pointer if no appropriate converter is available.
      */
     fun getBlobToStructureConverter(structure: Structure): Pair<ElemBaseConstructor, ElemBaseConverter>? = converters[structure.name]
 

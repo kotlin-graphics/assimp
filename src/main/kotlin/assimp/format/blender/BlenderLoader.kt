@@ -538,9 +538,9 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			val maxTex = mat.mTex.size
 			for(t in 0 until maxTex) {
 				val tex = mat.mTex[t]
-				if(tex != null && tex.uvName.isNotEmpty() && false) {   // TODO temp, remove false in if
+				if(tex != null && tex.uvName.isNotEmpty()) {
 					// get the CustomData layer for given uvname and correct type
-					val loop = TODO("getCustomDataLayerData(mesh.ldata, CustomDataType.MLoopUv, tex.uvName)")
+					val loop = getCustomDataLayerData(mesh.ldata, CustomDataType.MLoopUV, tex.uvName)
 					if(loop != null) {
 						texUV[t] = loop
 					}
