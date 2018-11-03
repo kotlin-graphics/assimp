@@ -540,7 +540,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 				val tex = mat.mTex[t]
 				if(tex != null && tex.uvName.isNotEmpty()) {
 					// get the CustomData layer for given uvname and correct type
-					val loop = getCustomDataLayerData(mesh.ldata, CustomDataType.MLoopUV, tex.uvName)
+					val loop = mesh.ldata.getLayerData<MLoopUV>(CustomDataType.MLoopUV, tex.uvName)
 					if(loop != null) {
 						texUV[t] = loop
 					}

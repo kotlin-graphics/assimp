@@ -88,7 +88,7 @@ typedef bool        (*PRead)(ElemBase *pOut, const size_t cnt, const FileDatabas
 typedef ElemBase *  (*PCreate)(const size_t cnt);
 typedef void(*PDestroy)(ElemBase *);
  */
-private typealias ReadCustomDataFunction = (s: Structure, cnt: Int) -> List<ElemBase>
+private typealias ReadCustomDataFunction = (s: Structure) -> ElemBase
 
 // supported structures for CustomData
 private val customDataTypeDescriptions = mapOf<CustomDataType, ReadCustomDataFunction>(
@@ -103,81 +103,70 @@ private val customDataTypeDescriptions = mapOf<CustomDataType, ReadCustomDataFun
 		CustomDataType.MLoop to ::readMLoopCustomData
                                                                                       )
 
-private val tempAny: ElemBase? = null
+private var tempAny: ElemBase? = null
 
-fun readMVertCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MVert>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMVert(::tempAny as KMutableProperty0<MVert?>)
-		tempAny!! as MVert
-	}
+fun readMVertCustomData(s: Structure): MVert {
+	tempAny = MVert()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMVert(::tempAny as KMutableProperty0<MVert?>)
+	return tempAny as MVert
 }
 
-fun readMEdgeCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MEdge>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMEdge(::tempAny as KMutableProperty0<MEdge?>)
-		tempAny!! as MEdge
-	}
+fun readMEdgeCustomData(s: Structure): MEdge {
+	tempAny = MEdge()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMEdge(::tempAny as KMutableProperty0<MEdge?>)
+	return tempAny as MEdge
 }
 
-fun readMFaceCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MFace>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMFace(::tempAny as KMutableProperty0<MFace?>)
-		tempAny!! as MFace
-	}
+fun readMFaceCustomData(s: Structure): MFace {
+	tempAny = MFace()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMFace(::tempAny as KMutableProperty0<MFace?>)
+	return tempAny as MFace
 }
 
-fun readMTFaceCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MTFace>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMTFace(::tempAny as KMutableProperty0<MTFace?>)
-		tempAny!! as MTFace
-	}
+fun readMTFaceCustomData(s: Structure): MTFace {
+	tempAny = MTFace()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMTFace(::tempAny as KMutableProperty0<MTFace?>)
+	return tempAny as MTFace
 }
 
-fun readMTexPolyCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MTexPoly>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMTexPoly(::tempAny as KMutableProperty0<MTexPoly?>)
-		tempAny!! as MTexPoly
-	}
+fun readMTexPolyCustomData(s: Structure): MTexPoly {
+	tempAny = MTexPoly()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMTexPoly(::tempAny as KMutableProperty0<MTexPoly?>)
+	return tempAny as MTexPoly
 }
 
-fun readMLoopUvCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MLoopUV>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMLoopUV(::tempAny as KMutableProperty0<MLoopUV?>)
-		tempAny!! as MLoopUV
-	}
+fun readMLoopUvCustomData(s: Structure): MLoopUV {
+	tempAny = MLoopUV()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMLoopUV(::tempAny as KMutableProperty0<MLoopUV?>)
+	return tempAny as MLoopUV
 }
 
-fun readMLoopColCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MLoopCol>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMLoopCol(::tempAny as KMutableProperty0<MLoopCol?>)
-		tempAny!! as MLoopCol
-	}
+fun readMLoopColCustomData(s: Structure): MLoopCol {
+	tempAny = MLoopCol()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMLoopCol(::tempAny as KMutableProperty0<MLoopCol?>)
+	return tempAny as MLoopCol
 }
 
-fun readMPolyCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MPoly>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMPoly(::tempAny as KMutableProperty0<MPoly?>)
-		tempAny!! as MPoly
-	}
+fun readMPolyCustomData(s: Structure): MPoly {
+	tempAny = MPoly()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMPoly(::tempAny as KMutableProperty0<MPoly?>)
+	return tempAny as MPoly
 }
 
-fun readMLoopCustomData(s: Structure, cnt: Int): List<ElemBase> {
-	return List<MLoop>(cnt) {
-		@Suppress("UNCHECKED_CAST")
-		s.convertMLoop(::tempAny as KMutableProperty0<MLoop?> )
-		tempAny!! as MLoop
-	}
+fun readMLoopCustomData(s: Structure): MLoop {
+	tempAny = MLoop()
+	@Suppress("UNCHECKED_CAST")
+	s.convertMLoop(::tempAny as KMutableProperty0<MLoop?>)
+	return tempAny as MLoop
 }
-
-
 
 /**
  *   read CustomData's data to ptr to mem
@@ -187,40 +176,42 @@ fun readMLoopCustomData(s: Structure, cnt: Int): List<ElemBase> {
  *   @param db to read elements from
  *   @return true when ok
  */
-fun <T: ElemBase>readCustomData(out: KMutableProperty0<MutableList<T?>>, cdtype: CustomDataType, cnt: Int, db: FileDatabase): Boolean {
+fun <T: ElemBase>readCustomData(out: KMutableProperty0<T?>, cdtype: CustomDataType, cnt: Int, db: FileDatabase): Boolean {
 
 	if(!cdtype.isValid) {
 		throw IllegalArgumentException("cdtype is not valid")
 	}
 	if(cnt == 0) return false
 
+	if(cnt != 1) {
+		throw UnsupportedOperationException("Reading lists of customData is not yet supported") // TODO
+	}
+
 	val readFunction = customDataTypeDescriptions[cdtype] ?: return false
 
 	val s = db.dna[cdtype.name]
 
-	val outList = readFunction(s, cnt).toMutableList()
 	@Suppress("UNCHECKED_CAST")
-	out.set(outList as MutableList<T?>)
+	out.set(readFunction(s) as T)
 
 	return true
 }
 
-/*
-	/**
-    *   @brief  returns CustomDataLayer ptr for given cdtype and name
-    *   @param[in]  customdata CustomData to search for wanted layer
-    *   @param[in]  cdtype to search for
-    *   @param[in]  name to search for
-    *   @return CustomDataLayer * or nullptr if not found
-    */
-    std::shared_ptr<CustomDataLayer> getCustomDataLayer(const CustomData &customdata, CustomDataType cdtype, const std::string &name);
-
-    /**
-    *   @brief  returns CustomDataLayer data ptr for given cdtype and name
-    *   @param[in]  customdata CustomData to search for wanted layer
-    *   @param[in]  cdtype to search for
-    *   @param[in]  name to search for
-    *   @return * to struct data or nullptr if not found
-    */
-    const ElemBase * getCustomDataLayerData(const CustomData &customdata, CustomDataType cdtype, const std::string &name);
+/**
+ *   returns CustomDataLayer ptr for given cdtype and name
+ *   @param this@getLayer CustomData to search for wanted layer
+ *   @param cdtype to search for
+ *   @param name to search for
+ *   @return CustomDataLayer * or nullptr if not found
  */
+fun CustomData.getLayer(cdtype: CustomDataType, name: String): CustomDataLayer?
+	= layers.asSequence().filterNotNull().firstOrNull { it.type == cdtype && it.name == name }
+
+/**
+ *   returns CustomDataLayer data ptr for given cdtype and name
+ *   @param customdata CustomData to search for wanted layer
+ *   @param cdtype to search for
+ *   @param name to search for
+ *   @return * to struct data or nullptr if not found
+ */
+inline fun <reified T: ElemBase> CustomData.getLayerData(cdtype: CustomDataType, name: String): T? = getLayer(cdtype, name)?.data as T?

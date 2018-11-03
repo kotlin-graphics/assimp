@@ -8,6 +8,8 @@ import assimp.format.blender.ErrorPolicy as Ep
 
 // TODO check method visibility
 
+// TODO pull all convert functions into their own file and make them into extensions
+
 /** Represents a data structure in a BLEND file. A Structure defines n fields and their locations and encodings the input stream. Usually, every
  *  Structure instance pertains to one equally-named data structure in the
  *  BlenderScene.h header. This class defines various utilities to map a
@@ -234,7 +236,9 @@ class Structure (val db: FileDatabase) {
         if (!ASSIMP.BLENDER_NO_STATS) ++db.stats.fieldsRead
     }
 
-    private inline fun <T>readFieldPtrPrivate(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false, resolve: (Ep, KMutableProperty0<T?>, Long, Field, Boolean) -> Boolean): Boolean {
+    private inline fun <T>readFieldPtrPrivate(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String,
+                                              nonRecursive: Boolean = false,
+                                              resolve: (Ep, KMutableProperty0<T?>, Long, Field, Boolean) -> Boolean): Boolean {
 
         val old = db.reader.pos
         val ptrval: Long
@@ -341,7 +345,7 @@ class Structure (val db: FileDatabase) {
 			val block = locateFileBlockForAddress(ptrVal)
 			block.setReaderPos(ptrVal)
 
-			return TODO("readCustomData(o, cdtype, block.num)")
+			return readCustomData(o, cdtype, block.num, db)
 		}
 	}
 
@@ -1343,7 +1347,7 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Fail, d::activeRnd, "active_rnd")
 		readField(Ep.Fail, d::activeClone, "active_clone")
 		readField(Ep.Fail, d::activeMask, "active_mask")
-		readField(Ep.Fail, d::uid, "uid")
+		readField(Ep.Warn, d::uid, "uid")   // HINT this is set to Fail in C-version but this does not exist in 2.5
 		d.name = readFieldString(Ep.Warn, "name")
 		readCustomDataPtr(Ep.Fail, d::data, d.type, "*data")
 
