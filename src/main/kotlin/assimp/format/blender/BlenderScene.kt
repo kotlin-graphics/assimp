@@ -44,7 +44,7 @@ package assimp.format.blender
 
 import assimp.NUL
 import glm_.s
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.
@@ -653,12 +653,11 @@ class Base : ElemBase() {
 
 }
 
-@Suppress("EXPERIMENTAL_FEATURE_WARNING")   // TODO Kotlin 1.3 move from experimental to stable
-fun Base.iterator() = buildIterator {
+fun Base.iterator() = iterator {
     var current: Base? = this@iterator
     while(current != null) {
 
-        yield(current!!) // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s, fixed in Kotlin 1.4 or 1.3 new optional type inference system
+        yield(current!!) // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s, probably fixed in Kotlin 1.4 or 1.3 new optional type inference system
 
         current = current.next
     }
