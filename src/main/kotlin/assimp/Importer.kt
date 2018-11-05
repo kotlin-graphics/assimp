@@ -274,8 +274,11 @@ constructor() {
         val imp = impl.importer.find { it.canRead(file, ioHandler, false) }
 
         if (imp == null) {
+
+            logger.error { "Assimp could not find an importer for the file!" }
+            return null
             // not so bad yet ... try format auto detection.
-            TODO()
+            // TODO()
 //            const std::string::size_type s = pFile.find_last_of('.');
 //            if (s != std::string::npos) {
 //                DefaultLogger::get()->info("File extension not known, trying signature-based detection");
