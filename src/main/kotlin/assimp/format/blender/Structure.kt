@@ -486,7 +486,7 @@ class Structure (val db: FileDatabase) {
         val block = locateFileBlockForAddress(ptrVal)
 
         // also determine the target type from the block header and check if it matches the type which we expect.
-        val ss = db.dna[block.dnaIndex.L]
+        val ss = db.dna[block.dnaIndex]
         if (ss !== s)
             throw Error("Expected target to be of type `${s.name}` but seemingly it is a `${ss.name}` instead")
 
@@ -582,7 +582,7 @@ class Structure (val db: FileDatabase) {
         val block = locateFileBlockForAddress(ptrVal)
 
         // determine the target type from the block header
-        val s = db.dna[block.dnaIndex.L]
+        val s = db.dna[block.dnaIndex]
 
         // try to retrieve the object from the cache
         db.cache.get(s, out, ptrVal)
@@ -883,6 +883,8 @@ class Structure (val db: FileDatabase) {
 		readField(Ep.Igno, d::flag, "flag")
 		readField(Ep.Igno, d::tile,"tile")
         readField(Ep.Igno, d::unwrap,"unwrap")
+
+        db.reader.pos += size.i
 	}
 
     fun convertMaterial(dest: KMutableProperty0<Material?>) {
@@ -1000,6 +1002,8 @@ class Structure (val db: FileDatabase) {
 
 	    readField(Ep.Igno, d::seed1, "seed1")
 	    readField(Ep.Igno, d::seed2, "seed2")
+
+        db.reader.pos += size.i
     }
 
 	fun convertMTexPoly(dest: KMutableProperty0<MTexPoly?>) {
@@ -1059,6 +1063,8 @@ class Structure (val db: FileDatabase) {
 
 		readFieldPtr(Ep.Warn, d::dw, "*dw")
 		readField(Ep.Igno, d::totWeight, "totweight")
+
+        db.reader.pos += size.i
 	}
 
     fun convertWorld(dest: KMutableProperty0<World?>) {
@@ -1091,6 +1097,7 @@ class Structure (val db: FileDatabase) {
         //readField(Ep.Warn, d.matNr, "matNr")
         readField(Ep.Igno, d::weight, "bweight")
 
+        db.reader.pos += size.i
     }
 
     fun convertMEdge(dest: KMutableProperty0<MEdge?>) {
@@ -1102,6 +1109,8 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, d::crease,"crease")
         readField(Ep.Igno, d::weight,"bweight")
         readField(Ep.Igno, d::flag,"flag")
+
+        db.reader.pos += size.i
     }
 
 	fun convertMLoopUV(dest: KMutableProperty0<MLoopUV?>) {
@@ -1173,6 +1182,8 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Igno, data::type,"type")
         readField(Ep.Igno, data::mode,"mode")
         data.name = readFieldString(Ep.Igno, "name")
+
+        db.reader.pos += size.i
 	}
 
     fun convertModifierData(dest: KMutableProperty0<ModifierData?>) {
@@ -1202,6 +1213,8 @@ class Structure (val db: FileDatabase) {
         readField(Ep.Fail, d::g,"g")
         readField(Ep.Fail, d::b,"b")
         readField(Ep.Fail, d::a,"a")
+
+        db.reader.pos += size.i
     }
 
 	fun convertMPoly(dest: KMutableProperty0<MPoly?>) {
@@ -1209,7 +1222,7 @@ class Structure (val db: FileDatabase) {
 
 		readField(Ep.Igno, d::loopStart,"loopstart")
 		readField(Ep.Igno, d::totLoop,"totloop")
-		readField(Ep.Igno, d::matNr,"mat_nr")       // TODO test this works, it should read a short
+		readField(Ep.Igno, d::matNr,"mat_nr")
 		readField(Ep.Igno, d::flag,"flag")
 
 		db.reader.pos += size.i
@@ -1223,10 +1236,10 @@ class Structure (val db: FileDatabase) {
 		readFieldPtr(Ep.Warn, dest::basact, "*basact")
 		readField(Ep.Igno, dest.base, "base")
 
-		db.reader.pos += size.i     // TODO am I missing this everywhere else?? Yes I am
+		db.reader.pos += size.i
 	}
 
-	fun convertSceneRef(dest: KMutableProperty0<Scene?>) {
+	fun convertScene(dest: KMutableProperty0<Scene?>) {
 
 		val d = dest.setIfNull(Scene())
 		convert(d)

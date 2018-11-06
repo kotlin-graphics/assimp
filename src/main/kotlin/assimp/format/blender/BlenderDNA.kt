@@ -208,9 +208,9 @@ enum class ErrorPolicy {
  *  #DnaParser does the reading and represents currently the only place where DNA is altered.*/
 class DNA {
 
-    val converters = mutableMapOf<String, Pair<ElemBaseConstructor, ElemBaseConverter>>()
-    val structures = ArrayList<Structure>()
-    val indices = mutableMapOf<String, Long>()      // TODO why is this long when we use int everywhere else
+    val converters: MutableMap<String, Pair<ElemBaseConstructor, ElemBaseConverter>> = mutableMapOf()
+    val structures: ArrayList<Structure> = ArrayList()
+    val indices: MutableMap<String, Int> = mutableMapOf()
 
     /** Access a structure by its canonical name, the pointer version returns NULL on failure while the reference
      *  version raises an error. */
@@ -220,7 +220,7 @@ class DNA {
     }
 
     /** Access a structure by its index */
-    operator fun get(i: Long) = structures.getOrElse(i.i) { throw Error("BlendDNA: There is no structure with index `$i`") }
+    operator fun get(i: Int): Structure = structures.getOrElse(i) { throw Error("BlendDNA: There is no structure with index `$i`") }
 
     /** Add structure definitions for all the primitive types, i.e. integer, short, char, float */
     fun addPrimitiveStructures(db: FileDatabase) {
@@ -228,19 +228,19 @@ class DNA {
             empty structures. These converters are special overloads which scan the name of the structure and perform
             the required data type conversion if one of these special names is found in the structure in question.  */
 
-        indices["int"] = structures.size.L
+        indices["int"] = structures.size
         structures += Structure(db).apply { name = "int"; size = 4; }
 
-        indices["short"] = structures.size.L
+        indices["short"] = structures.size
         structures += Structure(db).apply { name = "short"; size = 2; }
 
-        indices["char"] = structures.size.L
+        indices["char"] = structures.size
         structures += Structure(db).apply { name = "char"; size = 1; }
 
-        indices["float"] = structures.size.L
+        indices["float"] = structures.size
         structures += Structure(db).apply { name = "float"; size = 4; }
 
-        indices["double"] = structures.size.L
+        indices["double"] = structures.size
         structures += Structure(db).apply { name = "double"; size = 8; }
 
         // no long, seemingly.
@@ -283,7 +283,7 @@ class DNA {
         converters["ID"] = ::Id to Structure::convertId as ElemBaseConverter
         converters["MCol"] = ::MCol to Structure::convertMCol as ElemBaseConverter
         converters["MPoly"] = ::MPoly to Structure::convertMPoly as ElemBaseConverter
-        converters["Scene"] = ::Scene to Structure::convertSceneRef as ElemBaseConverter
+        converters["Scene"] = ::Scene to Structure::convertScene as ElemBaseConverter
         converters["Library"] = ::Library to Structure::convertLibrary as ElemBaseConverter
         converters["Tex"] = ::Tex to Structure::convertTex as ElemBaseConverter
         converters["Camera"] = ::Camera to Structure::convertCamera as ElemBaseConverter
@@ -355,7 +355,7 @@ data class FileBlockHead(
         // original memory address of the data
         var address: Long = 0L,
         // index into DNA
-        var dnaIndex: Int = 0,  // TODO Kotlin 1.3: this is UInt in C implementation, should we use UInt here as well?
+        var dnaIndex: Int = 0,
         // number of structure instances to follow
         var num: Int = 0) : Comparable<FileBlockHead> {
 
@@ -461,32 +461,14 @@ class ObjectCache(val db: FileDatabase) {
     }
 }
 
-//// -------------------------------------------------------------------------------
-//// -------------------------------------------------------------------------------
-//template <> class ObjectCache<Blender::vector> // TODO I think we no longer need this
-//{
-//    public:
-//
-//    ObjectCache(const FileDatabase&) {}
-//
-//    template <typename T> void get(const Structure&, vector<T>&, const Pointer&) {}
-//    template <typename T> void set(const Structure&, const vector<T>&, const Pointer&) {}
-//};
-//
-
 /** Memory representation of a full BLEND file and all its dependencies. The output AiScene is constructed from
  *  an instance of this data structure. */
-class FileDatabase {
+class FileDatabase(var reader: ByteBuffer, var i64bit: Boolean = false, var little: Boolean = false) {
+    // TODO ensure little is used everywhere to ensure endianes is correct
 
-    // publicly accessible fields
-    // TODO is64, little and reader should be part of the constructor, also reader does not need to be lateinit
-    var i64bit = false
-    var little = false      // TODO this is not used I only added it for dnaParser not for the rest
-
-	val pointerSize get() = if(i64bit) 8 else 4
+    val pointerSize get() = if(i64bit) 8 else 4
 
     var dna = DNA()
-    lateinit var reader: ByteBuffer
     val entries = ArrayList<FileBlockHead>()
 
     val stats = Statistics()
@@ -549,7 +531,7 @@ class DnaParser(
             if (structureTypeIndex >= types.size) throw Error("BlenderDNA: Invalid type index in structure name $structureTypeIndex (there are only ${types.size} entries)")
 
             // maintain separate indexes
-            dna.indices[types[structureTypeIndex].name] = dna.structures.size.L
+            dna.indices[types[structureTypeIndex].name] = dna.structures.size
 
             val s = Structure(db).apply { name = types[structureTypeIndex].name }
             dna.structures += s

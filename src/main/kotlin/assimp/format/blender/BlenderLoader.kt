@@ -93,16 +93,17 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
         }
 	    buffer.pos += tokens.length
 
-        val db = FileDatabase().apply {
-            i64bit = buffer.get().c == '-'      // 32 bit should be '_'
-            little = buffer.get().c == 'v'      // big endian should be 'V'
-        }
+	    val i64bit = buffer.get().c == '-'      // 32 bit should be '_'
+	    val little = buffer.get().c == 'v'      // big endian should be 'V'
+
         val major = buffer.get().c.parseInt()
         val minor = buffer.get().c.parseInt() * 10 + buffer.get().c.parseInt()
-        logger.info("Blender version is $major.$minor (64bit: ${db.i64bit}, little endian: ${db.little})")
+        logger.info("Blender version is $major.$minor (64bit: ${i64bit}, little endian: ${little})")
 	    if(ASSIMP.BLENDER_DEBUG) logger.info { "Blender DEBUG ENABLED" }
 
-        db.reader = buffer.slice().order(if(db.little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
+        val reader = buffer.slice().order(if(little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
+
+	    val db = FileDatabase(reader, i64bit, little)
 
         parseBlendFile(db)
 
@@ -142,7 +143,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
     private fun extractScene(file: FileDatabase): Scene {
 
-        val sceneIndex = file.dna.indices["Scene"]?.toInt() ?: throw Error("There is no `Scene` structure record")
+        val sceneIndex = file.dna.indices["Scene"] ?: throw Error("There is no `Scene` structure record")
 
         val ss = file.dna.structures[sceneIndex]
 

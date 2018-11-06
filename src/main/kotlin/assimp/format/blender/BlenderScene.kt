@@ -92,8 +92,6 @@ import kotlin.coroutines.*
 //   value for the field.
 //
 
-// TODO check all usages of char instead of short, e.g. flags is char in some places and not short, int or byte
-
 val AI_BLEND_MESH_MAX_VERTS = 2000000000L
 
 val maxNameLen = 1024
@@ -652,11 +650,12 @@ class Base : ElemBase() {
 
 }
 
-fun Base.iterator() = iterator {
+fun Base.iterator(): Iterator<Base> = iterator {
     var current: Base? = this@iterator
     while(current != null) {
 
-        yield(current!!) // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s, probably fixed in Kotlin 1.4 or 1.3 new optional type inference system
+	    @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")     // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s
+	    yield(current!!)                                        // fixed in Kotlin 1.4 or 1.3 new optional type inference system
 
         current = current.next
     }
