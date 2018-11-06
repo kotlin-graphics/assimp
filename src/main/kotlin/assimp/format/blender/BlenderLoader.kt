@@ -216,33 +216,25 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		if(conv.meshes.size > 0) {
 			out.numMeshes = conv.meshes.size
-			out.meshes = ArrayList(conv.meshes.size) {
-				conv.meshes[it]
-			}
+			out.meshes = ArrayList(conv.meshes.size) { conv.meshes[it] }
 			conv.meshes.clear()
 		}
 
 		if(conv.lights.size > 0) {
 			out.numLights = conv.lights.size
-			out.lights = ArrayList(conv.lights.size) {
-				conv.lights[it]
-			}
+			out.lights = ArrayList(conv.lights.size) { conv.lights[it] }
 			conv.lights.clear()
 		}
 
 		if(conv.cameras.size > 0) {
 			out.numCameras = conv.cameras.size
-			out.cameras = ArrayList(conv.cameras.size) {
-				conv.cameras[it]
-			}
+			out.cameras = ArrayList(conv.cameras.size) { conv.cameras[it] }
 			conv.cameras.clear()
 		}
 
 		if(conv.materials.size > 0) {
 			out.numMaterials = conv.materials.size
-			out.materials = ArrayList(conv.materials.size) {
-				conv.materials[it]
-			}
+			out.materials = ArrayList(conv.materials.size) { conv.materials[it] }
 			conv.materials.clear()
 		}
 
@@ -345,17 +337,119 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		return node
 	}
 
-	private fun checkActualType(dt: ElemBase, check: String): Unit {
+	private fun checkActualType(dt: ElemBase, check: String) {
 		assert(dt.dnaType == check) {
 			"Expected object `$dt` to be of type `$check`, but it claims to be a `${dt.dnaType}` instead"
 		}
 	}
 
 	private fun buildMaterials(conv: ConversionData) {
-		TODO("buildMaterials")
+
+		conv.materials.reserve(conv.materialsRaw.size)
+
+		buildDefaultMaterial(conv)
+
+		for(mat in conv.materialsRaw) {
+
+			// reset per material global counters
+			for(i in 0 until conv.nextTexture.size) { // i < sizeof(conv.next_texture)/sizeof(conv.next_texture[0])
+				conv.nextTexture[i] = 0
+			}
+
+			val mout = AiMaterial()
+			conv.materials.pushBack(mout)
+			// For any new material field handled here, the default material above must be updated with an appropriate default value.
+
+			// set material name
+			mout.name = mat.id.name.substring(2)
+
+			// basic material colors
+			val color = AiMaterial.Color()
+			val col = AiColor3D(mat.r, mat.g, mat.b)
+			if(mat.r > 0 || mat.g > 0 || mat.b > 0) {
+
+				// Usually, zero diffuse color means no diffuse color at all in the equation.
+				// So we omit this member to express this intent.
+				color.diffuse = col
+
+				if(mat.emit > 0) {
+					val emitCol = col * mat.emit
+					color.emissive = emitCol
+				}
+			}
+
+			color.specular = AiColor3D(mat.specr, mat.specg, mat.specb)
+
+			// is hardness/shininess set?
+			if(mat.har > 0) {
+				mout.shininess = mat.har.f
+			}
+
+			color.ambient = AiColor3D(mat.ambr, mat.ambg, mat.ambb)
+
+			// is mirror enabled?
+			if(mat.mode and MA_RAYMIRROR > 0){
+				mout.reflectivity = mat.rayMirror
+			}
+
+			color.reflective = AiColor3D(mat.mirr, mat.mirg, mat.mirb)
+
+			for(i in 0 until mat.mTex.size) {
+				if(mat.mTex[i] == null){
+					continue
+				}
+
+				resolveTexture(mout, mat, mat.mTex[i]!!, conv)
+			}
+		}
 	}
 
-	private fun Scene.convertMesh(obj: Object, mesh: Mesh, conv: ConversionData, meshList/* temp in C version */: ArrayList<AiMesh>) {
+	private fun buildDefaultMaterial(conv: ConversionData) {
+		// add a default material if necessary
+
+		var index = -1
+		for(mesh in conv.meshes) {
+			if(mesh.materialIndex == -1) {
+
+				if(index == -1) {
+					// Setup a default material
+					val default = Material()
+					default.id.name = AI_DEFAULT_MATERIAL_NAME
+
+					// Note: MSVC11 does not zero-initialize Material here, although it should.
+					// Thus all relevant fields should be explicitly initialized. We cannot add
+					// a default constructor to Material since the DNA codegen does not support
+					// parsing it.
+					default.r = 0.6f
+					default.g = 0.6f
+					default.b = 0.6f
+
+					default.specr = 0.6f
+					default.specg = 0.6f
+					default.specb = 0.6f
+
+					default.mirr = 0f
+					default.mirg = 0f
+					default.mirb = 0f
+
+					default.emit = 0f
+					default.alpha = 0f
+					default.har = 0
+
+					index = conv.materialsRaw.size
+					conv.materialsRaw.pushBack(default)
+					logger.info("Adding default material")
+				}
+				mesh.materialIndex = index
+			}
+		}
+	}
+
+	private fun resolveTexture(out: AiMaterial, mat: Material, tex: MTex, conv: ConversionData) {
+		TODO("resolveTexture")
+	}
+
+	private fun convertMesh(obj: Object, mesh: Mesh, conv: ConversionData, meshList/* temp in C version */: ArrayList<AiMesh>) {
 
 		/*
 		// TODO: Resolve various problems with BMesh triangulation before re-enabling.
@@ -529,25 +623,27 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		val matTexUvMappings: MaterialTextureUVMap = mutableMapOf()
 
-		val mats = mesh.mat!!// TODO temp
-		val maxMat = mats.size
-		for (m in 0 until maxMat) {
-			val mat = checkNotNull(mats[m])
+		if(mesh.mat != null) {
+			val mats = mesh.mat!!
+			val maxMat = mats.size
+			for (m in 0 until maxMat) {
+				val mat = checkNotNull(mats[m])
 
-			val texUV: TextureUVMap = mutableMapOf()
-			val maxTex = mat.mTex.size
-			for(t in 0 until maxTex) {
-				val tex = mat.mTex[t]
-				if(tex != null && tex.uvName.isNotEmpty()) {
-					// get the CustomData layer for given uvname and correct type
-					val loop = mesh.ldata.getLayerData<MLoopUV>(CustomDataType.MLoopUV, tex.uvName)
-					if(loop != null) {
-						texUV[t] = loop
+				val texUV: TextureUVMap = mutableMapOf()
+				val maxTex = mat.mTex.size
+				for (t in 0 until maxTex) {
+					val tex = mat.mTex[t]
+					if (tex != null && tex.uvName.isNotEmpty()) {
+						// get the CustomData layer for given uvname and correct type
+						val loop = mesh.ldata.getLayerData<MLoopUV>(CustomDataType.MLoopUV, tex.uvName)
+						if (loop != null) {
+							texUV[t] = loop
+						}
 					}
 				}
-			}
-			if(texUV.isNotEmpty()) {
-				matTexUvMappings[m] = texUV
+				if (texUV.isNotEmpty()) {
+					matTexUvMappings[m] = texUV
+				}
 			}
 		}
 
@@ -755,7 +851,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 				out.direction = AiVector3D(0f, 0f, -1f)
 				out.up = AiVector3D(0f, 1f, 0f)
 			}
-			else -> {} // TODO missing light types??? do nothing?? realy??
+			else -> {} // TODO missing light types??? do nothing?? really??
 		}
 
 		out.colorAmbient = AiColor3D(lamp.r, lamp.b, lamp.g) * lamp.energy

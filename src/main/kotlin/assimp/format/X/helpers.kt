@@ -76,9 +76,7 @@ fun <T> MutableList<T>.reserve(newsize: Int, init: () -> T) {
 @Suppress("FunctionName")
 inline fun <reified T> ArrayList(size: Int, init: (index: Int) -> T): ArrayList<T> {
 	val result = ArrayList<T>(size)
-	for(i in 0 until size) {
-		result[i] = init(i)
-	}
+	repeat(size) { index -> result.add(init(index)) }
 	return result
 }
 
