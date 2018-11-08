@@ -256,6 +256,7 @@ class DNA {
     @Suppress("UNCHECKED_CAST")
     fun registerConverters() {
         // HINT: the conversion to ElemBaseConverter is necessary to turn the Structure argument into a receiver
+		// TODO Kotlin 1.4 Unnecessary casts with new type inference (I think)
         converters["Object"] = ::Object to Structure::convertObject as ElemBaseConverter
         converters["Group"] = ::Group to Structure::convertGroup as ElemBaseConverter
         converters["MTex"] = ::MTex to Structure::convertMTex as ElemBaseConverter

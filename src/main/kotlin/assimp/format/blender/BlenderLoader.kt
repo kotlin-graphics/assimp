@@ -6,7 +6,6 @@ import glm_.*
 import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.io.FileOutputStream
@@ -15,9 +14,6 @@ import java.util.*
 import java.util.zip.GZIPInputStream
 import kotlin.collections.ArrayList
 import kotlin.math.*
-
-
-private lateinit var buffer: ByteBuffer
 
 private val tokens = "BLENDER"
 
@@ -60,7 +56,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
         val stream = ioSystem.open(file)
 
-        buffer = stream.readBytes()
+        var buffer = stream.readBytes()
 
         var match = buffer.strncmp(tokens)
         if (!match) {
@@ -77,11 +73,11 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             GZIPInputStream(stream.read()).use { gzip ->
 
                 FileOutputStream(output).use { out ->
-                    val buffer = ByteArray(1024)
-                    var len = gzip.read(buffer)
+                    val buf = ByteArray(1024)
+                    var len = gzip.read(buf)
                     while (len != -1) {
-                        out.write(buffer, 0, len)
-                        len = gzip.read(buffer)
+                        out.write(buf, 0, len)
+                        len = gzip.read(buf)
                     }
                 }
             }
@@ -98,7 +94,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
         val major = buffer.get().c.parseInt()
         val minor = buffer.get().c.parseInt() * 10 + buffer.get().c.parseInt()
-        logger.info("Blender version is $major.$minor (64bit: ${i64bit}, little endian: ${little})")
+        logger.info("Blender version is $major.$minor (64bit: $i64bit, little endian: $little)")
 	    if(ASSIMP.BLENDER_DEBUG) logger.info { "Blender DEBUG ENABLED" }
 
         val reader = buffer.slice().order(if(little) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
@@ -560,7 +556,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		}
 
-		fun AiMesh.convertVertex(pos: Int, vertIndex: Int, f: AiFace) {
+		fun AiMesh.addVertexToFace(f: AiFace, pos: Int) {
 			if(pos >= mesh.totvert) {
 				throw IndexOutOfBoundsException("Vertex index out of range")
 			}
@@ -568,7 +564,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 			vertices[numVertices] = AiVector3D(v.co)
 			normals[numVertices] = AiVector3D(v.no)
-			f[vertIndex] = numVertices
+			f.pushBack(numVertices)
 			numVertices++
 		}
 
@@ -580,13 +576,12 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 			val f = out.faces[out.numFaces] // AiFace == MutableList<AiFace>
 			out.numFaces++
-			f.resize(if(mf.v4 > 0) 4 else 3) { 0 }  // TODO instead of resize I should just assert that size is 0 and add instead of insert in convertVertex
 
-			out.convertVertex(mf.v1, 0, f)
-			out.convertVertex(mf.v2, 1, f)
-			out.convertVertex(mf.v3, 2, f)
+			out.addVertexToFace(f, mf.v1)
+			out.addVertexToFace(f, mf.v2)
+			out.addVertexToFace(f, mf.v3)
 			if(mf.v4 > 0) {
-				out.convertVertex(mf.v4, 3, f)
+				out.addVertexToFace(f, mf.v4)
 				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.POLYGON
 			} else {
 				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.TRIANGLE
@@ -599,14 +594,13 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			val out = getMesh(mp.matNr)
 
 			val f = out.faces[out.numFaces]
-			f.resize(mp.totLoop) { 0 }      // TODO instead of resize I should just assert that size is 0 and add instead of insert in convertVertex
 			out.numFaces++
 
 
 			for(j in 0 until mp.totLoop) {
 				val loop = loop(mp.loopStart + j)
 
-				out.convertVertex(loop.v, j, f)
+				out.addVertexToFace(f, loop.v)
 			}
 			if(mp.totLoop == 3) {
 				out.primitiveTypes = out.primitiveTypes or AiPrimitiveType.TRIANGLE
