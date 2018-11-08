@@ -357,8 +357,10 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			// set material name
 			mout.name = mat.id.name.substring(2)
 
-			// basic material colors
 			val color = AiMaterial.Color()
+			mout.color = color
+
+			// basic material colors
 			val col = AiColor3D(mat.r, mat.g, mat.b)
 			if(mat.r > 0 || mat.g > 0 || mat.b > 0) {
 
@@ -408,7 +410,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 				if(index == -1) {
 					// Setup a default material
 					val default = Material()
-					default.id.name = AI_DEFAULT_MATERIAL_NAME
+					default.id.name = "MA$AI_DEFAULT_MATERIAL_NAME" // HINT all other materials start with MA and the first 2 letters get removed
 
 					// Note: MSVC11 does not zero-initialize Material here, although it should.
 					// Thus all relevant fields should be explicitly initialized. We cannot add

@@ -32,12 +32,8 @@ object blenderDefault_250_compressed {
 
                     numChildren shouldBe 0
                     numMeshes shouldBe  0
-                    numLights shouldBe 0
-                    numCameras shouldBe 0
-                    numTextures shouldBe 0
-                    numAnimations shouldBe 0
 
-                    with(cameras[0]){
+                    with(cameras[0]){    // TODO this is wrong, cameras is part of AIScene not AiNode
                         clipPlaneNear shouldBe 0.1f
                         clipPlaneFar shouldBe 100f
                     }
@@ -51,12 +47,9 @@ object blenderDefault_250_compressed {
 
                     numChildren shouldBe 0
                     numMeshes shouldBe 0
-                    numLights shouldBe 1
-                    numCameras shouldBe 0
-                    numTextures shouldBe 0
-                    numAnimations shouldBe 0
 
-                    with(lights[0]){
+
+                    with(lights[0]){    // TODO this is wrong, lights is part of AIScene not AiNode
                         type shouldBe AiLightSourceType.POINT
                         colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
                         colorSpecular shouldBe AiColor3D(1f, 1f, 1f)
@@ -68,10 +61,6 @@ object blenderDefault_250_compressed {
                     transformation shouldBe Mat4()
                     numChildren shouldBe 0
                     numMeshes shouldBe 1
-                    numLights shouldBe 0
-                    numCameras shouldBe 0
-                    numTextures shouldBe 0
-                    numAnimations shouldBe 0
 
                     meshes[0] shouldBe 0
                 }

@@ -34,11 +34,41 @@ infix fun Mat4.plusOrMinus(epsilon: Float): Matcher<Mat4> = object : Matcher<Mat
 //      rotation
 //      scale
 
+// TODO also test linked meshes
+
+private data class TransformDesciption(val x: Float = 0f, val y: Float = 0f, val z: Float = 0f,
+                                       val rX: Float = 0f, val rY: Float = 0f, val rZ: Float = 0f,
+                                       val sX: Float = 1f, val sY: Float = 1f, val sZ: Float = 1f)
+private val cubeDescriptions = mapOf(
+		"CubeX1" to TransformDesciption(x = 1f),
+		"CubeY1" to TransformDesciption(y = 1f),
+		"CubeZ1" to TransformDesciption(z = 1f),
+		"CubeXN1" to TransformDesciption(x = -1f),
+		"CubeYN1" to TransformDesciption(y = -1f),
+		"CubeZN1" to TransformDesciption(z = -1f),
+		"CubeRX45" to TransformDesciption(rX = 45f.inRadians),
+		"CubeRY45" to TransformDesciption(rY = 45f.inRadians),
+		"CubeRZ45" to TransformDesciption(rZ = 45f.inRadians),
+		"CubeSX2" to TransformDesciption(sX = 2f),
+		"CubeSY2" to TransformDesciption(sY = 2f),
+		"CubeSZ2" to TransformDesciption(sZ = 2f)
+                                     )
+
 object testCubeRotateScaleTranslate {
+
+	private fun AiNode.check(des: TransformDesciption) {
+
+		transformation shouldBe (translation(Vec3(des.x, des.y, des.z))
+				.rotateXYZ(des.rX, des.rY, des.rZ)
+				.scale(des.sX, des.sY, des.sZ)
+				plusOrMinus epsilon)
+
+		numChildren shouldBe 0
+		numMeshes shouldBe  1
+	}
 
 	operator fun invoke(fileName: String) {
 
-		val epsilon = 0.001f
 		Importer().testFile(getResource(fileName)) {
 
 			flags shouldBe 0
@@ -49,6 +79,10 @@ object testCubeRotateScaleTranslate {
 				transformation shouldBe Mat4()
 				numChildren shouldBe 12
 
+				cubeDescriptions.forEach { (name, description) ->
+					children.first { it.name == name }.check(description)
+				}
+
 				numMeshes shouldBe 0
 				numLights shouldBe 0
 				numCameras shouldBe 0
@@ -56,38 +90,40 @@ object testCubeRotateScaleTranslate {
 				numAnimations shouldBe 0
 			}
 
-			/*numMeshes shouldBe 1
-			with(meshes[0]) {
-				primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
-				numVertices shouldBe 24
-				numFaces shouldBe 6
+			numMeshes shouldBe 12
+			repeat(12) { meshInd ->
+				with(meshes[meshInd]) {
+					primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
+					numVertices shouldBe 24
+					numFaces shouldBe 6
 
-				vertices[0] shouldBe Vec3(-0.5, +0.5, +0.5)
-				vertices[5] shouldBe Vec3(+0.5, -0.5, -0.5)
-				vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
-				vertices[15] shouldBe Vec3(-0.5, +0.5, +0.5)
-				vertices[20] shouldBe Vec3(+0.5, -0.5, -0.5)
-				vertices[23] shouldBe Vec3(+0.5, -0.5, +0.5)
+					vertices[0] shouldBe Vec3(-0.5, -0.5, +0.5)
+					vertices[5] shouldBe Vec3(+0.5, +0.5, +0.5)
+					vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
+					vertices[15] shouldBe Vec3(+0.5, -0.5, -0.5)
+					vertices[20] shouldBe Vec3(+0.5, -0.5, +0.5)
+					vertices[23] shouldBe Vec3(-0.5, -0.5, +0.5)
 
-				var i = 0
-				faces.forEach {
-					it.size shouldBe 4
-					it shouldBe mutableListOf(i++, i++, i++, i++)
+					var i = 0
+					faces.forEach {
+						it.size shouldBe 4
+						it shouldBe mutableListOf(i++, i++, i++, i++)
+					}
 				}
 			}
-			*/
+
 			numMaterials shouldBe 1
 			with(materials[0]) {
 				name shouldBe AI_DEFAULT_MATERIAL_NAME
-				shadingModel shouldBe AiShadingMode.gouraud
+				// shadingModel shouldBe AiShadingMode.gouraud  TODO ???
 				with(color!!) {
 					ambient shouldBe Vec3()
 					diffuse shouldBe Vec3(0.6)
-					specular shouldBe Vec3()
-					emissive shouldBe Vec3()
-					shininess shouldBe 0f
-					opacity shouldBe 1f
-					refracti shouldBe 1f
+					specular shouldBe Vec3(0.6)
+					emissive shouldBe null
+					shininess shouldBe null
+					opacity shouldBe null
+					refracti shouldBe null
 				}
 			}
 		}
