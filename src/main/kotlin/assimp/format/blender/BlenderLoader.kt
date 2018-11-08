@@ -105,7 +105,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
         val blendScene = extractScene(db)
 
-	    blendScene.convertBlendFile(db)
+	    blendScene.convertBlendFile(db, scene)
     }
 
     private fun parseBlendFile(out: FileDatabase) {
@@ -168,7 +168,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 	    return out
     }
 
-	protected fun Scene.convertBlendFile(db: FileDatabase): AiScene {
+	protected fun Scene.convertBlendFile(db: FileDatabase, out: AiScene) {
 
 		val conv = ConversionData(db)
 
@@ -198,7 +198,6 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			throw Error("Expected at least one object with no parent")
 		}
 
-		val out = AiScene()
 		out.rootNode = AiNode("<BlenderRoot>")
 		val root = out.rootNode
 
@@ -254,8 +253,6 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		if(out.numMeshes == 0){
 			out.flags = out.flags or AI_SCENE_FLAGS_INCOMPLETE
 		}
-
-		return out
 	}
 
 	private fun Scene.convertNode(obj: Object, conv: ConversionData, parentTransform: AiMatrix4x4 = AiMatrix4x4()): AiNode {
@@ -493,15 +490,17 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		for(i in 0 until mesh.totface) {
 			val face = face(i)
+
 			perMat[face.matNr] = perMat.getOrDefault(face.matNr, 0) + 1
 			val vertCount = if(face.v4 != 0) 4 else 3
+
 			perMatVerts[face.matNr] = perMatVerts.getOrDefault(face.matNr, 0) + vertCount
 		}
 		for(i in 0 until mesh.totpoly) {
 			val poly = poly(i)
 
-			perMat[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + 1
-			perMatVerts[poly.matNr.i] = perMat.getOrDefault(poly.matNr, 0) + poly.totLoop
+			perMat[poly.matNr] = perMat.getOrDefault(poly.matNr, 0) + 1
+			perMatVerts[poly.matNr] = perMatVerts.getOrDefault(poly.matNr, 0) + poly.totLoop
 		}
 
 		// ... and allocate the corresponding meshes
@@ -518,8 +517,9 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 			val out = AiMesh()
 			meshList.pushBack(out)
 
-			out.vertices = MutableList(perMatVerts[matNr]!!) { AiVector3D() }
-			out.normals = MutableList(perMatVerts[matNr]!!) { AiVector3D() }
+			val vertexCount = perMatVerts[matNr]!!
+			out.vertices = MutableList(vertexCount) { AiVector3D() }
+			out.normals = MutableList(vertexCount) { AiVector3D() }
 
 			//out->mNumFaces = 0
 			//out->mNumVertices = 0
@@ -643,7 +643,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		}
 
 		// collect texture coordinates, they're stored in a separate per-face buffer
-		if(mesh.mtface != null || mesh.mloopuv != null) {       // FIXME does this need to be &&, the C code disagrees, right now we fail in the same situation
+		if(mesh.mtface != null || mesh.mloopuv != null) {
 
 			if(mesh.totface > 0 && mesh.totface > mesh.mtface!!.size) {
 				throw IndexOutOfBoundsException("number of uv faces is larger than the corresponding uv face array (#1)")
