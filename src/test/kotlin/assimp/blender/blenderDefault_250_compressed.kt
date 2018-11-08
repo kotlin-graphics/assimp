@@ -3,9 +3,7 @@ package assimp.blender
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
-import uno.kotlin.uri
-import uno.kotlin.url
+import io.kotlintest.*
 
 /**
  * Created by elect on 16/11/2016.
@@ -15,58 +13,107 @@ object blenderDefault_250_compressed {
 
     operator fun invoke(fileName: String) {
 
+        val epsilon = 0.001f
         Importer().testFile(getResource(fileName)) {
 
-//            flags shouldBe 0
-//
-//            with(rootNode) {
-//
-//                name shouldBe "box.obj"
-//                transformation shouldBe Mat4()
-//                numChildren shouldBe 1
-//
-//                with(children[0]) {
-//
-//                    name shouldBe "1"
-//                    transformation shouldBe Mat4()
-//                    numChildren shouldBe 0
-//                    numMeshes shouldBe 1
-//                    meshes[0] shouldBe 0
-//                }
-//                numMeshes shouldBe 0
-//            }
-//            numMeshes shouldBe 1
-//            with(meshes[0]) {
-//                primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
-//                numVertices shouldBe 24
-//                numFaces shouldBe 6
-//
-//                vertices[0] shouldBe Vec3(-0.5, +0.5, +0.5)
-//                vertices[5] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[15] shouldBe Vec3(-0.5, +0.5, +0.5)
-//                vertices[20] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[23] shouldBe Vec3(+0.5, -0.5, +0.5)
-//
-//                var i = 0
-//                faces.forEach {
-//                    it.size shouldBe 4
-//                    it shouldBe mutableListOf(i++, i++, i++, i++)
-//                }
-//            }
-//            with(materials[0]) {
-//                name shouldBe AI_DEFAULT_MATERIAL_NAME
-//                shadingModel shouldBe AiShadingMode.gouraud
-//                with(color!!) {
-//                    ambient shouldBe Vec3()
-//                    diffuse shouldBe Vec3(0.6)
-//                    specular shouldBe Vec3()
-//                    emissive shouldBe Vec3()
-//                    shininess shouldBe 0f
-//                    opacity shouldBe 1f
-//                    refracti shouldBe 1f
-//                }
-//            }
+            flags shouldBe 0
+
+            with(rootNode) {
+
+                name shouldBe "<BlenderRoot>"   // TODO should this be the filename instead??
+                transformation shouldBe Mat4()
+                numChildren shouldBe 3
+
+                with(children.first { it.name == "Camera" }){
+
+                    transformation shouldBe (translation(Vec3(7.48113f, -6.50764f, 5.34367f))
+                                .rotateXYZ(63.559f.inRadians, 0.62f.inRadians, 46.692f.inRadians)
+                            plusOrMinus epsilon)
+
+                    numChildren shouldBe 0
+                    numMeshes shouldBe  0
+                    numLights shouldBe 0
+                    numCameras shouldBe 0
+                    numTextures shouldBe 0
+                    numAnimations shouldBe 0
+
+                    with(cameras[0]){
+                        clipPlaneNear shouldBe 0.1f
+                        clipPlaneFar shouldBe 100f
+                    }
+
+                }
+                with(children.first { it.name == "Light" }){
+
+                    transformation shouldBe (translation(Vec3(4.07625f, 1.00545f, 5.90386f))
+                                .rotateXYZ(37.261f.inRadians, 3.164f.inRadians, 106.936f.inRadians)
+                            plusOrMinus epsilon)
+
+                    numChildren shouldBe 0
+                    numMeshes shouldBe 0
+                    numLights shouldBe 1
+                    numCameras shouldBe 0
+                    numTextures shouldBe 0
+                    numAnimations shouldBe 0
+
+                    with(lights[0]){
+                        type shouldBe AiLightSourceType.POINT
+                        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
+                        colorSpecular shouldBe AiColor3D(1f, 1f, 1f)
+                        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
+                    }
+                }
+                with(children.first { it.name == "Cube" }){
+
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 0
+                    numMeshes shouldBe 1
+                    numLights shouldBe 0
+                    numCameras shouldBe 0
+                    numTextures shouldBe 0
+                    numAnimations shouldBe 0
+
+                    meshes[0] shouldBe 0
+                }
+
+                numMeshes shouldBe 0
+                numLights shouldBe 0
+                numCameras shouldBe 0
+                numTextures shouldBe 0
+                numAnimations shouldBe 0
+            }
+            numMeshes shouldBe 1
+            with(meshes[0]) {
+                primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
+                numVertices shouldBe 24
+                numFaces shouldBe 6
+
+                vertices[0] shouldBe Vec3(-0.5, +0.5, +0.5)
+                vertices[5] shouldBe Vec3(+0.5, -0.5, -0.5)
+                vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
+                vertices[15] shouldBe Vec3(-0.5, +0.5, +0.5)
+                vertices[20] shouldBe Vec3(+0.5, -0.5, -0.5)
+                vertices[23] shouldBe Vec3(+0.5, -0.5, +0.5)
+
+                var i = 0
+                faces.forEach {
+                    it.size shouldBe 4
+                    it shouldBe mutableListOf(i++, i++, i++, i++)
+                }
+            }
+            with(materials[0]) {
+                name shouldBe AI_DEFAULT_MATERIAL_NAME
+                shadingModel shouldBe AiShadingMode.gouraud
+                with(color!!) {
+                    ambient shouldBe Vec3()
+                    diffuse shouldBe Vec3(0.6)
+                    specular shouldBe Vec3()
+                    emissive shouldBe Vec3()
+                    shininess shouldBe 0f
+                    opacity shouldBe 1f
+                    refracti shouldBe 1f
+                }
+            }
         }
     }
 
