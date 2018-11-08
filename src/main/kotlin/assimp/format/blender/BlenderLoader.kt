@@ -283,6 +283,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 					if(conv.meshes.size > old) {
 						node.meshes = IntArray(conv.meshes.size - old) { it + old }
+						node.numMeshes = node.meshes.size
 					}
 				}
 				Object.Type.LAMP    -> {
@@ -308,7 +309,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 		for(x in 0 until 4) {
 			for(y in 0 until 4) {
-				node.transformation[y][x] = obj.obmat[x][y]     // TODO do I need to change anything here
+				node.transformation[y][x] = obj.obmat[y][x]
 				// C++ Assimp uses row-based and kotlin assimp is column-based matrices.
 				// https://github.com/kotlin-graphics/assimp/wiki/Instructions-for-porting-code-&-Differences-between-the-C---and-Kotlin-version#matrices
 			}

@@ -24,7 +24,19 @@ infix fun Mat4.plusOrMinus(epsilon: Float): Matcher<Mat4> = object : Matcher<Mat
 		              "Matrices are not equal with tolerance of $epsilon!\nexpected:$expected\nbut was: $other\nwith difference of:$diffMat",
 		              "Matrices should not be equal with tolerance of $epsilon")
 	}
+}
+infix fun Vec3.plusOrMinus(epsilon: Float): Matcher<Vec3> = object : Matcher<Vec3> {
+	override fun test(other: Vec3): Result {
+		val expected = this@plusOrMinus
 
+		val diff = other.array.zip(expected.array) { a, b -> abs(a - b) }
+		val passed = diff.all { it < epsilon }
+
+		val diffMat = Vec3(diff.map { if(it < epsilon) 0f else it })
+		return Result(passed,
+		              "Vertices are not equal with tolerance of $epsilon!\nexpected:$expected\nbut was: $other\nwith difference of:$diffMat",
+		              "Vertices should not be equal with tolerance of $epsilon")
+	}
 }
 
 // TODO tests:
@@ -36,35 +48,40 @@ infix fun Mat4.plusOrMinus(epsilon: Float): Matcher<Mat4> = object : Matcher<Mat
 
 // TODO also test linked meshes
 
-private data class TransformDesciption(val x: Float = 0f, val y: Float = 0f, val z: Float = 0f,
-                                       val rX: Float = 0f, val rY: Float = 0f, val rZ: Float = 0f,
-                                       val sX: Float = 1f, val sY: Float = 1f, val sZ: Float = 1f)
+private data class TransformDescription(val x: Float = 0f, val y: Float = 0f, val z: Float = 0f,
+                                        val rotation: Float = 0f, val rX: Float = 0f, val rY: Float = 0f, val rZ: Float = 0f,
+                                        val sX: Float = 1f, val sY: Float = 1f, val sZ: Float = 1f)
 private val cubeDescriptions = mapOf(
-		"CubeX1" to TransformDesciption(x = 1f),
-		"CubeY1" to TransformDesciption(y = 1f),
-		"CubeZ1" to TransformDesciption(z = 1f),
-		"CubeXN1" to TransformDesciption(x = -1f),
-		"CubeYN1" to TransformDesciption(y = -1f),
-		"CubeZN1" to TransformDesciption(z = -1f),
-		"CubeRX45" to TransformDesciption(rX = 45f.inRadians),
-		"CubeRY45" to TransformDesciption(rY = 45f.inRadians),
-		"CubeRZ45" to TransformDesciption(rZ = 45f.inRadians),
-		"CubeSX2" to TransformDesciption(sX = 2f),
-		"CubeSY2" to TransformDesciption(sY = 2f),
-		"CubeSZ2" to TransformDesciption(sZ = 2f)
+		"CubeX1" to TransformDescription(x = 1f),
+		"CubeY1" to TransformDescription(y = 1f),
+		"CubeZ1" to TransformDescription(z = 1f),
+		"CubeXN1" to TransformDescription(x = -1f),
+		"CubeYN1" to TransformDescription(y = -1f),
+		"CubeZN1" to TransformDescription(z = -1f),
+		"CubeRX45" to TransformDescription(rotation = 45f.inRadians, rX = 1f),
+		"CubeRY45" to TransformDescription(rotation = 45f.inRadians, rY = 1f),
+		"CubeRZ45" to TransformDescription(rotation = 45f.inRadians, rZ = 1f),
+		"CubeSX2" to TransformDescription(sX = 2f),
+		"CubeSY2" to TransformDescription(sY = 2f),
+		"CubeSZ2" to TransformDescription(sZ = 2f)
                                      )
 
 object testCubeRotateScaleTranslate {
 
-	private fun AiNode.check(des: TransformDesciption) {
+	private fun generateTrans(des: TransformDescription): Mat4 {
+		return generateTrans(des.x, des.y, des.z,
+		              des.rotation, des.rX, des.rY, des.rZ,
+		              des.sX, des.sY, des.sZ)
+	}
 
-		transformation shouldBe (translation(Vec3(des.x, des.y, des.z))
-				.rotateXYZ(des.rX, des.rY, des.rZ)
-				.scale(des.sX, des.sY, des.sZ)
-				plusOrMinus epsilon)
+	private fun AiNode.check(des: TransformDescription) {
+
+
+
+		transformation shouldBe (generateTrans(des) plusOrMinus epsilon)
 
 		numChildren shouldBe 0
-		numMeshes shouldBe  1
+		numMeshes shouldBe 1
 	}
 
 	operator fun invoke(fileName: String) {
@@ -79,8 +96,10 @@ object testCubeRotateScaleTranslate {
 				transformation shouldBe Mat4()
 				numChildren shouldBe 12
 
-				cubeDescriptions.forEach { (name, description) ->
-					children.first { it.name == name }.check(description)
+				assertSoftly {
+					cubeDescriptions.forEach { (name, description) ->
+						children.first { it.name == name }.check(description)
+					}
 				}
 
 				numMeshes shouldBe 0
