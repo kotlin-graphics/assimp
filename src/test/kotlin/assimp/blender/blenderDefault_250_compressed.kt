@@ -3,6 +3,7 @@ package assimp.blender
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
+import glm_.test.*
 import io.kotlintest.*
 
 /**
@@ -13,7 +14,6 @@ object blenderDefault_250_compressed {
 
     operator fun invoke(fileName: String) {
 
-        val epsilon = 0.011f        // TODO this epsilon is really bad we should have at least at 0.001f if not better
         Importer().testFile(getResource(fileName)) {
 
             flags shouldBe 0
@@ -27,36 +27,18 @@ object blenderDefault_250_compressed {
                 with(children.first { it.name == "Camera" }){
 
                     transformation shouldBe (generateTrans(7.48113f, -6.50764f, 5.34367f,
-                                                           1.33664f, 0.769f, 0.344f, 0.539f)
-                            plusOrMinus epsilon)
+                                                           77.185f.inRadians, 0.772f, 0.341f, 0.536f) plusOrMinus epsilon)
 
                     numChildren shouldBe 0
                     numMeshes shouldBe  0
-
-                    with(cameras[0]){    // TODO this is wrong, cameras is part of AIScene not AiNode
-                        clipPlaneNear shouldBe 0.1f
-                        clipPlaneFar shouldBe 100f
-                    }
-
                 }
                 with(children.first { it.name == "Lamp" }){
 
-                    // TODO
-                    /*
-                    transformation shouldBe (translation(Vec3(4.07625f, 1.00545f, 5.90386f))
-                                .rotateXYZ(37.261f.inRadians, 3.164f.inRadians, 106.936f.inRadians)
-                            plusOrMinus epsilon)
-*/
+	                val expectedTrans = generateTrans(4.07625f, 1.00545f, 5.90386f,
+	                                                  1.92627f, 0.206f, 0.332f, 0.921f)
+	                transformation shouldBe (expectedTrans plusOrMinus epsilon)
                     numChildren shouldBe 0
                     numMeshes shouldBe 0
-
-
-                    with(lights[0]){    // TODO this is wrong, lights is part of AIScene not AiNode
-                        type shouldBe AiLightSourceType.POINT
-                        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
-                        colorSpecular shouldBe AiColor3D(1f, 1f, 1f)
-                        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
-                    }
                 }
                 with(children.first { it.name == "Cube" }){
 
@@ -68,26 +50,21 @@ object blenderDefault_250_compressed {
                 }
 
                 numMeshes shouldBe 0
-                numLights shouldBe 1
-                numCameras shouldBe 1
-                numTextures shouldBe 0
-                numAnimations shouldBe 0
+
             }
+
             numMeshes shouldBe 1
             with(meshes[0]) {
                 primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
                 numVertices shouldBe 24
                 numFaces shouldBe 6
 
-                // TODO
-                /*
-                vertices[0] shouldBe Vec3(-0.5, +0.5, +0.5)
-                vertices[5] shouldBe Vec3(+0.5, -0.5, -0.5)
-                vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
-                vertices[15] shouldBe Vec3(-0.5, +0.5, +0.5)
-                vertices[20] shouldBe Vec3(+0.5, -0.5, -0.5)
-                vertices[23] shouldBe Vec3(+0.5, -0.5, +0.5)
-                */
+	            vertices[0] shouldBe (Vec3(+1.0, +1.0, -1.0) plusOrMinus epsilon)
+	            vertices[5] shouldBe (Vec3(-1.0, +1.0, +1.0) plusOrMinus epsilon)
+	            vertices[10] shouldBe (Vec3(+1.0, -1.0, +1.0) plusOrMinus epsilon)
+	            vertices[15] shouldBe (Vec3(-1.0, -1.0, -1.0) plusOrMinus epsilon)
+	            vertices[20] shouldBe (Vec3(+1.0, +1.0, +1.0) plusOrMinus epsilon)
+	            vertices[23] shouldBe (Vec3(-1.0, +1.0, +1.0) plusOrMinus epsilon)
 
                 var i = 0
                 faces.forEach {
@@ -95,6 +72,8 @@ object blenderDefault_250_compressed {
                     it shouldBe mutableListOf(i++, i++, i++, i++)
                 }
             }
+
+	        numMaterials shouldBe 1
             with(materials[0]) {
                 name shouldBe "Material"
                 // shadingModel shouldBe AiShadingMode.gouraud TODO ???
@@ -108,6 +87,26 @@ object blenderDefault_250_compressed {
                     refracti shouldBe null
                 }
             }
+
+	        numLights shouldBe 1
+
+	        with(lights[0]){
+		        type shouldBe AiLightSourceType.POINT
+		        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
+		        colorSpecular shouldBe AiColor3D(1f, 1f, 1f)
+		        colorDiffuse shouldBe AiColor3D(1f, 1f, 1f)
+	        }
+
+	        numCameras shouldBe 1
+
+	        with(cameras[0]){
+		        clipPlaneNear shouldBe 0.1f
+		        clipPlaneFar shouldBe 100f
+		        // TODO
+	        }
+
+	        numTextures shouldBe 0
+	        numAnimations shouldBe 0
         }
     }
 

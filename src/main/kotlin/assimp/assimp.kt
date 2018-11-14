@@ -51,7 +51,7 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
         a1 * vector.x + b1 * vector.y + c1 * vector.z + d1,
         a2 * vector.x + b2 * vector.y + c2 * vector.z + d2)
 
-val epsilon = 10e-3f
+internal const val epsilon = 10e-3f
 val Vec3.isBlack get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilon
 
 object ASSIMP {

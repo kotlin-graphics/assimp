@@ -1,50 +1,10 @@
 package assimp.blender
 
 import assimp.*
-import glm_.*
+import glm_.test.*
 import glm_.mat4x4.*
 import glm_.vec3.*
 import io.kotlintest.*
-import kotlin.math.*
-
-// TODO refactor to glm
-val Float.inRadians: Float get() = Math.toRadians(this.d).f
-val Float.inDegrees: Float get() = Math.toDegrees(this.d).f
-
-// TODO refactor to glm-test project (to be created)
-infix fun Mat4.plusOrMinus(epsilon: Float): Matcher<Mat4> = object : Matcher<Mat4>{
-	override fun test(other: Mat4): Result {
-		val expected = this@plusOrMinus
-
-		val diff = other.array.zip(expected.array) { a, b -> abs(a - b) }
-		val passed = diff.all { it < epsilon }
-
-		val diffMat = Mat4(diff.map { if(it < epsilon) 0f else it })
-		return Result(passed,
-		              "Matrices are not equal with tolerance of $epsilon!\nexpected:$expected\nbut was: $other\nwith difference of:$diffMat",
-		              "Matrices should not be equal with tolerance of $epsilon")
-	}
-}
-infix fun Vec3.plusOrMinus(epsilon: Float): Matcher<Vec3> = object : Matcher<Vec3> {
-	override fun test(other: Vec3): Result {
-		val expected = this@plusOrMinus
-
-		val diff = other.array.zip(expected.array) { a, b -> abs(a - b) }
-		val passed = diff.all { it < epsilon }
-
-		val diffMat = Vec3(diff.map { if(it < epsilon) 0f else it })
-		return Result(passed,
-		              "Vertices are not equal with tolerance of $epsilon!\nexpected:$expected\nbut was: $other\nwith difference of:$diffMat",
-		              "Vertices should not be equal with tolerance of $epsilon")
-	}
-}
-
-// TODO tests:
-//      column vs row major
-//      negated x/y/z coordinates?
-//      flipped axis (I think blender uses different y/z compared to game graphics (is this switched by assimp??)
-//      rotation
-//      scale
 
 // TODO also test linked meshes
 
