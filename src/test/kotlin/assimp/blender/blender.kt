@@ -12,8 +12,6 @@ class blender : StringSpec() {
 
     init {
 
-        ASSIMP.BLENDER_DEBUG = false // TODO temp
-
         "testCubeRotateScaleTranslate" { testCubeRotateScaleTranslate(path + "testCubeRotateScaleTranslate.blend") }
         "blender default 250 compressed" { blenderDefault_250_compressed(path + "BlenderDefault_250_Compressed.blend") }
         // "spider"{ spider(path + "spider.obj") }

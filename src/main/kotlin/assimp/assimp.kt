@@ -60,7 +60,7 @@ object ASSIMP {
 
     var DEBUG = true
 
-    var BLENDER_DEBUG = true
+    var BLENDER_DEBUG = false
 
     var BLENDER_NO_STATS = false
 
