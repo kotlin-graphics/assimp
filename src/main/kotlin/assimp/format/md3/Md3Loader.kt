@@ -302,7 +302,7 @@ object Q3Shader {
 //            if (!::strncmp(&ss[0],"tag_",std::min((size_t)4, ss.length())))
 //            continue;
 //
-//            fill.textures.push_back(SkinData::TextureEntry());
+//            fill.textures.pushBack(SkinData::TextureEntry());
 //            SkinData::TextureEntry& s = fill.textures.back();
 //
 //            s.first  = ss;

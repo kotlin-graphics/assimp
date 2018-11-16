@@ -2,6 +2,8 @@ package assimp
 
 import glm_.BYTES
 import glm_.mat4x4.Mat4
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by elect on 13/11/2016.
@@ -72,6 +74,36 @@ data class AiNode(
     fun findNode(name: String): AiNode? {
         if(this.name == name) return this
         return children.firstOrNull { it.findNode(name) != null }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AiNode
+
+        if (name != other.name) return false
+        if (transformation != other.transformation) return false
+        if (parent != other.parent) return false
+        if (numChildren != other.numChildren) return false
+        if (children != other.children) return false
+        if (numMeshes != other.numMeshes) return false
+        if (!Arrays.equals(meshes, other.meshes)) return false
+        if (metaData != other.metaData) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + transformation.hashCode()
+        result = 31 * result + (parent?.hashCode() ?: 0)
+        result = 31 * result + numChildren
+        result = 31 * result + children.hashCode()
+        result = 31 * result + numMeshes
+        result = 31 * result + Arrays.hashCode(meshes)
+        result = 31 * result + metaData.hashCode()
+        return result
     }
 
 //    infix fun put(other: AiNode) {
@@ -155,13 +187,13 @@ class AiScene {
     lateinit var rootNode: AiNode
 
     /** The number of meshes in the scene. */
-    var numMeshes = 0
+    var numMeshes = 0       // TODO shouldn't this just be a getter for `meshes.size`?, same for materials, lights, etc
 
     /** The array of meshes.
      *
      * Use the indices given in the aiNode structure to access this array. The array is numMeshes in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var meshes = ArrayList<AiMesh>()
+    var meshes: ArrayList<AiMesh> = ArrayList()
 
     /** The number of materials in the scene. */
     var numMaterials = 0
@@ -170,7 +202,7 @@ class AiScene {
      *
      * Use the index given in each aiMesh structure to access this array. The array is numMaterials in size. If the
      * AI_SCENE_FLAGS_INCOMPLETE flag is not set there will always be at least ONE material.         */
-    var materials = ArrayList<AiMaterial>()
+    var materials: ArrayList<AiMaterial> = ArrayList()
 
     /** The number of animations in the scene. */
     var numAnimations = 0
@@ -179,7 +211,7 @@ class AiScene {
      *
      * All animations imported from the given file are listed here.
      * The array is numAnimations in size.         */
-    var animations = ArrayList<AiAnimation>()
+    var animations: ArrayList<AiAnimation> = ArrayList()
 
     /** The number of textures embedded into the file */
     var numTextures = 0
@@ -189,7 +221,7 @@ class AiScene {
      * Not many file formats embed their textures into the file.
      * An example is Quake's MDL format (which is also used by some GameStudio versions)
      */
-    val textures = mutableMapOf<String, gli_.Texture>()
+    var textures = mutableMapOf<String, gli_.Texture>()     // The index is the file name
 
     /** The number of light sources in the scene. Light sources are fully optional, in most cases this attribute
      * will be 0         */
@@ -198,7 +230,7 @@ class AiScene {
     /** The array of light sources.
      *
      * All light sources imported from the given file are listed here. The array is numLights in size.         */
-    var lights = ArrayList<AiLight>()
+    var lights: ArrayList<AiLight> = ArrayList()
 
     /** The number of cameras in the scene. Cameras are fully optional, in most cases this attribute will be 0         */
     var numCameras = 0
@@ -208,7 +240,7 @@ class AiScene {
      * All cameras imported from the given file are listed here.
      * The array is numCameras in size. The first camera in the array (if existing) is the default camera view into
      * the scene.         */
-    var cameras = ArrayList<AiCamera>()
+    var cameras: ArrayList<AiCamera> = ArrayList()
 
     /** The global metadata assigned to the scene itself.
      *

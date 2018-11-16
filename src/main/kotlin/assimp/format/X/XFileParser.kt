@@ -119,7 +119,7 @@ class XFileParser() {
                 // some meshes have no frames at all
                 var mesh = Mesh()
                 ParseDataObjectMesh(mesh)
-                mScene.mGlobalMeshes.push_back(mesh)
+                mScene.mGlobalMeshes.pushBack(mesh)
             } else if (objectName == "AnimTicksPerSecond")
                 ParseDataObjectAnimTicksPerSecond()
             else if (objectName == "AnimationSet")
@@ -128,7 +128,7 @@ class XFileParser() {
                 // Material outside of a mesh or node
                 var material = Material()
                 ParseDataObjectMaterial(material)
-                mScene.mGlobalMaterials.push_back(material)
+                mScene.mGlobalMaterials.pushBack(material)
             } else if (objectName == "}") {
                 // whatever?
                 warn("} found in dataObject")
@@ -170,17 +170,17 @@ class XFileParser() {
         var node: Node = Node(mParent = pParent)
         node.mName = name
         if (pParent != null) {
-            pParent.mChildren.push_back(node)
+            pParent.mChildren.pushBack(node)
         } else {
             if (mScene.mRootNode != null) {
                 if (!mScene.mRootNode!!.mName.equals("\$dummy_root", false)) {
                     var exroot: Node = mScene.mRootNode!!
                     mScene.mRootNode = Node(mParent = null)
                     mScene.mRootNode!!.mName = "\$dummy_root"
-                    mScene.mRootNode!!.mChildren.push_back(exroot)
+                    mScene.mRootNode!!.mChildren.pushBack(exroot)
                     exroot.mParent = mScene.mRootNode
                 }
-                mScene.mRootNode!!.mChildren.push_back(node)
+                mScene.mRootNode!!.mChildren.pushBack(node)
                 node.mParent = mScene.mRootNode
             } else {
                 mScene.mRootNode = node
@@ -201,7 +201,7 @@ class XFileParser() {
                 ParseDataObjectTransformationMatrix(node.mTrafoMatrix)
             else if (objectName.equals("Mesh")) {
                 var mesh: Mesh = Mesh(name)
-                node.mMeshes.push_back(mesh)
+                node.mMeshes.pushBack(mesh)
                 ParseDataObjectMesh(mesh)
             } else {
                 //TODO: ("Unknown data object in frame in x file");
@@ -245,7 +245,7 @@ class XFileParser() {
             val numIndices: Int = ReadInt()
             val face: Face = pMesh.mPosFaces.get(a)
             for (b in IntRange(0, numIndices - 1)) {
-                face.mIndices.push_back(ReadInt())
+                face.mIndices.pushBack(ReadInt())
             }
             TestForSeparator()
         }
@@ -285,7 +285,7 @@ class XFileParser() {
         var transformNodeName = StringBuilder()
         GetNextTokenAsString(transformNodeName)
 
-        pMesh.mBones.push_back(Bone())
+        pMesh.mBones.pushBack(Bone())
         var bone = pMesh.mBones.back()
         bone.mName = transformNodeName.toString()
 
@@ -345,11 +345,11 @@ class XFileParser() {
 
         for (a in 0 until numFaces) {
             var numIndices: Int = ReadInt()
-            pMesh.mNormFaces.push_back(Face())
+            pMesh.mNormFaces.pushBack(Face())
             var face = pMesh.mNormFaces.last()
 
             for (b in 0 until numIndices)
-                face.mIndices.push_back(ReadInt())
+                face.mIndices.pushBack(ReadInt())
 
             TestForSeparator()
         }
@@ -362,7 +362,7 @@ class XFileParser() {
         if (pMesh.mNumTextures + 1 > AI_MAX_NUMBER_OF_TEXTURECOORDS)
             ThrowException("Too many sets of texture coordinates")
 
-        pMesh.mTexCoords.push_back(MutableList<AiVector2D>(0, { AiVector2D() }))
+        pMesh.mTexCoords.pushBack(MutableList<AiVector2D>(0, { AiVector2D() }))
         var coords: MutableList<AiVector2D> = pMesh.mTexCoords[pMesh.mNumTextures++]
 
         var numCoords = ReadInt()
@@ -380,7 +380,7 @@ class XFileParser() {
         readHeadOfDataObject()
         if (pMesh.mNumColorSets + 1 > AI_MAX_NUMBER_OF_COLOR_SETS)
             ThrowException("Too many colorsets")
-        pMesh.mColors.push_back(MutableList<AiColor4D>(0, { AiColor4D() }))
+        pMesh.mColors.pushBack(MutableList<AiColor4D>(0, { AiColor4D() }))
         var colors = pMesh.mColors[pMesh.mNumColorSets++]
 
         var numColors = ReadInt()
@@ -421,7 +421,7 @@ class XFileParser() {
 
         // read per-face material indices
         for (a in 0 until numMatIndices)
-            pMesh.mFaceMaterials.push_back(ReadInt())
+            pMesh.mFaceMaterials.pushBack(ReadInt())
 
         // in version 03.02, the face indices end with two semicolons.
         // commented out version check, as version 03.03 exported from blender also has 2 semicolons
@@ -433,7 +433,7 @@ class XFileParser() {
 
         // if there was only a single material index, replicate it on all faces
         while (pMesh.mFaceMaterials.size() < pMesh.mPosFaces.size())
-            pMesh.mFaceMaterials.push_back(pMesh.mFaceMaterials.front())
+            pMesh.mFaceMaterials.pushBack(pMesh.mFaceMaterials.front())
 
         // read following data objects
         var running = true
@@ -449,11 +449,11 @@ class XFileParser() {
                 var material: Material = Material()
                 material.mIsReference = true
                 material.mName = matName
-                pMesh.mMaterials.push_back(material)
+                pMesh.mMaterials.pushBack(material)
 
                 CheckForClosingBrace() // skip }
             } else if (objectName == "Material") {
-                pMesh.mMaterials.push_back(Material())
+                pMesh.mMaterials.pushBack(Material())
                 ParseDataObjectMaterial(pMesh.mMaterials.back())
             } else if (objectName == ";") {
                 // ignore
@@ -490,12 +490,12 @@ class XFileParser() {
                 // some exporters write "TextureFileName" instead.
                 var texname: StringBuilder = StringBuilder()
                 ParseDataObjectTextureFilename(texname)
-                pMaterial.mTextures.push_back(TexEntry(texname.toString()))
+                pMaterial.mTextures.pushBack(TexEntry(texname.toString()))
             } else if (objectName == "NormalmapFilename" || objectName == "NormalmapFileName") {
                 // one exporter writes out the normal map in a separate filename tag
                 var texname: StringBuilder = StringBuilder()
                 ParseDataObjectTextureFilename(texname)
-                pMaterial.mTextures.push_back(TexEntry(texname.toString(), true))
+                pMaterial.mTextures.pushBack(TexEntry(texname.toString(), true))
             } else {
                 warn("Unknown data object in material in x file")
                 ParseUnknownDataObject()
@@ -514,7 +514,7 @@ class XFileParser() {
         readHeadOfDataObject(animName)
 
         var anim = Animation()
-        mScene.mAnims.push_back(anim)
+        mScene.mAnims.pushBack(anim)
         anim.mName = animName.toString()
 
         var running = true
@@ -536,7 +536,7 @@ class XFileParser() {
     fun ParseDataObjectAnimation(pAnim: Animation) {
         readHeadOfDataObject()
         var banim = AnimBone()
-        pAnim.mAnims.push_back(banim)
+        pAnim.mAnims.pushBack(banim)
 
         var running = true
         while (running) {
@@ -588,7 +588,7 @@ class XFileParser() {
                     key.value.x = ReadFloat()
                     key.value.y = ReadFloat()
                     key.value.z = ReadFloat()
-                    pAnimBone.mRotKeys.push_back(key)
+                    pAnimBone.mRotKeys.pushBack(key)
 
                     CheckForSemicolon()
                 }
@@ -605,9 +605,9 @@ class XFileParser() {
                     key.value = ReadVector3()
 
                     if (keyType == 2)
-                        pAnimBone.mPosKeys.push_back(key)
+                        pAnimBone.mPosKeys.pushBack(key)
                     else
-                        pAnimBone.mScaleKeys.push_back(key)
+                        pAnimBone.mScaleKeys.pushBack(key)
 
                 }
 
@@ -629,7 +629,7 @@ class XFileParser() {
                     key.mMatrix.c2 = ReadFloat(); key.mMatrix.c2 = ReadFloat()
                     key.mMatrix.d0 = ReadFloat(); key.mMatrix.d1 = ReadFloat()
                     key.mMatrix.d2 = ReadFloat(); key.mMatrix.d3 = ReadFloat()
-                    pAnimBone.mTrafoKeys.push_back(key)
+                    pAnimBone.mTrafoKeys.pushBack(key)
 
                     CheckForSemicolon()
                 }
@@ -982,7 +982,7 @@ class XFileParser() {
             if (child.mName.length() == 0 && child.mMeshes.size() > 0) {
                 // transfer its meshes to us
                 for (a in 0 until child.mMeshes.size())
-                    pNode.mMeshes.push_back(child.mMeshes[a])
+                    pNode.mMeshes.pushBack(child.mMeshes[a])
                 child.mMeshes.clear()
 
                 // transfer the transform as well

@@ -107,6 +107,8 @@ class BlenderModifierShowcase {
 
             assert(cur!!.dnaType.isNotEmpty())
 
+            // TODO("apply Modifiers")
+
 //            val s = convData.db.dna.Get( cur->dna_type )
 //            if (!s) {
 //                ASSIMP_LOG_WARN_F("BlendModifier: could not resolve DNA name: ",cur->dna_type)
@@ -135,7 +137,7 @@ class BlenderModifierShowcase {
 //
 //            for (;*curgod;++curgod,++curmod) { // allocate modifiers on the fly
 //            if (curmod == endmod) {
-//                cached_modifiers->push_back((*curgod)())
+//                cached_modifiers->pushBack((*curgod)())
 //
 //                endmod = cached_modifiers->end()
 //                curmod = endmod-1

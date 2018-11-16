@@ -43,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package assimp.format.blender
 
 import assimp.NUL
+import glm_.s
+import kotlin.coroutines.*
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.
@@ -90,14 +92,13 @@ import assimp.NUL
 //   value for the field.
 //
 
-
 val AI_BLEND_MESH_MAX_VERTS = 2000000000L
 
-var maxNameLen = 1024
+val maxNameLen = 1024
 
 class Id : ElemBase() {
     var name = ""
-    var flag = 0
+    var flag = 0.s
 }
 
 class ListBase : ElemBase() {
@@ -128,106 +129,103 @@ class World : ElemBase() {
     var id = Id()
 }
 
-// -------------------------------------------------------------------------------
-//struct MVert : ElemBase {
-//    float co [3] FAIL;
-//    float no [3] FAIL;
-//    char flag;
-//    int mat_nr WARN;
-//    int bweight;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MEdge : ElemBase {
-//    int v1, v2 FAIL;
-//    char crease, bweight;
-//    short flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoop : ElemBase {
-//    int v, e;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MLoopUV : ElemBase {
-//    float uv [2];
-//    int flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//// Note that red and blue are not swapped, as with MCol
-//struct MLoopCol : ElemBase {
-//    unsigned char r, g, b, a;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MPoly : ElemBase {
-//    int loopstart;
-//    int totloop;
-//    short mat_nr;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MTexPoly : ElemBase {
-//    Image * tpage;
-//    char flag, transp;
-//    short mode, tile, pad;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MCol : ElemBase {
-//    char r, g, b, a FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MFace : ElemBase {
-//    int v1, v2, v3, v4 FAIL;
-//    int mat_nr FAIL;
-//    char flag;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct TFace : ElemBase {
-//    float uv [4][2] FAIL;
-//    int col [4] FAIL;
-//    char flag;
-//    short mode;
-//    short tile;
-//    short unwrap;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MTFace : ElemBase {
-//    MTFace()
-//    : flag(0)
-//    , mode(0)
-//    , tile(0)
-//    , unwrap(0)
-//    {
-//    }
-//
-//    float uv [4][2] FAIL;
-//    char flag;
-//    short mode;
-//    short tile;
-//    short unwrap;
-//
-//    // std::shared_ptr<Image> tpage;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MDeformWeight : ElemBase  {
-//    int def_nr FAIL;
-//    float weight FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MDeformVert : ElemBase  {
-//    vector<MDeformWeight> dw WARN;
-//    int totweight;
-//};
+class MVert : ElemBase() {
+    val co = FloatArray(3)
+    val no = FloatArray(3)  // read as short and divided through / 32767.f
+    var flag = '\u0000'
+    var matNr = 0
+    var weight = 0
+}
+
+class MEdge : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var crease = '\u0000'
+    var weight = '\u0000'
+    var flag = 0.s
+}
+
+class MLoop : ElemBase() {
+    var v = 0
+    var e = 0
+}
+
+class MLoopUV : ElemBase() {
+    val uv = FloatArray(2)
+    var flag = 0
+}
+
+/** Note that red and blue are not swapped, as with MCol    */
+class MLoopCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
+class MPoly : ElemBase() {
+    var loopStart = 0
+    var totLoop = 0
+    var matNr = 0               // HINT this is a short in the C version
+    var flag = '\u0000'
+}
+
+class MTexPoly : ElemBase() {
+    var tpage: Image? = null
+    var flag = '\u0000'
+    var transp = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var pad = 0.s
+}
+
+class MCol : ElemBase() {
+    var r = '\u0000'
+    var g = '\u0000'
+    var b = '\u0000'
+    var a = '\u0000'
+}
+
+class MFace : ElemBase() {
+    var v1 = 0
+    var v2 = 0
+    var v3 = 0
+    var v4 = 0
+
+    var matNr = 0
+    var flag = '\u0000'
+}
+
+
+class TFace : ElemBase() {
+    var uv = Array(4) { FloatArray(2) }
+    var col = IntArray(4)
+    var flag = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var unwrap = 0.s
+}
+
+class MTFace : ElemBase() {
+
+    var uv = Array(4) { FloatArray(2) }
+    var flag: Char = '\u0000'
+    var mode = 0.s
+    var tile = 0.s
+    var unwrap = 0.s
+
+    // var tpage: Image? = null
+}
+
+class MDeformWeight : ElemBase()  {
+    var defNr = 0
+    var weight = 0f
+}
+
+class MDeformVert : ElemBase()  {
+    var dw: List<MDeformWeight>? = null
+    var totWeight = 0
+}
 
 val MA_RAYMIRROR = 0x40000
 val MA_TRANSPARENCY = 0x10000
@@ -235,6 +233,7 @@ val MA_RAYTRANSP = 0x20000
 val MA_ZTRANSP = 0x00040
 
 class Material : ElemBase() {
+
     var id = Id()
 
     var r = 0f
@@ -347,147 +346,191 @@ class Material : ElemBase() {
     var diffShader = 0
     var specShader = 0
 
-    var mTex = Array(18) { MTex() }
+    var mTex: Array<MTex?> = arrayOfNulls(18)
 }
 
-// -------------------------------------------------------------------------------
-//struct Mesh : ElemBase {
-//    ID id FAIL;
-//
-//    int totface FAIL;
-//    int totedge FAIL;
-//    int totvert FAIL;
-//    int totloop;
-//    int totpoly;
-//
-//    short subdiv;
-//    short subdivr;
-//    short subsurftype;
-//    short smoothresh;
-//
-//    vector<MFace> mface FAIL;
-//    vector<MTFace> mtface;
-//    vector<TFace> tface;
-//    vector<MVert> mvert FAIL;
-//    vector<MEdge> medge WARN;
-//    vector<MLoop> mloop;
-//    vector<MLoopUV> mloopuv;
-//    vector<MLoopCol> mloopcol;
-//    vector<MPoly> mpoly;
-//    vector<MTexPoly> mtpoly;
-//    vector<MDeformVert> dvert;
-//    vector<MCol> mcol;
-//
-//    vector < std::shared_ptr<Material> > mat FAIL;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct Library : ElemBase {
-//    ID id FAIL;
-//
-//    char name [240] WARN;
-//    char filename [240] FAIL;
-//    std::shared_ptr<Library> parent WARN;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct Camera : ElemBase {
-//    enum Type {
-//        Type_PERSP = 0
-//        ,Type_ORTHO = 1
-//    };
-//
-//    ID id FAIL;
-//
-//    Type type, flag WARN;
-//    float lens WARN;
-//    float sensor_x WARN;
-//    float clipsta, clipend;
-//};
-//
-//
-//// -------------------------------------------------------------------------------
-//struct Lamp : ElemBase {
-//
-//    enum FalloffType {
-//        FalloffType_Constant = 0x0
-//        ,FalloffType_InvLinear = 0x1
-//        ,FalloffType_InvSquare = 0x2
-//        //,FalloffType_Curve    = 0x3
-//        //,FalloffType_Sliders  = 0x4
-//    };
-//
-//    enum Type {
-//        Type_Local = 0x0
-//        ,Type_Sun = 0x1
-//        ,Type_Spot = 0x2
-//        ,Type_Hemi = 0x3
-//        ,Type_Area = 0x4
-//        //,Type_YFPhoton    = 0x5
-//    };
-//
-//    ID id FAIL;
-//    //AnimData *adt;
-//
-//    Type type FAIL;
-//    short flags;
-//
-//    //int mode;
-//
-//    short colormodel, totex;
-//    float r, g, b, k WARN;
-//    //float shdwr, shdwg, shdwb;
-//
-//    float energy, dist, spotsize, spotblend;
-//    //float haint;
-//
-//    float att1, att2;
-//    //struct CurveMapping *curfalloff;
-//    FalloffType falloff_type;
-//
-//    //float clipsta, clipend, shadspotsize;
-//    //float bias, soft, compressthresh;
-//    //short bufsize, samp, buffers, filtertype;
-//    //char bufflag, buftype;
-//
-//    //short ray_samp, ray_sampy, ray_sampz;
-//    //short ray_samp_type;
-//    short area_shape;
-//    float area_size, area_sizey, area_sizez;
-//    //float adapt_thresh;
-//    //short ray_samp_method;
-//
-//    //short texact, shadhalostep;
-//
-//    //short sun_effect_type;
-//    //short skyblendtype;
-//    //float horizon_brightness;
-//    //float spread;
-//    float sun_brightness;
-//    //float sun_size;
-//    //float backscattered_light;
-//    //float sun_intensity;
-//    //float atm_turbidity;
-//    //float atm_inscattering_factor;
-//    //float atm_extinction_factor;
-//    //float atm_distance_factor;
-//    //float skyblendfac;
-//    //float sky_exposure;
-//    //short sky_colorspace;
-//
-//    // int YF_numphotons, YF_numsearch;
-//    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
-//    // float YF_causticblur, YF_ltradius;
-//
-//    // float YF_glowint, YF_glowofs;
-//    // short YF_glowtype, YF_pad2;
-//
-//    //struct Ipo *ipo;
-//    //struct MTex *mtex[18];
-//    // short pr_texture;
-//
-//    //struct PreviewImage *preview;
-//};
+class CustomData : ElemBase() {
+
+	val layers: MutableList<CustomDataLayer?> = mutableListOf()
+	var typemap: IntArray = IntArray(42)
+	var totlayer: Int = 0
+	var maxlayer: Int = 0
+	var totsize: Int = 0
+}
+
+class CustomDataLayer: ElemBase() {
+	var type: CustomDataType = CustomDataType.None
+	var offset: Int = 0
+	var flag: Int = 0
+	var active: Int = 0
+	var activeRnd: Int = 0
+	var activeClone: Int = 0
+	var activeMask: Int = 0
+	var uid: Int = 0
+	var name: String = ""
+	var data: ElemBase? = null  // must be converted to real type according type member
+}
+
+class Mesh : ElemBase() {
+
+    var id: Id = Id()
+
+    var totface = 0
+    var totedge = 0
+    var totvert = 0
+    var totloop = 0
+    var totpoly = 0
+
+    var subdiv = 0.s
+    var subdivr = 0.s
+    var subsurftype = 0.s
+    var smoothresh = 0.s
+
+    var mface: List<MFace>? = null
+    var mtface: List<MTFace>? = null
+    var tface: List<TFace>? = null
+    var mvert: List<MVert>? = null
+    var medge: List<MEdge>? = null
+    var mloop: List<MLoop>? = null
+    var mloopuv: List<MLoopUV>? = null
+    var mloopcol: List<MLoopCol>? = null
+    var mpoly: List<MPoly>? = null
+    var mtpoly: List<MTexPoly>? = null
+    var dvert: List<MDeformVert>? = null
+    var mcol: List<MCol>? = null
+
+    var mat: List<Material?>? = null
+
+	var vdata = CustomData()
+	var edata = CustomData()
+	var fdata = CustomData()
+	var pdata = CustomData()
+	var ldata = CustomData()
+
+}
+
+class Library : ElemBase() {
+
+	var id = Id()
+
+	var name: String = ""
+	var filename: String = ""
+	var parent: Library? = null
+}
+
+class Camera : ElemBase() {
+    enum class Type { Persp, Ortho;
+
+	    val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Camera.Type with value of $i does not exist!")
+	    }
+    }
+
+    var id = Id()
+
+    var type = Type.Persp
+    var flag: Short = 0 // HINT this is Camera.Type in the C-version, but we can't do this here, otherwise we loose the value when converting to Type
+    var lens = 0f
+    var sensorX = 0f
+    var clipSta = 0f
+    var clipEnd = 0f
+}
+
+class Lamp : ElemBase() {
+
+    enum class FalloffType { Constant, InvLinear, InvSquare;
+        //,FalloffType_Curve    = 0x3
+        //,FalloffType_Sliders  = 0x4
+        val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Lamp.FalloffType with value of $i does not exist!")
+	    }
+    }
+
+    enum class Type { Local, Sun, Spot, Hemi, Area;
+        //,Type_YFPhoton    = 0x5
+        val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Lamp.Type with value of $i does not exist!")
+	    }
+    }
+
+    var id = Id()
+    //AnimData *adt;
+
+    var type = Type.Local
+    var flags = 0.s
+
+    //int mode;
+
+    var colorModel = 0.s
+    var totex = 0.s
+    var r = 0f
+    var g = 0f
+    var b = 0f
+    var k = 0f
+    //float shdwr, shdwg, shdwb;
+
+    var energy = 0f
+    var dist = 0f
+    var spotSize = 0f
+    var spotBlend = 0f
+    //float haint;
+
+    var att1 = 0f
+    var att2 = 0f
+    //struct CurveMapping *curfalloff;
+    var falloffType = FalloffType.Constant
+
+    //float clipsta, clipend, shadspotsize;
+    //float bias, soft, compressthresh;
+    //short bufsize, samp, buffers, filtertype;
+    //char bufflag, buftype;
+
+    //short ray_samp, ray_sampy, ray_sampz;
+    //short ray_samp_type;
+    var areaShape = 0.s
+    var areaSize = 0f
+    var areaSizeY = 0f
+    var areaSizeZ = 0f
+    //float adapt_thresh;
+    //short ray_samp_method;
+
+    //short texact, shadhalostep;
+
+    //short sun_effect_type;
+    //short skyblendtype;
+    //float horizon_brightness;
+    //float spread;
+    var sunBrightness = 0f
+    //float sun_size;
+    //float backscattered_light;
+    //float sun_intensity;
+    //float atm_turbidity;
+    //float atm_inscattering_factor;
+    //float atm_extinction_factor;
+    //float atm_distance_factor;
+    //float skyblendfac;
+    //float sky_exposure;
+    //short sky_colorspace;
+
+    // int YF_numphotons, YF_numsearch;
+    // short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
+    // float YF_causticblur, YF_ltradius;
+
+    // float YF_glowint, YF_glowofs;
+    // short YF_glowtype, YF_pad2;
+
+    //struct Ipo *ipo;
+    //struct MTex *mtex[18];
+    // short pr_texture;
+
+    //struct PreviewImage *preview;
+}
 
 class ModifierData : ElemBase() {
 
@@ -496,6 +539,10 @@ class ModifierData : ElemBase() {
         Cloth, Collision, Bevel, Shrinkwrap, Fluidsim, Mask, SimpleDeform, Multires, Surface, Smoke, ShapeKey;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("ModifierData.Type with value of $i does not exist!")
+	    }
     }
 
     var next: ElemBase? = null
@@ -506,46 +553,55 @@ class ModifierData : ElemBase() {
     var name = ""
 }
 
-// -------------------------------------------------------------------------------
-//struct SubsurfModifierData : ElemBase  {
-//
-//    enum Type {
-//
-//        TYPE_CatmullClarke = 0x0,
-//        TYPE_Simple = 0x1
-//    };
-//
-//    enum Flags {
-//        // some omitted
-//        FLAGS_SubsurfUV = 1 < <3
-//    };
-//
-//    ModifierData modifier FAIL;
-//    short subdivType WARN;
-//    short levels FAIL;
-//    short renderLevels;
-//    short flags;
-//};
-//
-//// -------------------------------------------------------------------------------
-//struct MirrorModifierData : ElemBase {
-//
-//    enum Flags {
-//        Flags_CLIPPING = 1 < <0,
-//        Flags_MIRROR_U = 1 < <1,
-//        Flags_MIRROR_V = 1 < <2,
-//        Flags_AXIS_X = 1 < <3,
-//        Flags_AXIS_Y = 1 < <4,
-//        Flags_AXIS_Z = 1 < <5,
-//        Flags_VGROUP = 1 < <6
-//    };
-//
-//    ModifierData modifier FAIL;
-//
-//    short axis, flag;
-//    float tolerance;
-//    std::shared_ptr<Object> mirror_ob;
-//};
+class SubsurfModifierData : ElemBase()  {
+
+    enum class Type { CatmullClarke, Simple;
+
+        val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("SubsurfModifierData.Type with value of $i does not exist!")
+	    }
+    }
+
+    enum class Flags(val i: Int) {
+        // some omitted
+        SubsurfUV (1 shl 3);
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("SubsurfModifierData.Flags with value of $i does not exist!")
+	    }
+    }
+
+    var modifier = ModifierData()
+    var subdivType = 0.s
+    var levels = 0.s
+    var renderLevels = 0.s
+    var flags = 0.s
+}
+
+
+class MirrorModifierData : ElemBase() {
+
+	enum class Flag(val i: Int) {
+		None(0),
+		Clipping(1 shl 0),
+		MirrorU(1 shl 1),
+		MirrorV(1 shl 2),
+		AxisX(1 shl 3),
+		AxisY(1 shl 4),
+		AxisZ(1 shl 5),
+		VGroup(1 shl 6);
+	}
+
+	var modifier = ModifierData()
+
+	var axis: Short = 0
+	var flag: Short = 0
+	var tolerance: Float = 0f
+
+	var mirrorOb: Object? = null
+}
 
 class Object : ElemBase() {
 
@@ -563,13 +619,17 @@ class Object : ElemBase() {
         CAMERA(11),
 
         WAVE(21),
-        LATTICE(22),
+        LATTICE(22);
+
+        companion object {
+            fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Object.Type with value of $i does not exist!")
+        }
     }
 
     var type = Type.EMPTY
     val obmat = Array(4) { FloatArray(4) }
     val parentinv = Array(4) { FloatArray(4) }
-    var parsubstr = ""
+    var parSubstr = ""
 
     var parent: Object? = null
     var track: Object? = null
@@ -580,15 +640,31 @@ class Object : ElemBase() {
     var dupGroup: Group? = null
     var data: ElemBase? = null
 
-    var modifiers: ListBase? = null
+    var modifiers = ListBase()
 }
-
 
 class Base : ElemBase() {
     var prev: Base? = null
     var next: Base? = null
-    var object_: Object? = null
+    var obj: Object? = null
+
 }
+
+fun Base.iterator(): Iterator<Base> = iterator {
+    var current: Base? = this@iterator
+    while(current != null) {
+
+	    @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")     // TODO non-null assertion necessary https://youtrack.jetbrains.com/issue/KT-27477s
+	    yield(current!!)                                        // fixed in Kotlin 1.4 or 1.3 new optional type inference system
+
+        current = current.next
+    }
+}
+
+inline fun Base.forEach(block: (Base) -> Unit) {
+    iterator().forEach{ block(it) }
+}
+
 
 class Scene : ElemBase() {
 
@@ -598,7 +674,7 @@ class Scene : ElemBase() {
     var world: World? = null
     var basact: Base? = null
 
-    var base: ListBase? = null
+    var base = ListBase()
 }
 
 class Image : ElemBase() {
@@ -644,6 +720,10 @@ class Tex : ElemBase() {
         DistortedNoise, PointDensitz, VoxelData;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("Tex.Type with value of $i does not exist!")
+	    }
     }
 
     enum class ImageFlags(val i: Int) { INTERPOL(1), USEALPHA(2), MIPMAP(4), IMAROT(16), CALCALPHA(32),
@@ -671,7 +751,7 @@ class Tex : ElemBase() {
     //short noisebasis, noisebasis2;
 
     //short flag;
-    var imaFlag = ImageFlags.INTERPOL
+    var imaFlag: Int = ImageFlags.INTERPOL.i
     var type = Type.Clouds
     //short stype;
 
@@ -692,7 +772,7 @@ class Tex : ElemBase() {
 
     //bNodeTree *nodetree;
     //Ipo *ipo;
-    var ima = Image()
+    var ima: Image? = null
     //PluginTex *plugin;
     //ColorBand *coba;
     //EnvMap *env;
@@ -708,24 +788,36 @@ class MTex : ElemBase() {
     enum class Projection { N, X, Y, Z;
 
         val i = ordinal
+
+        companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.Projection with value of $i does not exist!")
+	    }
     }
 
-    enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10) }
+    enum class Flag(val i: Int) { RGBTOINT(0x1), STENCIL(0x2), NEGATIVE(0x4), ALPHAMIX(0x8), VIEWSPACE(0x10); }
 
     enum class BlendType { BLEND, MUL, ADD, SUB, DIV, DARK, DIFF, LIGHT, SCREEN, OVERLAY, BLEND_HUE, BLEND_SAT, BLEND_VAL, BLEND_COLOR;
 
         val i = ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.BlendType with value of $i does not exist!")
+	    }
     }
 
     enum class MapType { COL, NORM, COLSPEC, COLMIR, REF, SPEC, EMIT, ALPHA, HAR, RAYMIRR, TRANSLU, AMB, DISPLACE, WARP;
 
         val i = 1 shl ordinal
+
+	    companion object {
+		    fun of(i: Int) = values().firstOrNull { it.i == i } ?: throw NoSuchElementException("MTex.MapType with value of $i does not exist!")
+	    }
     }
 
     // short texco, maptoneg;
     var mapTo = MapType.COL
 
-    var blendtype = BlendType.BLEND
+    var blendType = BlendType.BLEND
     var object_: Object? = null
     var tex: Tex? = null
     var uvName = ""
@@ -733,7 +825,7 @@ class MTex : ElemBase() {
     var projX = Projection.X
     var projY = Projection.Y
     var projZ = Projection.Z
-    var mapping = ""
+    var mapping: Char = '\u0000'
     val ofs = FloatArray(3)
     val size = FloatArray(3)
     var rot = 0f

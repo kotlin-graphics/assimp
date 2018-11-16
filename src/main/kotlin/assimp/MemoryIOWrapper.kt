@@ -11,6 +11,7 @@ const val AI_MEMORYIO_MAGIC_FILENAME_LENGTH = 17
 
 class MemoryIOSystem : IOSystem{
 
+	// TODO move into constructor
 	val memoryFiles: MutableMap<String, ByteBuffer> = hashMapOf()
 
 	constructor(buffer: ByteBuffer) {

@@ -67,7 +67,7 @@ fun Importer.testFile(path: String,
 
 	var scene = readFile(path, flags)
 	if (scene == null && failOnNull) {
-		fail("readFile returned 'null' for $path")
+		fail("Importer.readFile returned 'null' for $path")
 	}
 	scene?.verify()
 
@@ -81,7 +81,7 @@ fun Importer.testFile(path: String,
 
 	val memScene = readFileFromMemory(buffer, flags, hint)
 	if (memScene == null && failOnNull) {
-		fail("readFileFromMemory returned 'null' for $path")
+		fail("Importer.readFileFromMemory returned 'null' for $path")
 	}
 	memScene?.verify()
 

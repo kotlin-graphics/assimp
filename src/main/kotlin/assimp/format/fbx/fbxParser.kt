@@ -186,7 +186,7 @@ class Element(val keyToken: Token, parser: Parser) {
 //
 //        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
 //            const float ival = ParseTokenAsFloat(** it ++)
-//            out.push_back(ival)
+//            out.pushBack(ival)
 //        }
     }
 
@@ -258,7 +258,7 @@ class Element(val keyToken: Token, parser: Parser) {
 //        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end;) {
 //            const int64_t ival = ParseTokenAsInt64(** it ++)
 //
-//            out.push_back(ival)
+//            out.pushBack(ival)
 //        }
     }
 
