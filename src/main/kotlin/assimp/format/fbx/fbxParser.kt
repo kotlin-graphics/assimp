@@ -41,9 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package assimp.format.fbx
 
+import assimp.*
 import assimp.ASSIMP.DEBUG
-import assimp.AiMatrix4x4
-import assimp.AiVector3D
 import glm_.*
 import kool.bufferBig
 import java.nio.ByteBuffer
@@ -143,9 +142,12 @@ class Element(val keyToken: Token, parser: Parser) {
         return AiMatrix4x4(values)
     }
 
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified T> parseVectorDataArray(out: ArrayList<T>) = when (T::class) {
+        AiVector2D::class -> parseVec2DataArray(out as ArrayList<AiVector2D>)
         AiVector3D::class -> parseVec3DataArray(out as ArrayList<AiVector3D>)
-        else -> throw Error()
+        AiColor4D::class  -> TODO()
+        else              -> throw Error("Got reified type ${T::class.java.simpleName} instead of a valid vector type")
     }
 
     /** read an array of floats */
@@ -175,19 +177,16 @@ class Element(val keyToken: Token, parser: Parser) {
             }
             return
         }
-        TODO()
-//        val dim = tokens[0].parseAsDim
+
+        val dim = tokens[0].parseAsDim
 
         // see notes in ParseVectorDataArray()
-//        out.reserve(dim)
+        out.ensureCapacity(dim.i)
 
-//        const Scope & scope = GetRequiredScope (el)
-//        const Element & a = GetRequiredElement (scope, "a", &el)
-//
-//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end; ) {
-//            const float ival = ParseTokenAsFloat(** it ++)
-//            out.pushBack(ival)
-//        }
+        val a = getRequiredElement(scope, "a", this)
+
+        for (it in a.tokens)
+            out += it.parseAsFloat
     }
 
     /** read an array of ints */
@@ -212,6 +211,7 @@ class Element(val keyToken: Token, parser: Parser) {
             for (i in 0 until count) out += ip[i]
             return
         }
+
         val dim = tokens[0].parseAsDim
 
         // see notes in ParseVectorDataArray()
@@ -246,20 +246,16 @@ class Element(val keyToken: Token, parser: Parser) {
 
             return
         }
-        TODO()
-//        const size_t dim = ParseTokenAsDim(*tok[0])
-//
-//        // see notes in ParseVectorDataArray()
-//        out.reserve(dim)
-//
-//        const Scope & scope = GetRequiredScope (el)
-//        const Element & a = GetRequiredElement (scope, "a", &el)
-//
-//        for (TokenList:: const_iterator it = a . Tokens ().begin(), end = a.Tokens().end(); it != end;) {
-//            const int64_t ival = ParseTokenAsInt64(** it ++)
-//
-//            out.pushBack(ival)
-//        }
+
+        val dim = tokens[0].parseAsDim
+
+        // see notes in ParseVectorDataArray()
+        out.ensureCapacity(dim.i)
+
+        val a = getRequiredElement(scope, "a", this)
+
+        for (it in a.tokens)
+            out += it.parseAsInt64
     }
 
     /** read an array of float3 tuples */
@@ -301,27 +297,84 @@ class Element(val keyToken: Token, parser: Parser) {
                 val f = buff.asFloatBuffer()
                 for (i in 0 until count3) out += AiVector3D(f.get(), f.get(), f.get())
             }
-            return
+        } else {
+
+            val dim = tokens[0].parseAsDim
+
+            out.ensureCapacity(dim.i)
+
+            val a = getRequiredElement(scope, "a", this)
+
+            if (a.tokens.size % 3 != 0)
+                parseError("number of floats is not a multiple of three (3)", this)
+
+            var i = 0
+            while (i < a.tokens.size)
+                out += AiVector3D(
+                        x = a.tokens[i++].parseAsFloat,
+                        y = a.tokens[i++].parseAsFloat,
+                        z = a.tokens[i++].parseAsFloat)
         }
+    }
 
-        val dim = tokens[0].parseAsDim
+    /** read an array of float3 tuples */
+    fun parseVec2DataArray(out: ArrayList<AiVector2D>) { // TODO consider returning directly `out`
 
-        // may throw bad_alloc if the input is rubbish, but this need
-        // not to be prevented - importing would fail but we wouldn't
-        // crash since assimp handles this case properly.
-        out.ensureCapacity(dim.i)
+        out.clear()
 
-        val a = getRequiredElement(scope, "a", this)
+        if (tokens.isEmpty()) parseError("unexpected empty element", this)
 
-        if (a.tokens.size % 3 != 0)
-            parseError("number of floats is not a multiple of three (3)", this)
+        if (tokens[0].isBinary) {
+            begin = tokens[0].begin
+            val end = tokens[0].end
 
-        var i = 0
-        while (i < a.tokens.size)
-            out += AiVector3D(
-                    x = a.tokens[i++].parseAsFloat,
-                    y = a.tokens[i++].parseAsFloat,
-                    z = a.tokens[i++].parseAsFloat)
+            readBinaryDataArrayHead(::begin, end, ::type, ::count)
+
+            if (count % 2 != 0) parseError("number of floats is not a multiple of three (2) (binary)", this)
+
+            if (count == 0) return
+
+            if (type != 'd' && type != 'f') parseError("expected float or double array (binary)", this)
+
+            val buff = readBinaryDataArray(type, count, ::begin, end)
+
+            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+
+            val count2 = count / 2
+            out.ensureCapacity(count2)
+
+            if (type == 'd') {
+                val d = buff.asDoubleBuffer()
+                for (i in 0 until count2) out += AiVector2D(d.get(), d.get())
+                // for debugging
+                /*for ( size_t i = 0; i < out.size(); i++ ) {
+                    aiVector3D vec3( out[ i ] );
+                    std::stringstream stream;
+                    stream << " vec3.x = " << vec3.x << " vec3.y = " << vec3.y << " vec3.z = " << vec3.z << std::endl;
+                    DefaultLogger::get()->info( stream.str() );
+                }*/
+            } else if (type == 'f') {
+                val f = buff.asFloatBuffer()
+                for (i in 0 until count2) out += AiVector2D(f.get(), f.get())
+            }
+
+        } else {
+
+            val dim = tokens[0].parseAsDim
+
+            out.ensureCapacity(dim.i)
+
+            val a = getRequiredElement(scope, "a", this)
+
+            if (a.tokens.size % 2 != 0)
+                parseError("number of floats is not a multiple of three (2)", this)
+
+            var i = 0
+            while (i < a.tokens.size)
+                out += AiVector2D(
+                        x = a.tokens[i++].parseAsFloat,
+                        y = a.tokens[i++].parseAsFloat)
+        }
     }
 
     /** read the type code and element count of a binary data array and stop there */

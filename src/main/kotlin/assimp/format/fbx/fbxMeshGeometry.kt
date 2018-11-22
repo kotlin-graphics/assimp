@@ -310,7 +310,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
 
     fun readVertexDataUV(uvOut: ArrayList<AiVector2D>, source: Scope, mappingInformationType: String, referenceInformationType: String) =
             resolveVertexDataArray(uvOut, source, mappingInformationType, referenceInformationType, "UV",
-                    "UVIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
+                                                   "UVIndex", vertices.size, mappingCounts, mappingOffsets, mappings)
 
     fun readVertexDataNormals(normalsOut: ArrayList<AiVector3D>, source: Scope, mappingInformationType: String, referenceInformationType: String) =
             resolveVertexDataArray(normalsOut, source, mappingInformationType, referenceInformationType, "Normals",
@@ -423,7 +423,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             val tempData2 = Array<T?>(tempData.size, { null })
 
             val uvIndices = ArrayList<Int>()
-            getRequiredElement(source, indexDataElementName).parseVectorDataArray(uvIndices)
+            getRequiredElement(source, indexDataElementName).parseIntsDataArray(uvIndices)
 
             if (uvIndices.size != vertexCount) {
                 logger.error("length of input data unexpected for ByPolygonVertex mapping")

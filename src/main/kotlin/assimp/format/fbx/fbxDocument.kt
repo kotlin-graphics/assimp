@@ -839,21 +839,21 @@ class Cluster(id: Long, element: Element, doc: Document, name: String) : Deforme
     init {
         val sc = element.scope
 
-        val indexes = sc.getArray("Indexes")
-        val weights = sc.getArray("Weights")
+        val loadedIndexes = sc.getArray("Indexes")
+        val loadedWeights = sc.getArray("Weights")
 
-        val transform_ = getRequiredElement(sc, "Transform", element)
-        val transformLink_ = getRequiredElement(sc, "TransformLink", element)
+        val transform = getRequiredElement(sc, "Transform", element)
+        val transformLink = getRequiredElement(sc, "TransformLink", element)
 
-        transform = transform_.readMatrix()
-        transformLink = transformLink_.readMatrix()
+        this.transform = transform.readMatrix()
+        this.transformLink = transformLink.readMatrix()
 
         // it is actually possible that there be Deformer's with no weights
-        if (indexes.isNotEmpty() != weights.isNotEmpty()) domError("either Indexes or Weights are missing from Cluster", element)
+        if (loadedIndexes.isNotEmpty() != loadedWeights.isNotEmpty()) domError("either Indexes or Weights are missing from Cluster", element)
 
-        if (indexes.isNotEmpty()) {
-            indexes[0].parseIntsDataArray(indices)
-            weights[0].parseFloatsDataArray(this.weights)
+        if (loadedIndexes.isNotEmpty()) {
+            loadedIndexes[0].parseIntsDataArray(indices)
+            loadedWeights[0].parseFloatsDataArray(weights)
         }
 
         if (indices.size != weights.size) domError("sizes of index and weight array don't match up", element)
