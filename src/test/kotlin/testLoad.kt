@@ -17,5 +17,5 @@ fun main() {
 
 	println("path: ${file.absolutePath}")
 
-	Importer().readFile(file.absolutePath)
+	Importer().readFile(file.absolutePath)!!
 }

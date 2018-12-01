@@ -42,14 +42,14 @@ fun Structure.convertObject(dest: KMutableProperty0<Object?>) {
 	readFieldArray2(ErrorPolicy.Warn, d.obmat, "obmat")
 	readFieldArray2(ErrorPolicy.Warn, d.parentinv, "parentinv")
 	d.parSubstr = readFieldString(ErrorPolicy.Warn, "parsubstr")
-	readFieldPtr(ErrorPolicy.Warn, d::parent, "*parent")
-	readFieldPtr(ErrorPolicy.Warn, d::track, "*track")
-	readFieldPtr(ErrorPolicy.Warn, d::proxy, "*proxy")
-	readFieldPtr(ErrorPolicy.Warn, d::proxyFrom, "*proxy_from")
-	readFieldPtr(ErrorPolicy.Warn, d::proxyGroup, "*proxy_group")
-	readFieldPtr(ErrorPolicy.Warn, d::dupGroup, "*dup_group")
+	readFieldPtr(ErrorPolicy.Warn, d::parent, "*parent", false)
+	readFieldPtr(ErrorPolicy.Warn, d::track, "*track", false)
+	readFieldPtr(ErrorPolicy.Warn, d::proxy, "*proxy", false)
+	readFieldPtr(ErrorPolicy.Warn, d::proxyFrom, "*proxy_from", false)
+	readFieldPtr(ErrorPolicy.Warn, d::proxyGroup, "*proxy_group", false)
+	readFieldPtr(ErrorPolicy.Warn, d::dupGroup, "*dup_group", false)
 	isElem = true
-	readFieldPtr(ErrorPolicy.Fail, d::data, "*data")
+	readFieldPtr(ErrorPolicy.Fail, d::data, "*data", false)
 	readField(ErrorPolicy.Igno, d.modifiers, "modifiers")
 
 	db.reader.pos += size.i
@@ -61,7 +61,7 @@ fun Structure.convertGroup(dest: KMutableProperty0<Group?>) {
 
 	readField(ErrorPolicy.Fail, d.id, "id")
 	readField(ErrorPolicy.Igno, d::layer, "layer")
-	readFieldPtr(ErrorPolicy.Igno, d::gObject, "*gobject")
+	readFieldPtr(ErrorPolicy.Igno, d::gObject, "*gobject", false)
 
 	db.reader.pos += size.i
 }
@@ -74,8 +74,8 @@ fun Structure.convertMTex(dest: KMutableProperty0<MTex?>) {
 	d.mapTo = MTex.MapType.of(tempInt)
 	readField(ErrorPolicy.Igno, ::tempInt, "blendtype")
 	d.blendType = MTex.BlendType.of(tempInt)
-	readFieldPtr(ErrorPolicy.Igno, d::object_, "*object")
-	readFieldPtr(ErrorPolicy.Igno, d::tex, "*tex")
+	readFieldPtr(ErrorPolicy.Igno, d::object_, "*object", false)
+	readFieldPtr(ErrorPolicy.Igno, d::tex, "*tex", false)
 	d.uvName = readFieldString(ErrorPolicy.Igno, "uvname")
 	readField(ErrorPolicy.Igno, ::tempInt, "projx")
 	d.projX = MTex.Projection.of(tempInt)
@@ -195,7 +195,7 @@ fun Structure.convertPackedFile(dest: KMutableProperty0<PackedFile?>) {
 
 	readField(ErrorPolicy.Warn, d::size, "size")
 	readField(ErrorPolicy.Warn, d::seek, "seek")
-	readFieldPtr(ErrorPolicy.Warn, d::data, "*data")
+	readFieldPtr(ErrorPolicy.Warn, d::data, "*data", false)
 
 	db.reader.pos += size.i
 }
@@ -218,11 +218,11 @@ fun Structure.convertBase(dest: KMutableProperty0<Base?>) {
 			so don't bother resolving the back links.             */
 		curDest.prev = null
 
-		readFieldPtr(ErrorPolicy.Warn, curDest::obj, "*object")
+		readFieldPtr(ErrorPolicy.Warn, curDest::obj, "*object", false)
 
 		/*  the return value of ReadFieldPtr indicates whether the object was already cached.
 			In this case, we don't need to resolve it again.    */
-		if (!readFieldPtr(ErrorPolicy.Warn, curDest::next, "*next", true) && curDest.next != null) {
+		if (!readFieldPtr(ErrorPolicy.Warn, curDest::next, "*next", false, true) && curDest.next != null) {
 			todo = (curDest.next ?: Base().also { curDest.next = it }) to db.reader.pos
 			continue
 		}
@@ -271,7 +271,7 @@ fun Structure.convertMaterial(dest: KMutableProperty0<Material?>) {
 	readField(ErrorPolicy.Igno, d::roughness, "roughness")
 	readField(ErrorPolicy.Igno, d::darkness, "darkness")
 	readField(ErrorPolicy.Igno, d::refrac, "refrac")
-	readFieldPtr(ErrorPolicy.Igno, d::group, "*group")
+	readFieldPtr(ErrorPolicy.Igno, d::group, "*group", false)
 	readField(ErrorPolicy.Warn, d::diffShader, "diff_shader")
 	readField(ErrorPolicy.Warn, d::specShader, "spec_shader")
 	readFieldPtr(ErrorPolicy.Igno, d.mTex, "*mtex")
@@ -366,7 +366,7 @@ fun Structure.convertMaterial(dest: KMutableProperty0<Material?>) {
 fun Structure.convertMTexPoly(dest: KMutableProperty0<MTexPoly?>) {
 	val d = dest.setIfNull(MTexPoly())
 
-	readFieldPtr(ErrorPolicy.Igno, d::tpage, "*tpage")
+	readFieldPtr(ErrorPolicy.Igno, d::tpage, "*tpage", false)
 	readField(ErrorPolicy.Igno, d::flag, "flag")
 	readField(ErrorPolicy.Igno, d::transp, "transp")
 	readField(ErrorPolicy.Igno, d::mode, "mode")
@@ -391,18 +391,18 @@ fun Structure.convertMesh(dest: KMutableProperty0<Mesh?>) {
 	readField(ErrorPolicy.Igno, d::subsurftype, "subsurftype")
 	readField(ErrorPolicy.Igno, d::subsurftype, "subsurftype")
 	readField(ErrorPolicy.Igno, d::smoothresh, "smoothresh")
-	readFieldPtr(ErrorPolicy.Fail, d::mface, "*mface")
-	readFieldPtr(ErrorPolicy.Igno, d::mtface, "*mtface")
-	readFieldPtr(ErrorPolicy.Igno, d::tface, "*tface")
-	readFieldPtr(ErrorPolicy.Fail, d::mvert, "*mvert")
-	readFieldPtr(ErrorPolicy.Warn, d::medge, "*medge")
-	readFieldPtr(ErrorPolicy.Igno, d::mloop, "*mloop")
-	readFieldPtr(ErrorPolicy.Igno, d::mloopuv, "*mloopuv")
-	readFieldPtr(ErrorPolicy.Igno, d::mloopcol, "*mloopcol")
-	readFieldPtr(ErrorPolicy.Igno, d::mpoly, "*mpoly")
-	readFieldPtr(ErrorPolicy.Igno, d::mtpoly, "*mtpoly")
-	readFieldPtr(ErrorPolicy.Igno, d::dvert, "*dvert")
-	readFieldPtr(ErrorPolicy.Igno, d::mcol, "*mcol")
+	readFieldPtr(ErrorPolicy.Fail, d::mface, "*mface", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mtface, "*mtface", true)
+	readFieldPtr(ErrorPolicy.Igno, d::tface, "*tface", true)
+	readFieldPtr(ErrorPolicy.Fail, d::mvert, "*mvert", true)
+	readFieldPtr(ErrorPolicy.Warn, d::medge, "*medge", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mloop, "*mloop", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mloopuv, "*mloopuv", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mloopcol, "*mloopcol", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mpoly, "*mpoly", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mtpoly, "*mtpoly", true)
+	readFieldPtr(ErrorPolicy.Igno, d::dvert, "*dvert", true)
+	readFieldPtr(ErrorPolicy.Igno, d::mcol, "*mcol", true)
 	readFieldPtrList(ErrorPolicy.Fail, d::mat, "**mat")
 
 	readField(ErrorPolicy.Igno, d.vdata, "vdata")
@@ -418,7 +418,7 @@ fun Structure.convertMDeformVert(dest: KMutableProperty0<MDeformVert?>) {
 
 	val d = dest.setIfNull(MDeformVert())
 
-	readFieldPtr(ErrorPolicy.Warn, d::dw, "*dw")
+	readFieldPtr(ErrorPolicy.Warn, d::dw, "*dw", true)
 	readField(ErrorPolicy.Igno, d::totWeight, "totweight")
 
 	db.reader.pos += size.i
@@ -484,9 +484,9 @@ fun Structure.convertGroupObject(dest: KMutableProperty0<GroupObject?>) {
 
 	val d = dest.setIfNull(GroupObject())
 
-	readFieldPtr(ErrorPolicy.Fail, d::prev, "*prev")
-	readFieldPtr(ErrorPolicy.Fail, d::next, "*next")
-	readFieldPtr(ErrorPolicy.Igno, d::ob, "*ob")
+	readFieldPtr(ErrorPolicy.Fail, d::prev, "*prev", false)
+	readFieldPtr(ErrorPolicy.Fail, d::next, "*next", false)
+	readFieldPtr(ErrorPolicy.Igno, d::ob, "*ob", false)
 
 	db.reader.pos += size.i
 }
@@ -495,9 +495,9 @@ fun Structure.convertGroupObject(dest: KMutableProperty0<GroupObject?>) {
 fun Structure.convert(dest: ListBase) {
 
 	isElem = true
-	readFieldPtr(ErrorPolicy.Igno, dest::first, "*first")
+	readFieldPtr(ErrorPolicy.Igno, dest::first, "*first", false)
 	isElem = true
-	readFieldPtr(ErrorPolicy.Igno, dest::last, "*last")
+	readFieldPtr(ErrorPolicy.Igno, dest::last, "*last", false)
 
 	db.reader.pos += size.i
 }
@@ -518,8 +518,8 @@ fun Structure.convertMLoop(dest: KMutableProperty0<MLoop?>) {
 
 fun Structure.convert(data: ModifierData) {
 
-	readFieldPtr(ErrorPolicy.Warn, data::next, "*next")
-	readFieldPtr(ErrorPolicy.Warn, data::prev, "*prev")
+	readFieldPtr(ErrorPolicy.Warn, data::next, "*next", false)
+	readFieldPtr(ErrorPolicy.Warn, data::prev, "*prev", false)
 	readField(ErrorPolicy.Igno, data::type, "type")
 	readField(ErrorPolicy.Igno, data::mode, "mode")
 	data.name = readFieldString(ErrorPolicy.Igno, "name")
@@ -572,9 +572,9 @@ fun Structure.convertMPoly(dest: KMutableProperty0<MPoly?>) {
 fun Structure.convert(dest: Scene) {
 
 	readField(ErrorPolicy.Fail, dest.id, "id")
-	readFieldPtr(ErrorPolicy.Warn, dest::camera, "*camera")
-	readFieldPtr(ErrorPolicy.Warn, dest::world, "*world")
-	readFieldPtr(ErrorPolicy.Warn, dest::basact, "*basact")
+	readFieldPtr(ErrorPolicy.Warn, dest::camera, "*camera", false)
+	readFieldPtr(ErrorPolicy.Warn, dest::world, "*world", false)
+	readFieldPtr(ErrorPolicy.Warn, dest::basact, "*basact", false)
 	readField(ErrorPolicy.Igno, dest.base, "base")
 
 	db.reader.pos += size.i
@@ -593,7 +593,7 @@ fun Structure.convertLibrary(dest: KMutableProperty0<Library?>) {
 	readField(ErrorPolicy.Fail, d.id, "id")
 	d.name = readFieldString(ErrorPolicy.Warn, "name")
 	d.filename = readFieldString(ErrorPolicy.Fail, "filename")
-	readFieldPtr(ErrorPolicy.Warn, d::parent, "*parent")
+	readFieldPtr(ErrorPolicy.Warn, d::parent, "*parent", false)
 
 	db.reader.pos += size.i
 }
@@ -607,7 +607,7 @@ fun Structure.convertTex(dest: KMutableProperty0<Tex?>) {
 	readField(ErrorPolicy.Igno, d::imaFlag, "imaflag")
 	readField(ErrorPolicy.Fail, ::tempInt, "type")
 	d.type = Tex.Type.of(tempInt)
-	readFieldPtr(ErrorPolicy.Warn, d::ima, "*ima")
+	readFieldPtr(ErrorPolicy.Warn, d::ima, "*ima", false)
 
 	db.reader.pos += size.i
 }
@@ -636,7 +636,7 @@ fun Structure.convertMirrorModifierData(dest: KMutableProperty0<MirrorModifierDa
 	readField(ErrorPolicy.Igno, d::axis, "axis")
 	readField(ErrorPolicy.Igno, d::flag, "flag")
 	readField(ErrorPolicy.Igno, d::tolerance, "tolerance")
-	readFieldPtr(ErrorPolicy.Igno, d::mirrorOb, "*mirror_ob")
+	readFieldPtr(ErrorPolicy.Igno, d::mirrorOb, "*mirror_ob", false)
 
 	db.reader.pos += size.i
 }
@@ -660,7 +660,7 @@ fun Structure.convertImage(dest: KMutableProperty0<Image?>) {
 	readField(ErrorPolicy.Igno, d::yRep, "yrep")
 	readField(ErrorPolicy.Igno, d::twsta, "twsta")
 	readField(ErrorPolicy.Igno, d::twend, "twend")
-	readFieldPtr(ErrorPolicy.Igno, d::packedfile, "*packedfile")
+	readFieldPtr(ErrorPolicy.Igno, d::packedfile, "*packedfile", false)
 	readField(ErrorPolicy.Igno, d::lastUpdate, "lastupdate")
 	readField(ErrorPolicy.Igno, d::lastUsed, "lastused")
 	readField(ErrorPolicy.Igno, d::animSpeed, "animspeed")

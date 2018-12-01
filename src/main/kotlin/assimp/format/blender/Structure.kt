@@ -245,7 +245,7 @@ class Structure (val db: FileDatabase) {
             f = get(name)
 
             // sanity check, should never happen if the genblenddna script is right
-            if (f.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
+            if (f.flags hasnt FieldFlag.Pointer) throw Exception("Field `$name` of structure `${this.name}` ought to be a pointer")
 
             db.reader.pos += f.offset.i
 
@@ -270,9 +270,9 @@ class Structure (val db: FileDatabase) {
 
     /** field parsing for pointer or dynamic array types (std::shared_ptr)
      *  The return value indicates whether the data was already cached. */
-    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, nonRecursive: Boolean = false): Boolean =
+    fun <T> readFieldPtr(errorPolicy: Ep, out: KMutableProperty0<T?>, name: String, targetIsList: Boolean = false, nonRecursive: Boolean = false): Boolean =
             readFieldPtrPrivate(errorPolicy, out, name, nonRecursive) { ep, o, ptrVal, field, nonRec ->
-                resolvePtr(ep, o, ptrVal, field, nonRec)
+                resolvePtr(ep, o, ptrVal, field, targetIsList, nonRec)
             }
 
     fun <T> readFieldPtrList(errorPolicy: Ep, out: KMutableProperty0<List<T>?>, name: String, nonRecursive: Boolean = false): Boolean =
@@ -395,7 +395,7 @@ class Structure (val db: FileDatabase) {
         val oldTempAny = tempAny
         for (i in 0 until out.size) {
             // resolve the pointer and load the corresponding structure
-            res = resolvePtr(errorPolicy, ::tempAny, ptrval[i], field) && res
+            res = resolvePtr(errorPolicy, ::tempAny, ptrval[i], field, false) && res
         }
         tempAny = oldTempAny
 
@@ -466,15 +466,15 @@ class Structure (val db: FileDatabase) {
 	}
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> resolvePtr(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false) = when {  // TODO T: ElemBase ???
+    fun <T> resolvePtr(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, targetIsList: Boolean, nonRecursive: Boolean = false) = when {  // TODO T: ElemBase ???
         f.type == "ElemBase" || isElem -> resolvePointer(errorPolicy, out as KMutableProperty0<ElemBase?>, ptrVal)
-        else -> resolvePointer(errorPolicy, out, ptrVal, f, nonRecursive)
+        else -> resolvePointer(errorPolicy, out, ptrVal, f, targetIsList, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
 //        else -> throw Error()
     }
 
 
-    fun <T> resolvePointer(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, nonRecursive: Boolean = false): Boolean {   // TODO T: ElemBase ???
+    fun <T> resolvePointer(errorPolicy: Ep, out: KMutableProperty0<T?>, ptrVal: Long, f: Field, targetIsList: Boolean, nonRecursive: Boolean = false): Boolean {   // TODO T: ElemBase ???
 
         out.set(null) // ensure null pointers work
         if (ptrVal == 0L) return false
@@ -505,7 +505,7 @@ class Structure (val db: FileDatabase) {
         }
 
         val num = block.size / ss.size.i
-        if (num > 1) {
+        if (targetIsList) {
 
             val list = MutableList<ElemBase?>(num) { constructor() }
 
@@ -528,6 +528,11 @@ class Structure (val db: FileDatabase) {
                 db.reader.pos = pOld
             }
         } else {
+
+	        if(num != 1) {
+		        error(errorPolicy, out, "Expected to write only a single value for '${f.type}' but got a block with multiple entries!")
+		        return false
+	        }
 
             @Suppress("UNCHECKED_CAST")
             out.set(constructor() as T)
@@ -642,7 +647,7 @@ class Structure (val db: FileDatabase) {
         val oldTempAny = tempAny
         out.set(MutableList(num) {
             val ptr = convertPointer()
-            res = resolvePtr(errorPolicy, ::tempAny, ptr, field) && res
+            res = resolvePtr(errorPolicy, ::tempAny, ptr, field, targetIsList = false) && res   // TODO check targetIsList is always false
             @Suppress("UNCHECKED_CAST")
 
             tempAny as T
@@ -662,9 +667,12 @@ class Structure (val db: FileDatabase) {
             NOTE: Blender seems to distinguish between side-by-side data (stored in the same data block) and far pointers,
             which are only used for structures starting with an ID.
             We don't need to make this distinction, our algorithm works regardless where the data is stored.    */
-        val it = db.entries.firstOrNull { it.address >= ptrVal } ?:
-        /*  This is crucial, pointers may not be invalid. This is either a corrupted file or an attempted attack.   */
-        throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, no file block falls into this address range")
+        val it = db.entries.firstOrNull { it.address >= ptrVal } ?: run {
+	        /*  This is crucial, pointers may not be invalid. This is either a corrupted file or an attempted attack.   */
+	        val last = db.entries.maxBy { it.address }!!
+	        throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, no file block falls into this address range. " +
+	                    "The last block starts at 0x${last.address.toHexString} and ends at 0x${(last.address + last.size).toHexString}")
+        }
         if (ptrVal >= it.address + it.size)
             throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, nearest file block starting at " +
                     "0x${it.address.toHexString} ends at 0x${(it.address + it.size).toHexString}")
