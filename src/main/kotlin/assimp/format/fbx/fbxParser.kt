@@ -147,7 +147,7 @@ class Element(val keyToken: Token, parser: Parser) {
         AiVector2D::class -> parseVec2DataArray(out as ArrayList<AiVector2D>)
         AiVector3D::class -> parseVec3DataArray(out as ArrayList<AiVector3D>)
         AiColor4D::class  -> TODO()
-        else              -> throw Error("Got reified type ${T::class.java.simpleName} instead of a valid vector type")
+        else              -> throw Exception("Got reified type ${T::class.java.simpleName} instead of a valid vector type")
     }
 
     /** read an array of floats */
@@ -407,7 +407,7 @@ class Element(val keyToken: Token, parser: Parser) {
         val stride = when (type) {
             'f', 'i' -> Float.BYTES
             'd', 'l' -> Double.BYTES
-            else -> throw Error()
+            else -> throw Exception()
         }
 
         val fullLength = stride * count
@@ -427,7 +427,7 @@ class Element(val keyToken: Token, parser: Parser) {
             for (i in 0 until resultLength)
                 buff[i] = result[i]
         } else // runtime check for this happens at tokenization stage
-            if (DEBUG) throw Error()
+            if (DEBUG) throw Exception()
 
         begin.set(begin() + compLen)
         assert(begin() == end)
@@ -511,11 +511,11 @@ constructor(val tokens: ArrayList<Token>, val isBinary: Boolean) {
 /** signal parse error, this is always unrecoverable. Throws Error. */
 fun parseError(message: String, element: Element? = null): Nothing {
     element?.let { parseError(message, it.keyToken) }
-    throw Error("FBX-Parser $message")
+    throw Exception("FBX-Parser $message")
 }
 
 fun parseError(message: String, token: Token?): Nothing {
-    token?.let { throw Error(Util.addTokenText("FBX-Parser", message, token)) }
+    token?.let { throw Exception(Util.addTokenText("FBX-Parser", message, token)) }
     parseError(message)
 }
 

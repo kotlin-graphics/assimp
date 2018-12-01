@@ -240,7 +240,7 @@ class Token(
  *
  * @param outputTokens Receives a list of all tokens in the input data.
  * @param chars Textual input buffer to be processed, 0-terminated.
- * @throw Error if something goes wrong */
+ * @throw Exception if something goes wrong */
 fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
 
 //    assert(input.isNotEmpty())  // TODO
@@ -344,7 +344,7 @@ private var tokenBegin = -1
 private var tokenEnd = -1
 
 /** signal tokenization error, this is always unrecoverable. Throws Error.  */
-fun tokenizeError(message: String, line: Int, column: Int): Nothing = throw Error(Util.addLineAndColumn("FBX-Tokenize", message, line, column))
+fun tokenizeError(message: String, line: Int, column: Int): Nothing = throw Exception(Util.addLineAndColumn("FBX-Tokenize", message, line, column))
 
 
 //    /** Tokenizer function for binary FBX files.

@@ -101,15 +101,15 @@ object MD3 {
         /** Validate offsets in the header     */
         fun validateOffsets(fileSize: Int, configFrameID: Int) {
             // Check magic number
-            if (ident != MAGIC_NUMBER_BE && ident != MAGIC_NUMBER_LE) throw Error("Invalid MD3 file: Magic bytes not found")
+            if (ident != MAGIC_NUMBER_BE && ident != MAGIC_NUMBER_LE) throw Exception("Invalid MD3 file: Magic bytes not found")
             // Check file format version
             if (version > 15) logger.warn { "Unsupported MD3 file version. Continuing happily ..." }
             // Check some offset values whether they are valid
-            if (numSurfaces == 0) throw Error("Invalid md3 file: NUM_SURFACES is 0")
-            if (ofsFrames >= fileSize || ofsSurfaces >= fileSize || ofsEof > fileSize) throw Error("Invalid MD3 header: some offsets are outside the file")
-            if (numSurfaces > AI_MAX_ALLOC(MD3.Surface.size)) throw Error("Invalid MD3 header: too many surfaces, would overflow")
-            if (ofsSurfaces + numSurfaces * MD3.Surface.size >= fileSize) throw Error("Invalid MD3 header: some surfaces are outside the file")
-            if (numFrames <= configFrameID) throw Error("The requested frame is not existing the file")
+            if (numSurfaces == 0) throw Exception("Invalid md3 file: NUM_SURFACES is 0")
+            if (ofsFrames >= fileSize || ofsSurfaces >= fileSize || ofsEof > fileSize) throw Exception("Invalid MD3 header: some offsets are outside the file")
+            if (numSurfaces > AI_MAX_ALLOC(MD3.Surface.size)) throw Exception("Invalid MD3 header: too many surfaces, would overflow")
+            if (ofsSurfaces + numSurfaces * MD3.Surface.size >= fileSize) throw Exception("Invalid MD3 header: some surfaces are outside the file")
+            if (numFrames <= configFrameID) throw Exception("The requested frame is not existing the file")
         }
 
         companion object {
@@ -175,7 +175,7 @@ object MD3 {
                     ofsShaders + ofs + numShader * MD3.Shader.size > fileSize ||
                     ofsSt + ofs + numVertices * MD3.TexCoord.size > fileSize ||
                     ofsXyzNormal + ofs + numVertices * MD3.Vertex.size > fileSize)
-                throw Error("Invalid MD3 surface header: some offsets are outside the file")
+                throw Exception("Invalid MD3 surface header: some offsets are outside the file")
             // Check whether all requirements for Q3 files are met. We don't care, but probably someone does.
             if (numTriangles > MAX_TRIANGLES) logger.warn { "MD3: Quake III triangle limit exceeded" }
             if (numShader > MAX_SHADERS) logger.warn { "MD3: Quake III shader limit exceeded" }

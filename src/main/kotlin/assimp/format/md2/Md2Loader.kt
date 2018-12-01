@@ -112,7 +112,7 @@ class Md2Importer : BaseImporter() {
 
         // check whether the md3 file is large enough to contain at least the file header
         fileSize = stream.length.i
-        if (fileSize < MD2.Header.size) throw Error("MD2 File is too small")
+        if (fileSize < MD2.Header.size) throw Exception("MD2 File is too small")
 
         val buffer = stream.readBytes()
 

@@ -111,7 +111,7 @@ class ValidateDSProcess : BaseProcess() {
 
     /** Report a validation error. This will throw an exception, control won't return.
      *  @param msg Format string for sprintf().*/
-    fun reportError(msg: String, vararg args: Array<out Any?>): Nothing = throw Error("Validation failed: $msg $args")
+    fun reportError(msg: String, vararg args: Array<out Any?>): Nothing = throw Exception("Validation failed: $msg $args")
 
     /** Report a validation warning. This won't throw an exception, control will return to the caller.
      * @param msg Format string for sprintf().*/

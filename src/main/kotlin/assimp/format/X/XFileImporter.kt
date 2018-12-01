@@ -30,7 +30,7 @@ class XFileImporter : BaseImporter() {
         // Get the file-size and validate it, throwing an exception when fails
 	    val fileSize = bytes.size
 
-        if (fileSize < 16) throw Error("XFile is too small.")
+        if (fileSize < 16) throw Exception("XFile is too small.")
 
         mBuffer = Pointer<Char>(Array<Char>(bytes.size, { i -> bytes[i].toChar() })) //Assuming every byte is a char.
         // parse the file into a temporary representation
@@ -40,7 +40,7 @@ class XFileImporter : BaseImporter() {
         CreateDataRepresentationFromImport(scene, parser.mScene)
 
         if (scene.rootNode == null) // TODO do we need some other kind of check here instead? This is never true
-            throw Error("XFile is ill-formatted - no content imported.")
+            throw Exception("XFile is ill-formatted - no content imported.")
     }
 
     fun CreateDataRepresentationFromImport(pScene: AiScene, pData: Scene) {

@@ -115,7 +115,7 @@ class StlImporter : BaseImporter() {
             bMatClr = loadBinaryFile()
         else if (isAsciiSTL(mBuffer, fileSize))
             loadASCIIFile()
-        else throw Error("Failed to determine STL storage representation for $file.")
+        else throw Exception("Failed to determine STL storage representation for $file.")
 
         // add all created meshes to the single node
         scene.rootNode.numMeshes = scene.numMeshes
@@ -153,7 +153,7 @@ class StlImporter : BaseImporter() {
         pMesh.materialIndex = 0
 
         // skip the first 80 bytes
-        if (fileSize < 84) throw Error("STL: file is too small for the header")
+        if (fileSize < 84) throw Exception("STL: file is too small for the header")
 
         var bIsMaterialise = false
 
@@ -181,9 +181,9 @@ class StlImporter : BaseImporter() {
         pMesh.numFaces = mBuffer.getInt(sz)
         sz += 4
 
-        if (fileSize < 84 + pMesh.numFaces * 50) throw Error("STL: file is too small to hold all facets")
+        if (fileSize < 84 + pMesh.numFaces * 50) throw Exception("STL: file is too small to hold all facets")
 
-        if (pMesh.numFaces == 0) throw Error("STL: file is empty. There are no facets defined")
+        if (pMesh.numFaces == 0) throw Exception("STL: file is empty. There are no facets defined")
 
         pMesh.numVertices = pMesh.numFaces * 3
 
@@ -263,7 +263,7 @@ class StlImporter : BaseImporter() {
 
         // setup the name of the node
         if (!buffer[0].isNewLine) {
-            if (words[0].length >= MAXLEN) throw Error("STL: Node name too long")
+            if (words[0].length >= MAXLEN) throw Exception("STL: Node name too long")
             pScene.rootNode.name = words[0]
         } else pScene.rootNode.name = "<STL_ASCII>"
 
@@ -296,7 +296,7 @@ class StlImporter : BaseImporter() {
                         normalBuffer.add(AiVector3D(vn))
                         normalBuffer.add(AiVector3D(vn))
                     } catch (exc: NumberFormatException) {
-                        throw Error("STL: unexpected EOF while parsing facet")
+                        throw Exception("STL: unexpected EOF while parsing facet")
                     }
                 }
             } else if (word == "vertex") {
@@ -313,7 +313,7 @@ class StlImporter : BaseImporter() {
                         positionBuffer.add(vn)
                         faceVertexCounter++
                     } catch (exc: NumberFormatException) {
-                        throw Error("STL: unexpected EOF while parsing facet")
+                        throw Exception("STL: unexpected EOF while parsing facet")
                     }
                 }
             }
@@ -325,15 +325,15 @@ class StlImporter : BaseImporter() {
 
         if (positionBuffer.isEmpty()) {
             pMesh.numFaces = 0
-            throw Error("STL: ASCII file is empty or invalid; no data loaded")
+            throw Exception("STL: ASCII file is empty or invalid; no data loaded")
         }
         if (positionBuffer.size % 3 != 0) {
             pMesh.numFaces = 0
-            throw Error("STL: Invalid number of vertices")
+            throw Exception("STL: Invalid number of vertices")
         }
         if (normalBuffer.size != positionBuffer.size) {
             pMesh.numFaces = 0
-            throw Error("Normal buffer size does not match position buffer size")
+            throw Exception("Normal buffer size does not match position buffer size")
         }
         pMesh.numFaces = positionBuffer.size / 3
         pMesh.numVertices = positionBuffer.size

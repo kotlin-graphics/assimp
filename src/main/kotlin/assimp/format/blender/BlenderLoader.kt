@@ -85,7 +85,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).order(ByteOrder.nativeOrder())
             // .. and retry
             match = buffer.strncmp(tokens)
-            if (!match) throw Error("Found no BLENDER magic word in decompressed GZIP file")
+            if (!match) throw Exception("Found no BLENDER magic word in decompressed GZIP file")
         }
 	    buffer.pos += tokens.length
 
@@ -132,14 +132,14 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
             out.entries += head
         }
-        if (dna == null) throw Error("SDNA not found")
+        if (dna == null) throw Exception("SDNA not found")
 
         out.entries.sort()
     }
 
     private fun extractScene(file: FileDatabase): Scene {
 
-        val sceneIndex = file.dna.indices["Scene"] ?: throw Error("There is no `Scene` structure record")
+        val sceneIndex = file.dna.indices["Scene"] ?: throw Exception("There is no `Scene` structure record")
 
         val ss = file.dna.structures[sceneIndex]
 
@@ -148,7 +148,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		    // Fix: using the DNA index is more reliable to locate scenes
 		    //if (bl.id == "SC") {
 		    it.dnaIndex == sceneIndex
-	    } ?: throw Error("There is not a single `Scene` record to load")
+	    } ?: throw Exception("There is not a single `Scene` record to load")
 
 	    file.reader.pos = block.start
 
@@ -195,7 +195,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 		}
 
 		if(noParents.isEmpty()){
-			throw Error("Expected at least one object with no parent")
+			throw Exception("Expected at least one object with no parent")
 		}
 
 		out.rootNode = AiNode("<BlenderRoot>")
@@ -302,7 +302,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 				Object.Type.MBALL   -> notSupportedObjectType(obj, "Mball")
 				Object.Type.WAVE    -> notSupportedObjectType(obj, "Wave")
 				Object.Type.LATTICE -> notSupportedObjectType(obj, "Lattice")
-				else -> throw Error("When should be exhaustive")
+				else -> throw Exception("When should be exhaustive")
 			}
 			Unit // return Unit from let explicitly so that when and the contained if statements don't need to be exhaustive
 		}
@@ -862,6 +862,6 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
 
 fun error(policy: ErrorPolicy, value: Any?, message: String?): Unit = when(policy) {
     ErrorPolicy.Warn -> logger.warn { "value: $value, $message" }
-    ErrorPolicy.Fail -> throw Error( "value: $value, $message" )
+    ErrorPolicy.Fail -> throw Exception( "value: $value, $message" )
     ErrorPolicy.Igno -> if (ASSIMP.BLENDER_DEBUG) logger.info { "value: $value, $message" } else Unit
 }

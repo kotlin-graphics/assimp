@@ -363,7 +363,7 @@ class MD5Parser(val lines: ArrayList<String>) {
         /** Report a specific error message and throw an exception
          *  @param error Error message to be reported
          *  @param line Index of the line where the error occurred     */
-        fun reportError(error: String, line: Int): Nothing = throw Error("[MD5] Line $line: $error")
+        fun reportError(error: String, line: Int): Nothing = throw Exception("[MD5] Line $line: $error")
 
         /** Report a specific warning
          *  @param warn Warn message to be reported

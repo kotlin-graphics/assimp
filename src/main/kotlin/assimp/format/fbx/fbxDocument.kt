@@ -146,7 +146,7 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
             // note: the error message is already formatted, so raw logging is ok
             logger.error(ex.toString())
 
-            if (dieOnError || doc.settings.strictMode) throw Error()
+            if (dieOnError || doc.settings.strictMode) throw Exception()
         }
 
         if (object_ == null) {
@@ -667,7 +667,7 @@ class AnimationCurveNode(id: Long, element: Element, name: String, val doc: Docu
                     }
                 }
 
-                if (!ok) throw Error("AnimationCurveNode target property is not in whitelist") // TODO handle better std::range_error?
+                if (!ok) throw Exception("AnimationCurveNode target property is not in whitelist") // TODO handle better std::range_error?
             }
 
             val ob = con.destinationObject

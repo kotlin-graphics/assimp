@@ -215,12 +215,12 @@ class DNA {
     /** Access a structure by its canonical name, the pointer version returns NULL on failure while the reference
      *  version raises an error. */
     operator fun get(ss: String): Structure {
-        val index = indices[ss] ?: throw Error("BlendDNA: Did not find a structure named `$ss`")
+        val index = indices[ss] ?: throw Exception("BlendDNA: Did not find a structure named `$ss`")
         return get(index)
     }
 
     /** Access a structure by its index */
-    operator fun get(i: Int): Structure = structures.getOrElse(i) { throw Error("BlendDNA: There is no structure with index `$i`") }
+    operator fun get(i: Int): Structure = structures.getOrElse(i) { throw Exception("BlendDNA: There is no structure with index `$i`") }
 
     /** Add structure definitions for all the primitive types, i.e. integer, short, char, float */
     fun addPrimitiveStructures(db: FileDatabase) {
@@ -392,7 +392,7 @@ class SectionParser(val stream: ByteBuffer, val ptr64: Boolean) {
 	    }
 
         if (stream.limit() - stream.pos < current.size)
-            throw Error("BLEND: invalid size of file block")
+            throw Exception("BLEND: invalid size of file block")
     }
 }
 
@@ -496,15 +496,15 @@ class DnaParser(
 
         val stream = db.reader
 
-        if (stream doesntMatch "SDNA") throw Error("BlenderDNA: Expected SDNA chunk")
+        if (stream doesntMatch "SDNA") throw Exception("BlenderDNA: Expected SDNA chunk")
         // name dictionary
-        if (stream doesntMatch "NAME") throw Error("BlenderDNA: Expected NAME field")
+        if (stream doesntMatch "NAME") throw Exception("BlenderDNA: Expected NAME field")
 
         val names = Array(stream.int) { stream.nextWord().also { stream.consumeNUL() } }
 
         // type dictionary
         while (((stream.pos - 12) and 0x3) != 0) stream.get()
-        if (stream doesntMatch "TYPE") throw Error("BlenderDNA: Expected TYPE field")
+        if (stream doesntMatch "TYPE") throw Exception("BlenderDNA: Expected TYPE field")
 
         val types = Array(stream.int) {
             Type().apply {
@@ -514,13 +514,13 @@ class DnaParser(
 
         // type length dictionary
         while (((stream.pos - 12) and 0x3) != 0) stream.get()
-        if (stream doesntMatch "TLEN") throw Error("BlenderDNA: Expected TLEN field")
+        if (stream doesntMatch "TLEN") throw Exception("BlenderDNA: Expected TLEN field")
 
         for (s in types) s.size = stream.short.L
 
         // structures dictionary
         while (((stream.pos - 12) and 0x3) != 0) stream.get()
-        if (stream doesntMatch "STRC") throw Error("BlenderDNA: Expected STRC field")
+        if (stream doesntMatch "STRC") throw Exception("BlenderDNA: Expected STRC field")
 
         val end = stream.int
         var fields = 0
@@ -529,7 +529,7 @@ class DnaParser(
         for (i in 0 until end) {
 
             val structureTypeIndex = stream.short.i
-            if (structureTypeIndex >= types.size) throw Error("BlenderDNA: Invalid type index in structure name $structureTypeIndex (there are only ${types.size} entries)")
+            if (structureTypeIndex >= types.size) throw Exception("BlenderDNA: Invalid type index in structure name $structureTypeIndex (there are only ${types.size} entries)")
 
             // maintain separate indexes
             dna.indices[types[structureTypeIndex].name] = dna.structures.size
@@ -545,7 +545,7 @@ class DnaParser(
             for (fieldIndex in 0 until fieldCount) {
 
                 var fieldTypeIndex = stream.short.i
-                if (fieldTypeIndex >= types.size) throw Error("BlenderDNA: Invalid type index in structure field $fieldTypeIndex (there are only ${types.size} entries)")
+                if (fieldTypeIndex >= types.size) throw Exception("BlenderDNA: Invalid type index in structure field $fieldTypeIndex (there are only ${types.size} entries)")
 
                 val f = Field()
                 s.fields += f
@@ -555,7 +555,7 @@ class DnaParser(
                 f.size = types[fieldTypeIndex].size
 
                 fieldTypeIndex = stream.short.i
-                if (fieldTypeIndex >= names.size) throw Error("BlenderDNA: Invalid name index in structure field $fieldTypeIndex (there are only ${names.size} entries)")
+                if (fieldTypeIndex >= names.size) throw Exception("BlenderDNA: Invalid name index in structure field $fieldTypeIndex (there are only ${names.size} entries)")
 
                 f.name = names[fieldTypeIndex]
                 f.flags = 0
@@ -573,7 +573,7 @@ class DnaParser(
                     (if our size does not match the size read from the DNA).    */
                 if (f.name.contains(']')) {
                     val rb = f.name.indexOf('[')
-                    if (rb == -1) throw Error("BlenderDNA: Encountered invalid array declaration ${f.name}")
+                    if (rb == -1) throw Exception("BlenderDNA: Encountered invalid array declaration ${f.name}")
 
                     f.flags = f.flags or FieldFlag.Array
                     DNA.extractArraySize(f.name, f.arraySizes)

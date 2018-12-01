@@ -305,7 +305,7 @@ class Converter(val out: AiScene, val doc: Document) {
                     logger.warn("cannot represent volume light, set to UNDEFINED")
                     AiLightSourceType.UNDEFINED
                 }
-                else -> throw Error()
+                else -> throw Exception()
             }
 
             val decay = light.decayStart
@@ -330,7 +330,7 @@ class Converter(val out: AiScene, val doc: Document) {
                     logger.warn("cannot represent cubic attenuation, set to Quadratic")
                     attenuationQuadratic = 1f
                 }
-                else -> throw Error()
+                else -> throw Exception()
             }
         }
     }
@@ -414,7 +414,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 order[1] = 1
                 order[2] = 2
             }
-            else -> throw Error()
+            else -> throw Exception()
         }
 
         assert(order[0] in 0..2)
@@ -1729,7 +1729,7 @@ class Converter(val out: AiScene, val doc: Document) {
 
                     Tc.Scaling, Tc.GeometricScaling -> na = generateScalingNodeAnim(chainName, target, chain[i], layerMap, start, stop, minMaxTime)
 
-                    else -> throw Error()
+                    else -> throw Exception()
                 }
 
                 if (na.numPositionKeys != 0 || na.numRotationKeys != 0 || na.numScalingKeys != 0)

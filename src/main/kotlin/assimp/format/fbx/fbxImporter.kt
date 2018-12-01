@@ -137,7 +137,7 @@ class FbxImporter : BaseImporter() {
 //        }
 //        catch(exc: Exception) {
 ////            std::for_each(tokens.begin(),tokens.end(),Util::delete_fun<Token>());
-//            throw Error(exc.toString())
+//            throw Exception(exc.toString())
 //        }
     }
 }

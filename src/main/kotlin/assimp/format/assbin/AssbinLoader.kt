@@ -36,7 +36,7 @@ class AssbinLoader : BaseImporter() {
             shortened = it.short(be).bool
             compressed = it.short(be).bool
 
-            if (shortened) throw Error("Shortened binaries are not supported!")
+            if (shortened) throw Exception("Shortened binaries are not supported!")
 
             it.skip(256)    // original filename
             it.skip(128)    // options

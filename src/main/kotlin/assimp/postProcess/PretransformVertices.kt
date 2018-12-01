@@ -170,7 +170,7 @@ class PretransformVertices : BaseProcess() {
 
             // If no meshes are referenced in the node graph it is possible that we get no output meshes.
             if (outMeshes.isEmpty())
-                throw Error("No output meshes: all meshes are orphaned and are not referenced by any nodes")
+                throw Exception("No output meshes: all meshes are orphaned and are not referenced by any nodes")
             else {
                 // now delete all meshes in the scene and build a new mesh list
                 for (i in 0 until scene.numMeshes) {

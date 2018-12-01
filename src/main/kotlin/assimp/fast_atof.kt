@@ -30,7 +30,7 @@ fun ByteBuffer.strtoul10_64(beginOutMax: IntArray): Long {
     var value = 0L
     var begin = beginOutMax[0]
     var c = get(begin).c
-    if (c < '0' || c > '9') throw Error("The string starting with \"$c\" cannot be converted into a value.")
+    if (c < '0' || c > '9') throw Exception("The string starting with \"$c\" cannot be converted into a value.")
     while (true) {
         if (c < '0' || c > '9') break
         val newValue = value * 10 + (c - '0')

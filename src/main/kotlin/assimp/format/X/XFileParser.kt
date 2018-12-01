@@ -191,7 +191,7 @@ class XFileParser() {
         while (running) {
             var objectName: String = GetNextToken()
             if (objectName.length == 0)
-                throw Error("Unexpected end of file reached while parsing frame")
+                throw Exception("Unexpected end of file reached while parsing frame")
 
             if (objectName.equals("}"))
                 break // frame finished
@@ -255,7 +255,7 @@ class XFileParser() {
             val objectName: String = GetNextToken()
 
             if (objectName.length == 0)
-                throw Error("Unexpected end of file while parsing mesh structure")
+                throw Exception("Unexpected end of file while parsing mesh structure")
             else if (objectName.equals("}"))
                 break // mesh finished
             else if (objectName.equals("MeshNormals"))

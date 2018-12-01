@@ -47,11 +47,11 @@ import assimp.logger
  */
 
 /* DOM/Parse error reporting - does not return */
-fun domError(message: String, token: Token): Nothing = throw Error(Util.addTokenText("FBX-DOM", message, token))
+fun domError(message: String, token: Token): Nothing = throw Exception(Util.addTokenText("FBX-DOM", message, token))
 
 fun domError(message: String, element: Element? = null): Nothing {
     element?.let { domError(message, element.keyToken) }
-    throw Error("FBX-DOM $message")
+    throw Exception("FBX-DOM $message")
 }
 
 // does return

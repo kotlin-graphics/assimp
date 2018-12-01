@@ -44,7 +44,7 @@ class ObjFileImporter : BaseImporter() {
         val stream = ioSystem.open(file)
         val fileSize = stream.length
 
-        if (fileSize < ObjMinSize) throw Error("OBJ-file is too small.")
+        if (fileSize < ObjMinSize) throw Exception("OBJ-file is too small.")
 
         // parse the file into a temporary representation
         val parser = ObjFileParser(stream, ioSystem)
@@ -62,7 +62,7 @@ class ObjFileImporter : BaseImporter() {
         // Set the name of the scene
             pScene.rootNode.name = pModel.m_ModelName
         // This is a fatal error, so break down the application
-        else throw Error("pModel.m_ModelName is empty")
+        else throw Exception("pModel.m_ModelName is empty")
 
         // Create nodes for the whole scene
         val meshArray = ArrayList<AiMesh>()
@@ -218,9 +218,9 @@ class ObjFileImporter : BaseImporter() {
         // Copy vertices of this mesh instance
         pMesh.numVertices = numIndices
         if (pMesh.numVertices == 0)
-            throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> no vertices")
+            throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> no vertices")
         else if (pMesh.numVertices > AI_MAX_ALLOC(AiVector3D.size))
-            throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> Too many vertices, would run out of memory")
+            throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> Too many vertices, would run out of memory")
 
         pMesh.vertices = MutableList(pMesh.numVertices, { AiVector3D() })
 
@@ -249,7 +249,7 @@ class ObjFileImporter : BaseImporter() {
 
                 val vertex = pSourceFace.m_vertices[vertexIndex]
 
-                if (vertex >= pModel.m_Vertices.size) throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex index out of range")
+                if (vertex >= pModel.m_Vertices.size) throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex index out of range")
 
                 pMesh.vertices[newIndex] put pModel.m_Vertices[vertex]
 
@@ -257,7 +257,7 @@ class ObjFileImporter : BaseImporter() {
                 if (pModel.m_Normals.isNotEmpty() && vertexIndex in pSourceFace.m_normals.indices) {
                     val normal = pSourceFace.m_normals[vertexIndex]
                     if (normal >= pModel.m_Normals.size)
-                        throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex normal index out of range")
+                        throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> vertex normal index out of range")
                     pMesh.normals[newIndex] put pModel.m_Normals[normal]
                 }
 
@@ -271,14 +271,14 @@ class ObjFileImporter : BaseImporter() {
                     val tex = pSourceFace.m_texturCoords[vertexIndex]
                     assert(tex < pModel.m_TextureCoord.size)
 
-                    if (tex >= pModel.m_TextureCoord.size) throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> texture coordinate index out of range")
+                    if (tex >= pModel.m_TextureCoord.size) throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> texture coordinate index out of range")
 
                     val coord3d = pModel.m_TextureCoord[tex]
                     pMesh.textureCoords[0][newIndex] = floatArrayOf(coord3d[0], coord3d[1])
                 }
 
                 if (pMesh.numVertices <= newIndex)
-                    throw Error("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> bad vertex index")
+                    throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> bad vertex index")
 
                 // Get destination face
                 val faceIndex = outIndex;

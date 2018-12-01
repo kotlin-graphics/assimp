@@ -36,7 +36,7 @@ class Structure (val db: FileDatabase) {
     }
 
     /** Access a field of the structure by its index */
-    operator fun get(i: Long) = fields.getOrElse(i.i) { throw Error("BlendDNA: There is no field with index `$i` in structure `$name`") }
+    operator fun get(i: Long) = fields.getOrElse(i.i) { throw Exception("BlendDNA: There is no field with index `$i` in structure `$name`") }
 
     override fun equals(other: Any?) = other is Structure && name == other.name // name is meant to be an unique identifier
 
@@ -46,7 +46,7 @@ class Structure (val db: FileDatabase) {
         "char"   -> db.reader.get().c.i
         "float"  -> db.reader.float.i
         "double" -> db.reader.double.i
-        else     -> throw Error("Unknown source for conversion to primitive data type: $name")
+        else     -> throw Exception("Unknown source for conversion to primitive data type: $name")
     }
 
     /** Try to read an instance of the structure from the stream and attempt to convert to `T`. This is done by an
@@ -61,7 +61,7 @@ class Structure (val db: FileDatabase) {
             "int"    -> db.reader.int.c
             "short"  -> db.reader.short.c
             "char"   -> db.reader.get().c
-            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
+            else     -> throw Exception("Unknown source for conversion to primitive data type: $name")
         }
 
     val convertShort
@@ -76,7 +76,7 @@ class Structure (val db: FileDatabase) {
             "int"    -> db.reader.int.s
             "short"  -> db.reader.short
             "char"   -> db.reader.get().c.s
-            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
+            else     -> throw Exception("Unknown source for conversion to primitive data type: $name")
         }
 
     val convertFloat
@@ -88,7 +88,7 @@ class Structure (val db: FileDatabase) {
             "int"    -> db.reader.int.f
             "float"  -> db.reader.float
             "double" -> db.reader.double.f
-            else     -> throw Error("Unknown source for conversion to primitive data type: $name")
+            else     -> throw Exception("Unknown source for conversion to primitive data type: $name")
         }
 
     fun convertPointer(): Long = if (db.i64bit) db.reader.long else db.reader.int.L
@@ -113,7 +113,7 @@ class Structure (val db: FileDatabase) {
 
             // is the input actually an array?
             if (f.flags hasnt FieldFlag.Array)
-                throw Error("Field `$name` of structure `${this.name}` ought to be a string")
+                throw Exception("Field `$name` of structure `${this.name}` ought to be a string")
 
             db.reader.pos += f.offset.i
 
@@ -153,7 +153,7 @@ class Structure (val db: FileDatabase) {
 
             // is the input actually an array?
             if (f.flags hasnt FieldFlag.Array)
-                throw Error("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}")
+                throw Exception("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}")
 
             db.reader.pos += f.offset.i
 
@@ -184,7 +184,7 @@ class Structure (val db: FileDatabase) {
 
             // is the input actually an array?
             if (f.flags hasnt FieldFlag.Array)
-                throw Error("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}")
+                throw Exception("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}")
 
             db.reader.pos += f.offset.i
 
@@ -214,7 +214,7 @@ class Structure (val db: FileDatabase) {
             val s = db.dna[f.type]
 
             // is the input actually an array?
-            if (f.flags hasnt FieldFlag.Array) throw Error("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}*N")
+            if (f.flags hasnt FieldFlag.Array) throw Exception("Field `$name` of structure `${this.name}` ought to be an array of size ${out.size}*N")
 
             db.reader.pos += f.offset.i
 
@@ -295,7 +295,7 @@ class Structure (val db: FileDatabase) {
 			f = get(name)
 
 			// sanity check, should never happen if the genblenddna script is right
-			if (f.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
+			if (f.flags hasnt FieldFlag.Pointer) throw Exception("Field `$name` of structure `${this.name}` ought to be a pointer")
 
 			db.reader.pos += f.offset.i
 
@@ -366,7 +366,7 @@ class Structure (val db: FileDatabase) {
             field = get(name)
 
             // sanity check, should never happen if the genblenddna script is right
-            if(field.flags hasnt FieldFlag.Pointer) throw Error("Field `$name` of structure `${this.name}` ought to be a pointer")
+            if(field.flags hasnt FieldFlag.Pointer) throw Exception("Field `$name` of structure `${this.name}` ought to be a pointer")
 
             db.reader.pos += field.offset.i
 
@@ -444,7 +444,7 @@ class Structure (val db: FileDatabase) {
 			    is Short -> (out as KMutableProperty0<Short>).set(s.convertShort)
 			    is Int   -> (out as KMutableProperty0<Int>).set(s.convertInt())
 			    is Char  -> (out as KMutableProperty0<Char>).set(s.convertChar)
-			    else     -> throw Error("Field type is not yet supported")
+			    else     -> throw Exception("Field type is not yet supported")
 		    }
 	    }
     }
@@ -470,7 +470,7 @@ class Structure (val db: FileDatabase) {
         f.type == "ElemBase" || isElem -> resolvePointer(errorPolicy, out as KMutableProperty0<ElemBase?>, ptrVal)
         else -> resolvePointer(errorPolicy, out, ptrVal, f, targetIsList, nonRecursive)
 //        out is FileOffset -> resolvePointer(out, ptrVal, f, nonRecursive)
-//        else -> throw Error()
+//        else -> throw Exception()
     }
 
 
@@ -486,7 +486,7 @@ class Structure (val db: FileDatabase) {
         // also determine the target type from the block header and check if it matches the type which we expect.
         val ss = db.dna[block.dnaIndex]
         if (ss !== s)
-            throw Error("Expected target to be of type `${s.name}` but seemingly it is a `${ss.name}` instead")
+            throw Exception("Expected target to be of type `${s.name}` but seemingly it is a `${ss.name}` instead")
 
         // try to retrieve the object from the cache
         db.cache.get(s, out, ptrVal)
@@ -670,11 +670,11 @@ class Structure (val db: FileDatabase) {
         val it = db.entries.firstOrNull { it.address >= ptrVal } ?: run {
 	        /*  This is crucial, pointers may not be invalid. This is either a corrupted file or an attempted attack.   */
 	        val last = db.entries.maxBy { it.address }!!
-	        throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, no file block falls into this address range. " +
+	        throw Exception("Failure resolving pointer 0x${ptrVal.toHexString}, no file block falls into this address range. " +
 	                    "The last block starts at 0x${last.address.toHexString} and ends at 0x${(last.address + last.size).toHexString}")
         }
         if (ptrVal >= it.address + it.size)
-            throw Error("Failure resolving pointer 0x${ptrVal.toHexString}, nearest file block starting at " +
+            throw Exception("Failure resolving pointer 0x${ptrVal.toHexString}, nearest file block starting at " +
                     "0x${it.address.toHexString} ends at 0x${(it.address + it.size).toHexString}")
         return it
     }

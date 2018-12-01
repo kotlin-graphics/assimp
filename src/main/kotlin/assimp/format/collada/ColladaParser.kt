@@ -97,7 +97,7 @@ class ColladaParser(pFile: IOStream) {
 
         //val file = File(pFile)
         // open the file
-        //if (!file.exists()) throw Error("Failed to open file: $pFile")
+        //if (!file.exists()) throw Exception("Failed to open file: $pFile")
 
 //        val dbFactory = DocumentBuilderFactory.newInstance()
 //        val dBuilder = dbFactory.newDocumentBuilder()
@@ -1500,7 +1500,7 @@ class ColladaParser(pFile: IOStream) {
                 } else logger.error { "Collada: too many vertex color sets. Skipping." }
             }
         // IT_Invalid and IT_Vertex
-            else -> throw Error("shouldn't ever get here")
+            else -> throw Exception("shouldn't ever get here")
         }
     }
 

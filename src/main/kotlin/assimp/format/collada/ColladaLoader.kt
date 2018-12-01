@@ -89,7 +89,7 @@ class ColladaLoader : BaseImporter() {
         // parse the input file
         val parser = ColladaParser(ioSystem.open(file))
         if (parser.mRootNode == null)
-            throw Error("Collada: File came out empty. Something is wrong here.")
+            throw Exception("Collada: File came out empty. Something is wrong here.")
         // create the materials first, for the meshes to find
         buildMaterials(parser)
         // build the node hierarchy from it
@@ -456,9 +456,9 @@ class ColladaLoader : BaseImporter() {
                 method = c.mMethod
 
                 if (!targetData.mIsStringArray)
-                    throw Error("target data must contain id. ")
+                    throw Exception("target data must contain id. ")
                 if (weightData.mIsStringArray)
-                    throw Error("target weight data must not be textual ")
+                    throw Exception("target weight data must not be textual ")
 
                 targetData.mStrings.forEach {
 
@@ -466,7 +466,7 @@ class ColladaLoader : BaseImporter() {
 
                     targetMeshes.add(findMesh(targetMesh.mName) ?: run {
                         if (targetMesh.mSubMeshes.size > 1)
-                            throw Error("Morhing target mesh must be a single")
+                            throw Exception("Morhing target mesh must be a single")
                         createMesh(pParser, targetMesh, targetMesh.mSubMeshes[0], null, 0, 0)
                     })
                 }
@@ -503,16 +503,16 @@ class ColladaLoader : BaseImporter() {
             // joint vertex_weight name list - should refer to the same list as the joint names above. If not, report and reconsider
             val weightNamesAcc = pParser.mAccessorLibrary[pSrcController.mWeightInputJoints.mAccessor]!!
             if (weightNamesAcc !== jointNamesAcc)
-                throw Error("Temporary implementational laziness. If you read this, please report to the author.")
+                throw Exception("Temporary implementational laziness. If you read this, please report to the author.")
             // vertex weights
             val weightsAcc = pParser.mAccessorLibrary[pSrcController.mWeightInputWeights.mAccessor]!!
             val weights = pParser.mDataLibrary[weightsAcc.source]!!
 
             if (!jointNames.mIsStringArray || jointMatrices.mIsStringArray || weights.mIsStringArray)
-                throw Error("Data type mismatch while resolving mesh joints")
+                throw Exception("Data type mismatch while resolving mesh joints")
             // sanity check: we rely on the vertex weights always coming as pairs of BoneIndex-WeightIndex
             if (pSrcController.mWeightInputJoints.mOffset != 0 || pSrcController.mWeightInputWeights.mOffset != 1)
-                throw Error("Unsupported vertex_weight addressing scheme. ")
+                throw Exception("Unsupported vertex_weight addressing scheme. ")
 
             // create containers to collect the weights for each bone
             val numBones = jointNames.mStrings.size
@@ -788,7 +788,7 @@ class ColladaLoader : BaseImporter() {
         // if this is an embedded texture image setup an aiTexture for it
         if (image.mFileName.isEmpty()) {
             if (image.mImageData.isEmpty())
-                throw Error("Collada: Invalid texture, no data or file reference given")
+                throw Exception("Collada: Invalid texture, no data or file reference given")
 
             val tex = AiTexture()
 
@@ -1082,7 +1082,7 @@ class ColladaLoader : BaseImporter() {
 
                 // time count and value count must match
                 if (e.mTimeAccessor.count != e.mValueAccessor.count)
-                    throw Error("Time count / value count mismatch in animation channel \"${e.mChannel.mTarget}\".")
+                    throw Exception("Time count / value count mismatch in animation channel \"${e.mChannel.mTarget}\".")
 
                 if (e.mTimeAccessor.count > 0) {
                     // find bounding times
@@ -1291,7 +1291,7 @@ class ColladaLoader : BaseImporter() {
                 return
             }
         }
-        throw Error()   // should not get here
+        throw Exception()   // should not get here
     }
 
     /** no value at key found, try to interpolate if present at other keys. if not, return zero

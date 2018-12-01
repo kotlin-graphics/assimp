@@ -40,7 +40,7 @@ class PlyLoader : BaseImporter() {
         val buffer = ioSystem.open(file).readBytes()
 
         // the beginning of the file must be PLY - magic, magic
-        if (buffer.nextWord().toLowerCase() != "ply") throw Error("Invalid .ply file: Magic number 'ply' is no there")
+        if (buffer.nextWord().toLowerCase() != "ply") throw Exception("Invalid .ply file: Magic number 'ply' is no there")
 
         buffer.skipSpacesAndLineEnd()
 
@@ -52,7 +52,7 @@ class PlyLoader : BaseImporter() {
             if (format == "ascii") {
                 buffer.skipLine()
                 if (!DOM.parseInstance(buffer, sPlyDom))
-                    throw Error("Invalid .ply file: Unable to build DOM (#1)")
+                    throw Exception("Invalid .ply file: Unable to build DOM (#1)")
             } else {
                 // revert ascii
                 buffer.position(buffer.position() - format.length)
@@ -65,11 +65,11 @@ class PlyLoader : BaseImporter() {
                     // skip the line, parse the rest of the header and build the DOM
                     buffer.skipLine()
                     if (!DOM.parseInstanceBinary(buffer, sPlyDom))
-                        throw Error("Invalid .ply file: Unable to build DOM (#2)")
+                        throw Exception("Invalid .ply file: Unable to build DOM (#2)")
 
-                } else throw Error("Invalid .ply file: Unknown file format")
+                } else throw Exception("Invalid .ply file: Unknown file format")
             }
-        } else throw Error("Invalid .ply file: Missing format specification")
+        } else throw Exception("Invalid .ply file: Missing format specification")
 
         pcDom = sPlyDom
 
@@ -89,7 +89,7 @@ class PlyLoader : BaseImporter() {
         if (avFaces.isEmpty()) {
 
             if (avPositions.size < 3)
-                throw Error("Invalid .ply file: Not enough vertices to build a proper face list.")
+                throw Exception("Invalid .ply file: Not enough vertices to build a proper face list.")
 
             val iNum = avPositions.size / 3
             repeat(iNum) {
@@ -120,7 +120,7 @@ class PlyLoader : BaseImporter() {
         val avMeshes = ArrayList<AiMesh>()
         convertMeshes(avFaces, avPositions, avNormals, avColors, avTexCoords, avMaterials, avMeshes)
 
-        if (avMeshes.isEmpty()) throw Error("Invalid .ply file: Unable to extract mesh data ")
+        if (avMeshes.isEmpty()) throw Exception("Invalid .ply file: Unable to extract mesh data ")
 
         // now generate the output scene object. Fill the material list
         scene.numMaterials = avMaterials.size

@@ -149,7 +149,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
                 i++
             }
         }
-        if (face.m_vertices.isEmpty()) throw Error("Obj: Ignoring empty face")
+        if (face.m_vertices.isEmpty()) throw Exception("Obj: Ignoring empty face")
         // Set active material, if one set
         face.m_pMaterial = m_pModel.m_pCurrentMaterial ?: m_pModel.m_pDefaultMaterial
         // Create a default object, if nothing is there
@@ -192,7 +192,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         if (m_pModel.m_pCurrent != null)
             m_pModel.m_pCurrent!!.m_Meshes.add(meshId)
         else
-            throw Error("OBJ: No object detected to attach a new mesh instance.")
+            throw Exception("OBJ: No object detected to attach a new mesh instance.")
     }
 
     // -------------------------------------------------------------------
@@ -253,7 +253,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     //  Get material library from file.
     fun getMaterialLib(words: List<String>) {
 
-        if (words.size < 2) throw Error("File name of the material is absent.")
+        if (words.size < 2) throw Exception("File name of the material is absent.")
 
         // get the name of the mat file with spaces
         val filename = ObjTools.getNameWithSpace(words, 1)

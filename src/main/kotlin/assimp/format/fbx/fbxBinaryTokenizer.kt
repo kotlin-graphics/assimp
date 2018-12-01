@@ -95,7 +95,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //}
 
 // signal tokenization error, this is always unrecoverable. Throws DeadlyImportError.
-fun tokenizeError(message: String, offset: Int): Nothing = throw Error(Util.addOffset("FBX-Tokenize", message, offset))
+fun tokenizeError(message: String, offset: Int): Nothing = throw Exception(Util.addOffset("FBX-Tokenize", message, offset))
 
 fun tokenizeError(message: String, input: ByteBuffer): Nothing = tokenizeError(message, input.pos)
 
@@ -157,7 +157,7 @@ fun ByteBuffer.readData(beginOut: KMutableProperty0<Int>, endOut: KMutableProper
                 val stride = when (type) {
                     'f', 'i' -> 4
                     'd', 'l' -> 8
-                    else -> throw Error("invalid type")
+                    else -> throw Exception("invalid type")
                 }
                 if (length * stride != compLen) tokenizeError("cannot ReadData, calculated data stride differs from what the file claims", this)
             }

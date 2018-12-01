@@ -54,5 +54,5 @@ private val Any.type
         is Double -> Mt.DOUBLE
         is String -> Mt.AISTRING
         is AiVector3D -> Mt.AIVECTOR3D
-        else -> throw Error()
+        else -> throw Exception()
     }

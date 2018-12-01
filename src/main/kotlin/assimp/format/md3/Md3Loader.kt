@@ -399,7 +399,7 @@ class Md3Importer : BaseImporter() {
 
         // Check whether the md3 file is large enough to contain the header
         fileSize = stream.length.i
-        if (fileSize < MD3.Header.size) throw Error("MD3 File is too small.")
+        if (fileSize < MD3.Header.size) throw Exception("MD3 File is too small.")
 
         val buffer = stream.readBytes()
 
@@ -412,10 +412,10 @@ class Md3Importer : BaseImporter() {
         val tags = MD3.Tag(buffer.apply { position(header.ofsTags) })
         // Allocate output storage
         scene.numMeshes = header.numSurfaces
-        if (header.numSurfaces == 0) throw Error("MD3: No surfaces")
+        if (header.numSurfaces == 0) throw Exception("MD3: No surfaces")
         else if (header.numSurfaces > AI_MAX_ALLOC(AiMesh.size))
         // We allocate pointers but check against the size of aiMesh since those pointers will eventually have to point to real objects
-            throw Error("MD3: Too many surfaces, would run out of memory")
+            throw Exception("MD3: Too many surfaces, would run out of memory")
 
         scene.numMaterials = header.numSurfaces
         // Now read possible skins from .skin file
@@ -531,7 +531,7 @@ class Md3Importer : BaseImporter() {
                     mesh.faces[i][c] = iCurrent++
                     // Read vertices
                     val index = buffer.getInt(pTriangles + c * Int.BYTES)
-                    if (index >= surfaces.numVertices) throw Error("MD3: Invalid vertex index")
+                    if (index >= surfaces.numVertices) throw Exception("MD3: Invalid vertex index")
                     buffer.position(pVertices + index * MD3.Vertex.size)
                     mesh.vertices.add(AiVector3D(buffer.short, buffer.short, buffer.short).apply { this *= MD3.XYZ_SCALE })
                     // Convert the normal vector to uncompressed float3 format
@@ -561,7 +561,7 @@ class Md3Importer : BaseImporter() {
             logger.error { "MD3: Failed to match skin ${it.first} to surface ${it.second}" }
         }
 
-        if (scene.numMeshes == 0) throw Error("MD3: File contains no valid mesh")
+        if (scene.numMeshes == 0) throw Exception("MD3: File contains no valid mesh")
         scene.numMaterials = iNumMaterials
 
         // Now we need to generate an empty node graph
@@ -647,7 +647,7 @@ class Md3Importer : BaseImporter() {
             nd.name = "<MD3_Player>"
 
             fun error() {
-                if (failure == modFilename) throw Error("MD3: failure to read multipart host file")
+                if (failure == modFilename) throw Exception("MD3: failure to read multipart host file")
             }
 
             // ... and get them. We need all of them.

@@ -118,7 +118,7 @@ class Md5Importer : BaseImporter() {
             if (extension == "md5camera") loadMD5CameraFile(ioSystem)
             else if (configNoAutoLoad || extension == "md5anim") {
                 // determine file extension and process just *one* file
-                if (extension.isEmpty()) throw Error("Failure, need file extension to determine MD5 part type")
+                if (extension.isEmpty()) throw Exception("Failure, need file extension to determine MD5 part type")
                 if (extension == "md5anim") loadMD5AnimFile(ioSystem)
                 else if (extension == "md5mesh") loadMD5MeshFile(ioSystem)
             } else {
@@ -127,10 +127,10 @@ class Md5Importer : BaseImporter() {
             }
         } catch (exc: Exception) { // std::exception, Assimp::DeadlyImportError
             unloadFileFromMemory()
-            throw Error(exc)
+            throw Exception(exc)
         }
         // make sure we have at least one file
-        if (!hadMD5Mesh && !hadMD5Anim && !hadMD5Camera) throw Error("Failed to read valid contents out of this MD5* file")
+        if (!hadMD5Mesh && !hadMD5Anim && !hadMD5Camera) throw Exception("Failed to read valid contents out of this MD5* file")
         // Now rotate the whole scene 90 degrees around the x axis to match our internal coordinate system
         scene.rootNode.transformation.put(
                 1f, 0f, 0f, 0f,
@@ -260,7 +260,7 @@ class Md5Importer : BaseImporter() {
                     }
                     // process bone weights
                     for (w in it.firstWeight until it.firstWeight + it.numWeights) {
-                        if (w >= src.weights.size) throw Error("MD5MESH: Invalid weight index")
+                        if (w >= src.weights.size) throw Exception("MD5MESH: Invalid weight index")
 
                         val desc = src.weights[w]
                         if (desc.weight < AI_MD5_WEIGHT_EPSILON && desc.weight >= -AI_MD5_WEIGHT_EPSILON) continue
@@ -493,7 +493,7 @@ class Md5Importer : BaseImporter() {
 
         meshSrc.faces.forEach {
             for (i in 0..2) {
-                if (it[0] >= meshSrc.vertices.size) throw Error("MD5MESH: Invalid vertex index")
+                if (it[0] >= meshSrc.vertices.size) throw Exception("MD5MESH: Invalid vertex index")
                 if (abHad[it[i]]) {
                     // generate a new vertex
                     meshSrc.vertices[iNewIndex] = meshSrc.vertices[it[i]]
