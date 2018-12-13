@@ -44,7 +44,9 @@ package assimp.format.fbx
 import assimp.*
 import assimp.ASSIMP.DEBUG
 import glm_.*
-import kool.bufferBig
+import kool.Buffer
+import kool.rem
+import kool.set
 import java.nio.ByteBuffer
 import java.util.zip.Inflater
 import kotlin.reflect.KMutableProperty0
@@ -166,7 +168,7 @@ class Element(val keyToken: Token, parser: Parser) {
 
             val buff = readBinaryDataArray(type, count, ::begin, end)
 
-            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+            assert(begin == end && buff.rem == count * if (type == 'd') 8 else 4)
 
             if (type == 'd') {
                 val d = buff.asDoubleBuffer()
@@ -205,7 +207,7 @@ class Element(val keyToken: Token, parser: Parser) {
 
             val buff = readBinaryDataArray(type, count, ::begin, end)
 
-            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+            assert(begin == end && buff.rem == count * if (type == 'd') 8 else 4)
 
             val ip = buff.asIntBuffer()
             for (i in 0 until count) out += ip[i]
@@ -239,7 +241,7 @@ class Element(val keyToken: Token, parser: Parser) {
 
             val buff = readBinaryDataArray(type, count, ::begin, end)
 
-            assert(begin == end && buff.size == count * 8)
+            assert(begin == end && buff.rem == count * 8)
 
             val ip = buff.asLongBuffer()
             for (i in 0 until count) out += ip[i]
@@ -278,7 +280,7 @@ class Element(val keyToken: Token, parser: Parser) {
 
             val buff = readBinaryDataArray(type, count, ::begin, end)
 
-            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+            assert(begin == end && buff.rem == count * if (type == 'd') 8 else 4)
 
             val count3 = count / 3
             out.ensureCapacity(count3)
@@ -338,7 +340,7 @@ class Element(val keyToken: Token, parser: Parser) {
 
             val buff = readBinaryDataArray(type, count, ::begin, end)
 
-            assert(begin == end && buff.size == count * if (type == 'd') 8 else 4)
+            assert(begin == end && buff.rem == count * if (type == 'd') 8 else 4)
 
             val count2 = count / 2
             out.ensureCapacity(count2)
@@ -411,7 +413,7 @@ class Element(val keyToken: Token, parser: Parser) {
         }
 
         val fullLength = stride * count
-        val buff = bufferBig(fullLength) // TODO free?
+        val buff = Buffer(fullLength) // TODO free?
 
         if (encMode == 0) {
             assert(fullLength == compLen)
@@ -419,7 +421,7 @@ class Element(val keyToken: Token, parser: Parser) {
             for (i in 0 until fullLength)
                 buff[i] = buffer[begin() + i]
         } else if (encMode == 1) {
-            val input = ByteArray(fullLength, { buffer.get(begin() + it) })
+            val input = ByteArray(fullLength) { buffer.get(begin() + it) }
             val decompresser = Inflater().apply { setInput(input) }
             val result = ByteArray(fullLength)
             val resultLength = decompresser.inflate(result)

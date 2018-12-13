@@ -47,7 +47,7 @@ import assimp.postProcess.OptimizeMeshes
 import assimp.postProcess.ValidateDSProcess
 import glm_.BYTES
 import glm_.i
-import glm_.size
+import kool.rem
 import java.net.URI
 import java.net.URL
 import java.nio.ByteBuffer
@@ -372,7 +372,7 @@ constructor() {
      *  parts of their material info into external scripts. If you need full functionality you can use [readFilesFromMemory]
      */
     fun readFileFromMemory(buffer: ByteBuffer, flags: Int, hint: String = ""): AiScene? {
-        if (buffer.size == 0 || hint.length > MaxLenHint) {
+        if (buffer.rem == 0 || hint.length > MaxLenHint) {
             impl.errorString = "Invalid parameters passed to ReadFileFromMemory()"
             return null
         }
@@ -412,7 +412,7 @@ constructor() {
     fun readFilesFromMemory(fileName: String, files: Map<String, ByteBuffer>, flags: Int): AiScene? {
 
         for((name, buffer) in files) {
-            if(buffer.size == 0){
+            if(buffer.rem == 0){
                 impl.errorString = "buffer $name is empty"
                 return null
             }

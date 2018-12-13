@@ -45,7 +45,7 @@ import assimp.*
 import assimp.format.AiConfig
 import glm_.BYTES
 import glm_.i
-import glm_.size
+import kool.rem
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
@@ -405,7 +405,7 @@ class Md3Importer : BaseImporter() {
 
         header = MD3.Header(buffer)
         // Validate the file header
-        header.validateOffsets(buffer.size, configFrameID)
+        header.validateOffsets(buffer.rem, configFrameID)
         // Navigate to the list of surfaces
         var pSurfaces = header.ofsSurfaces
         // Navigate to the list of tags

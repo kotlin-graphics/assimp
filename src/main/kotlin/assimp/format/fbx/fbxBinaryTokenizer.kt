@@ -3,6 +3,7 @@ import assimp.format.fbx.TokenType
 import assimp.format.fbx.Util
 import assimp.pos
 import glm_.*
+import kool.rem
 import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0
 
@@ -244,7 +245,7 @@ private var sEnd = -1
 // TODO: Test FBX Binary files newer than the 7500 version to check if the 64 bits address behaviour is consistent
 fun tokenizeBinary(outputTokens: ArrayList<Token>, input: ByteBuffer) {
 
-    if (input.size < 0x1b) tokenizeError("file is too short", 0)
+    if (input.rem < 0x1b) tokenizeError("file is too short", 0)
 
     /*Result ignored*/ input.get()
     /*Result ignored*/ input.get()

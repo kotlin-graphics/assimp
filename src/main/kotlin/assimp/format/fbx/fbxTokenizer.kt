@@ -44,7 +44,7 @@ package assimp.format.fbx
 import assimp.*
 import glm_.c
 import glm_.f
-import glm_.size
+import kool.rem
 import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0
 
@@ -258,7 +258,7 @@ fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
     var cur = 0
     var begin = true
 
-    while (cur + 1 < chars.size) {
+    while (cur + 1 < chars.rem) {
 
         if (!begin) column += if (chars[cur++].c == HT) ASSIMP_FBX_TAB_WIDTH else 1
         begin = false
@@ -270,7 +270,7 @@ fun tokenize(outputTokens: ArrayList<Token>, input: ByteBuffer) {
             column = 0
             ++line
             // if we have another lineEnd at the next position (typically \f\n), move directly to next char (\n)
-            if (cur + 1 < chars.size && chars[cur + 1].c.isLineEnd) c = chars[++cur].c
+            if (cur + 1 < chars.rem && chars[cur + 1].c.isLineEnd) c = chars[++cur].c
             continue
         }
 

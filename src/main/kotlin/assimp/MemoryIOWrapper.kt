@@ -1,10 +1,14 @@
 package assimp
 
-import glm_.*
 import gli_.ByteBufferBackedInputStream
-import java.io.*
-import java.nio.*
+import glm_.L
+import kool.rem
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 const val AI_MEMORYIO_MAGIC_FILENAME = "\$\$\$___magic___\$\$\$"
 const val AI_MEMORYIO_MAGIC_FILENAME_LENGTH = 17
@@ -60,7 +64,7 @@ class MemoryIOSystem : IOSystem{
 		}
 
 		override val length: Long
-			get() = buffer.size.toLong()
+			get() = buffer.rem.L
 
 		override fun readBytes(): ByteBuffer = buffer.duplicate().order(ByteOrder.nativeOrder())
 	}
