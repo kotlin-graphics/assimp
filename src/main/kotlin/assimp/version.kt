@@ -48,7 +48,7 @@ import glm_.i
  *  lines.
  *  @return Pointer to static string.
  */
-val legalString ="""
+val legalString = """
     Open Asset Import Library (Assimp).
     A free C/C++ library to import various 3D file formats into applications
 
