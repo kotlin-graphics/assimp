@@ -9,7 +9,7 @@ class obj : StringSpec() {
 
     init {
         "cube"{ cube(path + "cube.obj") }
-        "wall"{ wall(path + "wall.obj") }
+//        "wall"{ wall(path + "wall.obj") }
         "box"{ box(path + "box.obj") }
 
         "spider"{ spider(path + "spider.obj",
