@@ -48,27 +48,27 @@ fun is_special_float(f: Float) : Boolean {
 }
 
 // TODO file operators overloading, https://youtrack.jetbrains.com/issue/KT-15009
-infix operator fun File.plus(another: String) = File(this, another)
+internal infix operator fun File.plus(another: String) = File(this, another)
 
-fun URL.exists() = File(toURI()).exists()
-fun URI.exists() = File(this).exists()
-val URI.extension
+internal fun URL.exists() = File(toURI()).exists()
+internal fun URI.exists() = File(this).exists()
+internal val URI.extension
     get() =
         if (path.contains(".")) path.substringAfterLast('.', "").toLowerCase()
         else ""
-val URI.s get() = toString()
+internal val URI.s get() = toString()
 
-fun Vec3.distance(other: Vec3) : Float{
+internal fun Vec3.distance(other: Vec3) : Float{
     return Math.sqrt(Math.pow(this.x.toDouble() + other.x.toDouble(), 2.0)
             + Math.pow(this.y.toDouble() + other.y.toDouble(), 2.0)
             + Math.pow(this.z.toDouble() + other.z.toDouble(), 2.0)).toFloat()
 }
 
-fun Vec3.squareLength() = Math.sqrt(Math.pow(x.toDouble(),2.0)
+internal fun Vec3.squareLength() = Math.sqrt(Math.pow(x.toDouble(),2.0) // TODO this is Vec3.length2()
         + Math.pow(y.toDouble(),2.0)
         + Math.pow(z.toDouble(),2.0)).toFloat()
 
-fun Element.elementChildren(): ArrayList<Element> {
+internal fun Element.elementChildren(): ArrayList<Element> {
 
     val res = ArrayList<Element>()
 
@@ -82,9 +82,9 @@ fun Element.elementChildren(): ArrayList<Element> {
     return res
 }
 
-operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
+internal operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
 
-val String.words get() = trim().split("\\s+".toRegex())
+internal val String.words get() = trim().split("\\s+".toRegex())
 
 //////////////////////////////////////////////////////////////////////////
 /* Useful constants */
@@ -95,9 +95,9 @@ val AI_MATH_TWO_PI = glm.PI2
 val AI_MATH_TWO_PIf = glm.PI2f
 val AI_MATH_HALF_PI = glm.HPIf
 
-val AiVector3D.squareLength get() = x * x + y * y + z * z
+internal val AiVector3D.squareLength get() = x * x + y * y + z * z
 
-fun rotationX(a: Float) = AiMatrix4x4().apply {
+internal fun rotationX(a: Float) = AiMatrix4x4().apply {
     /*
          |  1  0       0       0 |
      M = |  0  cos(A)  sin(A)  0 |
@@ -109,7 +109,7 @@ fun rotationX(a: Float) = AiMatrix4x4().apply {
     b2 = -c1
 }
 
-fun rotationY(a: Float) = AiMatrix4x4().apply {
+internal fun rotationY(a: Float) = AiMatrix4x4().apply {
     /*
          |  cos(A)  0  -sin(A)  0 |
      M = |  0       1   0       0 |
@@ -122,7 +122,7 @@ fun rotationY(a: Float) = AiMatrix4x4().apply {
     c0 = -a2
 }
 
-fun rotationZ(a: Float) = AiMatrix4x4().apply{
+internal fun rotationZ(a: Float) = AiMatrix4x4().apply{
     /*
          |  cos(A)   sin(A)   0   0 |
      M = | -sin(A)   cos(A)   0   0 |
@@ -134,18 +134,18 @@ fun rotationZ(a: Float) = AiMatrix4x4().apply{
     a1 = -b0
 }
 
-fun translation( v:Vec3) = AiMatrix4x4().apply {
+internal fun translation( v:Vec3) = AiMatrix4x4().apply {
     d0 = v.x
     d1 = v.y
     d2 = v.z
 }
 
-fun scaling( v:Vec3) = AiMatrix4x4().apply {
+internal fun scaling( v:Vec3) = AiMatrix4x4().apply {
     a0 = v.x
     b1 = v.y
     c2 = v.z
 }
 
-operator fun StringBuilder.plusAssign(c: Char) {
+internal operator fun StringBuilder.plusAssign(c: Char) {
     append(c)
 }
