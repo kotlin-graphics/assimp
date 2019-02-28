@@ -394,7 +394,14 @@ enum class AiPostProcessStep(@JvmField val i: Int) {
      *  Some of them offer further configurable properties, while some of them might not be
      *  of use for you so it might be better to not specify them.
      */
-    TargetRealtime_MaxQuality(TargetRealtime_Quality.i or FindInstances.i or ValidateDataStructure.i or OptimizeMeshes.i)
+    TargetRealtime_MaxQuality(TargetRealtime_Quality.i or FindInstances.i or ValidateDataStructure.i or OptimizeMeshes.i),
+
+    /**
+     * JVM custom.
+     *
+     * https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification/
+     */
+    fastQuadricMeshSimplification(0x8000000)
 }
 
 infix fun Int.has(b: AiPostProcessStep) = and(b.i) != 0

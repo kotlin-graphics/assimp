@@ -4,8 +4,8 @@ plugins {
     id 'maven'
     id 'java'
     id 'java-library'
-    id "org.jetbrains.kotlin.jvm" version "1.3.11"
-    id "com.github.johnrengelman.shadow" version '4.0.3'
+    id "org.jetbrains.kotlin.jvm" version "1.3.21"
+    id "com.github.johnrengelman.shadow" version '4.0.4'
 }
 
 // jitpack
@@ -14,10 +14,11 @@ group = 'com.github.kotlin-graphics'
 ext {
     moduleName = 'com.github.kotlin_graphics.gli'
     kotlin = 'org.jetbrains.kotlin:kotlin'
-    kotlin_version = '1.3.11'
-    kotlintest_version = '3.1.11'
-    uno_version = '24550988e24b8fc99428e599b62f2e81a6f0b334'
-    lwjgl_version = "3.2.1"
+    kotlin_version = '1.3.21'
+    kotlintest_version = '3.2.1'
+    uno_version = '60edf33067835253aa30ac79bd5129363fee953f'
+    glmTest_version = 'a1cafbd4e1bda500291b19a8d0cb75374f97688c'
+    lwjgl_version = "3.2.2-SNAPSHOT"
     lwjgl_natives = current() == WINDOWS ? "windows" : current() == LINUX ? "linux" : "macos"
 }
 
@@ -30,26 +31,20 @@ dependencies {
 
     testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlintest_version".toString()
 
-    testImplementation 'com.github.kotlin-graphics.glm:glm-test:b48ac556d4'
+    testImplementation "com.github.kotlin-graphics.glm:glm-test:$glmTest_version"
 
-    implementation 'io.github.microutils:kotlin-logging:1.6.10'
+    implementation 'io.github.microutils:kotlin-logging:1.6.24'
 
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
 
     //implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-	implementation 'org.slf4j:slf4j-api:1.7.25'
-    testImplementation 'org.slf4j:slf4j-simple:1.7.25'
+	implementation 'org.slf4j:slf4j-api:1.7.26'
+    testImplementation 'org.slf4j:slf4j-simple:1.7.26'
 
     ["", "-glfw", "-jemalloc", "-openal", "-opengl", "-stb"].each {
         implementation "org.lwjgl:lwjgl$it:$lwjgl_version"
         runtime "org.lwjgl:lwjgl$it:$lwjgl_version:natives-$lwjgl_natives"
-    }
-
-    constraints {
-        testImplementation("$kotlin-stdlib:$kotlin_version")
-        testImplementation("$kotlin-stdlib-jdk7:$kotlin_version")
-        testImplementation("$kotlin-reflect:$kotlin_version")
     }
 }
 
@@ -61,18 +56,26 @@ repositories {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-test.useJUnitPlatform()
+test {
+    useJUnitPlatform()
+
+    systemProperties['junit.jupiter.execution.parallel.enabled'] = true 
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1 
+    forkEvery = 1
+}
 
 artifacts {
     archives sourcesJar
     archives javadocJar
 }
+
+shadowJar.archiveClassifier = 'all'
