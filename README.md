@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/kotlin-graphics/assimp.svg?branch=master)](https://travis-ci.org/kotlin-graphics/assimp) 
 ![](https://reposs.herokuapp.com/?path=kotlin-graphics/assimp&color=yellow) 
-[![Release](https://jitpack.io/v/kotlin-graphics/assimp.svg)](https://jitpack.io/#kotlin-graphics/assimp) 
+[![Release](https://jitpack.io/v/kotlin-graphics/assimp.svg)](https://jitpack.io/#kotlin-graphics/assimp)
+[![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin) 
 [![Slack Status](http://slack.kotlinlang.org/badge.svg)](http://slack.kotlinlang.org/)
 
 JVM porting of [Assimp](https://github.com/assimp/assimp)
