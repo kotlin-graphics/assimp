@@ -84,7 +84,7 @@ class TriangulateProcess : BaseProcess() {
     }
 
     /** Triangulates the given mesh.
-     *  @param pMesh The mesh to triangulate.     */
+     *  @param mesh The mesh to triangulate.     */
     fun triangulateMesh(mesh: AiMesh): Boolean { // TODO bug
 
         // Now we have aiMesh::mPrimitiveTypes, so this is only here for test cases
@@ -119,13 +119,14 @@ class TriangulateProcess : BaseProcess() {
         // Just another check whether aiMesh::mPrimitiveTypes is correct
         assert(numOut != mesh.numFaces)
 
-        val norOut: Array<Vec3>? = null
-//
-//        // if we don't have normals yet, but expect them to be a cheap side product of triangulation anyway, allocate storage for them.
-//        if (!pMesh->mNormals && get_normals) {
-//            // XXX need a mechanism to inform the GenVertexNormals process to treat these normals as preprocessed per-face normals
-//            //  nor_out = pMesh->mNormals = new aiVector3D[pMesh->mNumVertices];
-//        }
+        var norOut: Array<Vec3>? = null
+
+        // if we don't have normals yet, but expect them to be a cheap side product of triangulation anyway, allocate storage for them.
+        if (!mesh.normals.isNotEmpty() && getNormals) {
+            // XXX need a mechanism to inform the GenVertexNormals process to treat these normals as preprocessed per-face normals
+            norOut = Array(mesh.numVertices) { Vec3(0) }
+            mesh.normals = norOut.toMutableList()
+        }
 
         // the output mesh will contain triangles, but no polys anymore
         mesh.primitiveTypes = mesh.primitiveTypes or AiPrimitiveType.TRIANGLE
