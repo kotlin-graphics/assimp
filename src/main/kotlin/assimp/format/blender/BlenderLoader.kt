@@ -3,7 +3,6 @@ package assimp.format.blender
 import assimp.*
 import assimp.format.X.*
 import glm_.*
-import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteOrder
@@ -16,6 +15,9 @@ import kotlin.collections.ArrayList
 import kotlin.math.*
 
 private val tokens = "BLENDER"
+
+// TODO copy paste from uno-sdk (uno.kotlin: util.kt)
+private fun Char.parseInt() = java.lang.Character.getNumericValue(this)
 
 // typedef std::map<uint32_t, const MLoopUV *> TextureUVMapping;
 // key is material number, value is the TextureUVMapping for the material

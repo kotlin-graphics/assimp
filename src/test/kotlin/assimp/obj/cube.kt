@@ -4,8 +4,7 @@ import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
-import uno.kotlin.uri
-import uno.kotlin.url
+
 
 /**
  * Created by elect on 16/11/2016.

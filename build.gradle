@@ -16,8 +16,13 @@ ext {
     kotlin = 'org.jetbrains.kotlin:kotlin'
     kotlin_version = '1.3.21'
     kotlintest_version = '3.2.1'
-    uno_version = '60edf33067835253aa30ac79bd5129363fee953f'
-    glmTest_version = 'a1cafbd4e1bda500291b19a8d0cb75374f97688c'
+
+    // kotlin-graphics
+    //uno_version = '60edf33067835253aa30ac79bd5129363fee953f'  // CLEANUP remove
+    kool_version = 'dependency-SNAPSHOT'
+    glm_version = 'dependency-SNAPSHOT'
+    gli_version = 'dependency-SNAPSHOT'
+
     lwjgl_version = "3.2.2-SNAPSHOT"
     lwjgl_natives = current() == WINDOWS ? "windows" : current() == LINUX ? "linux" : "macos"
 }
@@ -27,11 +32,14 @@ dependencies {
     implementation "$kotlin-stdlib"
     implementation "$kotlin-reflect"
 
-    api "com.github.kotlin-graphics:uno-sdk:$uno_version"
+    //api "com.github.kotlin-graphics:uno-sdk:$uno_version" // CLEANUP remove
+    api "com.github.kotlin-graphics:kool:$kool_version"
+    api "com.github.kotlin-graphics:glm:$glm_version"
+    api "com.github.kotlin-graphics:gli:$gli_version"
 
     testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlintest_version".toString()
 
-    testImplementation "com.github.kotlin-graphics.glm:glm-test:$glmTest_version"
+    testImplementation "com.github.kotlin-graphics.glm:glm-test:$glm_version"
 
     implementation 'io.github.microutils:kotlin-logging:1.6.24'
 
