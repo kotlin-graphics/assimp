@@ -1,6 +1,7 @@
 package assimp
 
 import io.kotlintest.*
+import kool.*
 import java.io.*
 import java.net.*
 import java.nio.*
@@ -74,7 +75,7 @@ fun Importer.testFile(path: String,
 	logger.info { "reading from memory:" }
 
 	val bytes = FileInputStream(File(path)).readBytes()
-	val buffer = ByteBuffer.wrap(bytes)
+	val buffer = ByteBuffer(bytes)
 
 	val hintStart = path.indexOfLast { it == '.' }
 	val hint = path.substring(hintStart + 1)
@@ -194,7 +195,7 @@ fun Importer.testFiles(paths: List<String>,
 
 	logger.info { "reading from memory:" }
 
-	val files = paths.map { it to ByteBuffer.wrap(FileInputStream(File(it)).readBytes()) }.toMap()
+	val files = paths.map { it to ByteBuffer(FileInputStream(File(it)).readBytes()) }.toMap()
 
 	val memScene = readFilesFromMemory(baseFile, files, flags)
 	if (memScene == null && failOnNull) {
