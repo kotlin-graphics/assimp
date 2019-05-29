@@ -144,7 +144,7 @@ class LazyObject(val id: Long, val element: Element, val doc: Document) {
             flags = flags or Flags.FAILED_TO_CONSTRUCT
 
             // note: the error message is already formatted, so raw logging is ok
-            logger.error(ex.toString())
+            logger.error(ex) {}
 
             if (dieOnError || doc.settings.strictMode) throw Exception()
         }

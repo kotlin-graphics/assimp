@@ -62,9 +62,7 @@ abstract class BaseImporter {
             internReadFile(filePath, ioHandler, sc)
         } catch (err: Exception) {
             // extract error description
-            err.printStackTrace()
-            err.message?.let { errorText = it }
-            logger.error(errorText)
+            logger.error(err) {}
             return null
         }
         // return what we gathered from the import.

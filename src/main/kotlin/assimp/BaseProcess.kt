@@ -112,9 +112,7 @@ abstract class BaseProcess
         try {
             execute(imp.impl.scene!!)
         } catch (err: Exception) {
-            // extract error description
-            imp.impl.errorString = err.toString()
-            logger.error { imp.impl.errorString }
+            logger.error(err) {  }
             // and kill the partially imported data
             imp.impl.scene = null
         }

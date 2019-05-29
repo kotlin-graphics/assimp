@@ -183,7 +183,7 @@ class Converter(val out: AiScene, val doc: Document) {
 
                 val `object` = con.sourceObject
                 if (`object` == null) {
-                    logger.warn("failed to convert source object for Model link")
+                    logger.warn { "failed to convert source object for Model link" }
                     continue
                 }
 
@@ -358,7 +358,7 @@ class Converter(val out: AiScene, val doc: Document) {
     fun getRotationMatrix(mode: Model.RotOrder, rotation: AiVector3D): AiMatrix4x4 {
         val out = AiMatrix4x4()
         if (mode == Model.RotOrder.SphericXYZ) {
-            logger.error("Unsupported RotationMode: SphericXYZ")
+            logger.error { "Unsupported RotationMode: SphericXYZ" }
             return out
         }
 
@@ -366,7 +366,7 @@ class Converter(val out: AiScene, val doc: Document) {
 
         val isId = BooleanArray(3, { true })
 
-        val temp = Array(3, { AiMatrix4x4() })
+        val temp = Array(3) { AiMatrix4x4() }
         if (abs(rotation.z) > angleEpsilon) {
             temp[2] = rotationZ(rotation.z.rad)
             isId[2] = false
@@ -380,7 +380,7 @@ class Converter(val out: AiScene, val doc: Document) {
             isId[0] = false
         }
 
-        val order = IntArray(3, { -1 })
+        val order = IntArray(3) { -1 }
 
         // note: rotation order is inverted since we're left multiplying as is usual in assimp
         when (mode) {
@@ -449,7 +449,7 @@ class Converter(val out: AiScene, val doc: Document) {
         val props = model.props
         val rot = model.rotationOrder
 
-        val chain = Array(Tc.MAX, { AiMatrix4x4() })
+        val chain = Array(Tc.MAX) { AiMatrix4x4() }
 
         // generate transformation matrices for all the different transformation components
         val zeroEpsilon = 1e-6f
@@ -538,7 +538,7 @@ class Converter(val out: AiScene, val doc: Document) {
         /*  now, if we have more than just Translation, Scaling and Rotation, we need to generate a full node chain
             to accommodate for assimp's lack to express pivots and offsets. */
         if (isComplex && doc.settings.preservePivots) {
-            logger.info("generating full transformation chain for node: $name")
+            logger.info { "generating full transformation chain for node: $name" }
 
             /*  query the anim_chain_bits dictionary to find out which chain elements have associated node animation
                 channels. These can not be dropped even if they have identity transform in bind pose.   */
@@ -603,7 +603,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 for (i in indices.indices)
                     meshes[i] = indices[i]
             } else
-                logger.warn("ignoring unrecognized geometry: ${geo.name}")
+                logger.warn { "ignoring unrecognized geometry: ${geo.name}" }
         }
 
         if (meshes.isNotEmpty()) {
@@ -798,17 +798,17 @@ class Converter(val out: AiScene, val doc: Document) {
 
         // allocate output data arrays, but don't fill them yet
         outMesh.numVertices = countVertices
-        outMesh.vertices = MutableList(countVertices, { AiVector3D() })
+        outMesh.vertices = MutableList(countVertices) { AiVector3D() }
 
         outMesh.numFaces = countFaces
-        outMesh.faces = MutableList(countFaces, { mutableListOf<Int>() })
+        outMesh.faces = MutableList(countFaces) { mutableListOf<Int>() }
         val fac = outMesh.faces
 
         // allocate normals
         val normals = mesh.normals
         if (normals.isNotEmpty()) {
             assert(normals.size == vertices.size)
-            outMesh.normals = MutableList(vertices.size, { AiVector3D() })
+            outMesh.normals = MutableList(vertices.size) { AiVector3D() }
         }
 
         // allocate tangents, binormals.
@@ -832,8 +832,8 @@ class Converter(val out: AiScene, val doc: Document) {
             if (binormals.isNotEmpty()) {
                 assert(tangents.size == vertices.size && binormals.size == vertices.size)
 
-                outMesh.tangents = MutableList(vertices.size, { AiVector3D() })
-                outMesh.bitangents = MutableList(vertices.size, { AiVector3D() })
+                outMesh.tangents = MutableList(vertices.size) { AiVector3D() }
+                outMesh.bitangents = MutableList(vertices.size) { AiVector3D() }
             }
         }
 
@@ -843,7 +843,7 @@ class Converter(val out: AiScene, val doc: Document) {
             val uvs = mesh.getTextureCoords(i)
             if (uvs.isEmpty()) break
 
-            outMesh.textureCoords[i] = MutableList(vertices.size, { FloatArray(2) })
+            outMesh.textureCoords[i] = MutableList(vertices.size) { FloatArray(2) }
             ++numUvs
         }
 
@@ -853,7 +853,7 @@ class Converter(val out: AiScene, val doc: Document) {
             val colors = mesh.getVertexColors(i)
             if (colors.isEmpty()) break
 
-            outMesh.colors[i] = MutableList(vertices.size, { AiColor4D() })
+            outMesh.colors[i] = MutableList(vertices.size) { AiColor4D() }
             ++numVcs
         }
 
@@ -917,7 +917,7 @@ class Converter(val out: AiScene, val doc: Document) {
         return meshes.lastIndex
     }
 
-    val NO_MATERIAL_SEPARATION = /* std::numeric_limits<unsigned int>::max() */ -1
+    private val NO_MATERIAL_SEPARATION = /* std::numeric_limits<unsigned int>::max() */ -1
 
     /** - if materialIndex == NO_MATERIAL_SEPARATION, materials are not taken into
      *    account when determining which weights to include.
@@ -1014,7 +1014,7 @@ class Converter(val out: AiScene, val doc: Document) {
             offsetMatrix timesAssign nodeGlobalTransform
 
             numWeights = outIndices.size
-            weights = MutableList(outIndices.size, { AiVertexWeight() })
+            weights = MutableList(outIndices.size) { AiVertexWeight() }
         }
         bones += bone
 
