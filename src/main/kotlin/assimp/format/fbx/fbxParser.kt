@@ -413,7 +413,7 @@ class Element(val keyToken: Token, parser: Parser) {
         }
 
         val fullLength = stride * count
-        val buff = Buffer(fullLength) // TODO free?
+        val buff = Buffer(fullLength)
 
         if (encMode == 0) {
             assert(fullLength == compLen)

@@ -1,6 +1,7 @@
 package assimp.fbx
 
 import assimp.*
+import assimp.obj.*
 import io.kotlintest.specs.StringSpec
 import java.nio.*
 
@@ -19,6 +20,6 @@ class fbx : StringSpec() {
         "concave polygon binary"  { concavePolygon(pathNonBsd + binary + "ConcavePolygon.fbx") }
         "concave polygon ascii"  { concavePolygon(pathNonBsd + ascii + "ConcavePolygon.fbx") }
         "anims with full rotations between keys"  { animFullRot(pathNonBsd + binary + "anims_with_full_rotations_between_keys.fbx") }
-//        "spider"  { spider(path + "spider.fbx") }
+        "spider"  { spider(path + "spider.fbx", objFileMeshIndices = false )}
     }
 }

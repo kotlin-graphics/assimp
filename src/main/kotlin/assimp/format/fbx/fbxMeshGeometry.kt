@@ -420,8 +420,6 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
             val tempData = ArrayList<T>()
             getRequiredElement(source, dataElementName).parseVectorDataArray(tempData)
 
-            val tempData2 = Array<T?>(tempData.size, { null })
-
             val uvIndices = ArrayList<Int>()
             getRequiredElement(source, indexDataElementName).parseIntsDataArray(uvIndices)
 
@@ -430,6 +428,7 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
                 return
             }
 
+            val tempData2 = Array<T?>(vertexCount) { null }
             var next = 0
             for (i in uvIndices) {
                 if (i >= tempData.size)

@@ -552,7 +552,7 @@ class Material(id: Long, element: Element, doc: Document, name: String) : Object
         shading = if (shadingModel != null) shadingModel[0].parseAsString
         else "phong".also { domWarning("shading mode not specified, assuming phong", element) }
 
-        val templateName = when (shading) {
+        val templateName = when (shading.toLowerCase()) {
             "phong" -> "Material.FbxSurfacePhong"
             "lambert" -> "Material.FbxSurfaceLambert"
             else -> "".also { domWarning("shading mode not recognized: $shading", element) }

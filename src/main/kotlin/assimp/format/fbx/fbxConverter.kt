@@ -249,10 +249,7 @@ class Converter(val out: AiScene, val doc: Document) {
                 parent.numChildren = nodes.size
             }
         } catch (exc: Exception) {
-//            Util::delete_fun<aiNode> deleter
-//                    std::for_each(nodes.begin(), nodes.end(), deleter)
-//            std::for_each(nodes_chain.begin(), nodes_chain.end(), deleter)
-            TODO()
+            logger.error(exc) { "convertNodes failed" }
         }
     }
 
@@ -725,7 +722,7 @@ class Converter(val out: AiScene, val doc: Document) {
             val uvs = mesh.getTextureCoords(i)
             if (uvs.isEmpty()) break
 
-            outMesh.textureCoords[i] = MutableList(vertices.size) { uvs[it].to(FloatArray(2)) }
+            outMesh.textureCoords.add(MutableList(vertices.size) { uvs[it] to FloatArray(2) })
         }
 
         // copy vertex colors
@@ -1149,6 +1146,10 @@ class Converter(val out: AiScene, val doc: Document) {
             // setup texture reference string (copied from ColladaLoader::FindFilenameForEffectTexture), if the texture is ready
             if (textureReady)
                 path = "*$index"
+        }
+
+        if(outMat.textures.size == 0) {
+            outMat.textures.add(AiMaterial.Texture())
         }
 
         outMat.textures[0].apply {
