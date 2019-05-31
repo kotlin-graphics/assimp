@@ -92,14 +92,9 @@ class Token(
     var contents = ""
 
     var line = line
-        get() {
-            assert(!isBinary)
-            return field
-        }
 
     inline var offset: Int
         get() {
-            assert(isBinary)
             return line
         }
         set(value) {
