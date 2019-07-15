@@ -1,6 +1,7 @@
 package assimp.blender
 
 import assimp.*
+import glm_.func.rad
 import glm_.test.*
 import glm_.mat4x4.*
 import glm_.vec3.*
@@ -18,9 +19,9 @@ private val cubeDescriptions = mapOf(
 		"CubeXN1" to TransformDescription(x = -1f),
 		"CubeYN1" to TransformDescription(y = -1f),
 		"CubeZN1" to TransformDescription(z = -1f),
-		"CubeRX45" to TransformDescription(rotation = 45f.inRadians, rX = 1f),
-		"CubeRY45" to TransformDescription(rotation = 45f.inRadians, rY = 1f),
-		"CubeRZ45" to TransformDescription(rotation = 45f.inRadians, rZ = 1f),
+		"CubeRX45" to TransformDescription(rotation = 45f.rad, rX = 1f),
+		"CubeRY45" to TransformDescription(rotation = 45f.rad, rY = 1f),
+		"CubeRZ45" to TransformDescription(rotation = 45f.rad, rZ = 1f),
 		"CubeSX2" to TransformDescription(sX = 2f),
 		"CubeSY2" to TransformDescription(sY = 2f),
 		"CubeSZ2" to TransformDescription(sZ = 2f)

@@ -1,6 +1,7 @@
 package assimp.blender
 
 import assimp.*
+import glm_.func.rad
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import glm_.test.*
@@ -27,7 +28,7 @@ object blenderDefault_250_compressed {
                 with(children.first { it.name == "Camera" }){
 
                     transformation shouldBe (generateTrans(7.48113f, -6.50764f, 5.34367f,
-                                                           77.185f.inRadians, 0.772f, 0.341f, 0.536f) plusOrMinus epsilon)
+                                                           77.185f.rad, 0.772f, 0.341f, 0.536f) plusOrMinus epsilon)
 
                     numChildren shouldBe 0
                     numMeshes shouldBe  0
