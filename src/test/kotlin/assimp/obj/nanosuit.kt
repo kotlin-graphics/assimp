@@ -434,7 +434,6 @@ object nanosuit {
                 }
             }
 
-            // numTextures shouldBe 23 // TODO not set
             textures.size shouldBe 23
         }
     }

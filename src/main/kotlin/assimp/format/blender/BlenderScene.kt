@@ -44,7 +44,6 @@ package assimp.format.blender
 
 import assimp.NUL
 import glm_.s
-import kotlin.coroutines.*
 
 /** @file  BlenderScene.h
  *  @brief Intermediate representation of a BLEND scene.

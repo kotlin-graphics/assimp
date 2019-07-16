@@ -420,9 +420,8 @@ fun compareBones(aiBone1: AiBone, aiBone2: AiBone) {
     compareMatrix(aiBone1.offsetMatrix, aiBone2.offsetMatrix)
 }
 
-fun compareMatrix(matrix1: AiMatrix4x4, matrix2: AiMatrix4x4) {
-    matrix1.isEqual(matrix2) shouldBe true
-}
+fun compareMatrix(matrix1: AiMatrix4x4, matrix2: AiMatrix4x4) =
+    (matrix1 == matrix2) shouldBe true
 
 fun compareWeights(aiVertexWeight1: AiVertexWeight, aiVertexWeight2: AiVertexWeight) {
     aiVertexWeight1.vertexId shouldBe aiVertexWeight2.vertexId

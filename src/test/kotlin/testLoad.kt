@@ -7,6 +7,7 @@ val filePath: String? = "/Users/burkhard/Projects/Kotlin/kotlin-graphics/temp/da
 fun main() {
 
 	val file = filePath?.let { File(it) }?.takeIf { it.exists() } ?: run {
+		// ignore java.desktop module import error, it is actually imported by module-info.test
 		val fc = JFileChooser()
 
 		//In response to a button click:

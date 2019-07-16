@@ -670,12 +670,12 @@ class Structure (val db: FileDatabase) {
         val it = db.entries.firstOrNull { it.address >= ptrVal } ?: run {
 	        /*  This is crucial, pointers may not be invalid. This is either a corrupted file or an attempted attack.   */
 	        val last = db.entries.maxBy { it.address }!!
-	        throw Exception("Failure resolving pointer 0x${ptrVal.toHexString}, no file block falls into this address range. " +
-	                    "The last block starts at 0x${last.address.toHexString} and ends at 0x${(last.address + last.size).toHexString}")
+	        throw Exception("Failure resolving pointer 0x${ptrVal.asHexString}, no file block falls into this address range. " +
+	                    "The last block starts at 0x${last.address.asHexString} and ends at 0x${(last.address + last.size).asHexString}")
         }
         if (ptrVal >= it.address + it.size)
-            throw Exception("Failure resolving pointer 0x${ptrVal.toHexString}, nearest file block starting at " +
-                    "0x${it.address.toHexString} ends at 0x${(it.address + it.size).toHexString}")
+            throw Exception("Failure resolving pointer 0x${ptrVal.asHexString}, nearest file block starting at " +
+                    "0x${it.address.asHexString} ends at 0x${(it.address + it.size).asHexString}")
         return it
     }
 

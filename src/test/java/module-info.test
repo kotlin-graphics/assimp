@@ -1,0 +1,5 @@
+--add-reads
+  com.github.kotlin_graphics.assimp=java.desktop
+
+--add-reads
+  com.github.kotlin_graphics.assimp=kotlintest.runner.junit5
