@@ -1,6 +1,5 @@
-import assimp.format.fbx.Token
-import assimp.format.fbx.TokenType
-import assimp.format.fbx.Util
+package assimp.format.fbx
+
 import assimp.pos
 import glm_.*
 import kool.rem

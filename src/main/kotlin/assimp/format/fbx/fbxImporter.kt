@@ -43,7 +43,6 @@ package assimp.format.fbx
 
 import assimp.*
 import assimp.format.AiConfig
-import tokenizeBinary
 import java.nio.*
 
 /** @file  FbxImporter.h
