@@ -21,7 +21,7 @@ val assbin = "$models/Assbin/"
  *
  * https://stackoverflow.com/a/31957696/1047713
  */
-fun getResource(resource: String): URL = ClassLoader.getSystemResource(resource)
+fun getResource(resource: String): URL = ClassLoader.getSystemResource(resource) ?: throw FileNotFoundException(resource)
 
 
 /**
