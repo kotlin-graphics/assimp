@@ -3,6 +3,7 @@ package assimp.format.blender
 import assimp.*
 import assimp.format.X.*
 import glm_.*
+import kool.free
 import uno.kotlin.parseInt
 import java.io.File
 import java.io.RandomAccessFile
@@ -10,6 +11,7 @@ import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.io.FileOutputStream
 import java.lang.IllegalStateException
+import java.nio.MappedByteBuffer
 import java.util.*
 import java.util.zip.GZIPInputStream
 import kotlin.collections.ArrayList
@@ -52,6 +54,15 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
+	/*
+		https://bugs.openjdk.java.net/browse/JDK-4715154
+
+		Windows does not allow a mapped file to be deleted.
+
+		So we use each time a different temp file
+	 */
+	var _i = 0
+
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         val stream = ioSystem.open(file)
@@ -64,7 +75,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             // compressed blend file and try uncompressing it, else fail. This is to
             // avoid uncompressing random files which our loader might end up with.
 
-            val output = File("temp")   // TODO use a temp outputStream instead of writing to disc, maybe?
+            val output = File("temp${_i++}")   // TODO use a temp outputStream instead of writing to disc, maybe?
 	        // we could use ByteArrayInputStream / ByteArrayOutputStream
 	        // the question is what this would do to memory requirements for big files
 	        // we would basically keep up to 3 copies of the file in memory (buffer, output, input)
@@ -86,6 +97,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             // .. and retry
             match = buffer.strncmp(tokens)
             if (!match) throw Exception("Found no BLENDER magic word in decompressed GZIP file")
+			fc.close()
         }
 	    buffer.pos += tokens.length
 
