@@ -1,21 +1,32 @@
 package assimp.format.blender
 
 import assimp.*
-import assimp.format.X.*
-import glm_.*
-import kool.free
+import assimp.format.X.ArrayList
+import assimp.format.X.pushBack
+import assimp.format.X.reserve
+import glm_.c
+import glm_.f
+import glm_.s
 import uno.kotlin.parseInt
-import java.io.File
-import java.io.RandomAccessFile
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.FileChannel
-import java.io.FileOutputStream
-import java.lang.IllegalStateException
-import java.nio.MappedByteBuffer
 import java.util.*
 import java.util.zip.GZIPInputStream
 import kotlin.collections.ArrayList
-import kotlin.math.*
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.find
+import kotlin.collections.isNotEmpty
+import kotlin.collections.iterator
+import kotlin.collections.listOf
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plusAssign
+import kotlin.collections.set
+import kotlin.collections.sort
+import kotlin.math.atan2
 
 private val tokens = "BLENDER"
 
@@ -54,15 +65,6 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
                 maxMinor = 50,
                 fileExtensions = listOf("blend"))
 
-	/*
-		https://bugs.openjdk.java.net/browse/JDK-4715154
-
-		Windows does not allow a mapped file to be deleted.
-
-		So we use each time a different temp file
-	 */
-	var _i = 0
-
     override fun internReadFile(file: String, ioSystem: IOSystem, scene: AiScene) {
 
         val stream = ioSystem.open(file)
@@ -75,29 +77,10 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             // compressed blend file and try uncompressing it, else fail. This is to
             // avoid uncompressing random files which our loader might end up with.
 
-            val output = File("temp${_i++}")   // TODO use a temp outputStream instead of writing to disc, maybe?
-	        // we could use ByteArrayInputStream / ByteArrayOutputStream
-	        // the question is what this would do to memory requirements for big files
-	        // we would basically keep up to 3 copies of the file in memory (buffer, output, input)
-            output.deleteOnExit()
-
-            GZIPInputStream(stream.read()).use { gzip ->
-
-                FileOutputStream(output).use { out ->
-                    val buf = ByteArray(1024)
-                    var len = gzip.read(buf)
-                    while (len != -1) {
-                        out.write(buf, 0, len)
-                        len = gzip.read(buf)
-                    }
-                }
-            }
-            val fc = RandomAccessFile(output, "r").channel
-            buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).order(ByteOrder.nativeOrder())
-            // .. and retry
+            val bytes = GZIPInputStream(stream.read()).readAllBytes()
+			buffer = ByteBuffer.wrap(bytes)
             match = buffer.strncmp(tokens)
             if (!match) throw Exception("Found no BLENDER magic word in decompressed GZIP file")
-			fc.close()
         }
 	    buffer.pos += tokens.length
 
