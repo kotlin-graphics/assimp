@@ -1,6 +1,9 @@
 package assimp.obj
 
+import assimp.Importer
+import assimp.getResource
 import assimp.models
+import assimp.testURLs
 import io.kotlintest.specs.StringSpec
 
 class obj : StringSpec() {
@@ -8,9 +11,10 @@ class obj : StringSpec() {
     val path = "$models/OBJ/"
 
     init {
-        "cube"{ cube(path + "cube.obj") }
+        Importer().readFile("/home/elect/Downloads/Giuseppe/car_cpl_completed.obj")
+//        "cube"{ cube(path + "cube.obj") }
 //        "wall"{ wall(path + "wall.obj") }
-        "box"{ box(path + "box.obj") }
+//        "box"{ box(path + "box.obj") }
 
 //        "spider"{ spider(path + "spider.obj",
 //                         path + "spider.mtl",

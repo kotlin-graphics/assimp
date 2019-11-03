@@ -34,7 +34,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
                 // Ambient color
                     'a' -> m_pModel.m_pCurrentMaterial!!.ambient.put(words, 1)
                 // Diffuse color
-                    'd' -> m_pModel.m_pCurrentMaterial!!.diffuse.put(words, 1)
+                    'd' -> m_pModel.m_pCurrentMaterial?.diffuse?.put(words, 1)
                     's' -> m_pModel.m_pCurrentMaterial!!.specular.put(words, 1)
                     'e' -> m_pModel.m_pCurrentMaterial!!.emissive.put(words, 1)
                 }
@@ -89,7 +89,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
     fun createMaterial(line: String) {
 
         // get the name of the material with spaces
-        var matName = ObjTools.getNameWithSpace(line)
+        val matName = ObjTools.getNameWithSpace(line)
 
         val mat = m_pModel.m_MaterialMap[matName]
 
