@@ -11,7 +11,7 @@ class obj : StringSpec() {
     val path = "$models/OBJ/"
 
     init {
-        Importer().readFile("/home/elect/Downloads/Giuseppe/car_cpl_completed.obj")
+//        Importer().readFile("/home/elect/Downloads/Giuseppe/car_cpl_completed.obj")
 //        "cube"{ cube(path + "cube.obj") }
 //        "wall"{ wall(path + "wall.obj") }
 //        "box"{ box(path + "box.obj") }
