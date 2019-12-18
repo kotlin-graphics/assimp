@@ -220,10 +220,15 @@ class ObjFileImporter : BaseImporter() {
         pMesh.vertices = MutableList(pMesh.numVertices, { AiVector3D() })
 
         // Allocate buffer for normal vectors
-        if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
-            pMesh.normals = MutableList(pMesh.numVertices) { AiVector3D() }
-
+        if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals) {
+            println("pMesh.numVertices: ${pMesh.numVertices}")
+            pMesh.normals = MutableList(pMesh.numVertices) {
+                print(it)
+                AiVector3D()
+            }
+        }
         // Allocate buffer for vertex-color vectors
+
         if (pModel.m_VertexColors.isNotEmpty())
             pMesh.colors.add(Array(pMesh.numVertices, { AiColor4D() }).toMutableList())
         //pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
