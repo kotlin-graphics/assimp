@@ -164,8 +164,10 @@ class ObjFileImporter : BaseImporter() {
 
             val faces = ArrayList<AiFace>()
 
-            if (pObjMesh.m_uiMaterialIndex != Mesh.NoMaterial)
+            if (pObjMesh.m_uiMaterialIndex != Mesh.NoMaterial) {
+//                logger.error("pMesh.materialIndex (${pMesh.materialIndex}) = pObjMesh.m_uiMaterialIndex (${pObjMesh.m_uiMaterialIndex})")
                 pMesh.materialIndex = pObjMesh.m_uiMaterialIndex
+            }
 
             var outIndex = 0
 
@@ -221,9 +223,9 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals) {
-            println("pMesh.numVertices: ${pMesh.numVertices}")
+            System.err.println("pMesh.numVertices: ${pMesh.numVertices}")
             pMesh.normals = MutableList(pMesh.numVertices) {
-                print(it)
+//                System.err.println(it)
                 AiVector3D()
             }
         }

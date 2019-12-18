@@ -118,7 +118,7 @@ data class Mesh(
         /// Number of stored indices.
         var m_uiNumIndices: Int = 0,
         /// Number of UV
-        var m_uiUVCoordinates: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS, { 0 }),
+        var m_uiUVCoordinates: IntArray = IntArray(AI_MAX_NUMBER_OF_TEXTURECOORDS) { 0 },
         /// Material index.
         var m_uiMaterialIndex: Int = NoMaterial,
         // True, if normals are stored.
@@ -127,7 +127,7 @@ data class Mesh(
         var m_hasVertexColors: Boolean = true
 ) {
     companion object {
-        const val NoMaterial = 0xffffffff.toInt()
+        const val NoMaterial = -1
     }
 }
 
