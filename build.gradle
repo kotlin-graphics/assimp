@@ -4,8 +4,8 @@ plugins {
     id 'maven'
     id 'java'
     id 'java-library'
-    id "org.jetbrains.kotlin.jvm" version "1.3.41"
-    id "com.github.johnrengelman.shadow" version '5.1.0'
+    id "org.jetbrains.kotlin.jvm" version "1.3.61"
+    id "com.github.johnrengelman.shadow" version '5.2.0'
 }
 
 // jitpack
@@ -13,45 +13,41 @@ group = 'com.github.kotlin_graphics'
 
 ext {
     moduleName = "${group}.assimp"
-    kotlin = 'org.jetbrains.kotlin:kotlin'
-    kotlin_version = '1.3.41'
-    kotlintest_version = '3.3.3'
-    uno_version = 'b966a1c744457057348fc6195ab779fa49a83d9f'
-//    vkk_version = '3854c790d9ff3579e6025426c477b7ee65e560ea'
-//    gln_version = '1d4d577573c83aeec84a43a217db47b789b78f0d'
-    gli_version = 'c8cb88947b77232beed84599fb7a01b5ce158f25'
-    glm_version = '6048c31425ae6110258e4b42165f1e636f8b5603'
-    unsigned_version = 'ba1b5c2ab0231aabbef753df5fa0d0de98142360'
-    kool_version = 'd052c5e18a06642fcdf9f5942198ee9c4cee1a3f'
-    glmTest_version = 'a1cafbd4e1bda500291b19a8d0cb75374f97688c'
-    lwjgl_version = "3.2.2"
+    kot = 'org.jetbrains.kotlin:kotlin'
+    kx = "com.github.kotlin-graphics"
+    kotlin_version = '1.3.61'
+    kotlintest_version = '3.4.2'
+    uno_version = 'f528113bf45e43406953d6881915467d85a20881'
+    gli_version = '57d313a2c7691b3b65168fe21eb50433a1358656'
+    glm_version = '1b4ac18dd1a3c23440d3f33596688aac60bc0141'
+    unsigned_version = '18131d0fe0b7465a145a4502d31452c5ae0e59a1'
+    kool_version = 'fcf04b2c03b8949d9d9a8b0a580082e927903510'
+    lwjgl_version = "3.2.3"
     lwjgl_natives = current() == WINDOWS ? "windows" : current() == LINUX ? "linux" : "macos"
 }
 
 dependencies {
 
-    implementation "$kotlin-stdlib"
-    implementation "$kotlin-reflect"
+    implementation "$kot-stdlib"
+    implementation "$kot-reflect"
 
-    def kx = "com.github.kotlin-graphics"
-    implementation "${kx}.uno-sdk:uno-core:$uno_version"
-//    implementation "${kx}:gln:$gln_version"
+    implementation "$kx:uno-sdk:$uno_version"
     implementation "$kx:gli:$gli_version"
     implementation "${kx}.glm:glm:$glm_version"
+    testImplementation "${kx}.glm:glm-test:$glm_version"
     implementation "$kx:kool:$kool_version"
     implementation "$kx:kotlin-unsigned:$unsigned_version"
 
-    testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlintest_version"
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:$kotlintest_version".toString()
 
-    testImplementation "com.github.kotlin-graphics.glm:glm-test:$glmTest_version"
-
-    implementation 'io.github.microutils:kotlin-logging:1.6.26'
+    implementation 'io.github.microutils:kotlin-logging:1.7.8'
 
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
 
-    implementation 'org.slf4j:slf4j-api:1.7.26'
-    testImplementation 'org.slf4j:slf4j-simple:1.7.26'
+    //implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+	implementation 'org.slf4j:slf4j-api:1.7.29'
+    testImplementation 'org.slf4j:slf4j-simple:1.7.29'
 
     ["", "-glfw", "-jemalloc", "-openal", "-opengl", "-stb"].each {
         implementation "org.lwjgl:lwjgl$it:$lwjgl_version"
@@ -61,8 +57,9 @@ dependencies {
 
 repositories {
     mavenCentral()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://jitpack.io' }
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-dev") }
+    maven { setUrl("https://oss.sonatype.org/content/repositories/snapshots/") }
+    maven { setUrl('https://jitpack.io') }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -78,6 +75,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 test {
     useJUnitPlatform()
 
+//    minHeapSize = "16G"
 //    systemProperties['junit.jupiter.execution.parallel.enabled'] = true
 //    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 //    forkEvery = 1
@@ -88,22 +86,15 @@ artifacts {
 //    archives javadocJar
 }
 
+shadowJar.archiveClassifier = 'all'
+
 compileKotlin {
-    // Enable Kotlin compilation to Java 8 class files with method parameter name metadata
-    kotlinOptions {
-        jvmTarget = "11"
-//        javaParameters = true
-    }
-    // As per https://stackoverflow.com/a/47669720
-    // See also https://discuss.kotlinlang.org/t/kotlin-support-for-java-9-module-system/2499/9
+    kotlinOptions.jvmTarget = "11"
     destinationDir = compileJava.destinationDir
 }
-
 compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-//        javaParameters = true
-    }
+    kotlinOptions.jvmTarget = "11"
+    destinationDir = compileTestJava.destinationDir
 }
 
 compileJava {
@@ -113,5 +104,3 @@ compileJava {
         classpath = files()
     }
 }
-
-shadowJar.archiveClassifier = 'all'

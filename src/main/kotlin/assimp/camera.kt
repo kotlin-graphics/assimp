@@ -46,6 +46,7 @@ import glm_.f
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
+import kool.BYTES
 
 // ---------------------------------------------------------------------------
 /** Helper structure to describe a virtual camera.

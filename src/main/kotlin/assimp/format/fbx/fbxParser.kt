@@ -44,6 +44,7 @@ package assimp.format.fbx
 import assimp.*
 import assimp.ASSIMP.DEBUG
 import glm_.*
+import kool.BYTES
 import kool.Buffer
 import kool.rem
 import kool.set

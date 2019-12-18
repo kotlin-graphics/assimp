@@ -44,6 +44,7 @@ package assimp.format.md3
 import assimp.*
 import glm_.*
 import glm_.vec3.Vec3
+import kool.BYTES
 import unsigned.ushr
 import java.nio.ByteBuffer
 import kotlin.math.PI

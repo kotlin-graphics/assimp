@@ -2,6 +2,7 @@ package assimp
 
 import glm_.BYTES
 import glm_.mat4x4.Mat4
+import kool.BYTES
 import java.util.*
 import kotlin.collections.ArrayList
 

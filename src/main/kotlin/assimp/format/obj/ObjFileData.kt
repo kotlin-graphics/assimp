@@ -144,11 +144,11 @@ data class Model(
         //! Pointer to current object
         var m_pCurrent: Object? = null,
         //! Pointer to current material
-        var m_pCurrentMaterial: Material? = null,
+        var currentMaterial: Material? = null,
         //! Pointer to default material
-        var m_pDefaultMaterial: Material? = null,
+        var defaultMaterial: Material? = null,
         //! Vector with all generated materials
-        var m_MaterialLib: MutableList<String> = mutableListOf(),
+        var materialLib: MutableList<String> = mutableListOf(),
         //! Vector with all generated vertices
         var m_Vertices: MutableList<AiVector3D> = mutableListOf(),
         //! vector with all generated normals
@@ -163,10 +163,12 @@ data class Model(
         var m_strActiveGroup: String = "",
         //! Vector with generated texture coordinates
         var m_TextureCoord: MutableList<MutableList<Float>> = mutableListOf(),
+        /** Maximum dimension of texture coordinates */
+        var textureCoordDim: Int = 0,
         //! Current mesh instance
         var m_pCurrentMesh: Mesh? = null,
         //! Vector with stored meshes
         var m_Meshes: MutableList<Mesh> = mutableListOf(),
         //! Material map
-        var m_MaterialMap: MutableMap<String, Material> = mutableMapOf()
+        var materialMap: MutableMap<String, Material> = mutableMapOf()
 )

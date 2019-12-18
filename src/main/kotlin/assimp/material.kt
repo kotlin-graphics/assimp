@@ -2,6 +2,7 @@ package assimp
 
 import glm_.BYTES
 import glm_.vec3.Vec3
+import kool.BYTES
 import java.nio.ByteBuffer
 
 /**

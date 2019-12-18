@@ -45,7 +45,7 @@ class ObjFileImporter : BaseImporter() {
         val parser = ObjFileParser(stream, ioSystem)
 
         // And create the proper return structures out of it
-        createDataFromImport(parser.m_pModel, scene, ioSystem)
+        createDataFromImport(parser.model, scene, ioSystem)
     }
 
     /**  Create the data from parsed obj-file   */
@@ -221,7 +221,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals)
-            pMesh.normals = Array(pMesh.numVertices, { AiVector3D() }).toMutableList()
+            pMesh.normals = MutableList(pMesh.numVertices) { AiVector3D() }
 
         // Allocate buffer for vertex-color vectors
         if (pModel.m_VertexColors.isNotEmpty())
@@ -230,7 +230,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for texture coordinates
         if (pModel.m_TextureCoord.isNotEmpty() && pObjMesh.m_uiUVCoordinates[0] != 0)
-            pMesh.textureCoords.add(MutableList(pMesh.numVertices, { floatArrayOf(0f, 0f) }))
+            pMesh.textureCoords.add(MutableList(pMesh.numVertices) { FloatArray(pModel.textureCoordDim) })
 
         // Copy vertices, normals and textures into aiMesh instance
         var newIndex = 0
@@ -323,9 +323,9 @@ class ObjFileImporter : BaseImporter() {
     /**  Creates the material   */
     fun createMaterials(pModel: Model, pScene: AiScene) {
 
-        val numMaterials = pModel.m_MaterialLib.size
+        val numMaterials = pModel.materialLib.size
         pScene.numMaterials = 0
-        if (pModel.m_MaterialLib.isEmpty()) {
+        if (pModel.materialLib.isEmpty()) {
             logger.debug { "OBJ: no materials specified" }
             return
         }
@@ -333,7 +333,7 @@ class ObjFileImporter : BaseImporter() {
         for (matIndex in 0 until numMaterials) {
 
             // Store material name
-            val pCurrentMaterial = pModel.m_MaterialMap[pModel.m_MaterialLib[matIndex]]
+            val pCurrentMaterial = pModel.materialMap[pModel.materialLib[matIndex]]
 
             // No material found, use the default material
             pCurrentMaterial ?: continue
@@ -428,7 +428,6 @@ class ObjFileImporter : BaseImporter() {
 
                             val typeStart = texFile.filename.lastIndexOf(".") + 1
                             val type = texFile.filename.substring(typeStart)
-
                             scene.textures[name] = gli.load(texFile.readBytes(), type)
                         }
                         ioSystem.exists(parentPath + cleaned.toUpperCase()) -> {

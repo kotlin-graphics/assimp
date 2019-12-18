@@ -2,6 +2,7 @@ package assimp.format.fbx
 
 import assimp.pos
 import glm_.*
+import kool.BYTES
 import kool.rem
 import java.nio.ByteBuffer
 import kotlin.reflect.KMutableProperty0

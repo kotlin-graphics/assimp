@@ -43,6 +43,7 @@ package assimp
 
 import glm_.BYTES
 import glm_.vec3.Vec3
+import kool.BYTES
 
 /**
  * Created by elect on 29/01/2017.

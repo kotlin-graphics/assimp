@@ -84,7 +84,7 @@ object treasure_smooth {
             }
 
             numMeshes shouldBe 86
-            with(meshes[0]) {
+            meshes[0].apply {
                 primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                 numVertices shouldBe 1554
                 numFaces shouldBe 518
@@ -100,7 +100,7 @@ object treasure_smooth {
                 name shouldBe "Plane"
             }
             // submesh
-            with(meshes[1]) {
+            meshes[1].apply {
                 primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
                 numVertices shouldBe 342
                 numFaces shouldBe 114

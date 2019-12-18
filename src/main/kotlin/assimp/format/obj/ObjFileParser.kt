@@ -3,8 +3,8 @@ package assimp.format.obj
 import assimp.*
 import glm_.f
 import glm_.i
+import glm_.max
 import java.io.BufferedReader
-import java.io.File
 import assimp.AiPrimitiveType as Pt
 
 /**
@@ -17,16 +17,16 @@ val DefaultObjName = "defaultobject"
 class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
     //! Pointer to model instance
-    val m_pModel = Model()
+    val model = Model()
 
     init {
         // Create the model instance to store all the data
-        m_pModel.m_ModelName = file.filename
+        model.m_ModelName = file.filename
 
         // create default material and store it
-        m_pModel.m_pDefaultMaterial = Material(DEFAULT_MATERIAL)
-        m_pModel.m_MaterialLib.add(DEFAULT_MATERIAL)
-        m_pModel.m_MaterialMap.put(DEFAULT_MATERIAL, m_pModel.m_pDefaultMaterial!!)
+        model.defaultMaterial = Material(DEFAULT_MATERIAL)
+        model.materialLib.add(DEFAULT_MATERIAL)
+        model.materialMap.put(DEFAULT_MATERIAL, model.defaultMaterial!!)
 
         // Start parsing the file
 
@@ -53,49 +53,79 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
             val words = line.words
 
             when (line[0]) {
-            // Parse a vertex texture coordinate
+                // Parse a vertex texture coordinate
                 'v' -> when (line[1]) {
 
                     ' ', '\t' -> when (words.size - 1) {
-                    // read in vertex definition
-                        3 -> m_pModel.m_Vertices.add(AiVector3D((1..3).map { words[it].f }))
-                    // read in vertex definition (homogeneous coords)
+                        // read in vertex definition
+                        3 -> model.m_Vertices.add(AiVector3D((1..3).map { words[it].f }))
+                        // read in vertex definition (homogeneous coords)
                         4 -> {
                             val w = words[4].f
                             assert(w != 0f)
-                            m_pModel.m_Vertices.add(AiVector3D((1..3).map { words[it].f / w }))
+                            model.m_Vertices.add(AiVector3D((1..3).map { words[it].f / w }))
                         }
-                    // read vertex and vertex-color
+                        // read vertex and vertex-color
                         6 -> {
-                            m_pModel.m_Vertices.add(AiVector3D((1..3).map { words[it].f }))
-                            m_pModel.m_VertexColors.add(AiVector3D((4..6).map { words[it].f }))
+                            model.m_Vertices.add(AiVector3D((1..3).map { words[it].f }))
+                            model.m_VertexColors.add(AiVector3D((4..6).map { words[it].f }))
                         }
                     }
-                // read in texture coordinate ( 2D or 3D )
-                    't' -> m_pModel.m_TextureCoord.add(mutableListOf(words[1].f, words[2].f, if (words.size == 3) 0f else words[3].f))
-                // Read in normal vector definition
-                    'n' -> m_pModel.m_Normals.add(AiVector3D((1..3).map { words[it].f }))
+                    // read in texture coordinate ( 2D or 3D )
+                    't' -> {
+                        val dim = getTexCoordVector(words)
+                        model.textureCoordDim = model.textureCoordDim max dim
+                    }
+                    // Read in normal vector definition
+                    'n' -> model.m_Normals.add(AiVector3D((1..3).map { words[it].f }))
                 }
-            // Parse a face, line or point statement
+                // Parse a face, line or point statement
                 'p', 'l', 'f' -> getFace(if (line[0] == 'f') Pt.POLYGON else if (line[0] == 'l') Pt.LINE else Pt.POINT, line)
-            // Parse a material desc. setter
+                // Parse a material desc. setter
                 'u' -> if (words[0] == "usemtl") getMaterialDesc(line)
-            // Parse a material library or merging group ('mg')
+                // Parse a material library or merging group ('mg')
                 'm' -> {
                     when (words[0]) {
                         "mg" -> getGroupNumberAndResolution()
                         "mtllib" -> getMaterialLib(words)
                     }
                 }
-            // Parse group name
+                // Parse group name
                 'g' -> getGroupName(line)
-            // Parse group number
+                // Parse group number
                 's' -> getGroupNumber()
-            // Parse object name
+                // Parse object name
                 'o' -> getObjectName(line)
             }
         } while (line != null)
     }
+
+    /** input cant be:
+     *  vt 0f 0f
+     *  or
+     *  vt 0f 0f 0f
+     */
+    fun getTexCoordVector(input: List<String>): Int {
+        val numComponents = input.size
+        val thirdDim = when (numComponents) {
+            1 + 2 -> 0f
+            1 + 3 -> input[3].toFloat
+            else -> throw Error("OBJ: Invalid number of components")
+        }
+        model.m_TextureCoord.add(mutableListOf(input[1].toFloat, input[2].toFloat, thirdDim))
+        return numComponents
+    }
+
+    /** Coerce nan and inf to 0 as is the OBJ default value */
+    val String.toFloat: Float
+        get() = try {
+            f
+        } catch (e: NumberFormatException) {
+            when {
+                equals("nan", ignoreCase = true) || equals("inf", ignoreCase = true) -> 0f
+                else -> throw e // Invalid string
+            }
+        }
 
     // -------------------------------------------------------------------
     //  Get values for a new face instance
@@ -106,9 +136,9 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         val face = Face(type)
         var hasNormal = false
 
-        val vSize = m_pModel.m_Vertices.size
-        val vtSize = m_pModel.m_TextureCoord.size
-        val vnSize = m_pModel.m_Normals.size
+        val vSize = model.m_Vertices.size
+        val vtSize = model.m_TextureCoord.size
+        val vnSize = model.m_Normals.size
 
         for (vertex in vertices) {
 
@@ -151,13 +181,13 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         }
         if (face.m_vertices.isEmpty()) throw Exception("Obj: Ignoring empty face")
         // Set active material, if one set
-        face.m_pMaterial = m_pModel.m_pCurrentMaterial ?: m_pModel.m_pDefaultMaterial
+        face.m_pMaterial = model.currentMaterial ?: model.defaultMaterial
         // Create a default object, if nothing is there
-        if (m_pModel.m_pCurrent == null) createObject(DefaultObjName)
+        if (model.m_pCurrent == null) createObject(DefaultObjName)
         // Assign face to mesh
-        if (m_pModel.m_pCurrentMesh == null) createMesh(DefaultObjName)
+        if (model.m_pCurrentMesh == null) createMesh(DefaultObjName)
         // Store the face
-        with(m_pModel.m_pCurrentMesh!!) {
+        with(model.m_pCurrentMesh!!) {
             m_Faces.add(face)
             m_uiNumIndices += face.m_vertices.size
             m_uiUVCoordinates[0] += face.m_texturCoords.size
@@ -169,16 +199,16 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     //  Creates a new object instance
     fun createObject(objName: String) {
 
-        m_pModel.m_pCurrent = Object()
-        m_pModel.m_pCurrent!!.m_strObjName = objName
-        m_pModel.m_Objects.add(m_pModel.m_pCurrent!!)
+        model.m_pCurrent = Object()
+        model.m_pCurrent!!.m_strObjName = objName
+        model.m_Objects.add(model.m_pCurrent!!)
 
         createMesh(objName)
 
-        m_pModel.m_pCurrentMaterial?.let {
-            m_pModel.m_pCurrentMesh!!.m_uiMaterialIndex =
-                    m_pModel.m_MaterialLib.indexOfFirst { it == m_pModel.m_pCurrentMaterial!!.materialName }
-            m_pModel.m_pCurrentMesh!!.m_pMaterial = m_pModel.m_pCurrentMaterial
+        model.currentMaterial?.let {
+            model.m_pCurrentMesh!!.m_uiMaterialIndex =
+                    model.materialLib.indexOfFirst { it == model.currentMaterial!!.materialName }
+            model.m_pCurrentMesh!!.m_pMaterial = model.currentMaterial
         }
     }
 
@@ -186,11 +216,11 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     //  Creates a new mesh
     fun createMesh(meshName: String) {
 
-        m_pModel.m_pCurrentMesh = Mesh(meshName)
-        m_pModel.m_Meshes.add(m_pModel.m_pCurrentMesh!!)
-        val meshId = m_pModel.m_Meshes.size - 1
-        if (m_pModel.m_pCurrent != null)
-            m_pModel.m_pCurrent!!.m_Meshes.add(meshId)
+        model.m_pCurrentMesh = Mesh(meshName)
+        model.m_Meshes.add(model.m_pCurrentMesh!!)
+        val meshId = model.m_Meshes.size - 1
+        if (model.m_pCurrent != null)
+            model.m_pCurrent!!.m_Meshes.add(meshId)
         else
             throw Exception("OBJ: No object detected to attach a new mesh instance.")
     }
@@ -203,25 +233,22 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // If the current mesh has the same material, we simply ignore that 'usemtl' command
         // There is no need to create another object or even mesh here
-        if (m_pModel.m_pCurrentMaterial == null || m_pModel.m_pCurrentMaterial!!.materialName != strName) {
+        if (model.currentMaterial == null || model.currentMaterial!!.materialName != strName) {
             // Search for material
-            m_pModel.m_pCurrentMaterial = m_pModel.m_MaterialMap.getOrElse(strName, {
+            model.currentMaterial = model.materialMap[strName] ?: Material(materialName = strName).also {
                 /*  Not found, so we don't know anything about the material except for its name.
                     This may be the case if the material library is missing. We don't want to lose all materials if that
                     happens, so create a new named material instead of discarding it completely.    */
-                System.err.println("OBJ: failed to locate material $strName, creating new material")
-                with(m_pModel) {
-                    m_pCurrentMaterial = Material(materialName = strName)
-                    m_MaterialLib.add(strName)
-                    m_MaterialMap.put(strName, m_pCurrentMaterial!!)
-                }
-            })
+                logger.error("OBJ: failed to locate material $strName, creating new material")
+                model.materialLib.add(strName)
+                model.materialMap[strName] = it
+            }
         }
 
         if (needsNewMesh(strName))
             createMesh(strName)
 
-        m_pModel.m_pCurrentMesh!!.m_uiMaterialIndex = m_pModel.m_MaterialLib.indexOfFirst { it == strName }
+        model.m_pCurrentMesh!!.m_uiMaterialIndex = model.materialLib.indexOfFirst { it == strName }
     }
 
     // -------------------------------------------------------------------
@@ -229,14 +256,14 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     fun needsNewMesh(materialName: String): Boolean {
 
         // If no mesh data yet
-        if (m_pModel.m_pCurrentMesh == null) return true
+        if (model.m_pCurrentMesh == null) return true
 
         var newMat = false
-        val matIdx = m_pModel.m_MaterialLib.indexOfFirst { it == materialName }
-        val curMatIdx = m_pModel.m_pCurrentMesh!!.m_uiMaterialIndex
+        val matIdx = model.materialLib.indexOfFirst { it == materialName }
+        val curMatIdx = model.m_pCurrentMesh!!.m_uiMaterialIndex
         if (curMatIdx != Mesh.NoMaterial && curMatIdx != matIdx
                 // no need create a new mesh if no faces in current lets say 'usemtl' goes straight after 'g'
-                && m_pModel.m_pCurrentMesh!!.m_Faces.size > 0)
+                && model.m_pCurrentMesh!!.m_Faces.size > 0)
         // New material -> only one material per mesh, so we need to create a new material
             newMat = true
 
@@ -259,12 +286,12 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         val filename = ObjTools.getNameWithSpace(words, 1)
 
         val pFile = "${file.parentPath}${ioSystem.osSeparator}$filename"
-        println(pFile)
+//        println(pFile)
 
         if (!ioSystem.exists(pFile)) {
             logger.error { "OBJ: Unable to locate material file $filename" }
 
-	        // TODO ?? what happens here?
+            // TODO ?? what happens here?
             val strMatFallbackName = filename.substring(0, filename.length - 3) + "mtl"
             println("OBJ: Opening fallback material file $strMatFallbackName")
             if (!ioSystem.exists(strMatFallbackName)) {
@@ -277,7 +304,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
         val buffer = ioSystem.open(pFile).reader().readLines().filter(String::isNotBlank)
 
-        ObjFileMtlImporter(buffer, m_pModel)
+        ObjFileMtlImporter(buffer, model)
     }
 
     // -------------------------------------------------------------------
@@ -286,17 +313,17 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         val groupName = line.split("\\s+".toRegex()).getOrElse(1) { "" }
         // Change active group, if necessary
-        if (m_pModel.m_strActiveGroup != groupName) {
+        if (model.m_strActiveGroup != groupName) {
 
             // We are mapping groups into the object structure
             createObject(groupName)
             // Search for already existing entry
-            if (!m_pModel.m_Groups.containsKey(groupName))
-                m_pModel.m_Groups[groupName] = mutableListOf()
+            if (!model.m_Groups.containsKey(groupName))
+                model.m_Groups[groupName] = mutableListOf()
             else
-                m_pModel.m_pGroupFaceIDs = m_pModel.m_Groups[groupName]!!
+                model.m_pGroupFaceIDs = model.m_Groups[groupName]!!
 
-            m_pModel.m_strActiveGroup = groupName
+            model.m_strActiveGroup = groupName
         }
     }
 
@@ -315,9 +342,9 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         if (objectName.isNotEmpty()) {
 
             // Search for actual object
-            m_pModel.m_pCurrent = m_pModel.m_Objects.find { it.m_strObjName == objectName }
+            model.m_pCurrent = model.m_Objects.find { it.m_strObjName == objectName }
 
-            if (m_pModel.m_pCurrent == null)
+            if (model.m_pCurrent == null)
                 createObject(objectName)
         }
     }

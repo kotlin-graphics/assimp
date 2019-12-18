@@ -1,5 +1,6 @@
 package assimp.format.obj
 
+import assimp.isByteOrderMark
 import assimp.logger
 import assimp.words
 import glm_.f
@@ -14,11 +15,11 @@ import glm_.i
  *  @brief  Loads the material description from a mtl file.
  */
 
-class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
+class ObjFileMtlImporter(buffer: List<String>, private val model: Model) {
 
     init {
-        if (m_pModel.m_pDefaultMaterial == null)
-            m_pModel.m_pDefaultMaterial = Material("default")
+        if (model.defaultMaterial == null)
+            model.defaultMaterial = Material("default")
         load(buffer)
     }
 
@@ -27,36 +28,38 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
         for (line in buffer) {
 
             val trimmedLine = line.trim()
-            val words = trimmedLine.words
+            val words = when  {
+                trimmedLine[0].isByteOrderMark -> trimmedLine.drop(1)
+                else -> trimmedLine
+            }.words
 
             when (words[0][0]) {
                 'k', 'K' -> when (words[0][1]) {
-                // Ambient color
-                    'a' -> m_pModel.m_pCurrentMaterial!!.ambient.put(words, 1)
-                // Diffuse color
-                    'd' -> m_pModel.m_pCurrentMaterial!!.diffuse.put(words, 1)
-                    's' -> m_pModel.m_pCurrentMaterial!!.specular.put(words, 1)
-                    'e' -> m_pModel.m_pCurrentMaterial!!.emissive.put(words, 1)
+                    // Ambient color
+                    'a' -> model.currentMaterial!!.ambient.put(words, 1)
+                    // Diffuse color
+                    'd' -> model.currentMaterial?.diffuse?.put(words, 1) // TODO fix me
+                    's' -> model.currentMaterial!!.specular.put(words, 1)
+                    'e' -> model.currentMaterial!!.emissive.put(words, 1)
                 }
                 'T' -> when (words[0][1]) { // Material transmission
-                    'f' -> m_pModel.m_pCurrentMaterial!!.transparent.put(words, 1)
+                    'f' -> model.currentMaterial!!.transparent.put(words, 1)
                 }
-                'd' ->
-                    if (words[0] == "disp") // A displacement map
-                        getTexture(trimmedLine)
-                    else
-                        m_pModel.m_pCurrentMaterial!!.alpha = words[1].f  // Alpha value
-                'n', 'N' ->
-                    when (words[0][1]) {
+                'd' -> when {
+                    words[0] == "disp" // A displacement map
+                    -> getTexture(trimmedLine)
+                    else -> model.currentMaterial!!.alpha = words[1].f
+                }  // Alpha value
+                'n', 'N' -> when (words[0][1]) {
                     // Specular exponent
-                        's' -> m_pModel.m_pCurrentMaterial!!.shineness = words[1].f
+                    's' -> model.currentMaterial!!.shineness = words[1].f
                     // Index Of refraction
-                        'i' -> m_pModel.m_pCurrentMaterial!!.ior = words[1].f
+                    'i' -> model.currentMaterial!!.ior = words[1].f
                     // New material
-                        'e' -> createMaterial(trimmedLine)
-                    }
+                    'e' -> createMaterial(trimmedLine)
+                }
                 'm', 'b', 'r' -> getTexture(trimmedLine)
-                'i' -> m_pModel.m_pCurrentMaterial!!.illumination_model = words[1].i
+                'i' -> model.currentMaterial!!.illumination_model = words[1].i
             }
         }
     }
@@ -66,22 +69,23 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
     fun getTexture(line: String) {
 
         val words = line.substringBefore('#').split("\\s+".toRegex())   // get rid of comment
-        var type: Material.Texture.Type? = null
+        val type: Material.Texture.Type?
         var clamped = false
 
-        type = if (words[0] == "refl" && TypeOption in words)
-            reflMap[words[words.indexOf(TypeOption) + 1]]
-        else tokenMap[words[0]]
+        type = when {
+            words[0] == "refl" && TypeOption in words -> reflMap[words[words.indexOf(TypeOption) + 1]]
+            else -> tokenMap[words[0]]
+        }
 
         if (type == null) {
-            logger.error { "OBJ/MTL: Encountered unknown texture type --> "+ type }
+            logger.error { "OBJ/MTL: Encountered unknown texture type --> $type" }
             return
         }
 
         if (ClampOption in words)
             clamped = words[words.indexOf(ClampOption) + 1] == "on"
 
-        m_pModel.m_pCurrentMaterial!!.textures.add(Material.Texture(words.last(), type, clamped))
+        model.currentMaterial!!.textures.add(Material.Texture(words.last(), type, clamped))
     }
 
     // -------------------------------------------------------------------
@@ -89,19 +93,15 @@ class ObjFileMtlImporter(buffer: List<String>, private val m_pModel: Model) {
     fun createMaterial(line: String) {
 
         // get the name of the material with spaces
-        var matName = ObjTools.getNameWithSpace(line)
+        val name = ObjTools.getNameWithSpace(line)
 
-        val mat = m_pModel.m_MaterialMap[matName]
-
-        if (mat == null) {
-            // New Material created
-            m_pModel.m_pCurrentMaterial = Material(matName)
-            m_pModel.m_pCurrentMesh?.m_uiMaterialIndex = m_pModel.m_MaterialLib.size - 1
-            m_pModel.m_MaterialLib.add(matName)
-            m_pModel.m_MaterialMap.put(matName, m_pModel.m_pCurrentMaterial!!)
-        }
-        // Use older material
-        else m_pModel.m_pCurrentMaterial = mat
+        model.currentMaterial = model.materialMap[name] // Use older material
+                ?: Material(name).also {
+                    // New Material created
+                    model.materialLib.add(name)
+                    model.materialMap[name] = it
+                    model.m_pCurrentMesh?.m_uiMaterialIndex = model.materialLib.lastIndex
+                }
     }
 }
 

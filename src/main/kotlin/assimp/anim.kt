@@ -44,6 +44,7 @@ package assimp
 import glm_.BYTES
 import glm_.quat.Quat
 import glm_.vec3.Vec3
+import kool.BYTES
 
 
 /**

@@ -14,9 +14,9 @@ import java.net.URL
 import kotlin.math.cos
 import kotlin.math.sin
 
-        /**
-         * Created by elect on 14/11/2016.
-         */
+/**
+ * Created by elect on 14/11/2016.
+ */
 
 typealias ai_real = Float
 
@@ -40,10 +40,12 @@ typealias AiQuaternion = Quat
 fun AI_MAX_ALLOC(size: Int) = (256 * 1024 * 1024) / size
 
 /** Consider using extension property Float.rad */
-fun AI_DEG_TO_RAD(x: Float) = ((x)*0.0174532925f)
+fun AI_DEG_TO_RAD(x: Float) = ((x) * 0.0174532925f)
+
 /** Consider using extension property Float.deg */
-fun AI_RAD_TO_DEG(x: Float) = ((x)*57.2957795f)
-fun is_special_float(f: Float) : Boolean {
+fun AI_RAD_TO_DEG(x: Float) = ((x) * 57.2957795f)
+
+fun is_special_float(f: Float): Boolean {
     return f == (1 shl 8) - 1f
 }
 
@@ -58,15 +60,15 @@ internal val URI.extension
         else ""
 internal val URI.s get() = toString()
 
-internal fun Vec3.distance(other: Vec3) : Float{
+internal fun Vec3.distance(other: Vec3): Float {
     return Math.sqrt(Math.pow(this.x.toDouble() + other.x.toDouble(), 2.0)
             + Math.pow(this.y.toDouble() + other.y.toDouble(), 2.0)
             + Math.pow(this.z.toDouble() + other.z.toDouble(), 2.0)).toFloat()
 }
 
-internal fun Vec3.squareLength() = Math.sqrt(Math.pow(x.toDouble(),2.0) // TODO this is Vec3.length2()
-        + Math.pow(y.toDouble(),2.0)
-        + Math.pow(z.toDouble(),2.0)).toFloat()
+internal fun Vec3.squareLength() = Math.sqrt(Math.pow(x.toDouble(), 2.0) // TODO this is Vec3.length2()
+        + Math.pow(y.toDouble(), 2.0)
+        + Math.pow(z.toDouble(), 2.0)).toFloat()
 
 internal fun Element.elementChildren(): ArrayList<Element> {
 
@@ -84,7 +86,8 @@ internal fun Element.elementChildren(): ArrayList<Element> {
 
 internal operator fun Element.get(attribute: String) = if (hasAttribute(attribute)) getAttribute(attribute) else null
 
-internal val String.words get() = trim().split("\\s+".toRegex())
+internal val String.words: List<String>
+    get() = trim().split("\\s+".toRegex())
 
 //////////////////////////////////////////////////////////////////////////
 /* Useful constants */
@@ -122,7 +125,7 @@ internal fun rotationY(a: Float) = AiMatrix4x4().apply {
     c0 = -a2
 }
 
-internal fun rotationZ(a: Float) = AiMatrix4x4().apply{
+internal fun rotationZ(a: Float) = AiMatrix4x4().apply {
     /*
          |  cos(A)   sin(A)   0   0 |
      M = | -sin(A)   cos(A)   0   0 |
@@ -134,13 +137,13 @@ internal fun rotationZ(a: Float) = AiMatrix4x4().apply{
     a1 = -b0
 }
 
-internal fun translation( v:Vec3) = AiMatrix4x4().apply {
+internal fun translation(v: Vec3) = AiMatrix4x4().apply {
     d0 = v.x
     d1 = v.y
     d2 = v.z
 }
 
-internal fun scaling( v:Vec3) = AiMatrix4x4().apply {
+internal fun scaling(v: Vec3) = AiMatrix4x4().apply {
     a0 = v.x
     b1 = v.y
     c2 = v.z

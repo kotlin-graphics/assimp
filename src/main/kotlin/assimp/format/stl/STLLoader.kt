@@ -2,6 +2,7 @@ package assimp.format.stl
 
 import assimp.*
 import glm_.*
+import kool.BYTES
 import unsigned.ushr
 import java.nio.ByteBuffer
 import java.util.*

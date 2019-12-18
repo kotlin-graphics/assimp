@@ -4,15 +4,22 @@ import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
+import java.io.File
 import java.util.*
 
 object nanosuit {
 
-    operator fun invoke(fileName: String, matName: String, vararg imagePath: String) {
+    operator fun invoke(directory: String) {
 
-        val imageURLs = imagePath.map { getResource(it) }.toTypedArray()
+        val urls = File(getResource(directory).toURI())
+                .listFiles()!!
+                .filterNot { it.absolutePath.endsWith("nanosuit.obj", ignoreCase = true) }
+                .map { it.toURI().toURL() }
+                .toTypedArray()
 
-        Importer().testURLs(getResource(fileName), getResource(matName), *imageURLs) {
+        val objFile = getResource("$directory/nanosuit.obj")
+
+        Importer().testURLs(objFile, *urls) {
 
             with(rootNode) {
 

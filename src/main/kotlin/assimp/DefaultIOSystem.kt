@@ -22,7 +22,7 @@ class DefaultIOSystem : IOSystem {
     class FileIOStream(private val pathObject: Path, override val osSystem: DefaultIOSystem) : IOStream {
 
         override val path: String
-            get() =  pathObject.toString()
+            get() = pathObject.toString()
 
         override fun read() = FileInputStream(file)
 
@@ -36,11 +36,13 @@ class DefaultIOSystem : IOSystem {
         override val length: Long
             get() = file.length()
 
-        override fun readBytes(): ByteBuffer {
-            RandomAccessFile(file, "r").channel.use {fileChannel ->
-                return fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size()).order(ByteOrder.nativeOrder())
-            }
-        }
+        override fun readBytes(): ByteBuffer =
+                RandomAccessFile(file, "r").use { ram ->
+                    ram.channel.use { ch ->
+                        ch.map(FileChannel.MapMode.READ_ONLY, 0, ch.size())
+                                .order(ByteOrder.nativeOrder())
+                    }
+                }
 
         val file: File
             get() = pathObject.toFile()

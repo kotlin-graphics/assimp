@@ -52,7 +52,14 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
         a2 * vector.x + b2 * vector.y + c2 * vector.z + d2)
 
 internal const val epsilon = 10e-3f
-val Vec3.isBlack get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilon
+val Vec3.isBlack: Boolean
+    get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilon
+/** Byte Order Mark
+ *  https://unicode-table.com/en/FEFF/
+ *  https://stackoverflow.com/questions/26407406/cannot-find-zero-width-no-break-space-when-reading-file?rq=1 */
+val Char.isByteOrderMark: Boolean
+    get() = equals('\uFFFE') // UTF-16LE
+            || equals('\uFEFF') // UTF-16BE
 
 object ASSIMP {
 

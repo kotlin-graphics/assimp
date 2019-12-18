@@ -11,9 +11,12 @@ import io.kotlintest.shouldBe
 
 object shelter {
 
-    operator fun invoke(fileName: String, matName: String) {
+    operator fun invoke(directory: String) {
 
-        Importer().testURLs(getResource(fileName), getResource(matName)) {
+        val obj = getResource("$directory/statie B01.obj")
+        val mtl = getResource("$directory/statie B01.mtl")
+
+        Importer().testURLs(obj, mtl) {
 
             with(rootNode) {
 
@@ -105,40 +108,42 @@ object shelter {
                 numVertices shouldBe 24
                 numFaces shouldBe 6
 
-                vertices[0] shouldBe Vec3(221.4917, 238.7550, 410.0556)
-                vertices[1] shouldBe Vec3(221.4917, 238.7550, 300.0556)
-                vertices[2] shouldBe Vec3(281.4918, 238.7550, 300.0556)
-                vertices[3] shouldBe Vec3(281.4918, 238.7550, 410.0556)
+                val exp = 0.0001f
 
-                vertices[4] shouldBe Vec3(221.4917, 239.7550, 410.0556)
-                vertices[5] shouldBe Vec3(281.4918, 239.7550, 410.0556)
-                vertices[6] shouldBe Vec3(281.4918, 239.7550, 300.0556)
-                vertices[7] shouldBe Vec3(221.4917, 239.7550, 300.0556)
+                vertices[0].shouldEqual(Vec3(221.4917, 238.7550, 410.0556), exp)
+                vertices[1].shouldEqual(Vec3(221.4917, 238.7550, 300.0556), exp)
+                vertices[2].shouldEqual(Vec3(281.4918, 238.7550, 300.0556), exp)
+                vertices[3].shouldEqual(Vec3(281.4918, 238.7550, 410.0556), exp)
 
-                vertices[8] shouldBe Vec3(221.4917, 238.7550, 410.0556)
-                vertices[9] shouldBe Vec3(281.4918, 238.7550, 410.0556)
-                vertices[10] shouldBe Vec3(281.4918, 239.7550, 410.0556)
-                vertices[11] shouldBe Vec3(221.4917, 239.7550, 410.0556)
+                vertices[4].shouldEqual(Vec3(221.4917, 239.7550, 410.0556), exp)
+                vertices[5].shouldEqual(Vec3(281.4918, 239.7550, 410.0556), exp)
+                vertices[6].shouldEqual(Vec3(281.4918, 239.7550, 300.0556), exp)
+                vertices[7].shouldEqual(Vec3(221.4917, 239.7550, 300.0556), exp)
 
-                vertices[12] shouldBe Vec3(281.4918, 238.7550, 410.0556)
-                vertices[13] shouldBe Vec3(281.4918, 238.7550, 300.0556)
-                vertices[14] shouldBe Vec3(281.4918, 239.7550, 300.0556)
-                vertices[15] shouldBe Vec3(281.4918, 239.7550, 410.0556)
+                vertices[8].shouldEqual(Vec3(221.4917, 238.7550, 410.0556), exp)
+                vertices[9].shouldEqual(Vec3(281.4918, 238.7550, 410.0556), exp)
+                vertices[10].shouldEqual(Vec3(281.4918, 239.7550, 410.0556), exp)
+                vertices[11].shouldEqual(Vec3(221.4917, 239.7550, 410.0556), exp)
 
-                vertices[16] shouldBe Vec3(281.4918, 238.7550, 300.0556)
-                vertices[17] shouldBe Vec3(221.4917, 238.7550, 300.0556)
-                vertices[18] shouldBe Vec3(221.4917, 239.7550, 300.0556)
-                vertices[19] shouldBe Vec3(281.4918, 239.7550, 300.0556)
+                vertices[12].shouldEqual(Vec3(281.4918, 238.7550, 410.0556), exp)
+                vertices[13].shouldEqual(Vec3(281.4918, 238.7550, 300.0556), exp)
+                vertices[14].shouldEqual(Vec3(281.4918, 239.7550, 300.0556), exp)
+                vertices[15].shouldEqual(Vec3(281.4918, 239.7550, 410.0556), exp)
 
-                vertices[20] shouldBe Vec3(221.4917, 238.7550, 300.0556)
-                vertices[21] shouldBe Vec3(221.4917, 238.7550, 410.0556)
-                vertices[22] shouldBe Vec3(221.4917, 239.7550, 410.0556)
-                vertices[23] shouldBe Vec3(221.4917, 239.7550, 300.0556)
+                vertices[16].shouldEqual(Vec3(281.4918, 238.7550, 300.0556), exp)
+                vertices[17].shouldEqual(Vec3(221.4917, 238.7550, 300.0556), exp)
+                vertices[18].shouldEqual(Vec3(221.4917, 239.7550, 300.0556), exp)
+                vertices[19].shouldEqual(Vec3(281.4918, 239.7550, 300.0556), exp)
+
+                vertices[20].shouldEqual(Vec3(221.4917, 238.7550, 300.0556), exp)
+                vertices[21].shouldEqual(Vec3(221.4917, 238.7550, 410.0556), exp)
+                vertices[22].shouldEqual(Vec3(221.4917, 239.7550, 410.0556), exp)
+                vertices[23].shouldEqual(Vec3(221.4917, 239.7550, 300.0556), exp)
 
                 var i = 0
                 faces.forEach {
                     it.size shouldBe 4
-                    it shouldBe mutableListOf(i++, i++, i++, i++)
+                    it shouldBe MutableList(4) { i++ }
                 }
 
                 materialIndex shouldBe 1

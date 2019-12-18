@@ -44,6 +44,7 @@ package assimp
 import glm_.BYTES
 import glm_.i
 import glm_.shl
+import kool.BYTES
 
 /** ------------------------------------------------------------------------------------------------
  *  Hashing function taken from http://www.azillionmonkeys.com/qed/hash.html (incremental version)

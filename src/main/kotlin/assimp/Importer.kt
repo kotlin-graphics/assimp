@@ -45,8 +45,8 @@ package assimp
 import assimp.format.ProgressHandler
 import assimp.postProcess.OptimizeMeshes
 import assimp.postProcess.ValidateDSProcess
-import glm_.BYTES
 import glm_.i
+import kool.BYTES
 import kool.rem
 import java.net.URI
 import java.net.URL
@@ -371,7 +371,8 @@ constructor() {
      *  that spread their data across multiple files or even directories. Examples include OBJ or MD3, which outsource
      *  parts of their material info into external scripts. If you need full functionality you can use [readFilesFromMemory]
      */
-    fun readFileFromMemory(buffer: ByteBuffer, flags: Int, hint: String = ""): AiScene? {
+    fun readFileFromMemory(buffer: ByteBuffer, flags: Int, name: String = AI_MEMORYIO_MAGIC_FILENAME,
+                           hint: String = ""): AiScene? {
         if (buffer.rem == 0 || hint.length > MaxLenHint) {
             impl.errorString = "Invalid parameters passed to ReadFileFromMemory()"
             return null
@@ -380,7 +381,7 @@ constructor() {
         // prevent deletion of previous IOSystem
         val io = impl.ioSystem
 
-        val fileName = "$AI_MEMORYIO_MAGIC_FILENAME.$hint"
+        val fileName = "$name.$hint"
         ioHandler = MemoryIOSystem(fileName to buffer)
 
         readFile(fileName, flags)

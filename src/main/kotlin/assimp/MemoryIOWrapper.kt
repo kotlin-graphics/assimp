@@ -25,7 +25,7 @@ class MemoryIOSystem : IOSystem{
 	constructor(vararg buffers: Pair<String, ByteBuffer>): this(buffers.toMap())
 
 	constructor(buffers: Map<String, ByteBuffer>){
-		memoryFiles.putAll(buffers)
+		memoryFiles += buffers
 	}
 
 	/** Tests for the existence of a file at the given path. */

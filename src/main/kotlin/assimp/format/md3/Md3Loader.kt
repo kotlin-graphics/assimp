@@ -45,6 +45,7 @@ import assimp.*
 import assimp.format.AiConfig
 import glm_.BYTES
 import glm_.i
+import kool.BYTES
 import kool.cap
 import kool.rem
 import java.io.File
@@ -525,7 +526,7 @@ class Md3Importer : BaseImporter() {
             // Fill in all triangles
             var iCurrent = 0
             for (i in 0 until surfaces.numTriangles) {
-                mesh.faces.add(MutableList(3, { 0 }))
+                mesh.faces.add(MutableList(3) { 0 })
 
                 //unsigned int iTemp = iCurrent;
                 for (c in 0..2) {

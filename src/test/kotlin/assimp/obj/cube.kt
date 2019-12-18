@@ -2,6 +2,7 @@ package assimp.obj
 
 import assimp.*
 import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import io.kotlintest.shouldBe
 import uno.kotlin.uri
@@ -17,149 +18,80 @@ object cube {
 
         Importer().testFile(getResource(fileName)) {
 
-            //            with(rootNode) {
-//
-//                name shouldBe "box.obj"
-//                transformation shouldBe Mat4()
-//                numChildren shouldBe 1
-//
-//                with(children[0]) {
-//
-//                    name shouldBe "1"
-//                    transformation shouldBe Mat4()
-//                    numChildren shouldBe 0
-//                    numMeshes shouldBe 1
-//                    meshes[0] shouldBe 0
-//                }
-//                numMeshes shouldBe 0
-//            }
-//            numMeshes shouldBe 1
-//            with(meshes[0]) {
-//                primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
-//                numVertices shouldBe 24
-//                numFaces shouldBe 6
-//
-//                vertices[0] shouldBe Vec3(-0.5, +0.5, +0.5)
-//                vertices[5] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[10] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[15] shouldBe Vec3(-0.5, +0.5, +0.5)
-//                vertices[20] shouldBe Vec3(+0.5, -0.5, -0.5)
-//                vertices[23] shouldBe Vec3(+0.5, -0.5, +0.5)
-//
-//                var i = 0
-//                faces.forEach {
-//                    it.size shouldBe 4
-//                    it shouldBe mutableListOf(i++, i++, i++, i++)
-//                }
-//            }
-//            with(materials[0]) {
-//                name shouldBe AI_DEFAULT_MATERIAL_NAME
-//                shadingModel shouldBe AiShadingMode.gouraud
-//                with(color!!) {
-//                    ambient shouldBe Vec3()
-//                    diffuse shouldBe Vec3(0.6)
-//                    specular shouldBe Vec3()
-//                    emissive shouldBe Vec3()
-//                    shininess shouldBe 0f
-//                    opacity shouldBe 1f
-//                    refracti shouldBe 1f
-//                }
-//            }
-//        }
-//    }
+            with(rootNode) {
+                name shouldBe "cube.obj"
+                transformation shouldBe Mat4()
+                numChildren shouldBe 2
 
+                with(children[0]) {
+                    name shouldBe "default"
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 0
+                    numMeshes shouldBe 1
+                    meshes[0] shouldBe 0
+                    metaData.isEmpty() shouldBe true
+                }
+                with(children[1]) {
+                    name shouldBe ""
+                    transformation shouldBe Mat4()
+                    numChildren shouldBe 0
+                    numMeshes shouldBe 0
+                    meshes.isEmpty() shouldBe true
+                    metaData.isEmpty() shouldBe true
+                }
+                numMeshes shouldBe 0
+            }
+            numMeshes shouldBe 1
+            with(meshes[0]) {
+                primitiveTypes shouldBe AiPrimitiveType.TRIANGLE.i
+                numVertices shouldBe 36
+                numFaces shouldBe 12
 
-//    val concavePolygon = "concave_polygon.obj"
-//
-//    concavePolygon
-//    {
-//
-//        with(Importer().readFile(obj + concavePolygon)!!) {
-//
-//            with(rootNode) {
-//
-//                name shouldBe "concave_polygon.obj"
-//                transformation shouldBe Mat4()
-//                numChildren shouldBe 2
-//
-//                with(children[0]) {
-//
-//                    name shouldBe "concave_test.obj"
-//                    transformation shouldBe Mat4()
-//                    parent === rootNode
-//                    numChildren shouldBe 0
-//                    numMeshes shouldBe 0
-//                }
-//                with(children[1]) {
-//
-//                    name shouldBe "default"
-//                    transformation shouldBe Mat4()
-//                    parent === rootNode
-//                    numChildren shouldBe 0
-//                    numMeshes shouldBe 1
-//                    meshes[0] shouldBe 0
-//                }
-//            }
-//            with(meshes[0]) {
-//
-//                primitiveTypes shouldBe AiPrimitiveType.POLYGON.i
-//                numVertices shouldBe 66
-//                numFaces shouldBe 1
-//
-//                vertices[0] shouldBe Vec3(-1.14600003, 2.25515008, 3.07623005)
-//                vertices[10] shouldBe Vec3(-1.14600003, 1.78262997, 1.93549001)
-//                vertices[20] shouldBe Vec3(-1.14600003, 3.01736999, 1.93549001)
-//                vertices[30] shouldBe Vec3(-1.14600003, 2.54485, 3.07623005)
-//                vertices[40] shouldBe Vec3(-1.14600003, 3.08750010, 2.34999990)
-//                vertices[50] shouldBe Vec3(-1.14600003, 2.13690996, 1.71483)
-//                vertices[60] shouldBe Vec3(-1.14600003, 1.91386, 2.83613992)
-//                vertices[65] shouldBe Vec3(-1.14600003, 2.40000010, 3.0905)
-//
-//                normals.forEach { it shouldBe Vec3(1, 0, -0.0) }
-//                var i = 0
-//                faces[0].forEach { it shouldBe i++ }
-//
-//                materialIndex shouldBe 1
-//
-//                name shouldBe "default"
-//            }
-//            numMaterials shouldBe 2
-//
-//            with(materials[0]) {
-//
-//                name shouldBe "DefaultMaterial"
-//
-//                shadingModel shouldBe AiShadingMode.gouraud
-//
-//                with(color!!) {
-//
-//                    ambient!! shouldBe Vec3(0)
-//                    diffuse!! shouldBe Vec3(0.600000024)
-//                    specular!! shouldBe Vec3(0)
-//                    emissive!! shouldBe Vec3(0)
-//                    shininess!! shouldBe 0f
-//                    opacity!! shouldBe 1f
-//                    refracti!! shouldBe 1f
-//                }
-//            }
-//
-//            with(materials[1]) {
-//
-//                name shouldBe "test"
-//
-//                shadingModel shouldBe AiShadingMode.gouraud
-//
-//                with(color!!) {
-//
-//                    ambient!! shouldBe Vec3(0)
-//                    diffuse!! shouldBe Vec3(0.141176000, 0.184313998, 0.411765009)
-//                    specular!! shouldBe Vec3(0)
-//                    emissive!! shouldBe Vec3(0)
-//                    shininess!! shouldBe 400f
-//                    opacity!! shouldBe 1f
-//                    refracti!! shouldBe 1f
-//                }
-//            }
+                val eps = 0.001f
+
+                vertices[0].shouldEqual(Vec3(-5f, -5f, -5f), eps)
+                vertices[10].shouldEqual(Vec3(-5f, 5f, 5f), eps)
+                vertices[20].shouldEqual(Vec3(5f, 5f, 5f), eps)
+                vertices[30].shouldEqual(Vec3(-5f, 5f, -5f), eps)
+                vertices[35].shouldEqual(Vec3(-5f, 5f, -5f), eps)
+
+                normals[0].shouldEqual(Vec3(0f, 0f, -2f), eps)
+                normals[10].shouldEqual(Vec3(0f, -0f, 1f), eps)
+                normals[20].shouldEqual(Vec3(0f, -0f, 2f), eps)
+                normals[30].shouldEqual(Vec3(0f, 0f, -1f), eps)
+                normals[35].shouldEqual(Vec3(0f, 0f, -1f), eps)
+
+                Vec2(textureCoords[0][0]).shouldEqual(Vec2(1f, 0f), eps)
+                Vec2(textureCoords[0][10]).shouldEqual(Vec2(0f, 1f), eps)
+                Vec2(textureCoords[0][20]).shouldEqual(Vec2(1f, 1f), eps)
+                Vec2(textureCoords[0][30]).shouldEqual(Vec2(0f, 0f), eps)
+                Vec2(textureCoords[0][35]).shouldEqual(Vec2(0f, 0f), eps)
+
+                textureCoords[0][0].size shouldBe 2
+
+                var i = 0
+                faces.forEach {
+                    it.size shouldBe 3
+                    it shouldBe mutableListOf(i++, i++, i++)
+                }
+
+                name shouldBe "default"
+            }
+            numMaterials shouldBe 1
+            materials[0].apply {
+                name shouldBe AI_DEFAULT_MATERIAL_NAME
+                shadingModel shouldBe AiShadingMode.gouraud
+                color!!.apply {
+                    ambient shouldBe Vec3()
+                    diffuse!!.shouldEqual(Vec3(0.6), 0.001f)
+                    specular shouldBe Vec3()
+                    emissive shouldBe Vec3()
+                    shininess shouldBe 0f
+                    opacity shouldBe 1f
+                    transparent!!.shouldEqual(Vec3(1f), 0.001f)
+                    refracti shouldBe 1f
+                }
+            }
         }
     }
 }

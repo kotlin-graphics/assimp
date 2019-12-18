@@ -53,7 +53,7 @@ object box {
             with(materials[0]) {
                 name shouldBe AI_DEFAULT_MATERIAL_NAME
                 shadingModel shouldBe AiShadingMode.gouraud
-                with(color!!) {
+                color!!.apply {
                     ambient shouldBe Vec3()
                     diffuse shouldBe Vec3(0.6)
                     specular shouldBe Vec3()
@@ -67,7 +67,7 @@ object box {
     }
 
 
-//    val concavePolygon = "concave_polygon.obj"
+//    val concavePolygon = "concave_polygon.obj" TODO
 //
 //    concavePolygon
 //    {

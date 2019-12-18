@@ -49,6 +49,7 @@ import glm_.BYTES
 import glm_.b
 import glm_.c
 import glm_.i
+import kool.BYTES
 import unsigned.toUInt
 import java.nio.ByteBuffer
 
