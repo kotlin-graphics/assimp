@@ -11,6 +11,7 @@ class obj : StringSpec() {
         "box"{ box("$path/box.obj") }
         "cube"{ cube("$path/cube.obj") }
         "nanosuit" { nanosuit("$path/nanosuit") }
+        System.gc()
         "wall"{ wall("$path/wall.obj") }
         "spider"{ spider.obj("$path/spider") }
         "shelter" { shelter("$path/shelter") }

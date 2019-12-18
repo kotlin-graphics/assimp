@@ -178,7 +178,7 @@ class ObjFileImporter : BaseImporter() {
                     AiPrimitiveType.LINE -> for (i in 0 until it.m_vertices.size - 1) {
                         val mNumIndices = 2
                         uiIdxCount += mNumIndices
-                        repeat(mNumIndices, { face.add(0) })
+                        repeat(mNumIndices) { face += 0 }
                     }
                     AiPrimitiveType.POINT -> for (i in 0 until it.m_vertices.size) {
                         val mNumIndices = 1
