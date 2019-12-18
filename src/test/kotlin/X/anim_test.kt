@@ -7,7 +7,7 @@ class anim_test : StringSpec() {
 
     init {
         val anim_test = "anim_test.x"
-        val anim_test_a = "anim_test.assbin"
+//        val anim_test_a = "anim_test.assbin"
 
         anim_test {
             Importer().testFile(getResource("$x/$anim_test")) {
