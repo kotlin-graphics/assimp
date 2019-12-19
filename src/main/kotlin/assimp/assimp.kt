@@ -20,7 +20,7 @@ fun Mat4.decompose(pScaling: AiVector3D, pRotation: AiQuaternion, pPosition: AiV
     val vCols = listOf(
             AiVector3D(this[0, 0], this[1, 0], this[2, 0]),
             AiVector3D(this[0, 1], this[1, 1], this[2, 1]),
-            AiVector3D(this[0 ,2], this[1, 2], this[2, 2]))
+            AiVector3D(this[0, 2], this[1, 2], this[2, 2]))
 
     /* extract the scaling factors */
     pScaling.x = vCols[0].length()
@@ -54,12 +54,18 @@ operator fun AiMatrix4x4.times(vector: AiVector3D) = AiVector3D(
 internal const val epsilon = 10e-3f
 val Vec3.isBlack: Boolean
     get() = abs(r) < epsilon && abs(g) < epsilon && abs(b) < epsilon
+
 /** Byte Order Mark
  *  https://unicode-table.com/en/FEFF/
  *  https://stackoverflow.com/questions/26407406/cannot-find-zero-width-no-break-space-when-reading-file?rq=1 */
-val Char.isByteOrderMark: Boolean
-    get() = equals('\uFFFE') // UTF-16LE
-            || equals('\uFEFF') // UTF-16BE
+val String.byteOrderMarkLength: Int
+    get() = when {
+        // UTF-16LE or UTF-16BE
+        get(0) == '\uFFFE' || get(0) == '\uFEFF' -> 1
+        // UTF-8
+        get(0) == '\u00EF' && get(1) == '\u00BB' && get(2) == '\u00BF' -> 3
+        else -> 0
+    }
 
 object ASSIMP {
 

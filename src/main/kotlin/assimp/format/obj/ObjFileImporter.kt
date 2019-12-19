@@ -183,12 +183,12 @@ class ObjFileImporter : BaseImporter() {
                     AiPrimitiveType.POINT -> for (i in 0 until it.m_vertices.size) {
                         val mNumIndices = 1
                         uiIdxCount += mNumIndices
-                        repeat(mNumIndices, { face.add(0) })
+                        repeat(mNumIndices) { face += 0 }
                     }
                     else -> {
                         val uiNumIndices = it.m_vertices.size
                         uiIdxCount += uiNumIndices
-                        repeat(uiNumIndices, { face.add(0) })
+                        repeat(uiNumIndices) { face += 0 }
                     }
                 }
                 faces.add(face)
@@ -223,7 +223,7 @@ class ObjFileImporter : BaseImporter() {
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals) {
-            System.err.println("pMesh.numVertices: ${pMesh.numVertices}")
+//            System.err.println("pMesh.numVertices: ${pMesh.numVertices}")
             pMesh.normals = MutableList(pMesh.numVertices) {
 //                System.err.println(it)
                 AiVector3D()

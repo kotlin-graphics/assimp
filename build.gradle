@@ -75,7 +75,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 test {
     useJUnitPlatform()
 
-//    minHeapSize = "16G"
+    maxHeapSize = "1G"
 //    systemProperties['junit.jupiter.execution.parallel.enabled'] = true
 //    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 //    forkEvery = 1

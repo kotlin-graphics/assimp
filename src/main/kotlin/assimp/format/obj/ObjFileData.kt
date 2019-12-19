@@ -166,7 +166,7 @@ data class Model(
         /** Maximum dimension of texture coordinates */
         var textureCoordDim: Int = 0,
         //! Current mesh instance
-        var m_pCurrentMesh: Mesh? = null,
+        var currentMesh: Mesh? = null,
         //! Vector with stored meshes
         var m_Meshes: MutableList<Mesh> = mutableListOf(),
         //! Material map

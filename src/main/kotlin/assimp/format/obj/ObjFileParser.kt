@@ -26,7 +26,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         // create default material and store it
         model.defaultMaterial = Material(DEFAULT_MATERIAL)
         model.materialLib.add(DEFAULT_MATERIAL)
-        model.materialMap.put(DEFAULT_MATERIAL, model.defaultMaterial!!)
+        model.materialMap[DEFAULT_MATERIAL] = model.defaultMaterial!!
 
         // Start parsing the file
 
@@ -84,11 +84,9 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
                 // Parse a material desc. setter
                 'u' -> if (words[0] == "usemtl") getMaterialDesc(line)
                 // Parse a material library or merging group ('mg')
-                'm' -> {
-                    when (words[0]) {
-                        "mg" -> getGroupNumberAndResolution()
-                        "mtllib" -> getMaterialLib(words)
-                    }
+                'm' -> when (words[0]) {
+                    "mg" -> getGroupNumberAndResolution()
+                    "mtllib" -> getMaterialLib(words)
                 }
                 // Parse group name
                 'g' -> getGroupName(line)
@@ -185,9 +183,9 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         // Create a default object, if nothing is there
         if (model.m_pCurrent == null) createObject(DefaultObjName)
         // Assign face to mesh
-        if (model.m_pCurrentMesh == null) createMesh(DefaultObjName)
+        if (model.currentMesh == null) createMesh(DefaultObjName)
         // Store the face
-        with(model.m_pCurrentMesh!!) {
+        with(model.currentMesh!!) {
             m_Faces.add(face)
             m_uiNumIndices += face.m_vertices.size
             m_uiUVCoordinates[0] += face.m_texturCoords.size
@@ -206,9 +204,8 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         createMesh(objName)
 
         model.currentMaterial?.let {
-            model.m_pCurrentMesh!!.m_uiMaterialIndex =
-                    model.materialLib.indexOfFirst { it == model.currentMaterial!!.materialName }
-            model.m_pCurrentMesh!!.m_pMaterial = model.currentMaterial
+            model.currentMesh!!.m_uiMaterialIndex = getMaterialIndex(it.materialName)
+            model.currentMesh!!.m_pMaterial = it
         }
     }
 
@@ -216,8 +213,8 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     //  Creates a new mesh
     fun createMesh(meshName: String) {
 
-        model.m_pCurrentMesh = Mesh(meshName)
-        model.m_Meshes.add(model.m_pCurrentMesh!!)
+        model.currentMesh = Mesh(meshName)
+        model.m_Meshes.add(model.currentMesh!!)
         val meshId = model.m_Meshes.size - 1
         if (model.m_pCurrent != null)
             model.m_pCurrent!!.m_Meshes.add(meshId)
@@ -248,7 +245,7 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
         if (needsNewMesh(strName))
             createMesh(strName)
 
-        model.m_pCurrentMesh!!.m_uiMaterialIndex = model.materialLib.indexOfFirst { it == strName }
+        model.currentMesh!!.m_uiMaterialIndex = getMaterialIndex(strName)
     }
 
     // -------------------------------------------------------------------
@@ -256,14 +253,14 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
     fun needsNewMesh(materialName: String): Boolean {
 
         // If no mesh data yet
-        if (model.m_pCurrentMesh == null) return true
+        if (model.currentMesh == null) return true
 
         var newMat = false
-        val matIdx = model.materialLib.indexOfFirst { it == materialName }
-        val curMatIdx = model.m_pCurrentMesh!!.m_uiMaterialIndex
+        val matIdx = getMaterialIndex(materialName)
+        val curMatIdx = model.currentMesh!!.m_uiMaterialIndex
         if (curMatIdx != Mesh.NoMaterial && curMatIdx != matIdx
                 // no need create a new mesh if no faces in current lets say 'usemtl' goes straight after 'g'
-                && model.m_pCurrentMesh!!.m_Faces.size > 0)
+                && model.currentMesh!!.m_Faces.size > 0)
         // New material -> only one material per mesh, so we need to create a new material
             newMat = true
 
@@ -302,9 +299,19 @@ class ObjFileParser(private val file: IOStream, val ioSystem: IOSystem) {
 
         // Import material library data from file.
         // Some exporters (e.g. Silo) will happily write out empty material files if the model doesn't use any materials, so we allow that.
-        val buffer = ioSystem.open(pFile).reader().readLines().filter(String::isNotBlank)
+        val buffer = ioSystem.open(pFile).reader().readLines().filterTo(ArrayList(), String::isNotBlank)
+
+        val bom = buffer[0].byteOrderMarkLength
+        if(bom != 0)
+            buffer[0] = buffer[0].drop(bom)
 
         ObjFileMtlImporter(buffer, model)
+    }
+
+    /** Returns the index of the material. Is -1 if not material was found. */
+    fun getMaterialIndex(materialName: String): Int = when {
+        materialName.isEmpty() -> -1
+        else -> model.materialLib.indexOf(materialName)
     }
 
     // -------------------------------------------------------------------

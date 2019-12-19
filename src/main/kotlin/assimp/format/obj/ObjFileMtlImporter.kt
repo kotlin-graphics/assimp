@@ -1,6 +1,5 @@
 package assimp.format.obj
 
-import assimp.isByteOrderMark
 import assimp.logger
 import assimp.words
 import glm_.f
@@ -28,10 +27,8 @@ class ObjFileMtlImporter(buffer: List<String>, private val model: Model) {
         for (line in buffer) {
 
             val trimmedLine = line.trim()
-            val words = when  {
-                trimmedLine[0].isByteOrderMark -> trimmedLine.drop(1)
-                else -> trimmedLine
-            }.words
+
+            val words = trimmedLine.words
 
             when (words[0][0]) {
                 'k', 'K' -> when (words[0][1]) {
@@ -100,7 +97,7 @@ class ObjFileMtlImporter(buffer: List<String>, private val model: Model) {
                     // New Material created
                     model.materialLib.add(name)
                     model.materialMap[name] = it
-                    model.m_pCurrentMesh?.m_uiMaterialIndex = model.materialLib.lastIndex
+                    model.currentMesh?.m_uiMaterialIndex = model.materialLib.lastIndex
                 }
     }
 }

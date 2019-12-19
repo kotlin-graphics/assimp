@@ -109,6 +109,7 @@ object car {
                 }
 
                 materialIndex shouldBe 1
+                name shouldBe "1"
             }
 
             meshes[37].apply {
