@@ -73,7 +73,7 @@ val versionRevision = 0xee56ffa1
 val branch = "master"
 
 /** JVM custom */
-val build = 16
+val build = 17
 
 /** @brief Returns assimp's compile flags
  *  @return Any bitwise combination of the ASSIMP_CFLAGS_xxx constants.
