@@ -54,7 +54,7 @@ Advantages:
 - easier to debug
 - easier to modify/customize, e.g: textures get automatically loaded and offered via [gli library](https://github.com/kotlin-graphics/glm), you just have to upload them to GL
 - matrices are column-major instead of row-major and offered via the [glm library](https://github.com/kotlin-graphics/glm)
-- easier to fix (found a couple of bugs on the original assimp, opened an issue, I didnt have to wait for the next releases fix)
+- easier to fix (found a couple of bugs on the original assimp, opened an issue, I didn't have to wait for the next releases fix)
 - reduced the maintenance at minimum by keeping the same structure as possible during the port
 - possible to get the same loading speed, using binary assimp format
 

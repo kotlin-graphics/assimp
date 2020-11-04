@@ -145,10 +145,8 @@ fun ByteBuffer.readData(beginOut: KMutableProperty0<Int>, endOut: KMutableProper
             val length = int
             pos += length
         }
-    // TODO: what is the 'b' type code? Right now we just skip over it. Take the full range we could get
-        'b' -> Unit
     // array of *
-        'f', 'd', 'l', 'i' -> {
+        'b', 'c', 'f', 'd', 'l', 'i' -> {
             val length = int
             val encoding = int
             val compLen = int
@@ -156,6 +154,7 @@ fun ByteBuffer.readData(beginOut: KMutableProperty0<Int>, endOut: KMutableProper
             // compute length based on type and check against the stored value
             if (encoding == 0) {
                 val stride = when (type) {
+                    'b', 'c' -> 1
                     'f', 'i' -> 4
                     'd', 'l' -> 8
                     else -> throw Exception("invalid type")
