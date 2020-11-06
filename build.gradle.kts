@@ -62,7 +62,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
 }
 
-java { modularity.inferModulePath.set(true) }
+//java { modularity.inferModulePath.set(true) }
 
 tasks {
     dokkaHtml {
@@ -83,11 +83,14 @@ tasks {
         sourceCompatibility = "11"
     }
 
-    compileJava { // this is needed because we have a separate compile step in this example with the 'module-info.java' is in 'main/java' and the Kotlin code is in 'main/kotlin'
-        options.compilerArgs = listOf("--patch-module", "$moduleName=${sourceSets.main.get().output.asPath}")
-    }
+//    compileJava { // this is needed because we have a separate compile step in this example with the 'module-info.java' is in 'main/java' and the Kotlin code is in 'main/kotlin'
+//        options.compilerArgs = listOf("--patch-module", "$moduleName=${sourceSets.main.get().output.asPath}")
+//    }
 
-    withType<Test> { useJUnitPlatform() }
+    withType<Test> {
+        useJUnitPlatform()
+        maxHeapSize = "1g" // set heap size for the test JVM(s)
+    }
 }
 
 val dokkaJavadocJar by tasks.register<Jar>("dokkaJavadocJar") {

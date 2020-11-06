@@ -11,8 +11,7 @@ class obj : StringSpec() {
         "box"{ box("$path/box.obj") }
         "cube"{ cube("$path/cube.obj") }
         "nanosuit" { nanosuit("$path/nanosuit") }
-        // fires "java.lang.OutOfMemoryError: Java heap space" if run together with the others
-//        "wall"{ wall("$path/wall.obj") }
+        "wall"{ wall("$path/wall.obj") }
         "spider"{ spider.obj("$path/spider") }
         "shelter" { shelter("$path/shelter") }
         "car" { car("$path/car") }
