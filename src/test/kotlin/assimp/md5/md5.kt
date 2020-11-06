@@ -2,7 +2,7 @@ package assimp.md5
 
 import assimp.*
 import glm_.i
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 /**
  * Created by elect on 24/01/2017.

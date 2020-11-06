@@ -1,7 +1,7 @@
 package assimp
 
 import glm_.mat4x4.Mat4
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class assimp_ : StringSpec() {
 

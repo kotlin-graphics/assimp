@@ -3,12 +3,13 @@ package X
 import assimp.*
 import gli_.Cache
 import gli_.Texture
-import io.kotlintest.*
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 val x = "$models/X/"
 val x_ass = "$models/models-assbin-db/X/"
 
-fun printNodeNames(n : AiNode, done : MutableList<AiNode> = MutableList<AiNode>(0, { AiNode() })) {
+fun printNodeNames(n : AiNode, done : MutableList<AiNode> = mutableListOf()) {
     println(n.name); done.add(n)
     for(a in n.children){
 //        if(a in done) {
@@ -251,7 +252,7 @@ fun compareAnimations(anim1: AiAnimation, anim2: AiAnimation) {
 fun compareMeshMorphAnim(a1: AiMeshMorphAnim, a2: AiMeshMorphAnim) {
     a1.name shouldBe a2.name
     a1.numKeys shouldBe a2.numKeys
-    for(i in 0 until a1.keys.size) {
+    for(i in a1.keys.indices) {
         compareMeshMorphKey(a1.keys[i], a2.keys[i])
     }
 }
@@ -265,7 +266,7 @@ fun compareMeshMorphKey(a1: AiMeshMorphKey, a2: AiMeshMorphKey) {
 
 fun compareIntArray(v1: IntArray, v2: IntArray) {
     v1.size shouldBe v2.size
-    for(i in 0 until v1.size) {
+    for(i in v1.indices) {
         v1[i] shouldBe v2[i]
     }
 }

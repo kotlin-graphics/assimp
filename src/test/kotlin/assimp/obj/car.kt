@@ -3,7 +3,7 @@ package assimp.obj
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
+import io.kotest.matchers.shouldBe
 
 /**
  * Created by Sunny on 19/01/2018.

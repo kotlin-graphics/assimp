@@ -2,10 +2,10 @@ package assimp.blender
 
 import assimp.*
 import glm_.func.rad
-import glm_.test.*
 import glm_.mat4x4.*
 import glm_.vec3.*
-import io.kotlintest.*
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.shouldBe
 
 // TODO also test linked meshes
 
@@ -39,7 +39,7 @@ object testCubeRotateScaleTranslate {
 
 
 
-		transformation shouldBe (generateTrans(des) plusOrMinus epsilon)
+		transformation.shouldEqual(generateTrans(des), epsilon)
 
 		numChildren shouldBe 0
 		numMeshes shouldBe 1

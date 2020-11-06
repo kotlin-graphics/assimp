@@ -18,12 +18,11 @@ class ObjFileImporter : BaseImporter() {
             fileExtensions = listOf("obj"))
 
     /**  Returns true, if file is an obj file.  */
-    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean {
-
-        if (!checkSig)   //Check File Extension
-            return file.substring(file.lastIndexOf('.') + 1) == "obj"
-        else //Check file Header
-            return false
+    override fun canRead(file: String, ioSystem: IOSystem, checkSig: Boolean): Boolean = when {
+        //Check File Extension
+        !checkSig -> file.substring(file.lastIndexOf('.') + 1) == "obj"
+        //Check file Header
+        else -> false
     }
 
     //  reference to load textures later
@@ -219,7 +218,7 @@ class ObjFileImporter : BaseImporter() {
         else if (pMesh.numVertices > AI_MAX_ALLOC(AiVector3D.size))
             throw Exception("OBJ:" + pModel.m_ModelName + " | " + pMesh.name + " --> Too many vertices, would run out of memory")
 
-        pMesh.vertices = MutableList(pMesh.numVertices, { AiVector3D() })
+        pMesh.vertices = MutableList(pMesh.numVertices) { AiVector3D() }
 
         // Allocate buffer for normal vectors
         if (pModel.m_Normals.isNotEmpty() && pObjMesh.m_hasNormals) {
@@ -232,7 +231,7 @@ class ObjFileImporter : BaseImporter() {
         // Allocate buffer for vertex-color vectors
 
         if (pModel.m_VertexColors.isNotEmpty())
-            pMesh.colors.add(Array(pMesh.numVertices, { AiColor4D() }).toMutableList())
+            pMesh.colors.add(Array(pMesh.numVertices) { AiColor4D() }.toMutableList())
         //pMesh.colors[0] = Array(pMesh.numVertices, { AiColor4D() }).toMutableList()
 
         // Allocate buffer for texture coordinates
@@ -284,7 +283,7 @@ class ObjFileImporter : BaseImporter() {
 
                 // Get destination face
                 val faceIndex = outIndex;
-                val pDestFace = pMesh.faces.getOrElse(faceIndex, { mutableListOf() })
+                val pDestFace = pMesh.faces.getOrElse(faceIndex) { mutableListOf() }
 
                 val last = vertexIndex == pSourceFace.m_vertices.lastIndex
 

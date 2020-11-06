@@ -1,7 +1,7 @@
 package X
 
 import assimp.*
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class kwxport_test_cubewithvcolors : StringSpec() {
     init {

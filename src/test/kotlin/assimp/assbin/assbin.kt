@@ -1,7 +1,7 @@
 package assimp.assbin
 
 import assimp.*
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class assbin : StringSpec() {
 

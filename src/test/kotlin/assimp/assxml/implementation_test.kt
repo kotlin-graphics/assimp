@@ -2,7 +2,7 @@ package assimp.assxml
 
 import assimp.AiMatrix4x4
 import assimp.format.assxml.AssxmlExporter
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class implementation_test : StringSpec() {
     init {

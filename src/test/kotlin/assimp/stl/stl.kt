@@ -1,7 +1,7 @@
 package assimp.stl
 
 import assimp.models
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 /**
  * Created by elect on 18/11/2016.

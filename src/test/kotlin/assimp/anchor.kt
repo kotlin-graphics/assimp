@@ -1,7 +1,6 @@
 package assimp
 
-import io.kotlintest.fail
-import org.lwjgl.BufferUtils
+import io.kotest.assertions.fail
 import java.io.*
 import java.net.URI
 import java.net.URL

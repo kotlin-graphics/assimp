@@ -1,7 +1,7 @@
 package assimp.md2
 
 import assimp.*
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 /**
  * Created by elect on 24/01/2017.

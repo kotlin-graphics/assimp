@@ -3,7 +3,7 @@ package assimp.assxml
 import X.x
 import assimp.*
 import assimp.format.assxml.AssxmlExporter
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 import java.util.*
 
 class test : StringSpec() {

@@ -4,8 +4,7 @@ import assimp.*
 import glm_.func.rad
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import glm_.test.*
-import io.kotlintest.*
+import io.kotest.matchers.shouldBe
 
 /**
  * Created by elect on 16/11/2016.
@@ -27,8 +26,8 @@ object blenderDefault_250_compressed {
 
                 with(children.first { it.name == "Camera" }){
 
-                    transformation shouldBe (generateTrans(7.48113f, -6.50764f, 5.34367f,
-                                                           77.185f.rad, 0.772f, 0.341f, 0.536f) plusOrMinus epsilon)
+                    val trans = generateTrans(7.48113f, -6.50764f, 5.34367f, 77.185f.rad, 0.772f, 0.341f, 0.536f)
+                    transformation.shouldEqual(trans, epsilon)
 
                     numChildren shouldBe 0
                     numMeshes shouldBe  0
@@ -37,7 +36,7 @@ object blenderDefault_250_compressed {
 
 	                val expectedTrans = generateTrans(4.07625f, 1.00545f, 5.90386f,
 	                                                  1.92627f, 0.206f, 0.332f, 0.921f)
-	                transformation shouldBe (expectedTrans plusOrMinus epsilon)
+	                transformation.shouldEqual(expectedTrans, epsilon)
                     numChildren shouldBe 0
                     numMeshes shouldBe 0
                 }
@@ -60,12 +59,12 @@ object blenderDefault_250_compressed {
                 numVertices shouldBe 24
                 numFaces shouldBe 6
 
-	            vertices[0] shouldBe (Vec3(+1.0, +1.0, -1.0) plusOrMinus epsilon)
-	            vertices[5] shouldBe (Vec3(-1.0, +1.0, +1.0) plusOrMinus epsilon)
-	            vertices[10] shouldBe (Vec3(+1.0, -1.0, +1.0) plusOrMinus epsilon)
-	            vertices[15] shouldBe (Vec3(-1.0, -1.0, -1.0) plusOrMinus epsilon)
-	            vertices[20] shouldBe (Vec3(+1.0, +1.0, +1.0) plusOrMinus epsilon)
-	            vertices[23] shouldBe (Vec3(-1.0, +1.0, +1.0) plusOrMinus epsilon)
+	            vertices[0].shouldEqual(Vec3(+1.0, +1.0, -1.0), epsilon)
+	            vertices[5].shouldEqual(Vec3(-1.0, +1.0, +1.0), epsilon)
+	            vertices[10].shouldEqual(Vec3(+1.0, -1.0, +1.0), epsilon)
+	            vertices[15].shouldEqual(Vec3(-1.0, -1.0, -1.0), epsilon)
+	            vertices[20].shouldEqual(Vec3(+1.0, +1.0, +1.0), epsilon)
+	            vertices[23].shouldEqual(Vec3(-1.0, +1.0, +1.0), epsilon)
 
                 var i = 0
                 faces.forEach {
@@ -80,7 +79,7 @@ object blenderDefault_250_compressed {
                 // shadingModel shouldBe AiShadingMode.gouraud TODO ???
                 with(color!!) {
                     ambient shouldBe Vec3()
-                    diffuse shouldBe (Vec3(0.604f) plusOrMinus epsilon)
+                    diffuse!!.shouldEqual(Vec3(0.604f), epsilon)
                     specular shouldBe Vec3(1f)
                     emissive shouldBe null
                     shininess shouldBe 50f

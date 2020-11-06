@@ -2,10 +2,9 @@ package assimp.obj
 
 import assimp.*
 import glm_.mat4x4.Mat4
-import glm_.test.*
 import glm_.vec3.Vec3
-import io.kotlintest.matchers.collections.*
-import io.kotlintest.shouldBe
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.shouldBe
 import java.io.File
 import java.net.URL
 import java.util.*
@@ -87,11 +86,11 @@ object spider {
                     numVertices shouldBe 240
                     numFaces shouldBe 80
 
-                    vertices[0] shouldBe Vec3(x = 1.160379, y = 4.512684, z = 6.449167).plusOrMinus(epsilon)
-                    vertices[numVertices - 1] shouldBe Vec3(x = -4.421391, y = -3.605049, z = -20.462471).plusOrMinus(epsilon)
+                    vertices[0].shouldEqual(Vec3(x = 1.160379, y = 4.512684, z = 6.449167), epsilon)
+                    vertices[numVertices - 1].shouldEqual(Vec3(x = -4.421391, y = -3.605049, z = -20.462471), epsilon)
 
-                    normals[0] shouldBe Vec3(-0.537588000, -0.0717979968, 0.840146005).plusOrMinus(epsilon)
-                    normals[numVertices - 1] shouldBe Vec3(-0.728103995, -0.400941998, -0.555975974).plusOrMinus(epsilon)
+                    normals[0].shouldEqual(Vec3(-0.537588000, -0.0717979968, 0.840146005), epsilon)
+                    normals[numVertices - 1].shouldEqual(Vec3(-0.728103995, -0.400941998, -0.555975974), epsilon)
 
                     // TODO check for kotlintest 2.0 array check
                     textureCoords[0][0].contentEquals(floatArrayOf(0.186192f, 0.222718f)) shouldBe true
@@ -110,11 +109,11 @@ object spider {
                     numVertices shouldBe 180
                     numFaces shouldBe 60
 
-                    vertices[0] shouldBe Vec3(x = -41.8566132f, y = -0.754845977f, z = 9.43077183f).plusOrMinus(epsilon)
-                    vertices[numVertices - 1] shouldBe Vec3(x = -49.7138367f, y = -2.98359, z = -21.4211159f).plusOrMinus(epsilon)
+                    vertices[0].shouldEqual(Vec3(x = -41.8566132f, y = -0.754845977f, z = 9.43077183f), epsilon)
+                    vertices[numVertices - 1].shouldEqual(Vec3(x = -49.7138367f, y = -2.98359, z = -21.4211159f), epsilon)
 
-                    normals[0] shouldBe Vec3(x = -0.236278996f, y = 0.0291850008f, z = 0.971247017f).plusOrMinus(epsilon)
-                    normals[numVertices - 1] shouldBe Vec3(x = -0.862017989f, y = 0.0830229968f, z = -0.500032008f).plusOrMinus(epsilon)
+                    normals[0].shouldEqual(Vec3(x = -0.236278996f, y = 0.0291850008f, z = 0.971247017f), epsilon)
+                    normals[numVertices - 1].shouldEqual(Vec3(x = -0.862017989f, y = 0.0830229968f, z = -0.500032008f), epsilon)
 
                     textureCoords[0][0].contentEquals(floatArrayOf(-0.0658710003f, -0.410016000f)) shouldBe true
                     textureCoords[0][numVertices - 1].contentEquals(floatArrayOf(-0.318565995f, 1.05051804f)) shouldBe true
@@ -132,11 +131,11 @@ object spider {
                     numVertices shouldBe 114
                     numFaces shouldBe 38
 
-                    vertices[0] shouldBe Vec3(x = -59.4670486f, y = 18.1400757f, z = -17.1943588).plusOrMinus(epsilon)
-                    vertices[numVertices - 1] shouldBe Vec3(x = -62.2673569f, y = 15.2776031f, z = -14.7453232f).plusOrMinus(epsilon)
+                    vertices[0].shouldEqual(Vec3(x = -59.4670486f, y = 18.1400757f, z = -17.1943588), epsilon)
+                    vertices[numVertices - 1].shouldEqual(Vec3(x = -62.2673569f, y = 15.2776031f, z = -14.7453232f), epsilon)
 
-                    normals[0] shouldBe Vec3(x = 0.0751359984f, y = 0.741809011f, z = -0.666388988f).plusOrMinus(epsilon)
-                    normals[numVertices - 1] shouldBe Vec3(x = -0.776385009f, y = -0.629855990f, z = 0.0225169994f).plusOrMinus(epsilon)
+                    normals[0].shouldEqual(Vec3(x = 0.0751359984f, y = 0.741809011f, z = -0.666388988f), epsilon)
+                    normals[numVertices - 1].shouldEqual(Vec3(x = -0.776385009f, y = -0.629855990f, z = 0.0225169994f), epsilon)
 
                     textureCoords[0][0].contentEquals(floatArrayOf(0.899282992f, 0.970311999f)) shouldBe true
                     textureCoords[0][numVertices - 1].contentEquals(floatArrayOf(0.372330993f, 0.198948994f)) shouldBe true
@@ -159,10 +158,10 @@ object spider {
                         shadingModel shouldBe AiShadingMode.gouraud
 
                         with(color!!) {
-                            ambient shouldBe Vec3(0.200000003f).plusOrMinus(epsilon)
-                            diffuse shouldBe Vec3(0.827450991f, 0.792156994f, 0.772548974f).plusOrMinus(epsilon)
-                            specular shouldBe Vec3(0).plusOrMinus(epsilon)
-                            emissive shouldBe Vec3(0).plusOrMinus(epsilon)
+                            ambient!!.shouldEqual(Vec3(0.200000003f), epsilon)
+                            diffuse!!.shouldEqual(Vec3(0.827450991f, 0.792156994f, 0.772548974f), epsilon)
+                            specular!!.shouldEqual(Vec3(0), epsilon)
+                            emissive!!.shouldEqual(Vec3(0), epsilon)
                             shininess shouldBe 0f
                             opacity shouldBe 1f
                             refracti shouldBe 1f
@@ -174,10 +173,10 @@ object spider {
                         shadingModel shouldBe AiShadingMode.gouraud
 
                         with(color!!) {
-                            ambient shouldBe Vec3(0.200000003f).plusOrMinus(epsilon)
-                            diffuse shouldBe Vec3(0.800000012f).plusOrMinus(epsilon)
-                            specular shouldBe Vec3(0).plusOrMinus(epsilon)
-                            emissive shouldBe Vec3(0).plusOrMinus(epsilon)
+                            ambient!!.shouldEqual(Vec3(0.200000003f), epsilon)
+                            diffuse!!.shouldEqual(Vec3(0.800000012f), epsilon)
+                            specular!!.shouldEqual(Vec3(0), epsilon)
+                            emissive!!.shouldEqual(Vec3(0), epsilon)
                             shininess shouldBe 0f
                             opacity shouldBe 1f
                             refracti shouldBe 1f
@@ -189,10 +188,10 @@ object spider {
                         shadingModel shouldBe AiShadingMode.gouraud
 
                         with(color!!) {
-                            ambient shouldBe Vec3(0.200000003f).plusOrMinus(epsilon)
-                            diffuse shouldBe Vec3(0.690195978f, 0.639216006f, 0.615685999f).plusOrMinus(epsilon)
-                            specular shouldBe Vec3(0).plusOrMinus(epsilon)
-                            emissive shouldBe Vec3(0).plusOrMinus(epsilon)
+                            ambient!!.shouldEqual(Vec3(0.200000003f), epsilon)
+                            diffuse!!.shouldEqual(Vec3(0.690195978f, 0.639216006f, 0.615685999f), epsilon)
+                            specular!!.shouldEqual(Vec3(0), epsilon)
+                            emissive!!.shouldEqual(Vec3(0), epsilon)
                             shininess shouldBe 0f
                             opacity shouldBe 1f
                             refracti shouldBe 1f
@@ -204,10 +203,10 @@ object spider {
                         shadingModel shouldBe AiShadingMode.gouraud
 
                         with(color!!) {
-                            ambient shouldBe Vec3(0.200000003f).plusOrMinus(epsilon)
-                            diffuse shouldBe Vec3(0.800000012f).plusOrMinus(epsilon)
-                            specular shouldBe Vec3(0).plusOrMinus(epsilon)
-                            emissive shouldBe Vec3(0).plusOrMinus(epsilon)
+                            ambient!!.shouldEqual(Vec3(0.200000003f), epsilon)
+                            diffuse!!.shouldEqual(Vec3(0.800000012f), epsilon)
+                            specular!!.shouldEqual(Vec3(0), epsilon)
+                            emissive!!.shouldEqual(Vec3(0), epsilon)
                             shininess shouldBe 0f
                             opacity shouldBe 1f
                             refracti shouldBe 1f
@@ -220,10 +219,10 @@ object spider {
                         shadingModel shouldBe AiShadingMode.gouraud
 
                         with(color!!) {
-                            ambient shouldBe Vec3(0.200000003f).plusOrMinus(epsilon)
-                            diffuse shouldBe Vec3(0.800000012f).plusOrMinus(epsilon)
-                            specular shouldBe Vec3(0).plusOrMinus(epsilon)
-                            emissive shouldBe Vec3(0).plusOrMinus(epsilon)
+                            ambient!!.shouldEqual(Vec3(0.200000003f), epsilon)
+                            diffuse!!.shouldEqual(Vec3(0.800000012f), epsilon)
+                            specular!!.shouldEqual(Vec3(0), epsilon)
+                            emissive!!.shouldEqual(Vec3(0), epsilon)
                             shininess shouldBe 0f
                             opacity shouldBe 1f
                             refracti shouldBe 1f

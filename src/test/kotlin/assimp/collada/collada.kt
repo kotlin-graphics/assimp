@@ -2,7 +2,7 @@ package assimp.collada
 
 import assimp.getResource
 import assimp.models
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class collada  : StringSpec() {
 

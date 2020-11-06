@@ -15,7 +15,7 @@ import glm_.vec3.Vec3
 import glm_.vec3.Vec3d
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4d
-import io.kotlintest.shouldBe
+import io.kotest.matchers.shouldBe
 
 // from glm test
 

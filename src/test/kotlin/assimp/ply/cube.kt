@@ -2,8 +2,8 @@ package assimp.ply
 
 import assimp.*
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.StringSpec
 import java.util.*
 
 object cube {

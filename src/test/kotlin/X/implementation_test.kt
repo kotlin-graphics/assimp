@@ -2,9 +2,9 @@ package X
 
 import assimp.format.X.Pointer
 import assimp.format.X.XFileParser
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 import assimp.format.X.fast_atoreal_move
-import io.kotlintest.shouldBe
+import io.kotest.matchers.shouldBe
 
 class implementation_test : StringSpec() {
 

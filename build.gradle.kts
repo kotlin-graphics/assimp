@@ -5,18 +5,18 @@ import java.net.URL
 
 plugins {
     java
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.0"
     `maven-publish`
     //    id "org.jetbrains.kotlin.kapt" version "1.3.10"
-    id("org.jetbrains.dokka") version "1.4.10"
-    id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("org.jetbrains.dokka") version "1.4.0"
+    id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 // jitpack
 group = "com.github.kotlin_graphics"
 val moduleName = "$group.assimp"
 
-val kotestVersion = "4.2.5"
+val kotestVersion = "4.2.0"
 val kx = "com.github.kotlin-graphics"
 val unsignedVersion = "1e2fda82"
 val koolVersion = "b393e4c2"
@@ -52,7 +52,8 @@ dependencies {
         runtimeOnly("org.lwjgl", "lwjgl$it", classifier = lwjglNatives)
     }
 
-    implementation("io.github.microutils:kotlin-logging:1.7.8")
+//    implementation("io.github.microutils:kotlin-logging:1.7.8")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.3")
     implementation("org.slf4j:slf4j-api:1.7.29")
 
     testImplementation("org.slf4j:slf4j-simple:1.7.29")

@@ -3,7 +3,8 @@ package assimp.md3
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.*
+import io.kotest.assertions.fail
+import io.kotest.matchers.shouldBe
 import java.io.*
 import java.nio.*
 import java.nio.file.*

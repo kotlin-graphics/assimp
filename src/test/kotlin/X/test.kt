@@ -1,7 +1,7 @@
 package X
 
 import assimp.*
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 
 class test : StringSpec() {
     init {

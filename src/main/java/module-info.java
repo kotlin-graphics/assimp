@@ -10,7 +10,7 @@ module com.github.kotlin_graphics.assimp {
     requires com.github.kotlin_graphics.kotlin_unsigned;
     requires com.github.kotlin_graphics.kool;
 
-    requires kotlin.logging;
+    requires kotlin.logging.jvm;
 
     exports assimp;
     exports assimp.format;

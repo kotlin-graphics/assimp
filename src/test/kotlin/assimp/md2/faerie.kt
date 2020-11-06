@@ -3,8 +3,10 @@ package assimp.md2
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.*
-import io.kotlintest.matchers.endWith
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.endWith
+import io.kotest.matchers.string.shouldEndWith
 
 object faerie {
 
@@ -60,7 +62,7 @@ object faerie {
                     ambient shouldBe Vec3(0.0500000007)
                 }
                 textures[0].type shouldBe AiTexture.Type.diffuse
-                textures[0].file!! should endWith("faerie.bmp")
+                textures[0].file!! shouldEndWith "faerie.bmp"
                 name shouldBe "DefaultMaterial"
             }
         }

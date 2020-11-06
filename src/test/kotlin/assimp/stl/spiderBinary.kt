@@ -3,8 +3,8 @@ package assimp.stl
 import assimp.*
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.StringSpec
 
 object spiderBinary {
 

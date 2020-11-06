@@ -5,7 +5,7 @@ import assimp.*
 import assimp.format.X.FlipWindingOrderProcess
 import assimp.format.X.MakeLeftHandedProcess
 import assimp.format.assxml.AssxmlExporter
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
 import java.util.*
 
 class anim_test : StringSpec() {
