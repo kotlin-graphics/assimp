@@ -18,11 +18,11 @@ val moduleName = "$group.assimp"
 
 val kotestVersion = "4.2.0"
 val kx = "com.github.kotlin-graphics"
-val unsignedVersion = "1e2fda82"
-val koolVersion = "b393e4c2"
-val glmVersion = "a4185eec"
-val gliVersion = "01358f8c"
-val unoVersion = "ada20e33"
+val unsignedVersion = "1a71e303"
+val koolVersion = "4359096c"
+val glmVersion = "557908c3"
+val gliVersion = "4c290e0d"
+val unoVersion = "2599943c"
 val lwjglVersion = "3.2.3"
 val lwjglNatives = "natives-" + when (current()) {
     WINDOWS -> "windows"
@@ -62,8 +62,6 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
 }
 
-//java { modularity.inferModulePath.set(true) }
-
 tasks {
     dokkaHtml {
         dokkaSourceSets.configureEach {
@@ -77,15 +75,11 @@ tasks {
 
     withType<KotlinCompile>().all {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "1.8"
             freeCompilerArgs += listOf("-Xinline-classes", "-Xopt-in=kotlin.RequiresOptIn")
         }
-        sourceCompatibility = "11"
+        sourceCompatibility = "1.8"
     }
-
-//    compileJava { // this is needed because we have a separate compile step in this example with the 'module-info.java' is in 'main/java' and the Kotlin code is in 'main/kotlin'
-//        options.compilerArgs = listOf("--patch-module", "$moduleName=${sourceSets.main.get().output.asPath}")
-//    }
 
     withType<Test> {
         useJUnitPlatform()
@@ -133,4 +127,4 @@ publishing {
 }
 
 // == Add access to the 'modular' variant of kotlin("stdlib"): Put this into a buildSrc plugin and reuse it in all your subprojects
-configurations.all { attributes.attribute(TARGET_JVM_VERSION_ATTRIBUTE, 11) }
+configurations.all { attributes.attribute(TARGET_JVM_VERSION_ATTRIBUTE, 8) }

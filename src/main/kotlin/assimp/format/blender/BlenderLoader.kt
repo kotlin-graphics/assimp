@@ -77,7 +77,7 @@ class BlenderImporter : BaseImporter() {    // TODO should this be open? The C++
             // compressed blend file and try uncompressing it, else fail. This is to
             // avoid uncompressing random files which our loader might end up with.
 
-            val bytes = GZIPInputStream(stream.read()).readAllBytes()
+            val bytes = GZIPInputStream(stream.read()).readBytes()
 			buffer = ByteBuffer.wrap(bytes)
             match = buffer.strncmp(tokens)
             if (!match) throw Exception("Found no BLENDER magic word in decompressed GZIP file")
