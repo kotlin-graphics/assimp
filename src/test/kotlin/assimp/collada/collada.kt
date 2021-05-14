@@ -4,7 +4,7 @@ import assimp.getResource
 import assimp.models
 import io.kotest.core.spec.style.StringSpec
 
-class collada  : StringSpec() {
+class collada : StringSpec() {
 
     val path = "$models/Collada/"
 
@@ -12,6 +12,7 @@ class collada  : StringSpec() {
         "anims full rot"  { animFullRot(getResource("$path/anims_with_full_rotations_between_keys.DAE")) }
         "cameras"  { cameras(getResource("$path/cameras.dae")) }
         "concave poly"  { concavePoly(getResource("$path/ConcavePolygon.dae")) }
+        "floor" { floor(getResource("$path/floor.dae")) }
         "treasure smooth"  { treasure_smooth(getResource("$path/treasure_smooth.dae")) }
         "treasure smooth Pretransform"  { `treasure_smooth Pretransform`(getResource("$path/treasure_smooth.dae")) }
         "color teapot spheres"  { `color teapot spheres`(getResource("$path/color_teapot_spheres.dae")) }

@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <author>Someone</author>
+      <authoring_tool>Assimp Collada Exporter</authoring_tool>
+    </contributor>
+    <created>2000-01-01T23:59:59</created>
+    <modified>2000-01-01T23:59:59</modified>
+    <unit name="centimeter" meter="0.01" />
+    <up_axis>Y_UP</up_axis>
+  </asset>
+  <library_images>
+    <image id="m1lambert2SG-diffuse-image">
+      <init_from>wall1_2048.jpg</init_from>
+    </image>
+  </library_images>
+  <library_effects>
+    <effect id="m0DefaultMaterial-fx" name="m0DefaultMaterial">
+      <profile_COMMON>
+        <technique sid="standard">
+          <phong>
+            <emission>
+              <color sid="emission">0   0   0   0</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">0   0   0   1</color>
+            </ambient>
+            <diffuse>
+              <color sid="diffuse">0.6   0.6   0.6   1</color>
+            </diffuse>
+            <specular>
+              <color sid="specular">0   0   0   1</color>
+            </specular>
+            <shininess>
+              <float sid="shininess">0</float>
+            </shininess>
+            <reflective>
+              <color sid="reflective">0   0   0   0</color>
+            </reflective>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="m1lambert2SG-fx" name="m1lambert2SG">
+      <profile_COMMON>
+        <newparam sid="m1lambert2SG-diffuse-surface">
+          <surface type="2D">
+            <init_from>m1lambert2SG-diffuse-image</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="m1lambert2SG-diffuse-sampler">
+          <sampler2D>
+            <source>m1lambert2SG-diffuse-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="standard">
+          <phong>
+            <emission>
+              <color sid="emission">0   0   0   0</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">0   0   0   1</color>
+            </ambient>
+            <diffuse>
+              <texture texture="m1lambert2SG-diffuse-sampler" texcoord="CHANNEL0" />
+            </diffuse>
+            <specular>
+              <color sid="specular">0   0   0   1</color>
+            </specular>
+            <shininess>
+              <float sid="shininess">0</float>
+            </shininess>
+            <reflective>
+              <color sid="reflective">0   0   0   0</color>
+            </reflective>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_materials>
+    <material id="m0DefaultMaterial" name="m0DefaultMaterial">
+      <instance_effect url="#m0DefaultMaterial-fx"/>
+    </material>
+    <material id="m1lambert2SG" name="m1lambert2SG">
+      <instance_effect url="#m1lambert2SG-fx"/>
+    </material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="meshId0" name="meshId0_name" >
+      <mesh>
+        <source id="meshId0-positions" name="meshId0-positions">
+          <float_array id="meshId0-positions-array" count="12"> -48.7728 -0 45.8001 51.2272 -0 45.8001 51.2272 0 -54.1999 -48.7728 0 -54.1999 </float_array>
+          <technique_common>
+            <accessor count="4" offset="0" source="#meshId0-positions-array" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="meshId0-normals" name="meshId0-normals">
+          <float_array id="meshId0-normals-array" count="12"> 0 1 0 0 1 0 0 1 0 0 1 0 </float_array>
+          <technique_common>
+            <accessor count="4" offset="0" source="#meshId0-normals-array" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="meshId0-tex0" name="meshId0-tex0">
+          <float_array id="meshId0-tex0-array" count="8"> 0 0 1 0 1 1 0 1 </float_array>
+          <technique_common>
+            <accessor count="4" offset="0" source="#meshId0-tex0-array" stride="2">
+              <param name="S" type="float" />
+              <param name="T" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="meshId0-vertices">
+          <input semantic="POSITION" source="#meshId0-positions" />
+          <input semantic="NORMAL" source="#meshId0-normals" />
+          <input semantic="TEXCOORD" source="#meshId0-tex0"  />
+        </vertices>
+        <polylist count="1" material="theresonlyone">
+          <input offset="0" semantic="VERTEX" source="#meshId0-vertices" />
+          <vcount>4 </vcount>
+          <p>0 1 2 3 </p>
+        </polylist>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="myScene" name="myScene">
+      <node id="floor.obj" name="floor.obj">
+        <matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+        <node id="default" name="default">
+          <matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+        </node>
+        <node id="pPlane1" name="pPlane1">
+          <matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+          <instance_geometry url="#meshId0">
+            <bind_material>
+              <technique_common>
+                <instance_material symbol="theresonlyone" target="#m1lambert2SG" />
+              </technique_common>
+            </bind_material>
+          </instance_geometry>
+        </node>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#myScene" />
+  </scene>
+</COLLADA>
