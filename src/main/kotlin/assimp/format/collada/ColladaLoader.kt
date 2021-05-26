@@ -21,13 +21,13 @@ class ColladaLoader : BaseImporter() {
     companion object {
 
         val desc = AiImporterDesc(
-                name = "Collada Importer",
-                comments = "http://collada.org",
-                flags = AiImporterFlags.SupportTextFlavour.i,
-                minMajor = 1, minMinor = 3,
-                maxMajor = 1, maxMinor = 5,
-                fileExtensions = listOf("dae")
-        )
+            name = "Collada Importer",
+            comments = "http://collada.org",
+            flags = AiImporterFlags.SupportTextFlavour.i,
+            minMajor = 1, minMinor = 3,
+            maxMajor = 1, maxMinor = 5,
+            fileExtensions = listOf("dae")
+                                 )
     }
 
     /** Filename, for a verbose error message */
@@ -98,23 +98,23 @@ class ColladaLoader : BaseImporter() {
         fillMaterials(parser)
         // Apply unitsize scale calculation  // TODO glm avoid mat4 instance?
         scene.rootNode.transformation timesAssign AiMatrix4x4(parser.mUnitSize, 0, 0, 0,
-                0, parser.mUnitSize, 0, 0,
-                0, 0, parser.mUnitSize, 0,
-                0, 0, 0, 1)
+                                                              0, parser.mUnitSize, 0, 0,
+                                                              0, 0, parser.mUnitSize, 0,
+                                                              0, 0, 0, 1)
         if (!ignoreUpDirection)
         // Convert to Y_UP, if different orientation
             if (parser.mUpDirection == ColladaParser.UpDirection.X)
                 scene.rootNode.transformation timesAssign AiMatrix4x4(
-                        0, 1, 0, 0,
-                        -1, 0, 0, 0,
-                        0, 0, 1, 0,
-                        0, 0, 0, 1)
+                    0, 1, 0, 0,
+                    -1, 0, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1)
             else if (parser.mUpDirection == ColladaParser.UpDirection.Z)
                 scene.rootNode.transformation timesAssign AiMatrix4x4(
-                        1, 0, 0, 0,
-                        0, 0, -1, 0,
-                        0, +1, 0, 0,
-                        0, 0, 0, 1)
+                    1, 0, 0, 0,
+                    0, 0, -1, 0,
+                    0, +1, 0, 0,
+                    0, 0, 0, 1)
 
         // store all meshes
         storeSceneMeshes(scene)
@@ -491,8 +491,8 @@ class ColladaLoader : BaseImporter() {
         if (pSrcController != null && pSrcController.mType == ControllerType.Skin) {
 
             // refuse if the vertex count does not match
-//      if( pSrcController->weightCounts.size() != dstMesh->numVertices)
-//          throw DeadlyImportError( "Joint Controller vertex count does not match mesh vertex count");
+            //      if( pSrcController->weightCounts.size() != dstMesh->numVertices)
+            //          throw DeadlyImportError( "Joint Controller vertex count does not match mesh vertex count");
 
             // resolve references - joint names
             val jointNamesAcc = pParser.mAccessorLibrary[pSrcController.mJointNameSource]!!
@@ -588,23 +588,23 @@ class ColladaLoader : BaseImporter() {
 
     /** Resolve node instances  */
     fun resolveNodeInstances(pParser: ColladaParser, pNode: Node, resolved: ArrayList<Node>) =
-            // iterate through all nodes to be instanced as children of pNode
-            pNode.mNodeInstances.forEach {
+        // iterate through all nodes to be instanced as children of pNode
+        pNode.mNodeInstances.forEach {
 
-                // find the corresponding node in the library
-                var nd = pParser.mNodeLibrary[it.mNode]
+            // find the corresponding node in the library
+            var nd = pParser.mNodeLibrary[it.mNode]
 
-                // FIX for http://sourceforge.net/tracker/?func=detail&aid=3054873&group_id=226462&atid=1067632
-                // need to check for both name and ID to catch all. To avoid breaking valid files,
-                // the workaround is only enabled when the first attempt to resolve the node has failed.
-                if (nd == null)
-                    nd = findNode(pParser.mRootNode!!, it.mNode)
+            // FIX for http://sourceforge.net/tracker/?func=detail&aid=3054873&group_id=226462&atid=1067632
+            // need to check for both name and ID to catch all. To avoid breaking valid files,
+            // the workaround is only enabled when the first attempt to resolve the node has failed.
+            if (nd == null)
+                nd = findNode(pParser.mRootNode!!, it.mNode)
 
-                if (nd == null)
-                    logger.error { "Collada: Unable to resolve reference to instanced node ${it.mNode}" }
-                else
-                    resolved.add(nd)    //  attach this node to the list of children
-            }
+            if (nd == null)
+                logger.error { "Collada: Unable to resolve reference to instanced node ${it.mNode}" }
+            else
+                resolved.add(nd)    //  attach this node to the list of children
+        }
 
     /** Resolve UV channels */
     fun applyVertexToEffectSemanticMapping(sampler: Sampler, table: SemanticMappingTable) = table.mMap[sampler.mUVChannel]?.let {
@@ -614,23 +614,21 @@ class ColladaLoader : BaseImporter() {
     }
 
     /** Add a texture to a material structure   */
-    fun addTexture(mat: AiMaterial, pParser: ColladaParser, effect: Effect, sampler: Sampler, type: AiTexture.Type, idx: Int = mat.textures.lastIndex) {
+    fun addTexture(mat: AiMaterial, pParser: ColladaParser, effect: Effect, sampler: Sampler, type: AiTexture.Type, idx: Int = mat.textures.lastIndex + 1) {
 
         // first of all, basic file name
         val tex = AiMaterial.Texture(type = type, file = findFilenameForEffectTexture(pParser, effect, sampler.mName))
 
         // mapping mode
-        tex.mapModeU =
-                if (sampler.mWrapU)
-                    if (sampler.mMirrorU) AiTexture.MapMode.mirror
-                    else AiTexture.MapMode.wrap
-                else AiTexture.MapMode.clamp
+        tex.mapModeU = when {
+            sampler.mWrapU -> if (sampler.mMirrorU) AiTexture.MapMode.mirror else AiTexture.MapMode.wrap
+            else -> AiTexture.MapMode.clamp
+        }
 
-        tex.mapModeV =
-                if (sampler.mWrapV)
-                    if (sampler.mMirrorU) AiTexture.MapMode.mirror
-                    else AiTexture.MapMode.wrap
-                else AiTexture.MapMode.clamp
+        tex.mapModeV = when {
+            sampler.mWrapV -> if (sampler.mMirrorU) AiTexture.MapMode.mirror else AiTexture.MapMode.wrap
+            else -> AiTexture.MapMode.clamp
+        }
 
         // UV transformation
         tex.uvTrafo = sampler.mTransform
@@ -644,17 +642,15 @@ class ColladaLoader : BaseImporter() {
         // UV source index ... if we didn't resolve the mapping, it is actually just a guess but it works in most cases. We search for the frst occurrence of a
         // number in the channel name. We assume it is the zero-based index into the UV channel array of all corresponding meshes. It could also be one-based
         // for some exporters, but we won't care of it unless someone complains about.
-        tex.uvwsrc =
-                if (sampler.mUVId != Uint.MAX_VALUE.i) // TODO MAX_VALUE to Int
-                    sampler.mUVId
-                else
-                    sampler.mUVChannel.firstOrNull(Char::isNumeric)?.let {
-                        logger.warn { "Collada: unable to determine UV channel for texture" }
-                        0
-                    }
+        tex.uvwsrc = when {
+            sampler.mUVId != Uint.MAX_VALUE.i -> sampler.mUVId // TODO MAX_VALUE to Int
+            else -> sampler.mUVChannel.firstOrNull(Char::isNumeric)?.let {
+                logger.warn { "Collada: unable to determine UV channel for texture" }
+                0
+            }
+        }
 
-        if(idx != -1)
-            mat.textures.add(idx, tex)
+        mat.textures.add(idx, tex)
     }
 
     /** Fills materials from the collada material definitions   */
@@ -665,19 +661,19 @@ class ColladaLoader : BaseImporter() {
 
         // resolve shading mode
         mat.shadingModel =
-                if (effect.mFaceted) /* fixme */
-                    AiShadingMode.flat
-                else
-                    when (effect.mShadeType) {
-                        ShadeType.Constant -> AiShadingMode.noShading
-                        ShadeType.Lambert -> AiShadingMode.gouraud
-                        ShadeType.Blinn -> AiShadingMode.blinn
-                        ShadeType.Phong -> AiShadingMode.phong
-                        else -> {
-                            logger.warn { "Collada: Unrecognized shading mode, using gouraud shading" }
-                            AiShadingMode.gouraud
-                        }
+            if (effect.mFaceted) /* fixme */
+                AiShadingMode.flat
+            else
+                when (effect.mShadeType) {
+                    ShadeType.Constant -> AiShadingMode.noShading
+                    ShadeType.Lambert -> AiShadingMode.gouraud
+                    ShadeType.Blinn -> AiShadingMode.blinn
+                    ShadeType.Phong -> AiShadingMode.phong
+                    else -> {
+                        logger.warn { "Collada: Unrecognized shading mode, using gouraud shading" }
+                        AiShadingMode.gouraud
                     }
+                }
 
         // double-sided?
         mat.twoSided = effect.mDoubleSided
@@ -687,11 +683,11 @@ class ColladaLoader : BaseImporter() {
 
         // add material colors
         mat.color = AiMaterial.Color(
-                ambient = AiColor3D(effect.mAmbient),
-                diffuse = AiColor3D(effect.mDiffuse),
-                specular = AiColor3D(effect.mSpecular),
-                emissive = AiColor3D(effect.mEmissive),
-                reflective = AiColor3D(effect.mReflective))
+            ambient = AiColor3D(effect.mAmbient),
+            diffuse = AiColor3D(effect.mDiffuse),
+            specular = AiColor3D(effect.mSpecular),
+            emissive = AiColor3D(effect.mEmissive),
+            reflective = AiColor3D(effect.mReflective))
 
         // scalar properties
         mat.shininess = effect.mShininess
@@ -735,14 +731,14 @@ class ColladaLoader : BaseImporter() {
         if (effect.mTexDiffuse.mName.isNotEmpty())
             addTexture(mat, pParser, effect, effect.mTexDiffuse, AiTexture.Type.diffuse)
 
-//        if (!effect.mTexBump.name.empty())
-//            AddTexture(mat, pParser, effect, effect.mTexBump, aiTextureType_NORMALS);
-//
-//        if (!effect.mTexTransparent.name.empty())
-//            AddTexture(mat, pParser, effect, effect.mTexTransparent, aiTextureType_OPACITY);
-//
-//        if (!effect.mTexReflective.name.empty())
-//            AddTexture(mat, pParser, effect, effect.mTexReflective, aiTextureType_REFLECTION);
+        //        if (!effect.mTexBump.name.empty())
+        //            AddTexture(mat, pParser, effect, effect.mTexBump, aiTextureType_NORMALS);
+        //
+        //        if (!effect.mTexTransparent.name.empty())
+        //            AddTexture(mat, pParser, effect, effect.mTexTransparent, aiTextureType_OPACITY);
+        //
+        //        if (!effect.mTexReflective.name.empty())
+        //            AddTexture(mat, pParser, effect, effect.mTexReflective, aiTextureType_REFLECTION);
     }
 
     /** Constructs materials from the collada material definitions  */
@@ -779,7 +775,7 @@ class ColladaLoader : BaseImporter() {
         // find the image referred by this name in the image library of the scene
         val image = pParser.mImageLibrary[name] ?: run {
             // missing texture should not stop the conversion
-//            logger.error { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
+            //            logger.error { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
             logger.warn { "Collada: Unable to resolve effect texture entry \"$pName\", ended up at ID \"$name\"." }
             //set default texture file name
             return "$name.jpg" // result
@@ -855,10 +851,10 @@ class ColladaLoader : BaseImporter() {
     /** Finds a proper unique name for a node derived from the collada-node's properties.
      *  The name must be unique for proper node-bone association.   */
     fun findNameForNode(pNode: Node) = when {
-    /*  Now setup the name of the assimp node. The collada name might not be unique, so we use the collada ID.  */
+        /*  Now setup the name of the assimp node. The collada name might not be unique, so we use the collada ID.  */
         pNode.mID.isNotEmpty() -> pNode.mID
         pNode.mSID.isNotEmpty() -> pNode.mSID
-    // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
+        // No need to worry. Unnamed nodes are no problem at all, except if cameras or lights need to be assigned to them.
         else -> "\$ColladaAutoName\$_${mNodeNameCounter++}"
     }
 
@@ -1156,7 +1152,7 @@ class ColladaLoader : BaseImporter() {
                         /*  https://github.com/assimp/assimp/issues/458.    Sub-sample axis-angle channels if the delta
                             between two consecutive key-frame angles is >= 180 degrees.                         */
                         if (transforms[channelElement.mTransformIndex.i].mType == TransformType.ROTATE && channelElement.mSubElement.i == 3
-                                && pos > 0 && pos < channelElement.mTimeAccessor.count) {
+                            && pos > 0 && pos < channelElement.mTimeAccessor.count) {
                             val curKeyAngle = readFloat(channelElement.mValueAccessor, channelElement.valueData, pos, 0)
                             val lastKeyAngle = readFloat(channelElement.mValueAccessor, channelElement.valueData, pos - 1, 0)
                             val curKeyTime = readFloat(channelElement.mTimeAccessor, channelElement.timeData, pos, 0)
@@ -1179,18 +1175,18 @@ class ColladaLoader : BaseImporter() {
                 }
             }
             // there should be some keyframes, but we aren't that fixated on valid input data
-//      ai_assert( resultTrafos.size() > 0);
+            //      ai_assert( resultTrafos.size() > 0);
 
             // build an animation channel for the given node out of these trafo keys
             if (resultTrafos.isNotEmpty()) {
                 val dstAnim = AiNodeAnim(
-                        nodeName = nodeName,
-                        numPositionKeys = resultTrafos.size,
-                        numRotationKeys = resultTrafos.size,
-                        numScalingKeys = resultTrafos.size,
-                        positionKeys = Array(resultTrafos.size){ AiVectorKey() }.toCollection(ArrayList()),
-                        rotationKeys = Array(resultTrafos.size) { AiQuatKey() }.toCollection(ArrayList()),
-                        scalingKeys = Array(resultTrafos.size) { AiVectorKey() }.toCollection(ArrayList()))
+                    nodeName = nodeName,
+                    numPositionKeys = resultTrafos.size,
+                    numRotationKeys = resultTrafos.size,
+                    numScalingKeys = resultTrafos.size,
+                    positionKeys = Array(resultTrafos.size) { AiVectorKey() }.toCollection(ArrayList()),
+                    rotationKeys = Array(resultTrafos.size) { AiQuatKey() }.toCollection(ArrayList()),
+                    scalingKeys = Array(resultTrafos.size) { AiVectorKey() }.toCollection(ArrayList()))
 
                 for (a in 0 until resultTrafos.size) {
                     val mat = resultTrafos[a]
@@ -1232,10 +1228,10 @@ class ColladaLoader : BaseImporter() {
                     morphAnim.numKeys = morphTimeValues.size
                     morphAnim.keys = Array<AiMeshMorphKey>(morphAnim.numKeys, { key ->
                         AiMeshMorphKey(
-                                numValuesAndWeights = morphChannels.size,
-                                values = IntArray(morphChannels.size, { it }),
-                                weights = DoubleArray(morphChannels.size, { getWeightAtKey(morphTimeValues[key], it).d }),
-                                time = morphTimeValues[key].time.d)
+                            numValuesAndWeights = morphChannels.size,
+                            values = IntArray(morphChannels.size, { it }),
+                            weights = DoubleArray(morphChannels.size, { getWeightAtKey(morphTimeValues[key], it).d }),
+                            time = morphTimeValues[key].time.d)
                     })
                     morphAnims.add(morphAnim)
                 }
@@ -1244,14 +1240,14 @@ class ColladaLoader : BaseImporter() {
 
         if (anims.isNotEmpty() || morphAnims.isNotEmpty())
             mAnims.add(AiAnimation(
-                    name = pName,
-                    numChannels = anims.size,
-                    numMorphMeshChannels = morphAnims.size,
-                    duration = 0.0,
-                    ticksPerSecond = 1.0).apply {
+                name = pName,
+                numChannels = anims.size,
+                numMorphMeshChannels = morphAnims.size,
+                duration = 0.0,
+                ticksPerSecond = 1.0).apply {
                 if (numChannels > 0) channels = anims.filterNotNullTo(ArrayList())
                 if (numMorphMeshChannels > 0) morphMeshChannels = morphAnims
-                anims.forEach{
+                anims.forEach {
                     duration = duration max it.positionKeys[it.numPositionKeys - 1].time
                     duration = duration max it.rotationKeys[it.numPositionKeys - 1].time
                     duration = duration max it.scalingKeys[it.numPositionKeys - 1].time
@@ -1302,7 +1298,7 @@ class ColladaLoader : BaseImporter() {
      *  See BaseImporter.info for the details */
     override val info = desc
 
-    override fun setupProperties(imp:Importer)    {
+    override fun setupProperties(imp: Importer) {
         noSkeletonMesh = imp[AiConfig.Import.NO_SKELETON_MESHES] ?: false
         ignoreUpDirection = imp[AiConfig.Import.COLLADA_IGNORE_UP_DIRECTION] ?: false
     }
@@ -1311,17 +1307,17 @@ class ColladaLoader : BaseImporter() {
     // ColladaLoader.h -----------------------------------------------------------------------------------------------------
     //
     class ColladaMeshIndex(
-            var mMeshID: String = "",
-            var mSubMesh: Int = 0,
-            var mMaterial: String = "") {
+        var mMeshID: String = "",
+        var mSubMesh: Int = 0,
+        var mMaterial: String = "") {
 
         operator fun compareTo(p: ColladaMeshIndex): Int =
-                if (mMeshID == p.mMeshID)
-                    if (mSubMesh == p.mSubMesh)
-                        mMaterial.compareTo(p.mMaterial)
-                    else
-                        mSubMesh.compareTo(p.mSubMesh)
+            if (mMeshID == p.mMeshID)
+                if (mSubMesh == p.mSubMesh)
+                    mMaterial.compareTo(p.mMaterial)
                 else
-                    mMeshID.compareTo(p.mMeshID)
+                    mSubMesh.compareTo(p.mSubMesh)
+            else
+                mMeshID.compareTo(p.mMeshID)
     }
 }
