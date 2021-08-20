@@ -408,18 +408,18 @@ data class AiMaterial(
 
         var refracti: Float? = null,
 
-        var color: AiMaterial.Color? = null,
+        var color: Color? = null,
 
         var displacementScaling: Float? = null,
 
-        var textures: MutableList<AiMaterial.Texture> = mutableListOf()
+        var textures: MutableList<Texture> = mutableListOf()
 
         // TODO const AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = '?bg.global';
 ) {
     constructor(other: AiMaterial) : this(other.name, other.twoSided, other.shadingModel, other.wireframe,
             other.blendFunc, other.opacity, other.bumpScaling, other.shininess, other.reflectivity,
             other.shininessStrength, other.refracti, if (other.color == null) null else Color(other.color!!),
-            other.displacementScaling, MutableList(other.textures.size, { Texture(other.textures[it]) }))
+            other.displacementScaling, MutableList(other.textures.size) { Texture(other.textures[it]) })
 
     data class Color(
 
