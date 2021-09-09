@@ -644,9 +644,8 @@ class ColladaLoader : BaseImporter() {
         // for some exporters, but we won't care of it unless someone complains about.
         tex.uvwsrc = when {
             sampler.mUVId != Uint.MAX_VALUE.i -> sampler.mUVId // TODO MAX_VALUE to Int
-            else -> sampler.mUVChannel.firstOrNull(Char::isNumeric)?.let {
+            else -> sampler.mUVChannel.firstOrNull(Char::isNumeric)?.minus('0') ?: 0.also {
                 logger.warn { "Collada: unable to determine UV channel for texture" }
-                0
             }
         }
 
