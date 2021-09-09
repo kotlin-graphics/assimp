@@ -122,7 +122,12 @@ class ColladaParser(pFile: IOStream) {
         reader = factory.createXMLEventReader(pFile.reader())
 
         // start reading
-        readContents()
+        try {
+            readContents()
+        } catch (e: Exception) {
+            error("Collada parse error at line ${event.location.lineNumber}, column ${event.location.columnNumber}, in \"${pFile.path}\"")
+        }
+
     }
 
     /** Read bool from text contents of current element */
