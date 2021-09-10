@@ -63,6 +63,7 @@ abstract class BaseImporter {
         } catch (err: Exception) {
             // extract error description
             logger.error(err) {}
+            errorText = err.localizedMessage
             return null
         }
         // return what we gathered from the import.

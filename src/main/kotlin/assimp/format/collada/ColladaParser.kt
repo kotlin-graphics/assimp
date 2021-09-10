@@ -122,7 +122,12 @@ class ColladaParser(pFile: IOStream) {
         reader = factory.createXMLEventReader(pFile.reader())
 
         // start reading
-        readContents()
+        try {
+            readContents()
+        } catch (e: Exception) {
+            error("Collada parse error at line ${event.location.lineNumber}, column ${event.location.columnNumber}, in \"${pFile.path}\"")
+        }
+
     }
 
     /** Read bool from text contents of current element */
@@ -597,9 +602,8 @@ class ColladaParser(pFile: IOStream) {
                     mMaterialLibrary[id] = Material()   // create an entry and store it in the library under its ID
                     if (name.isNotEmpty()) {
                         if (names.contains(name)) {
-                            val nextId = names.keys.sorted().indexOf(name) + 1
-                            val nextName = names.keys.sorted()[nextId]
-                            name += " " + names[nextName]
+                            names[name] = 1 + names[name]!!
+                            name += " " + names[name]
                         } else names[name] = 0
                         mMaterialLibrary[id]!!.mName = name
                     }
