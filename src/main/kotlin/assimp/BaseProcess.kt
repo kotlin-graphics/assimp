@@ -52,20 +52,22 @@ import assimp.format.ProgressHandler
  */
 class SharedPostProcessInfo {
 
-    interface Base
+//    interface Base
 
     /** Map of all stored properties    */
-    private val map = mutableMapOf<Int, Base>()
+    private val map = mutableMapOf<Int, Any>()
 
     /** Add a property to the list  */
-    fun addProperty(name: String, data: Base) = setGenericPropertyPtr(map, name, data)
+    fun <T> addProperty(name: String, data: T) = setGenericPropertyPtr(map, name, data)
 
     /** Get a heap property */
-    fun getProperty(name: String) = getGenericProperty(map, name)
+    fun <T> getProperty(name: String): T = getGenericProperty(map, name) as T
 
     /** Remove a property of a specific type    */
     fun removeProperty(name: String) = setGenericPropertyPtr(map, name)
 }
+
+const val AI_SPP_SPATIAL_SORT = "\$Spat"
 
 // ---------------------------------------------------------------------------
 /** The BaseProcess defines a common interface for all post processing steps.
@@ -80,7 +82,7 @@ abstract class BaseProcess
 /** Constructor to be privately used by Importer */ protected constructor() {
 
     /** See the doc of #SharedPostProcessInfo for more details */
-    lateinit var shared: SharedPostProcessInfo
+    var shared: SharedPostProcessInfo? = null
 
     /** Currently active progress handler */
     private lateinit var progress: ProgressHandler
