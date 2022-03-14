@@ -110,10 +110,12 @@ class SpatialSort{
     // Fun findIdenticalPositions() - Done
     // TODO: fun toBinary
         // changed parameter type from ai_real to float
-    fun toBinary(pValue: Float): Float {
+    fun toBinary(pValue: Float): Float? {
 
         assert(UInt.SIZE_BITS >= Float.SIZE_BITS)
         Float.BYTES
+
+        return null
 
 
 

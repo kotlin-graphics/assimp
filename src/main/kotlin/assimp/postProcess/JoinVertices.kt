@@ -104,7 +104,7 @@ class JoinVertices : BaseProcess() {
             var v = Vertex()
 
             // collect all vertices that are close enough to the given position
-            vertexFinder.findPositions(v.position, radius, verticesFound)        //what radius?
+            vertexFinder.findIdenticalPositions(v.position, verticesFound)        //what radius?
                     //=vertexFinder->FindIdenticalPositions( v.position, verticesFound);
             var matchIndex = 0xffffffff;
 
