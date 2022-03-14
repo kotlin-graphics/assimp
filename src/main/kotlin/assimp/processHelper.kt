@@ -1,5 +1,7 @@
 package assimp
 
+import glm_.vec4.Vec4
+
 object ProcessHelper {
 
     fun getMeshVFormatUnique(pcMesh: AiMesh): Int {
@@ -30,5 +32,13 @@ object ProcessHelper {
         while (pcMesh.hasVertexColors(p))
             iRet = iRet or (0x1000000 shl p++)
         return iRet
+    }
+
+    //(TODO write getColorDifference(pColor1: aiColor4D, pColor2: aiColor4D) (quadratic color difference))
+    fun getColorDifference(pColor1: Vec4, pColor2: Vec4): Float {
+        return ( (pColor1.r - pColor2.r)*(pColor1.r - pColor2.r) +
+                (pColor1.g - pColor2.g)*(pColor1.g - pColor2.g) +
+                (pColor1.b - pColor2.b)*(pColor1.b - pColor2.b) +
+                (pColor1.a - pColor2.a)*(pColor1.a - pColor2.a) )
     }
 }

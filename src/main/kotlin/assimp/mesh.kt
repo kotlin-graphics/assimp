@@ -52,13 +52,14 @@ const val AI_MAX_NUMBER_OF_TEXTURECOORDS = 0x8
  * Together with the #aiProcess_Triangulate flag you can then be sure that #aiFace::mNumIndices is always 3.
  * @note Take a look at the @link data Data Structures page @endlink for more information on the layout and winding
  * order of a face.  */
+    //decommented AIFace for use in JointVerticesTest.kt
 //data class AiFace(
-//        //! Number of indices defining this face.
-//        //! The maximum value for this member is #AI_MAX_FACE_INDICES.
-//        var mNumIndices: Int = 0,
-//
-//        //! Pointer to the indices array. Size of the array is given in numIndices.
-//        var mIndices: MutableList<Int> = mutableListOf())
+        //! Number of indices defining this face.
+        //! The maximum value for this member is #AI_MAX_FACE_INDICES.
+        //var mNumIndices: Int = 0,
+
+        //! Pointer to the indices array. Size of the array is given in numIndices.
+        //var mIndices: MutableList<Int> = mutableListOf())
 typealias AiFace = MutableList<Int>
 
 // ---------------------------------------------------------------------------
