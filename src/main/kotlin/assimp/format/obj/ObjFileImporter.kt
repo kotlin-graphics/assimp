@@ -45,6 +45,8 @@ class ObjFileImporter : BaseImporter() {
 
         // And create the proper return structures out of it
         createDataFromImport(parser.model, scene, ioSystem)
+
+        ioSystem.close()
     }
 
     /**  Create the data from parsed obj-file   */

@@ -300,6 +300,7 @@ constructor() {
 
         // Get file size for progress handler
         val fileSize = ioSystem.open(file).length.i
+        ioSystem.close()
 
         // Dispatch the reading to the worker class for this format
         val desc = imp.info
